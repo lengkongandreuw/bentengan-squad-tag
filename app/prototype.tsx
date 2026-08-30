@@ -10,17 +10,18 @@ type Grade = 25 | 50 | 100;
 type Player = {
   id: string; name: string; team: Team; controlled?: boolean; x: number; y: number;
   vx: number; vy: number; state: PlayerState; exitOrder: number; boost: number;
-  baseCharge: number; tagCooldown: number; parkourUntil: number; boostReadyAt: number;
+  baseCharge: number; exitDeadline: number; tagCooldown: number; parkourUntil: number; boostReadyAt: number;
   fortCharge: number; prisonOwner?: Team; prisonIndex: number; captures: number; aiSeed: number;
+  rescueShieldUntil: number; capturedIds: string[];
 };
 type Obstacle = { x: number; y: number; w: number; h: number; kind: 'fence' | 'canal' | 'stall' | 'chairs' };
-type Refill = { id: number; x: number; y: number; grade: Grade };
+type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
 type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean };
 type Snapshot = {
   blue: number; red: number; round: number; timer: number; boost: number; boostCountdown: number;
   order: number; state: PlayerState; paused: boolean; logs: string[]; mission: Mission;
   team: Array<{ name: string; state: PlayerState; boost: number }>;
-  blueHeld: number; redHeld: number; pickupCount: number; fortLock: string;
+  blueHeld: number; redHeld: number; pickupCount: number; fortLock: string; baseGrace: number; suddenDeath: boolean;
 };
 
 const W = 1440;
@@ -46,7 +47,7 @@ const initialSnapshot: Snapshot = {
   blue: 0, red: 0, round: 1, timer: 240, boost: 100, boostCountdown: 0, order: 0,
   state: 'IN_BASE', paused: false, logs: ['Prototype 5v5 siap.'],
   mission: { refresh: false, boost: false, parkour: false, tag: false, rescue: false }, team: [],
-  blueHeld: 0, redHeld: 0, pickupCount: 0, fortLock: 'Benteng terbuka',
+  blueHeld: 0, redHeld: 0, pickupCount: 0, fortLock: 'Benteng terbuka', baseGrace: 0, suddenDeath: false,
 };
 
 const other = (team: Team): Team => team === 'blue' ? 'red' : 'blue';
@@ -88,7 +89,7 @@ export function BentenganPrototype() {
     let score = { blue: 0, red: 0 }, paused = false, announcement = mode === 'playing' ? 'BERSIAP!' : '';
     let logs = ['5v5 · pemain yang keluar terakhir memiliki prioritas tangkap tertinggi.'];
     let mission: Mission = { refresh: false, boost: false, parkour: false, tag: false, rescue: false };
-    let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 3500, refillId = 0;
+    let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 8000, refillId = 0, suddenDeath = false;
     let particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; color: string }> = [];
     let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false;
 
@@ -105,8 +106,8 @@ export function BentenganPrototype() {
       return {
         id, name, team, controlled, x: b.x + (slot % 2) * (team === 'blue' ? 18 : -18), y: b.y - 52 + slot * 26,
         vx: 0, vy: 0, state: 'IN_BASE', exitOrder: 0, boost: controlled ? selected.boost : 100,
-        baseCharge: .75, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
-        prisonIndex: 0, captures: 0, aiSeed: .35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
+        baseCharge: 0, exitDeadline: 0, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
+        prisonIndex: 0, captures: 0, rescueShieldUntil: 0, capturedIds: [], aiSeed: .35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
       };
     };
     const makePlayers = () => [
@@ -123,19 +124,22 @@ export function BentenganPrototype() {
         particles.push({ x, y, vx: Math.cos(a) * (30 + Math.random() * 80), vy: Math.sin(a) * (30 + Math.random() * 80), life: .65, color });
       }
     };
-    const randomGrade = (): Grade => { const roll = Math.random(); return roll < .68 ? 25 : roll < .93 ? 50 : 100; };
-    const spawnRefill = () => {
+    const randomGrade = (): Grade => { const roll = Math.random(); return roll < .7 ? 25 : roll < .93 ? 50 : 100; };
+    const spawnRefill = (now = performance.now()) => {
+      const laneCounts = ([0, 1, 2] as const).map(lane => refills.filter(item => item.lane === lane).length);
+      const minimum = Math.min(...laneCounts); const lane = laneCounts.indexOf(minimum) as 0 | 1 | 2;
+      const laneBounds = [[92, 292], [300, 516], [524, 712]] as const;
       for (let tries = 0; tries < 30; tries++) {
-        const x = 236 + Math.random() * (W - 472), y = 92 + Math.random() * (H - 172);
+        const x = 236 + Math.random() * (W - 472), y = laneBounds[lane][0] + Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
         if (OBSTACLES.every(o => x < o.x - 28 || x > o.x + o.w + 28 || y < o.y - 28 || y > o.y + o.h + 28)) {
-          refills.push({ id: ++refillId, x, y, grade: randomGrade() }); return;
+          refills.push({ id: ++refillId, x, y, grade: randomGrade(), lane, expiresAt: now + 25000 }); return;
         }
       }
     };
-    const seedRefills = () => { refills = []; for (let i = 0; i < 10; i++) spawnRefill(); };
+    const seedRefills = () => { refills = []; const now = performance.now(); for (let i = 0; i < 6; i++) spawnRefill(now); };
     seedRefills();
     const resetRound = () => {
-      players = makePlayers(); seedRefills(); timer = 240; exitCounter = 0; totalCapture = { blue: 0, red: 0 };
+      players = makePlayers(); seedRefills(); timer = 240; exitCounter = 0; totalCapture = { blue: 0, red: 0 }; suddenDeath = false;
       phase = 'COUNTDOWN'; phaseUntil = performance.now() + 2800; announcement = `RONDE ${round}`;
       log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
     };
@@ -148,10 +152,28 @@ export function BentenganPrototype() {
     };
     const fortOccupant = (baseTeam: Team, exceptId?: string) =>
       players.find(p => p.id !== exceptId && p.state === 'ACTIVE' && p.team !== baseTeam && distance(p, BASES[baseTeam]) < BASE_RADIUS);
+    const tieHash = (id: string) => {
+      let value = (2166136261 ^ round) >>> 0;
+      for (let i = 0; i < id.length; i++) { value ^= id.charCodeAt(i); value = Math.imul(value, 16777619) >>> 0; }
+      value ^= value >>> 16; value = Math.imul(value, 0x7feb352d) >>> 0; value ^= value >>> 15;
+      return value >>> 0;
+    };
+    const segmentHitsRect = (a: Player, b: Player, o: Obstacle) => {
+      if (o.kind === 'canal') return false;
+      const steps = 8;
+      for (let i = 1; i < steps; i++) {
+        const t = i / steps, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+        if (x >= o.x && x <= o.x + o.w && y >= o.y && y <= o.y + o.h) return true;
+      }
+      return false;
+    };
+    const hasLineOfSight = (a: Player, b: Player) => !OBSTACLES.some(o => segmentHitsRect(a, b, o));
     const blocked = (x: number, y: number, p: Player, now: number) => {
       if (now >= p.parkourUntil && OBSTACLES.some(o => x + 13 > o.x && x - 13 < o.x + o.w && y + 13 > o.y && y - 13 < o.y + o.h)) return true;
+      if (p.state === 'IN_BASE' && p.baseCharge < .75 && distance(p, BASES[p.team]) < BASE_RADIUS && distance({ x, y }, BASES[p.team]) >= BASE_RADIUS) return true;
       for (const team of ['blue', 'red'] as Team[]) {
-        if (distance({ x, y }, BASES[team]) < BASE_RADIUS && distance(p, BASES[team]) >= BASE_RADIUS && fortOccupant(team, p.id)) return true;
+        const entering = distance({ x, y }, BASES[team]) < BASE_RADIUS && distance(p, BASES[team]) >= BASE_RADIUS;
+        if (entering && p.team !== team && fortOccupant(team, p.id)) return true;
       }
       return false;
     };
@@ -185,24 +207,38 @@ export function BentenganPrototype() {
       });
     };
     const capture = (winner: Player, loser: Player, now: number) => {
-      if (winner.tagCooldown > now || loser.state !== 'ACTIVE' || winner.exitOrder <= loser.exitOrder) return;
-      winner.tagCooldown = now + 500; winner.captures++; loser.state = 'PRISONER'; loser.prisonOwner = winner.team; loser.fortCharge = 0;
+      const targetable = loser.state === 'ACTIVE' || (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
+      if (winner.state !== 'ACTIVE' || now < winner.parkourUntil || now < loser.parkourUntil || winner.tagCooldown > now || !targetable || winner.exitOrder <= loser.exitOrder) return;
+      winner.tagCooldown = now + 500; winner.captures++; if (!winner.capturedIds.includes(loser.id)) winner.capturedIds.push(loser.id);
+      loser.state = 'PRISONER'; loser.prisonOwner = winner.team; loser.fortCharge = 0; loser.rescueShieldUntil = 0;
       burst(loser.x, loser.y, TEAM_COLOR[winner.team]); beep(winner.controlled ? 820 : 250);
       log(`${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`);
       if (winner.controlled) mission.tag = true; layoutPrisons();
+      if (suddenDeath) winRound(winner.team, 'SUDDEN DEATH TAG');
     };
     const tagCheck = (now: number) => {
+      const contacts: Array<{ attacker: Player; target: Player }> = [];
       for (let i = 0; i < players.length; i++) for (let j = i + 1; j < players.length; j++) {
         const a = players[i], b = players[j];
-        if (a.team === b.team || a.state !== 'ACTIVE' || b.state !== 'ACTIVE' || distance(a, b) > 28) continue;
-        if (a.exitOrder > b.exitOrder) capture(a, b, now); else if (b.exitOrder > a.exitOrder) capture(b, a, now);
+        if (a.team === b.team || distance(a, b) > 28 || !hasLineOfSight(a, b) || now < a.parkourUntil || now < b.parkourUntil) continue;
+        const aTargetable = a.state === 'ACTIVE' || (a.state === 'RETURNING' && now >= a.rescueShieldUntil);
+        const bTargetable = b.state === 'ACTIVE' || (b.state === 'RETURNING' && now >= b.rescueShieldUntil);
+        if (a.state === 'ACTIVE' && bTargetable && a.exitOrder > b.exitOrder) contacts.push({ attacker: a, target: b });
+        else if (b.state === 'ACTIVE' && aTargetable && b.exitOrder > a.exitOrder) contacts.push({ attacker: b, target: a });
       }
+      contacts.sort((a, b) => b.attacker.exitOrder - a.attacker.exitOrder || b.target.exitOrder - a.target.exitOrder || a.attacker.id.localeCompare(b.attacker.id));
+      const resolved = new Set<string>();
+      contacts.forEach(({ attacker, target }) => {
+        if (resolved.has(attacker.id) || resolved.has(target.id)) return;
+        const before = target.state; capture(attacker, target, now);
+        if (before !== 'PRISONER' && target.state === 'PRISONER') { resolved.add(attacker.id); resolved.add(target.id); }
+      });
     };
-    const rescueCheck = () => {
+    const rescueCheck = (now: number) => {
       players.filter(p => p.state === 'ACTIVE').forEach(rescuer => {
         const held = players.filter(p => p.team === rescuer.team && p.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex);
         if (held[0] && distance(rescuer, held[0]) < 32) {
-          held.forEach(p => { p.state = 'RETURNING'; p.prisonOwner = undefined; p.x += rescuer.team === 'blue' ? -22 : 22; });
+          held.forEach(p => { p.state = 'RETURNING'; p.prisonOwner = undefined; p.rescueShieldUntil = now + 1500; p.x += rescuer.team === 'blue' ? -22 : 22; });
           burst(held[0].x, held[0].y, '#b9ee3d', 26); beep(620, .16); log(`${rescuer.name} membebaskan ${held.length} rekan.`);
           if (rescuer.controlled) mission.rescue = true;
         }
@@ -211,25 +247,41 @@ export function BentenganPrototype() {
     const refillCheck = () => {
       players.filter(p => p.state === 'ACTIVE' && p.boost < (p.controlled ? selected.boost : 100)).forEach(p => {
         const item = refills.find(i => distance(p, i) < 27); if (!item) return;
-        p.boost = Math.min(p.controlled ? selected.boost : 100, p.boost + item.grade); refills = refills.filter(i => i.id !== item.id);
+        const maxBoost = p.controlled ? selected.boost : 100;
+        p.boost = Math.min(maxBoost, p.boost + maxBoost * item.grade / 100); refills = refills.filter(i => i.id !== item.id);
         burst(item.x, item.y, item.grade === 100 ? '#ef75ff' : item.grade === 50 ? '#60e6ff' : '#b9ee3d', 18);
         beep(560 + item.grade * 2, .12); if (p.controlled) mission.boost = true; log(`${p.name} mengambil refill boost ${item.grade}%.`);
       });
     };
-    const baseCheck = (p: Player, dt: number, now: number) => {
+    const baseCheck = (p: Player, dt: number, now: number, exitCandidates: Player[]) => {
       if (p.state === 'PRISONER') return;
       const insideOwn = distance(p, BASES[p.team]) < BASE_RADIUS, maxBoost = p.controlled ? selected.boost : 100;
+      const contested = Boolean(fortOccupant(p.team));
       if (insideOwn) {
-        if (p.state !== 'IN_BASE') { p.state = 'IN_BASE'; p.baseCharge = 0; p.fortCharge = 0; }
-        p.baseCharge = Math.min(.75, p.baseCharge + dt); p.boost = maxBoost; p.boostReadyAt = 0;
+        if (contested) {
+          if (p.state === 'IN_BASE' || p.state === 'RETURNING') exitCandidates.push(p);
+        } else {
+          if (p.state !== 'IN_BASE') { p.state = 'IN_BASE'; p.baseCharge = 0; p.exitDeadline = 0; p.fortCharge = 0; }
+          const charging = players
+            .filter(q => q.team === p.team && q.state === 'IN_BASE' && distance(q, BASES[q.team]) < BASE_RADIUS)
+            .sort((a, b) => b.baseCharge - a.baseCharge || tieHash(a.id) - tieHash(b.id)).slice(0, 3);
+          if (charging.some(q => q.id === p.id) && p.baseCharge < .75) {
+            p.baseCharge = Math.min(.75, p.baseCharge + dt);
+            if (p.baseCharge >= .75 && !p.exitDeadline) p.exitDeadline = now + 5000;
+          }
+          p.boost = maxBoost; p.boostReadyAt = 0;
+          if (p.baseCharge >= .75 && p.exitDeadline > 0 && now >= p.exitDeadline) {
+            p.x = BASES[p.team].x + (p.team === 'blue' ? BASE_RADIUS + 5 : -BASE_RADIUS - 5);
+            exitCandidates.push(p); log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
+          }
+        }
       } else if (p.state === 'IN_BASE' && p.baseCharge >= .75) {
-        p.state = 'ACTIVE'; p.exitOrder = ++exitCounter; p.baseCharge = 0;
-        if (p.controlled && p.exitOrder > 5) mission.refresh = true;
-        log(`${p.name} keluar sebagai urutan #${p.exitOrder}.`); beep(p.controlled ? 520 : 380);
+        exitCandidates.push(p);
       }
-      if (p.state === 'RETURNING' && insideOwn) { p.state = 'IN_BASE'; p.baseCharge = .75; p.boost = maxBoost; log(`${p.name} kembali—boost penuh.`); }
       if (p.state === 'ACTIVE' && distance(p, BASES[other(p.team)]) < BASE_RADIUS) {
-        p.fortCharge += dt; if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
+        const defending = players.some(q => q.team !== p.team && q.state === 'ACTIVE' && distance(q, BASES[other(p.team)]) < BASE_RADIUS);
+        p.fortCharge = defending ? 0 : p.fortCharge + dt;
+        if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
       } else p.fortCharge = 0;
       if (p.boost < maxBoost && p.boostReadyAt > 0 && now >= p.boostReadyAt) {
         p.boost = maxBoost; p.boostReadyAt = 0; if (p.controlled) { log('Boost RAKA pulih penuh setelah 20 detik.'); beep(690, .13); }
@@ -245,23 +297,27 @@ export function BentenganPrototype() {
       }
       if (phase === 'ROUND_OVER' && now >= phaseUntil) { round++; resetRound(); return; }
       if (phase === 'MATCH_OVER') { if (now >= phaseUntil) { score = { blue: 0, red: 0 }; round = 1; resetRound(); } return; }
-      timer -= dt;
-      if (timer <= 0) {
+      if (!suddenDeath) timer -= dt;
+      if (!suddenDeath && timer <= 0) {
         const blueHeld = players.filter(p => p.team === 'red' && p.state === 'PRISONER').length;
         const redHeld = players.filter(p => p.team === 'blue' && p.state === 'PRISONER').length;
-        if (blueHeld === redHeld) winRound(players.reduce((best, p) => p.captures > best.captures ? p : best).team, 'SUDDEN SCORE');
-        else winRound(blueHeld > redHeld ? 'blue' : 'red', 'WAKTU HABIS');
+        const blueUnique = new Set(players.filter(p => p.team === 'blue').flatMap(p => p.capturedIds)).size;
+        const redUnique = new Set(players.filter(p => p.team === 'red').flatMap(p => p.capturedIds)).size;
+        if (blueHeld !== redHeld) winRound(blueHeld > redHeld ? 'blue' : 'red', 'WAKTU HABIS');
+        else if (blueUnique !== redUnique) winRound(blueUnique > redUnique ? 'blue' : 'red', 'TANGKAPAN UNIK');
+        else { suddenDeath = true; timer = 0; announcement = 'SUDDEN DEATH'; log('Skor seri—tag atau rebut benteng berikutnya menang.'); beep(760, .22); }
       }
-      if (now >= nextRefillSpawn && refills.length < 18) { spawnRefill(); nextRefillSpawn = now + 3500 + Math.random() * 2500; }
+      refills = refills.filter(item => item.expiresAt > now);
+      if (now >= nextRefillSpawn && refills.length < 9) { spawnRefill(now); nextRefillSpawn = now + 8000 + Math.random() * 4000; }
       const me = players[0]; let dx = 0, dy = 0;
       if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
       if (keys.current.has('s') || keys.current.has('arrowdown')) dy++;
-      const boosting = keys.current.has('shift') && me.boost > 0 && (dx || dy) && me.state !== 'PRISONER';
+      const boosting = keys.current.has('shift') && me.boost > 0 && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE');
       if (boosting) { me.boost = Math.max(0, me.boost - 31 * dt); me.boostReadyAt = now + 20000; mission.boost = true; }
       const space = keys.current.has(' ');
-      if (space && !parkourLatch && me.boost >= 8 && now > me.parkourUntil && (dx || dy)) {
+      if (space && !parkourLatch && me.boost >= 8 && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
         const near = OBSTACLES.some(o => me.x + 44 > o.x && me.x - 44 < o.x + o.w && me.y + 44 > o.y && me.y - 44 < o.y + o.h);
         if (near) {
           me.parkourUntil = now + 360 / selected.agility; me.boost = Math.max(0, me.boost - 8); me.boostReadyAt = now + 20000;
@@ -270,7 +326,8 @@ export function BentenganPrototype() {
         }
       }
       parkourLatch = space;
-      if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? 1.68 : 1), dt, now);
+      if (me.state === 'RETURNING') { const vector = baseVector(me); move(me, vector.x, vector.y, selected.speed, dt, now); }
+      else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? 1.68 : 1), dt, now);
       players.slice(1).forEach(p => {
         if (p.state === 'PRISONER') return;
         const vector = aiVector(p, now), far = Math.hypot(vector.x, vector.y) > 165;
@@ -278,11 +335,18 @@ export function BentenganPrototype() {
         if (boostAi) { p.boost = Math.max(0, p.boost - 20 * dt); p.boostReadyAt = now + 20000; }
         move(p, vector.x, vector.y, 190 * (boostAi ? 1.48 : 1), dt, now);
       });
-      players.forEach(p => baseCheck(p, dt, now)); refillCheck(); tagCheck(now); rescueCheck(); layoutPrisons();
+      const exitCandidates: Player[] = [];
+      players.forEach(p => baseCheck(p, dt, now, exitCandidates));
+      Array.from(new Map(exitCandidates.map(p => [p.id, p])).values()).sort((a, b) => tieHash(a.id) - tieHash(b.id)).forEach(p => {
+        p.state = 'ACTIVE'; p.exitOrder = ++exitCounter; p.baseCharge = 0; p.exitDeadline = 0; p.rescueShieldUntil = 0;
+        if (p.controlled && p.exitOrder > 5) mission.refresh = true;
+        log(`${p.name} keluar sebagai urutan #${p.exitOrder}.`); beep(p.controlled ? 520 : 380);
+      });
+      refillCheck(); tagCheck(now); rescueCheck(now); layoutPrisons();
       (['blue', 'red'] as Team[]).forEach(team => {
         const allHeld = players.filter(p => p.team === other(team)).every(p => p.state === 'PRISONER' && p.prisonOwner === team);
         totalCapture[team] = allHeld ? totalCapture[team] + dt : 0;
-        if (totalCapture[team] >= 1.25) winRound(team, 'SEMUA LAWAN DITANGKAP');
+        if (totalCapture[team] >= 2) winRound(team, 'SEMUA LAWAN DITANGKAP');
       });
       particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .94; p.vy *= .94; p.life -= dt; });
       particles = particles.filter(p => p.life > 0);
@@ -326,13 +390,15 @@ export function BentenganPrototype() {
       ctx.fillStyle = '#172019'; ctx.strokeStyle = color; ctx.lineWidth = 3; rounded(-17, -17, 34, 34, 9); ctx.fill(); ctx.stroke();
       ctx.shadowBlur = 0; ctx.fillStyle = color; ctx.font = '900 10px Arial'; ctx.textAlign = 'center'; ctx.fillText(`+${item.grade}`, 0, 4); ctx.restore();
     };
-    const relationColor = (p: Player, me: Player) => {
+    const relationColor = (p: Player, me: Player, now: number) => {
       if (p.team === me.team) return '#9fd0ff'; if (p.state === 'PRISONER') return '#8f8d84';
-      if (me.state !== 'ACTIVE' || p.state !== 'ACTIVE') return '#f1d46c';
-      return me.exitOrder > p.exitOrder ? '#b9ee3d' : p.exitOrder > me.exitOrder ? '#ff544b' : '#f1d46c';
+      if (p.state === 'RETURNING' && now < p.rescueShieldUntil) return '#60e6ff';
+      if (me.state !== 'ACTIVE') return '#f1d46c';
+      if ((p.state === 'ACTIVE' || p.state === 'RETURNING') && me.exitOrder > p.exitOrder) return '#b9ee3d';
+      return p.state === 'ACTIVE' && p.exitOrder > me.exitOrder ? '#ff544b' : '#f1d46c';
     };
     const drawPlayer = (p: Player, me: Player, now: number) => {
-      const color = TEAM_COLOR[p.team], outline = relationColor(p, me), bob = now < p.parkourUntil ? -15 : 0;
+      const color = TEAM_COLOR[p.team], outline = relationColor(p, me, now), bob = now < p.parkourUntil ? -15 : 0;
       ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 14, 17, 7, 0, 0, Math.PI * 2); ctx.fill();
       if (p.state === 'PRISONER') { ctx.strokeStyle = '#d5d0c4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x - 15, p.y); ctx.lineTo(p.x + 15, p.y); ctx.stroke(); }
       ctx.fillStyle = color; ctx.strokeStyle = outline; ctx.lineWidth = p.controlled ? 5 : 3; ctx.beginPath(); ctx.arc(p.x, p.y - 2 + bob, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -343,22 +409,40 @@ export function BentenganPrototype() {
         ctx.fillStyle = '#141a15'; ctx.beginPath(); ctx.arc(p.x + 17, p.y - 18 + bob, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = outline; ctx.lineWidth = 2; ctx.stroke();
         ctx.fillStyle = '#fff'; ctx.font = '800 9px Arial'; ctx.fillText(String(p.exitOrder), p.x + 17, p.y - 15 + bob);
       }
-      if (p.state === 'RETURNING') { ctx.fillStyle = '#b9ee3d'; ctx.font = '800 8px Arial'; ctx.fillText('KEMBALI', p.x, p.y - 28); }
+      if (p.state === 'RETURNING') { ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45'; ctx.font = '800 8px Arial'; ctx.fillText(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI', p.x, p.y - 28); }
+      if (p.state === 'IN_BASE' && p.baseCharge < .75) { ctx.fillStyle = '#9b9d91'; ctx.fillRect(p.x - 18, p.y + 38, 36, 4); ctx.fillStyle = '#60e6ff'; ctx.fillRect(p.x - 18, p.y + 38, 36 * p.baseCharge / .75, 4); }
       if (p.fortCharge > 0) { ctx.fillStyle = '#f5cf45'; ctx.fillRect(p.x - 18, p.y + 38, 36 * Math.min(1, p.fortCharge / 1.5), 4); }
     };
     const draw = (now: number) => {
       const rect = canvas.getBoundingClientRect(), dpr = Math.max(1, window.devicePixelRatio || 1), cw = rect.width, ch = rect.height;
       if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) { canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
-      const scale = Math.min(cw / W, ch / H), ox = (cw - W * scale) / 2, oy = (ch - H * scale) / 2;
-      ctx.save(); ctx.translate(ox, oy); ctx.scale(scale, scale); drawMap(); refills.forEach(item => drawRefill(item, now)); drawBase('blue'); drawBase('red');
-      const me = players[0]; players.slice().sort((a, b) => a.y - b.y).forEach(p => drawPlayer(p, me, now));
+      const me = players[0];
+      const scale = mode === 'playing' ? Math.max(cw / 980, ch / 620) : Math.min(cw / W, ch / H);
+      const halfW = cw / (2 * scale), halfH = ch / (2 * scale);
+      const camX = mode === 'playing' ? clamp(me.x, halfW, W - halfW) : W / 2;
+      const camY = mode === 'playing' ? clamp(me.y, halfH, H - halfH) : H / 2;
+      ctx.save(); ctx.translate(cw / 2, ch / 2); ctx.scale(scale, scale); ctx.translate(-camX, -camY);
+      drawMap(); refills.forEach(item => drawRefill(item, now)); drawBase('blue'); drawBase('red');
+      players.slice().sort((a, b) => a.y - b.y).forEach(p => drawPlayer(p, me, now));
       particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life / .65); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1;
-      if (phase !== 'PLAYING') {
-        ctx.fillStyle = 'rgba(12,17,13,.52)'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#fff4d1';
-        ctx.font = `800 ${phase === 'COUNTDOWN' ? 90 : 54}px var(--font-heading)`; ctx.textAlign = 'center'; ctx.fillText(announcement, W / 2, H / 2);
-      }
       ctx.restore();
+      if (mode === 'playing') {
+        const marker = (point: { x: number; y: number }, label: string, color: string) => {
+          const sx = (point.x - camX) * scale + cw / 2, sy = (point.y - camY) * scale + ch / 2;
+          if (sx > 36 && sx < cw - 36 && sy > 70 && sy < ch - 36) return;
+          const x = clamp(sx, 28, cw - 28), y = clamp(sy, 72, ch - 28);
+          ctx.fillStyle = '#111812dd'; ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = color; ctx.font = '900 9px Arial'; ctx.textAlign = 'center'; ctx.fillText(label, x, y + 3);
+        };
+        marker(BASES.blue, 'B', TEAM_COLOR.blue); marker(BASES.red, 'M', TEAM_COLOR.red);
+        const outerPrisoner = players.filter(p => p.team === me.team && p.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex)[0];
+        if (outerPrisoner) marker(outerPrisoner, 'P', '#b9ee3d');
+      }
+      if (phase !== 'PLAYING') {
+        ctx.fillStyle = 'rgba(12,17,13,.52)'; ctx.fillRect(0, 0, cw, ch); ctx.fillStyle = '#fff4d1';
+        ctx.font = `800 ${phase === 'COUNTDOWN' ? 90 : 54}px var(--font-heading)`; ctx.textAlign = 'center'; ctx.fillText(announcement, cw / 2, ch / 2);
+      }
     };
     const loop = (now: number) => {
       const dt = Math.min(.033, (now - last) / 1000); last = now; update(dt, now); draw(now);
@@ -373,6 +457,8 @@ export function BentenganPrototype() {
           redHeld: players.filter(p => p.team === 'blue' && p.state === 'PRISONER').length,
           pickupCount: refills.length,
           fortLock: blueLock ? `Biru dikunci ${blueLock.name}` : redLock ? `Merah dikunci ${redLock.name}` : 'Benteng terbuka',
+          baseGrace: me.state === 'IN_BASE' && me.exitDeadline ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000)) : 0,
+          suddenDeath,
         });
       }
       raf = requestAnimationFrame(loop);
@@ -387,14 +473,14 @@ export function BentenganPrototype() {
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><span className="brand-kicker">Playable rules prototype</span><strong>BENTENGAN</strong><span>Squad Tag</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> PRD v0.2 · Local 5v5</div>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Rules v0.3 · Fairplay 5v5</div>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label="Arena Kampung Merdeka 5 lawan 5 yang dapat dimainkan" />
-          <div className="stage-hud"><div><b>BIRU</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{formatTime(snapshot.timer)}</time><div><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>MERAH</b></div></div>
-          {mode === 'menu' && <div className="start-panel"><p>RULESET 5v5 · ARENA DIPERLUAS</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1><span>Sepuluh pemain, penjara dekat benteng penangkap, boost terbatas, refill ber-rarity, dan satu penyerang saja yang boleh mengunci benteng musuh.</span><div className="preset-row">{(Object.keys(PRESETS) as PresetKey[]).map(key => <button key={key} className={preset === key ? 'selected' : ''} onClick={() => setPreset(key)}><b>{PRESETS[key].label}</b><small>{PRESETS[key].copy}</small></button>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Mulai pertandingan 5v5</button></div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><em>{snapshot.fortLock}</em></div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25</span><span className="grade-50">+50</span><span className="grade-100">+100</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
+          <div className="stage-hud"><div><b>BIRU</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>MERAH</b></div></div>
+          {mode === 'menu' && <div className="start-panel"><p>RULESET 5v5 · FAIRPLAY UPDATE</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1><span>Charge 0,75 detik, maksimal tiga pemain, lalu keluar dalam lima detik. Satu penyerang mengunci slot benteng, tetapi defender tetap dapat masuk dan meng-contest.</span><div className="preset-row">{(Object.keys(PRESETS) as PresetKey[]).map(key => <button key={key} className={preset === key ? 'selected' : ''} onClick={() => setPreset(key)}><b>{PRESETS[key].label}</b><small>{PRESETS[key].copy}</small></button>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Mulai pertandingan 5v5</button></div>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
         </div>
         <aside className="mission-panel">
           <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>{mode === 'menu' ? 'Kuasai aturan baru' : 'Buktikan core loop'}</h2></div>
