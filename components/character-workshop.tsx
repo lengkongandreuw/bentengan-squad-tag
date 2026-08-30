@@ -100,7 +100,13 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
   };
 
   const exportConfig = () => {
-    const config = { character: customName ?? selected.id, grid: { columns: 8, rows: 5 }, anchor: { x: anchorX / 100, y: anchorY / 100 }, preview: { animation, direction, fps, scale: scale / 100 } };
+    const config = {
+      character: customName ?? selected.id,
+      grid: { columns: 8, rows: 5 },
+      anchor: { x: anchorX / 100, y: anchorY / 100 },
+      preview: { animation, direction, fps, scale: scale / 100 },
+      gameplay: { role: selected.role, speed: selected.speed, boost: selected.boost, agility: selected.agility, tagRange: selected.tagRange, rescueRange: selected.rescueRange, passive: selected.passiveName },
+    };
     const url = URL.createObjectURL(new Blob([`${JSON.stringify(config, null, 2)}\n`], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = `${selected.id}-workshop.json`; link.click(); URL.revokeObjectURL(url);
   };
@@ -120,10 +126,11 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
         <div className="workshop-stage">
           <div className="workshop-stagebar"><span><i style={{ background: selected.accent }} />{customName ?? `${selected.name} · ${selected.role}`}</span><button onClick={() => setShowSheet(value => !value)}><Grid3X3 size={15} /> {showSheet ? 'Preview' : 'Lihat sheet'}</button></div>
           {showSheet ? <div className="sheet-audit"><img src={atlasUrl} alt={`Sprite sheet ${selected.name}`} /><span className="grid-overlay" /></div> : <canvas ref={canvasRef} />}
-          <div className="arena-scale"><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span>Preview portrait otomatis</span><b>48–64 px arena target</b></div>
+          <div className="arena-scale"><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><strong>{selected.passiveName}</strong><small>{selected.passiveCopy}</small></span><b>48–64 px arena target</b></div>
         </div>
         <aside className="workshop-controls">
           <div className="control-title"><span>ANIMATION LAB</span><button onClick={() => setPlaying(value => !value)} aria-label={playing ? 'Jeda animasi' : 'Putar animasi'}>{playing ? <Pause size={15} /> : <Play size={15} />}</button></div>
+          <div className="workshop-balance"><span><b>{selected.speed}</b> Speed</span><span><b>{selected.boost}</b> Boost</span><span><b>{selected.agility.toFixed(2)}</b> Agility</span><span><b>{selected.tagRange}</b> Tag</span></div>
           <label>Animasi<select value={animation} onChange={event => setAnimation(event.target.value as AnimationName)}>{animationOptions.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
           <label>Arah<select value={direction} onChange={event => setDirection(event.target.value as Direction)}><option value="south">Selatan / depan</option><option value="west">Barat / kiri</option><option value="east">Timur / mirror</option><option value="north">Utara / belakang</option></select></label>
           <label>Kecepatan <output>{fps} fps</output><input type="range" min="4" max="16" value={fps} onChange={event => setFps(Number(event.target.value))} /></label>

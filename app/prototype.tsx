@@ -54,6 +54,7 @@ const formatTime = (seconds: number) => {
   const s = Math.max(0, Math.ceil(seconds));
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 };
+const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 
 const ATLAS_WIDTH = 1448;
 const ATLAS_HEIGHT = 1086;
@@ -79,6 +80,7 @@ export function BentenganPrototype() {
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
   const selected = CHARACTER_BY_ID[selectedId];
+  const squad = useMemo(() => [selectedId, ...CHARACTERS.map(character => character.id).filter(id => id !== selectedId)].slice(0, 5), [selectedId]);
 
   useEffect(() => { CHARACTERS.forEach(character => getSpriteImage(character.id)); }, []);
 
@@ -190,7 +192,7 @@ export function BentenganPrototype() {
     const hasLineOfSight = (a: Player, b: Player) => !OBSTACLES.some(o => segmentHitsRect(a, b, o));
     const blocked = (x: number, y: number, p: Player, now: number) => {
       if (now >= p.parkourUntil && OBSTACLES.some(o => x + 13 > o.x && x - 13 < o.x + o.w && y + 13 > o.y && y - 13 < o.y + o.h)) return true;
-      if (p.state === 'IN_BASE' && p.baseCharge < .75 && distance(p, BASES[p.team]) < BASE_RADIUS && distance({ x, y }, BASES[p.team]) >= BASE_RADIUS) return true;
+      if (p.state === 'IN_BASE' && p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime && distance(p, BASES[p.team]) < BASE_RADIUS && distance({ x, y }, BASES[p.team]) >= BASE_RADIUS) return true;
       for (const team of ['blue', 'red'] as Team[]) {
         const entering = distance({ x, y }, BASES[team]) < BASE_RADIUS && distance(p, BASES[team]) >= BASE_RADIUS;
         if (entering && p.team !== team && fortOccupant(team, p.id)) return true;
@@ -240,12 +242,12 @@ export function BentenganPrototype() {
     const tagCheck = (now: number) => {
       const contacts: Array<{ attacker: Player; target: Player }> = [];
       for (let i = 0; i < players.length; i++) for (let j = i + 1; j < players.length; j++) {
-        const a = players[i], b = players[j];
-        if (a.team === b.team || distance(a, b) > 28 || !hasLineOfSight(a, b) || now < a.parkourUntil || now < b.parkourUntil) continue;
+        const a = players[i], b = players[j], contactDistance = distance(a, b);
+        if (a.team === b.team || !hasLineOfSight(a, b) || now < a.parkourUntil || now < b.parkourUntil) continue;
         const aTargetable = a.state === 'ACTIVE' || (a.state === 'RETURNING' && now >= a.rescueShieldUntil);
         const bTargetable = b.state === 'ACTIVE' || (b.state === 'RETURNING' && now >= b.rescueShieldUntil);
-        if (a.state === 'ACTIVE' && bTargetable && a.exitOrder > b.exitOrder) contacts.push({ attacker: a, target: b });
-        else if (b.state === 'ACTIVE' && aTargetable && b.exitOrder > a.exitOrder) contacts.push({ attacker: b, target: a });
+        if (a.state === 'ACTIVE' && bTargetable && a.exitOrder > b.exitOrder && contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange) contacts.push({ attacker: a, target: b });
+        else if (b.state === 'ACTIVE' && aTargetable && b.exitOrder > a.exitOrder && contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange) contacts.push({ attacker: b, target: a });
       }
       contacts.sort((a, b) => b.attacker.exitOrder - a.attacker.exitOrder || b.target.exitOrder - a.target.exitOrder || a.attacker.id.localeCompare(b.attacker.id));
       const resolved = new Set<string>();
@@ -258,8 +260,9 @@ export function BentenganPrototype() {
     const rescueCheck = (now: number) => {
       players.filter(p => p.state === 'ACTIVE').forEach(rescuer => {
         const held = players.filter(p => p.team === rescuer.team && p.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex);
-        if (held[0] && distance(rescuer, held[0]) < 32) {
-          held.forEach(p => { p.state = 'RETURNING'; p.prisonOwner = undefined; p.rescueShieldUntil = now + 1500; p.x += rescuer.team === 'blue' ? -22 : 22; });
+        const rescuerStats = CHARACTER_BY_ID[rescuer.characterId];
+        if (held[0] && distance(rescuer, held[0]) < rescuerStats.rescueRange) {
+          held.forEach(p => { p.state = 'RETURNING'; p.prisonOwner = undefined; p.rescueShieldUntil = now + rescuerStats.rescueShieldMs; p.x += rescuer.team === 'blue' ? -22 : 22; });
           rescuer.action = 'rescue'; rescuer.actionUntil = now + 460;
           burst(held[0].x, held[0].y, '#b9ee3d', 26); beep(620, .16); log(`${rescuer.name} membebaskan ${held.length} rekan.`);
           if (rescuer.controlled) mission.rescue = true;
@@ -277,7 +280,7 @@ export function BentenganPrototype() {
     };
     const baseCheck = (p: Player, dt: number, now: number, exitCandidates: Player[]) => {
       if (p.state === 'PRISONER') return;
-      const insideOwn = distance(p, BASES[p.team]) < BASE_RADIUS, maxBoost = CHARACTER_BY_ID[p.characterId].boost;
+      const stats = CHARACTER_BY_ID[p.characterId], insideOwn = distance(p, BASES[p.team]) < BASE_RADIUS, maxBoost = stats.boost, chargeTime = stats.baseChargeTime;
       const contested = Boolean(fortOccupant(p.team));
       if (insideOwn) {
         if (contested) {
@@ -287,17 +290,17 @@ export function BentenganPrototype() {
           const charging = players
             .filter(q => q.team === p.team && q.state === 'IN_BASE' && distance(q, BASES[q.team]) < BASE_RADIUS)
             .sort((a, b) => b.baseCharge - a.baseCharge || tieHash(a.id) - tieHash(b.id)).slice(0, 3);
-          if (charging.some(q => q.id === p.id) && p.baseCharge < .75) {
-            p.baseCharge = Math.min(.75, p.baseCharge + dt);
-            if (p.baseCharge >= .75 && !p.exitDeadline) p.exitDeadline = now + 5000;
+          if (charging.some(q => q.id === p.id) && p.baseCharge < chargeTime) {
+            p.baseCharge = Math.min(chargeTime, p.baseCharge + dt);
+            if (p.baseCharge >= chargeTime && !p.exitDeadline) p.exitDeadline = now + 5000;
           }
           p.boost = maxBoost; p.boostReadyAt = 0;
-          if (p.baseCharge >= .75 && p.exitDeadline > 0 && now >= p.exitDeadline) {
+          if (p.baseCharge >= chargeTime && p.exitDeadline > 0 && now >= p.exitDeadline) {
             p.x = BASES[p.team].x + (p.team === 'blue' ? BASE_RADIUS + 5 : -BASE_RADIUS - 5);
             exitCandidates.push(p); log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
           }
         }
-      } else if (p.state === 'IN_BASE' && p.baseCharge >= .75) {
+      } else if (p.state === 'IN_BASE' && p.baseCharge >= chargeTime) {
         exitCandidates.push(p);
       }
       if (p.state === 'ACTIVE' && distance(p, BASES[other(p.team)]) < BASE_RADIUS) {
@@ -337,27 +340,29 @@ export function BentenganPrototype() {
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
       if (keys.current.has('s') || keys.current.has('arrowdown')) dy++;
       const boosting = keys.current.has('shift') && me.boost > 0 && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE');
-      if (boosting) { me.boost = Math.max(0, me.boost - 31 * dt); me.boostReadyAt = now + 20000; mission.boost = true; }
+      if (boosting) { me.boost = Math.max(0, me.boost - selected.boostDrain * dt); me.boostReadyAt = now + 20000; mission.boost = true; }
       const space = keys.current.has(' ');
-      if (space && !parkourLatch && me.boost >= 8 && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
+      const parkourCost = 8 / selected.agility;
+      if (space && !parkourLatch && me.boost >= parkourCost && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
         const near = OBSTACLES.some(o => me.x + 44 > o.x && me.x - 44 < o.x + o.w && me.y + 44 > o.y && me.y - 44 < o.y + o.h);
         if (near) {
-          me.parkourUntil = now + 360 / selected.agility; me.boost = Math.max(0, me.boost - 8); me.boostReadyAt = now + 20000;
-          me.x = clamp(me.x + dx * 58, 34, W - 34); me.y = clamp(me.y + dy * 58, 58, H - 32);
+          const parkourDistance = 54 * selected.agility;
+          me.parkourUntil = now + 320; me.boost = Math.max(0, me.boost - parkourCost); me.boostReadyAt = now + 20000;
+          me.x = clamp(me.x + dx * parkourDistance, 34, W - 34); me.y = clamp(me.y + dy * parkourDistance, 58, H - 32);
           mission.parkour = true; burst(me.x, me.y, '#f4df9a', 9); beep(460);
         }
       }
       parkourLatch = space;
       if (me.state === 'RETURNING') { const vector = baseVector(me); move(me, vector.x, vector.y, selected.speed, dt, now); }
-      else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? 1.68 : 1), dt, now);
+      else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? selected.boostMultiplier : 1), dt, now);
       else { me.vx = 0; me.vy = 0; }
       players.slice(1).forEach(p => {
         if (p.state === 'PRISONER') { p.vx = 0; p.vy = 0; return; }
         const stats = CHARACTER_BY_ID[p.characterId];
         const vector = aiVector(p, now), far = Math.hypot(vector.x, vector.y) > 165;
         const boostAi = p.state === 'ACTIVE' && p.boost > 12 && far && Math.sin(now / 950 + p.aiSeed) > -.15;
-        if (boostAi) { p.boost = Math.max(0, p.boost - 20 * dt); p.boostReadyAt = now + 20000; }
-        move(p, vector.x, vector.y, stats.speed * .89 * (boostAi ? 1.48 : 1), dt, now);
+        if (boostAi) { p.boost = Math.max(0, p.boost - stats.boostDrain * .66 * dt); p.boostReadyAt = now + 20000; }
+        move(p, vector.x, vector.y, stats.speed * .89 * (boostAi ? stats.boostMultiplier : 1), dt, now);
       });
       const exitCandidates: Player[] = [];
       players.forEach(p => baseCheck(p, dt, now, exitCandidates));
@@ -454,7 +459,7 @@ export function BentenganPrototype() {
         ctx.fillStyle = '#fff'; ctx.font = '800 9px Arial'; ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 + bob);
       }
       if (p.state === 'RETURNING') { ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45'; ctx.font = '800 8px Arial'; ctx.fillText(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI', p.x, p.y - 55); }
-      if (p.state === 'IN_BASE' && p.baseCharge < .75) { ctx.fillStyle = '#9b9d91'; ctx.fillRect(p.x - 18, p.y + 40, 36, 4); ctx.fillStyle = '#60e6ff'; ctx.fillRect(p.x - 18, p.y + 40, 36 * p.baseCharge / .75, 4); }
+      if (p.state === 'IN_BASE' && p.baseCharge < stats.baseChargeTime) { ctx.fillStyle = '#9b9d91'; ctx.fillRect(p.x - 18, p.y + 40, 36, 4); ctx.fillStyle = '#60e6ff'; ctx.fillRect(p.x - 18, p.y + 40, 36 * p.baseCharge / stats.baseChargeTime, 4); }
       if (p.fortCharge > 0) { ctx.fillStyle = '#f5cf45'; ctx.fillRect(p.x - 18, p.y + 40, 36 * Math.min(1, p.fortCharge / 1.5), 4); }
     };
     const draw = (now: number) => {
@@ -496,7 +501,7 @@ export function BentenganPrototype() {
           blue: score.blue, red: score.red, round, timer, boost: me.boost / selected.boost * 100,
           boostCountdown: me.boost >= selected.boost || !me.boostReadyAt ? 0 : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
           order: me.exitOrder, state: me.state, paused, logs, mission: { ...mission },
-          team: players.filter(p => p.team === 'blue').map(p => ({ name: p.name, characterId: p.characterId, state: p.state, boost: p.boost })),
+          team: players.filter(p => p.team === 'blue').map(p => ({ name: p.name, characterId: p.characterId, state: p.state, boost: p.boost / CHARACTER_BY_ID[p.characterId].boost * 100 })),
           blueHeld: players.filter(p => p.team === 'red' && p.state === 'PRISONER').length,
           redHeld: players.filter(p => p.team === 'blue' && p.state === 'PRISONER').length,
           pickupCount: refills.length,
@@ -518,14 +523,27 @@ export function BentenganPrototype() {
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><span className="brand-kicker">Playable rules prototype</span><strong>BENTENGAN</strong><span>Squad Tag</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v1 · Fairplay 5v5</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v2 · Distinct roles</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label="Arena Kampung Merdeka 5 lawan 5 yang dapat dimainkan" />
           <div className="stage-hud"><div><b>BIRU</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>MERAH</b></div></div>
-          {mode === 'menu' && <div className="start-panel character-select"><p>ROSTER 5v5 · PILIH KARAKTER</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1><span>Enam karakter siap dimainkan oleh kedua tim. Warna ring dan outline menjaga identitas tim tanpa mengubah desain kostum.</span><div className="character-row">{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><b>{character.name}</b><small>{character.role}</small></span></button>)}</div><div className="selected-character"><img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} /><div><span>{selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small></div><dl><div><dt>Speed</dt><dd>{selected.speed}</dd></div><div><dt>Boost</dt><dd>{selected.boost}</dd></div><div><dt>Agility</dt><dd>{selected.agility.toFixed(2)}</dd></div></dl></div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
+          {mode === 'menu' && <div className="start-panel character-select">
+            <div className="character-select-heading"><div><p>ROSTER 5v5 · PILIH KARAKTER</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1></div><span>Setiap karakter kini memiliki trade-off dan passive yang benar-benar aktif di arena.</span></div>
+            <div className="character-row">{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)} aria-pressed={selectedId === character.id}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><b>{character.name}</b><small>{character.role}</small><em>{character.passiveName}</em></span></button>)}</div>
+            <div className="selected-character" style={{ borderColor: selected.accent }}>
+              <img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} />
+              <div className="selected-summary"><span>{selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small><div className="character-passive"><strong>{selected.passiveName}</strong><i>{selected.passiveCopy}</i></div></div>
+              <dl>
+                <div><dt>Speed <b>{selected.speed}</b></dt><dd><i><span style={{ width: statPercent(selected.speed, 190, 240) }} /></i></dd></div>
+                <div><dt>Boost <b>{selected.boost}</b></dt><dd><i><span style={{ width: statPercent(selected.boost, 84, 124) }} /></i></dd></div>
+                <div><dt>Agility <b>{selected.agility.toFixed(2)}</b></dt><dd><i><span style={{ width: statPercent(selected.agility, .82, 1.25) }} /></i></dd></div>
+              </dl>
+            </div>
+            <div className="squad-preview"><span>SKUAD BIRU</span><div>{squad.map((id, index) => <figure key={id} className={index === 0 ? 'controlled' : ''}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div>
+          </div>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="character-hud"><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selected.passiveName}</small></span></div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
         </div>
         <aside className="mission-panel">
           <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>{mode === 'menu' ? 'Kuasai aturan baru' : 'Buktikan core loop'}</h2></div>
