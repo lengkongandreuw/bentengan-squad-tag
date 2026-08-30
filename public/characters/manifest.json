@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "characters": [
+    {
+      "id": "robot",
+      "name": "Robot",
+      "role": "Guardian"
+    },
+    {
+      "id": "ciici",
+      "name": "Ciici",
+      "role": "Rescuer"
+    },
+    {
+      "id": "kaka",
+      "name": "Kaka",
+      "role": "Runner"
+    },
+    {
+      "id": "buto",
+      "name": "Buto",
+      "role": "Guardian"
+    },
+    {
+      "id": "jago",
+      "name": "Jago",
+      "role": "Chaser"
+    },
+    {
+      "id": "raja",
+      "name": "Raja",
+      "role": "All-rounder"
+    }
+  ]
+}

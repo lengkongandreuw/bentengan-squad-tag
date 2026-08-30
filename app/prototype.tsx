@@ -1,18 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Zap } from 'lucide-react';
+import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
+import { CharacterWorkshop } from '../components/character-workshop';
+import { CHARACTERS, CHARACTER_BY_ID, CharacterId, characterAsset, publicAsset } from '../lib/characters';
 
 type Team = 'blue' | 'red';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
-type PresetKey = 'all' | 'runner' | 'guardian' | 'rescuer';
+type PlayerAction = 'tag' | 'rescue';
 type Grade = 25 | 50 | 100;
 type Player = {
-  id: string; name: string; team: Team; controlled?: boolean; x: number; y: number;
+  id: string; name: string; team: Team; characterId: CharacterId; controlled?: boolean; x: number; y: number;
   vx: number; vy: number; state: PlayerState; exitOrder: number; boost: number;
   baseCharge: number; exitDeadline: number; tagCooldown: number; parkourUntil: number; boostReadyAt: number;
   fortCharge: number; prisonOwner?: Team; prisonIndex: number; captures: number; aiSeed: number;
   rescueShieldUntil: number; capturedIds: string[];
+  action?: PlayerAction; actionUntil: number;
 };
 type Obstacle = { x: number; y: number; w: number; h: number; kind: 'fence' | 'canal' | 'stall' | 'chairs' };
 type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
@@ -20,7 +23,7 @@ type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolea
 type Snapshot = {
   blue: number; red: number; round: number; timer: number; boost: number; boostCountdown: number;
   order: number; state: PlayerState; paused: boolean; logs: string[]; mission: Mission;
-  team: Array<{ name: string; state: PlayerState; boost: number }>;
+  team: Array<{ name: string; characterId: CharacterId; state: PlayerState; boost: number }>;
   blueHeld: number; redHeld: number; pickupCount: number; fortLock: string; baseGrace: number; suddenDeath: boolean;
 };
 
@@ -29,12 +32,6 @@ const H = 800;
 const BASE_RADIUS = 74;
 const BASES = { blue: { x: 112, y: 410 }, red: { x: 1328, y: 390 } };
 const TEAM_COLOR = { blue: '#2f87ff', red: '#f0473e' };
-const PRESETS = {
-  all: { label: 'All-rounder', speed: 215, boost: 100, agility: 1, copy: 'Seimbang untuk membaca arena.' },
-  runner: { label: 'Runner', speed: 236, boost: 88, agility: 1.08, copy: 'Cepat untuk rotasi dan buru.' },
-  guardian: { label: 'Guardian', speed: 198, boost: 116, agility: .9, copy: 'Boost besar untuk menjaga jalur.' },
-  rescuer: { label: 'Rescuer', speed: 218, boost: 96, agility: 1.22, copy: 'Gesit menerobos ke penjara.' },
-} as const;
 const OBSTACLES: Obstacle[] = [
   { x: 244, y: 122, w: 146, h: 24, kind: 'fence' }, { x: 1044, y: 628, w: 142, h: 24, kind: 'fence' },
   { x: 538, y: 148, w: 102, h: 58, kind: 'stall' }, { x: 812, y: 596, w: 112, h: 48, kind: 'chairs' },
@@ -58,14 +55,32 @@ const formatTime = (seconds: number) => {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 };
 
+const ATLAS_WIDTH = 1448;
+const ATLAS_HEIGHT = 1086;
+const spriteImages = new Map<CharacterId, HTMLImageElement>();
+const spriteFrame = (column: number, row: number) => {
+  const x = Math.round(column * ATLAS_WIDTH / 8), y = Math.round(row * ATLAS_HEIGHT / 5);
+  const right = Math.round((column + 1) * ATLAS_WIDTH / 8), bottom = Math.round((row + 1) * ATLAS_HEIGHT / 5);
+  return { x, y, width: right - x, height: bottom - y };
+};
+
+const getSpriteImage = (id: CharacterId) => {
+  const cached = spriteImages.get(id);
+  if (cached) return cached;
+  const image = new Image(); image.src = characterAsset(id, 'atlas.webp'); spriteImages.set(id, image); return image;
+};
+
 export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
-  const [preset, setPreset] = useState<PresetKey>('all');
+  const [selectedId, setSelectedId] = useState<CharacterId>('kaka');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
+  const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
-  const selected = PRESETS[preset];
+  const selected = CHARACTER_BY_ID[selectedId];
+
+  useEffect(() => { CHARACTERS.forEach(character => getSpriteImage(character.id)); }, []);
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
@@ -86,7 +101,7 @@ export function BentenganPrototype() {
     let raf = 0, last = performance.now(), lastHud = 0;
     let phase: 'COUNTDOWN' | 'PLAYING' | 'ROUND_OVER' | 'MATCH_OVER' = 'COUNTDOWN';
     let phaseUntil = performance.now() + 3000, timer = 240, round = 1, exitCounter = 0;
-    let score = { blue: 0, red: 0 }, paused = false, announcement = mode === 'playing' ? 'BERSIAP!' : '';
+    let score = { blue: 0, red: 0 }, paused = false, announcement = mode === 'playing' ? 'BERSIAP!' : '', roundWinner: Team | undefined;
     let logs = ['5v5 · pemain yang keluar terakhir memiliki prioritas tangkap tertinggi.'];
     let mission: Mission = { refresh: false, boost: false, parkour: false, tag: false, rescue: false };
     let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 8000, refillId = 0, suddenDeath = false;
@@ -101,21 +116,26 @@ export function BentenganPrototype() {
         oscillator.stop(audio.currentTime + duration);
       } catch { /* optional */ }
     };
-    const makePlayer = (id: string, name: string, team: Team, slot: number, controlled = false): Player => {
+    const makePlayer = (id: string, characterId: CharacterId, team: Team, slot: number, controlled = false): Player => {
       const b = BASES[team];
+      const character = CHARACTER_BY_ID[characterId];
       return {
-        id, name, team, controlled, x: b.x + (slot % 2) * (team === 'blue' ? 18 : -18), y: b.y - 52 + slot * 26,
-        vx: 0, vy: 0, state: 'IN_BASE', exitOrder: 0, boost: controlled ? selected.boost : 100,
+        id, name: character.name.toUpperCase(), team, characterId, controlled, x: b.x + (slot % 2) * (team === 'blue' ? 18 : -18), y: b.y - 52 + slot * 26,
+        vx: 0, vy: 0, state: 'IN_BASE', exitOrder: 0, boost: character.boost,
         baseCharge: 0, exitDeadline: 0, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
-        prisonIndex: 0, captures: 0, rescueShieldUntil: 0, capturedIds: [], aiSeed: .35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
+        prisonIndex: 0, captures: 0, rescueShieldUntil: 0, capturedIds: [], actionUntil: 0,
+        aiSeed: .35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
       };
     };
-    const makePlayers = () => [
-      makePlayer('you', 'RAKA', 'blue', 0, true), makePlayer('b2', 'NALA', 'blue', 1),
-      makePlayer('b3', 'BIMO', 'blue', 2), makePlayer('b4', 'SARI', 'blue', 3), makePlayer('b5', 'GARUDA', 'blue', 4),
-      makePlayer('r1', 'JATI', 'red', 0), makePlayer('r2', 'BARA', 'red', 1), makePlayer('r3', 'RANGGA', 'red', 2),
-      makePlayer('r4', 'KALA', 'red', 3), makePlayer('r5', 'RAHAYU', 'red', 4),
-    ];
+    const makePlayers = () => {
+      const ids = CHARACTERS.map(character => character.id);
+      const blueRoster = [selectedId, ...ids.filter(id => id !== selectedId)].slice(0, 5);
+      const redRoster = ids.slice().reverse().slice(0, 5);
+      return [
+        ...blueRoster.map((characterId, slot) => makePlayer(slot === 0 ? 'you' : `b${slot + 1}`, characterId, 'blue', slot, slot === 0)),
+        ...redRoster.map((characterId, slot) => makePlayer(`r${slot + 1}`, characterId, 'red', slot)),
+      ];
+    };
     let players = makePlayers();
     const log = (text: string) => { logs = [text, ...logs].slice(0, 5); };
     const burst = (x: number, y: number, color: string, count = 12) => {
@@ -139,13 +159,13 @@ export function BentenganPrototype() {
     const seedRefills = () => { refills = []; const now = performance.now(); for (let i = 0; i < 6; i++) spawnRefill(now); };
     seedRefills();
     const resetRound = () => {
-      players = makePlayers(); seedRefills(); timer = 240; exitCounter = 0; totalCapture = { blue: 0, red: 0 }; suddenDeath = false;
+      players = makePlayers(); seedRefills(); timer = 240; exitCounter = 0; totalCapture = { blue: 0, red: 0 }; suddenDeath = false; roundWinner = undefined;
       phase = 'COUNTDOWN'; phaseUntil = performance.now() + 2800; announcement = `RONDE ${round}`;
       log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
     };
     const winRound = (team: Team, reason: string) => {
       if (phase !== 'PLAYING') return;
-      score[team]++; phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
+      score[team]++; roundWinner = team; phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
       phaseUntil = performance.now() + (phase === 'MATCH_OVER' ? 7000 : 3800);
       announcement = phase === 'MATCH_OVER' ? `${team === 'blue' ? 'BIRU' : 'MERAH'} MENANG MATCH` : `${team === 'blue' ? 'BIRU' : 'MERAH'} MENANG · ${reason}`;
       beep(team === 'blue' ? 720 : 320, .25); burst(W / 2, H / 2, TEAM_COLOR[team], 38); log(announcement);
@@ -210,6 +230,7 @@ export function BentenganPrototype() {
       const targetable = loser.state === 'ACTIVE' || (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
       if (winner.state !== 'ACTIVE' || now < winner.parkourUntil || now < loser.parkourUntil || winner.tagCooldown > now || !targetable || winner.exitOrder <= loser.exitOrder) return;
       winner.tagCooldown = now + 500; winner.captures++; if (!winner.capturedIds.includes(loser.id)) winner.capturedIds.push(loser.id);
+      winner.action = 'tag'; winner.actionUntil = now + 420;
       loser.state = 'PRISONER'; loser.prisonOwner = winner.team; loser.fortCharge = 0; loser.rescueShieldUntil = 0;
       burst(loser.x, loser.y, TEAM_COLOR[winner.team]); beep(winner.controlled ? 820 : 250);
       log(`${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`);
@@ -239,15 +260,16 @@ export function BentenganPrototype() {
         const held = players.filter(p => p.team === rescuer.team && p.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex);
         if (held[0] && distance(rescuer, held[0]) < 32) {
           held.forEach(p => { p.state = 'RETURNING'; p.prisonOwner = undefined; p.rescueShieldUntil = now + 1500; p.x += rescuer.team === 'blue' ? -22 : 22; });
+          rescuer.action = 'rescue'; rescuer.actionUntil = now + 460;
           burst(held[0].x, held[0].y, '#b9ee3d', 26); beep(620, .16); log(`${rescuer.name} membebaskan ${held.length} rekan.`);
           if (rescuer.controlled) mission.rescue = true;
         }
       });
     };
     const refillCheck = () => {
-      players.filter(p => p.state === 'ACTIVE' && p.boost < (p.controlled ? selected.boost : 100)).forEach(p => {
+      players.filter(p => p.state === 'ACTIVE' && p.boost < CHARACTER_BY_ID[p.characterId].boost).forEach(p => {
         const item = refills.find(i => distance(p, i) < 27); if (!item) return;
-        const maxBoost = p.controlled ? selected.boost : 100;
+        const maxBoost = CHARACTER_BY_ID[p.characterId].boost;
         p.boost = Math.min(maxBoost, p.boost + maxBoost * item.grade / 100); refills = refills.filter(i => i.id !== item.id);
         burst(item.x, item.y, item.grade === 100 ? '#ef75ff' : item.grade === 50 ? '#60e6ff' : '#b9ee3d', 18);
         beep(560 + item.grade * 2, .12); if (p.controlled) mission.boost = true; log(`${p.name} mengambil refill boost ${item.grade}%.`);
@@ -255,7 +277,7 @@ export function BentenganPrototype() {
     };
     const baseCheck = (p: Player, dt: number, now: number, exitCandidates: Player[]) => {
       if (p.state === 'PRISONER') return;
-      const insideOwn = distance(p, BASES[p.team]) < BASE_RADIUS, maxBoost = p.controlled ? selected.boost : 100;
+      const insideOwn = distance(p, BASES[p.team]) < BASE_RADIUS, maxBoost = CHARACTER_BY_ID[p.characterId].boost;
       const contested = Boolean(fortOccupant(p.team));
       if (insideOwn) {
         if (contested) {
@@ -284,7 +306,7 @@ export function BentenganPrototype() {
         if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
       } else p.fortCharge = 0;
       if (p.boost < maxBoost && p.boostReadyAt > 0 && now >= p.boostReadyAt) {
-        p.boost = maxBoost; p.boostReadyAt = 0; if (p.controlled) { log('Boost RAKA pulih penuh setelah 20 detik.'); beep(690, .13); }
+        p.boost = maxBoost; p.boostReadyAt = 0; if (p.controlled) { log(`Boost ${p.name} pulih penuh setelah 20 detik.`); beep(690, .13); }
       }
     };
     const update = (dt: number, now: number) => {
@@ -328,12 +350,14 @@ export function BentenganPrototype() {
       parkourLatch = space;
       if (me.state === 'RETURNING') { const vector = baseVector(me); move(me, vector.x, vector.y, selected.speed, dt, now); }
       else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? 1.68 : 1), dt, now);
+      else { me.vx = 0; me.vy = 0; }
       players.slice(1).forEach(p => {
-        if (p.state === 'PRISONER') return;
+        if (p.state === 'PRISONER') { p.vx = 0; p.vy = 0; return; }
+        const stats = CHARACTER_BY_ID[p.characterId];
         const vector = aiVector(p, now), far = Math.hypot(vector.x, vector.y) > 165;
         const boostAi = p.state === 'ACTIVE' && p.boost > 12 && far && Math.sin(now / 950 + p.aiSeed) > -.15;
         if (boostAi) { p.boost = Math.max(0, p.boost - 20 * dt); p.boostReadyAt = now + 20000; }
-        move(p, vector.x, vector.y, 190 * (boostAi ? 1.48 : 1), dt, now);
+        move(p, vector.x, vector.y, stats.speed * .89 * (boostAi ? 1.48 : 1), dt, now);
       });
       const exitCandidates: Player[] = [];
       players.forEach(p => baseCheck(p, dt, now, exitCandidates));
@@ -399,19 +423,39 @@ export function BentenganPrototype() {
     };
     const drawPlayer = (p: Player, me: Player, now: number) => {
       const color = TEAM_COLOR[p.team], outline = relationColor(p, me, now), bob = now < p.parkourUntil ? -15 : 0;
-      ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 14, 17, 7, 0, 0, Math.PI * 2); ctx.fill();
-      if (p.state === 'PRISONER') { ctx.strokeStyle = '#d5d0c4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x - 15, p.y); ctx.lineTo(p.x + 15, p.y); ctx.stroke(); }
-      ctx.fillStyle = color; ctx.strokeStyle = outline; ctx.lineWidth = p.controlled ? 5 : 3; ctx.beginPath(); ctx.arc(p.x, p.y - 2 + bob, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#20261f'; ctx.beginPath(); ctx.arc(p.x, p.y - 10 + bob, 8, Math.PI, Math.PI * 2); ctx.fill();
-      if (p.controlled) { ctx.fillStyle = '#fff4d1'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 31 + bob); ctx.lineTo(p.x - 7, p.y - 41 + bob); ctx.lineTo(p.x + 7, p.y - 41 + bob); ctx.fill(); }
-      ctx.font = '800 9px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(p.name, p.x, p.y + 32);
-      if (p.state === 'ACTIVE') {
-        ctx.fillStyle = '#141a15'; ctx.beginPath(); ctx.arc(p.x + 17, p.y - 18 + bob, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = outline; ctx.lineWidth = 2; ctx.stroke();
-        ctx.fillStyle = '#fff'; ctx.font = '800 9px Arial'; ctx.fillText(String(p.exitOrder), p.x + 17, p.y - 15 + bob);
+      const stats = CHARACTER_BY_ID[p.characterId], image = getSpriteImage(p.characterId), speed = Math.hypot(p.vx, p.vy);
+      const horizontal = Math.abs(p.vx) > Math.abs(p.vy);
+      const direction = horizontal ? (p.vx >= 0 ? 'east' : 'west') : p.vy < 0 ? 'north' : 'south';
+      let row = direction === 'north' ? 2 : direction === 'south' ? 0 : 1, columns = [0], mirror = direction === 'east';
+      if (phase === 'ROUND_OVER' || phase === 'MATCH_OVER') { row = 4; columns = roundWinner === p.team ? [2, 3, 4] : [5, 6, 7]; mirror = false; }
+      else if (p.state === 'PRISONER') { row = 4; columns = [0, 1]; mirror = false; }
+      else if (p.action && now < p.actionUntil) { row = 3; columns = p.action === 'tag' ? [0, 1, 2, 3] : [4, 5, 6, 7]; mirror = false; }
+      else if (speed > 8) columns = speed > stats.speed * 1.16 ? [7] : [1, 2, 3, 4, 5, 6];
+      const frame = spriteFrame(columns[Math.floor(now / (columns.length > 1 ? 92 : 180)) % columns.length], row);
+
+      ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 15, 22 * stats.visualScale, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = outline; ctx.lineWidth = p.controlled ? 5 : 3; ctx.beginPath(); ctx.ellipse(p.x, p.y + 10, 21 * stats.visualScale, 10, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(p.x, p.y + 10, 16 * stats.visualScale, 7, 0, 0, Math.PI * 2); ctx.stroke();
+      if (p.state === 'PRISONER') { ctx.strokeStyle = '#d5d0c4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x - 20, p.y + 2); ctx.lineTo(p.x + 20, p.y + 2); ctx.stroke(); }
+
+      if (image.complete && image.naturalWidth) {
+        const height = 74 * stats.visualScale, width = height * frame.width / frame.height;
+        ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        if (mirror) { ctx.translate(p.x * 2, 0); ctx.scale(-1, 1); }
+        ctx.drawImage(image, frame.x, frame.y, frame.width, frame.height, p.x - width / 2, p.y + 18 - height + bob, width, height);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = color; ctx.strokeStyle = outline; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y - 2 + bob, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
-      if (p.state === 'RETURNING') { ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45'; ctx.font = '800 8px Arial'; ctx.fillText(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI', p.x, p.y - 28); }
-      if (p.state === 'IN_BASE' && p.baseCharge < .75) { ctx.fillStyle = '#9b9d91'; ctx.fillRect(p.x - 18, p.y + 38, 36, 4); ctx.fillStyle = '#60e6ff'; ctx.fillRect(p.x - 18, p.y + 38, 36 * p.baseCharge / .75, 4); }
-      if (p.fortCharge > 0) { ctx.fillStyle = '#f5cf45'; ctx.fillRect(p.x - 18, p.y + 38, 36 * Math.min(1, p.fortCharge / 1.5), 4); }
+      if (p.controlled) { ctx.fillStyle = '#fff4d1'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 58 + bob); ctx.lineTo(p.x - 7, p.y - 69 + bob); ctx.lineTo(p.x + 7, p.y - 69 + bob); ctx.fill(); }
+      ctx.font = '800 9px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#111612'; ctx.lineWidth = 3; ctx.strokeText(p.name, p.x, p.y + 34); ctx.fillText(p.name, p.x, p.y + 34);
+      if (p.state === 'ACTIVE') {
+        ctx.fillStyle = '#141a15'; ctx.beginPath(); ctx.arc(p.x + 23, p.y - 35 + bob, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = outline; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = '800 9px Arial'; ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 + bob);
+      }
+      if (p.state === 'RETURNING') { ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45'; ctx.font = '800 8px Arial'; ctx.fillText(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI', p.x, p.y - 55); }
+      if (p.state === 'IN_BASE' && p.baseCharge < .75) { ctx.fillStyle = '#9b9d91'; ctx.fillRect(p.x - 18, p.y + 40, 36, 4); ctx.fillStyle = '#60e6ff'; ctx.fillRect(p.x - 18, p.y + 40, 36 * p.baseCharge / .75, 4); }
+      if (p.fortCharge > 0) { ctx.fillStyle = '#f5cf45'; ctx.fillRect(p.x - 18, p.y + 40, 36 * Math.min(1, p.fortCharge / 1.5), 4); }
     };
     const draw = (now: number) => {
       const rect = canvas.getBoundingClientRect(), dpr = Math.max(1, window.devicePixelRatio || 1), cw = rect.width, ch = rect.height;
@@ -452,7 +496,7 @@ export function BentenganPrototype() {
           blue: score.blue, red: score.red, round, timer, boost: me.boost / selected.boost * 100,
           boostCountdown: me.boost >= selected.boost || !me.boostReadyAt ? 0 : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
           order: me.exitOrder, state: me.state, paused, logs, mission: { ...mission },
-          team: players.filter(p => p.team === 'blue').map(p => ({ name: p.name, state: p.state, boost: p.boost })),
+          team: players.filter(p => p.team === 'blue').map(p => ({ name: p.name, characterId: p.characterId, state: p.state, boost: p.boost })),
           blueHeld: players.filter(p => p.team === 'red' && p.state === 'PRISONER').length,
           redHeld: players.filter(p => p.team === 'blue' && p.state === 'PRISONER').length,
           pickupCount: refills.length,
@@ -465,21 +509,22 @@ export function BentenganPrototype() {
     };
     raf = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(raf); audio?.close(); };
-  }, [mode, run, selected]);
+  }, [mode, run, selected, selectedId]);
 
   const missionCount = useMemo(() => Object.values(snapshot.mission).filter(Boolean).length, [snapshot.mission]);
   const start = () => { setSnapshot(initialSnapshot); setMode('playing'); setRun(v => v + 1); };
+  if (view === 'workshop') return <main className="game-shell"><CharacterWorkshop onClose={() => setView('game')} /></main>;
   return (
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><span className="brand-kicker">Playable rules prototype</span><strong>BENTENGAN</strong><span>Squad Tag</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Rules v0.3 · Fairplay 5v5</div>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v1 · Fairplay 5v5</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label="Arena Kampung Merdeka 5 lawan 5 yang dapat dimainkan" />
           <div className="stage-hud"><div><b>BIRU</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>MERAH</b></div></div>
-          {mode === 'menu' && <div className="start-panel"><p>RULESET 5v5 · FAIRPLAY UPDATE</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1><span>Charge 0,75 detik, maksimal tiga pemain, lalu keluar dalam lima detik. Satu penyerang mengunci slot benteng, tetapi defender tetap dapat masuk dan meng-contest.</span><div className="preset-row">{(Object.keys(PRESETS) as PresetKey[]).map(key => <button key={key} className={preset === key ? 'selected' : ''} onClick={() => setPreset(key)}><b>{PRESETS[key].label}</b><small>{PRESETS[key].copy}</small></button>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Mulai pertandingan 5v5</button></div>}
+          {mode === 'menu' && <div className="start-panel character-select"><p>ROSTER 5v5 · PILIH KARAKTER</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1><span>Enam karakter siap dimainkan oleh kedua tim. Warna ring dan outline menjaga identitas tim tanpa mengubah desain kostum.</span><div className="character-row">{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><b>{character.name}</b><small>{character.role}</small></span></button>)}</div><div className="selected-character"><img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} /><div><span>{selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small></div><dl><div><dt>Speed</dt><dd>{selected.speed}</dd></div><div><dt>Boost</dt><dd>{selected.boost}</dd></div><div><dt>Agility</dt><dd>{selected.agility.toFixed(2)}</dd></div></dl></div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div>}
           {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
         </div>
         <aside className="mission-panel">
@@ -492,7 +537,7 @@ export function BentenganPrototype() {
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
           </ul>
-          {mode === 'playing' ? <><div className="team-status"><span>TIM BIRU · 5 PEMAIN</span>{snapshot.team.map(member => <div key={member.name}><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src="/characters.png" alt="Referensi karakter Bentengan Squad Tag" /><div><b>Arah visual dari concept sheet</b><span>10 karakter · dua squad · urban Indonesian silhouettes.</span></div></div>}
+          {mode === 'playing' ? <><div className="team-status"><span>TIM BIRU · 5 PEMAIN</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png')} alt="Referensi karakter Bentengan Squad Tag" /><div><b>Enam sprite produksi terpasang</b><span>Atlas, portrait, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>
         </aside>
       </section>
