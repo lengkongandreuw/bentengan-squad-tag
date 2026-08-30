@@ -1,35 +1,75 @@
 {
-  "version": 1,
+  "version": 3,
+  "atlas": {
+    "cell": {
+      "width": 192,
+      "height": 224,
+      "padding": 4
+    },
+    "width": 1536,
+    "height": 1344,
+    "rows": 6
+  },
   "characters": [
     {
       "id": "robot",
       "name": "Robot",
-      "role": "Guardian"
+      "role": "Guardian",
+      "sourceRows": 5
     },
     {
       "id": "ciici",
       "name": "Ciici",
-      "role": "Rescuer"
+      "role": "Rescuer",
+      "sourceRows": 5
     },
     {
       "id": "kaka",
       "name": "Kaka",
-      "role": "Runner"
+      "role": "Runner",
+      "sourceRows": 5
     },
     {
       "id": "buto",
       "name": "Buto",
-      "role": "Guardian"
+      "role": "Guardian",
+      "sourceRows": 6
     },
     {
       "id": "jago",
       "name": "Jago",
-      "role": "Chaser"
+      "role": "Chaser",
+      "sourceRows": 6
     },
     {
       "id": "raja",
       "name": "Raja",
-      "role": "All-rounder"
+      "role": "All-rounder",
+      "sourceRows": 5
+    },
+    {
+      "id": "lala",
+      "name": "Lala",
+      "role": "Scout",
+      "sourceRows": 6
+    },
+    {
+      "id": "maria",
+      "name": "Maria",
+      "role": "Chaser",
+      "sourceRows": 6
+    },
+    {
+      "id": "kumis",
+      "name": "Kumis",
+      "role": "Guardian",
+      "sourceRows": 6
+    },
+    {
+      "id": "boke",
+      "name": "Boke",
+      "role": "Disruptor",
+      "sourceRows": 6
     }
   ]
 }

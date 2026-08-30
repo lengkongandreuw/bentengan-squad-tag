@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
-import { CHARACTERS, CHARACTER_BY_ID, CharacterId, characterAsset, publicAsset } from '../lib/characters';
+import { CHARACTERS, CHARACTER_BY_ID, CharacterId, characterAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
 
 type Team = 'blue' | 'red';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type PlayerAction = 'tag' | 'rescue';
 type Grade = 25 | 50 | 100;
+type FieldId = 'kampung' | 'pasar' | 'taman';
+type CameraMode = 'follow' | 'tactical' | 'overview';
 type Player = {
   id: string; name: string; team: Team; characterId: CharacterId; controlled?: boolean; x: number; y: number;
   vx: number; vy: number; state: PlayerState; exitOrder: number; boost: number;
@@ -18,6 +20,7 @@ type Player = {
   action?: PlayerAction; actionUntil: number;
 };
 type Obstacle = { x: number; y: number; w: number; h: number; kind: 'fence' | 'canal' | 'stall' | 'chairs' };
+type FieldConfig = { id: FieldId; name: string; kicker: string; colors: [string, string, string]; landmarks: [string, string, string]; obstacles: Obstacle[] };
 type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
 type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean };
 type Snapshot = {
@@ -32,7 +35,7 @@ const H = 800;
 const BASE_RADIUS = 74;
 const BASES = { blue: { x: 112, y: 410 }, red: { x: 1328, y: 390 } };
 const TEAM_COLOR = { blue: '#2f87ff', red: '#f0473e' };
-const OBSTACLES: Obstacle[] = [
+const KAMPUNG_OBSTACLES: Obstacle[] = [
   { x: 244, y: 122, w: 146, h: 24, kind: 'fence' }, { x: 1044, y: 628, w: 142, h: 24, kind: 'fence' },
   { x: 538, y: 148, w: 102, h: 58, kind: 'stall' }, { x: 812, y: 596, w: 112, h: 48, kind: 'chairs' },
   { x: 402, y: 354, w: 168, h: 36, kind: 'canal' }, { x: 870, y: 410, w: 168, h: 36, kind: 'canal' },
@@ -40,6 +43,25 @@ const OBSTACLES: Obstacle[] = [
   { x: 648, y: 296, w: 138, h: 54, kind: 'stall' }, { x: 652, y: 502, w: 136, h: 44, kind: 'chairs' },
   { x: 474, y: 666, w: 146, h: 24, kind: 'fence' }, { x: 820, y: 94, w: 146, h: 24, kind: 'fence' },
 ];
+const FIELD_CONFIGS: FieldConfig[] = [
+  { id: 'kampung', name: 'Kampung Merdeka', kicker: 'Seimbang', colors: ['#cdbb92', '#87925d', '#43563d'], landmarks: ['WARUNG BU SRI', 'POS RONDA', 'BALAI WARGA'], obstacles: KAMPUNG_OBSTACLES },
+  { id: 'pasar', name: 'Pasar Senggol', kicker: 'Jalur rapat', colors: ['#d4a06b', '#8a654f', '#463d3b'], landmarks: ['LOS SAYUR', 'PARKIR PASAR', 'KEDAI MALAM'], obstacles: [
+    { x: 250, y: 116, w: 118, h: 48, kind: 'stall' }, { x: 1060, y: 626, w: 118, h: 48, kind: 'stall' },
+    { x: 438, y: 248, w: 152, h: 30, kind: 'chairs' }, { x: 850, y: 522, w: 152, h: 30, kind: 'chairs' },
+    { x: 390, y: 438, w: 190, h: 28, kind: 'fence' }, { x: 860, y: 332, w: 190, h: 28, kind: 'fence' },
+    { x: 634, y: 160, w: 82, h: 92, kind: 'stall' }, { x: 724, y: 548, w: 82, h: 92, kind: 'stall' },
+    { x: 628, y: 376, w: 184, h: 38, kind: 'canal' }, { x: 270, y: 620, w: 124, h: 24, kind: 'fence' }, { x: 1046, y: 142, w: 124, h: 24, kind: 'fence' },
+  ] },
+  { id: 'taman', name: 'Taman Kota', kicker: 'Ruang terbuka', colors: ['#b8d29b', '#67966f', '#34594c'], landmarks: ['RUMAH KACA', 'KIOS TAMAN', 'PANGGUNG RAKYAT'], obstacles: [
+    { x: 312, y: 178, w: 138, h: 24, kind: 'fence' }, { x: 990, y: 598, w: 138, h: 24, kind: 'fence' },
+    { x: 338, y: 558, w: 110, h: 42, kind: 'chairs' }, { x: 992, y: 200, w: 110, h: 42, kind: 'chairs' },
+    { x: 544, y: 342, w: 112, h: 34, kind: 'canal' }, { x: 784, y: 424, w: 112, h: 34, kind: 'canal' },
+    { x: 652, y: 158, w: 136, h: 42, kind: 'stall' }, { x: 652, y: 604, w: 136, h: 42, kind: 'stall' },
+    { x: 594, y: 492, w: 252, h: 22, kind: 'fence' },
+  ] },
+];
+const FIELD_BY_ID = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field])) as Record<FieldId, FieldConfig>;
+const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [{ id: 'follow', label: 'Dekat' }, { id: 'tactical', label: 'Taktis' }, { id: 'overview', label: 'Overall' }];
 const initialSnapshot: Snapshot = {
   blue: 0, red: 0, round: 1, timer: 240, boost: 100, boostCountdown: 0, order: 0,
   state: 'IN_BASE', paused: false, logs: ['Prototype 5v5 siap.'],
@@ -56,12 +78,10 @@ const formatTime = (seconds: number) => {
 };
 const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 
-const ATLAS_WIDTH = 1448;
-const ATLAS_HEIGHT = 1086;
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
-const spriteFrame = (column: number, row: number) => {
-  const x = Math.round(column * ATLAS_WIDTH / 8), y = Math.round(row * ATLAS_HEIGHT / 5);
-  const right = Math.round((column + 1) * ATLAS_WIDTH / 8), bottom = Math.round((row + 1) * ATLAS_HEIGHT / 5);
+const spriteFrame = (width: number, height: number, column: number, row: number) => {
+  const x = Math.round(column * width / 8), y = Math.round(row * height / 6);
+  const right = Math.round((column + 1) * width / 8), bottom = Math.round((row + 1) * height / 6);
   return { x, y, width: right - x, height: bottom - y };
 };
 
@@ -74,13 +94,19 @@ const getSpriteImage = (id: CharacterId) => {
 export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
+  const cameraModeRef = useRef<CameraMode>('follow');
   const [selectedId, setSelectedId] = useState<CharacterId>('kaka');
+  const [selectedFieldId, setSelectedFieldId] = useState<FieldId>('kampung');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
   const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
   const selected = CHARACTER_BY_ID[selectedId];
   const squad = useMemo(() => [selectedId, ...CHARACTERS.map(character => character.id).filter(id => id !== selectedId)].slice(0, 5), [selectedId]);
+  const opponentSquad = useMemo(() => CHARACTERS.map(character => character.id).filter(id => !squad.includes(id)).slice(0, 5), [squad]);
+
+  useEffect(() => { cameraModeRef.current = cameraMode; }, [cameraMode]);
 
   useEffect(() => { CHARACTERS.forEach(character => getSpriteImage(character.id)); }, []);
 
@@ -109,6 +135,7 @@ export function BentenganPrototype() {
     let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 8000, refillId = 0, suddenDeath = false;
     let particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; color: string }> = [];
     let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false;
+    const field = FIELD_BY_ID[selectedFieldId], obstacles = field.obstacles;
 
     const beep = (frequency: number, duration = .08) => {
       try {
@@ -132,7 +159,7 @@ export function BentenganPrototype() {
     const makePlayers = () => {
       const ids = CHARACTERS.map(character => character.id);
       const blueRoster = [selectedId, ...ids.filter(id => id !== selectedId)].slice(0, 5);
-      const redRoster = ids.slice().reverse().slice(0, 5);
+      const redRoster = ids.filter(id => !blueRoster.includes(id)).slice(0, 5);
       return [
         ...blueRoster.map((characterId, slot) => makePlayer(slot === 0 ? 'you' : `b${slot + 1}`, characterId, 'blue', slot, slot === 0)),
         ...redRoster.map((characterId, slot) => makePlayer(`r${slot + 1}`, characterId, 'red', slot)),
@@ -153,7 +180,7 @@ export function BentenganPrototype() {
       const laneBounds = [[92, 292], [300, 516], [524, 712]] as const;
       for (let tries = 0; tries < 30; tries++) {
         const x = 236 + Math.random() * (W - 472), y = laneBounds[lane][0] + Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
-        if (OBSTACLES.every(o => x < o.x - 28 || x > o.x + o.w + 28 || y < o.y - 28 || y > o.y + o.h + 28)) {
+        if (obstacles.every(o => x < o.x - 28 || x > o.x + o.w + 28 || y < o.y - 28 || y > o.y + o.h + 28)) {
           refills.push({ id: ++refillId, x, y, grade: randomGrade(), lane, expiresAt: now + 25000 }); return;
         }
       }
@@ -189,9 +216,9 @@ export function BentenganPrototype() {
       }
       return false;
     };
-    const hasLineOfSight = (a: Player, b: Player) => !OBSTACLES.some(o => segmentHitsRect(a, b, o));
+    const hasLineOfSight = (a: Player, b: Player) => !obstacles.some(o => segmentHitsRect(a, b, o));
     const blocked = (x: number, y: number, p: Player, now: number) => {
-      if (now >= p.parkourUntil && OBSTACLES.some(o => x + 13 > o.x && x - 13 < o.x + o.w && y + 13 > o.y && y - 13 < o.y + o.h)) return true;
+      if (now >= p.parkourUntil && obstacles.some(o => x + 13 > o.x && x - 13 < o.x + o.w && y + 13 > o.y && y - 13 < o.y + o.h)) return true;
       if (p.state === 'IN_BASE' && p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime && distance(p, BASES[p.team]) < BASE_RADIUS && distance({ x, y }, BASES[p.team]) >= BASE_RADIUS) return true;
       for (const team of ['blue', 'red'] as Team[]) {
         const entering = distance({ x, y }, BASES[team]) < BASE_RADIUS && distance(p, BASES[team]) >= BASE_RADIUS;
@@ -231,7 +258,7 @@ export function BentenganPrototype() {
     const capture = (winner: Player, loser: Player, now: number) => {
       const targetable = loser.state === 'ACTIVE' || (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
       if (winner.state !== 'ACTIVE' || now < winner.parkourUntil || now < loser.parkourUntil || winner.tagCooldown > now || !targetable || winner.exitOrder <= loser.exitOrder) return;
-      winner.tagCooldown = now + 500; winner.captures++; if (!winner.capturedIds.includes(loser.id)) winner.capturedIds.push(loser.id);
+      winner.tagCooldown = now + CHARACTER_BY_ID[winner.characterId].tagCooldownMs; winner.captures++; if (!winner.capturedIds.includes(loser.id)) winner.capturedIds.push(loser.id);
       winner.action = 'tag'; winner.actionUntil = now + 420;
       loser.state = 'PRISONER'; loser.prisonOwner = winner.team; loser.fortCharge = 0; loser.rescueShieldUntil = 0;
       burst(loser.x, loser.y, TEAM_COLOR[winner.team]); beep(winner.controlled ? 820 : 250);
@@ -344,7 +371,7 @@ export function BentenganPrototype() {
       const space = keys.current.has(' ');
       const parkourCost = 8 / selected.agility;
       if (space && !parkourLatch && me.boost >= parkourCost && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
-        const near = OBSTACLES.some(o => me.x + 44 > o.x && me.x - 44 < o.x + o.w && me.y + 44 > o.y && me.y - 44 < o.y + o.h);
+        const near = obstacles.some(o => me.x + 44 > o.x && me.x - 44 < o.x + o.w && me.y + 44 > o.y && me.y - 44 < o.y + o.h);
         if (near) {
           const parkourDistance = 54 * selected.agility;
           me.parkourUntil = now + 320; me.boost = Math.max(0, me.boost - parkourCost); me.boostReadyAt = now + 20000;
@@ -383,19 +410,19 @@ export function BentenganPrototype() {
 
     const rounded = (x: number, y: number, w: number, h: number, r: number) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); };
     const drawMap = () => {
-      const ground = ctx.createLinearGradient(0, 0, 0, H); ground.addColorStop(0, '#cdbb92'); ground.addColorStop(.45, '#87925d'); ground.addColorStop(1, '#43563d');
+      const ground = ctx.createLinearGradient(0, 0, 0, H); ground.addColorStop(0, field.colors[0]); ground.addColorStop(.45, field.colors[1]); ground.addColorStop(1, field.colors[2]);
       ctx.fillStyle = ground; ctx.fillRect(0, 0, W, H); ctx.fillStyle = 'rgba(242,216,165,.2)';
       for (let y = 80; y < H; y += 48) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y - 130); ctx.lineTo(W, y - 102); ctx.lineTo(0, y + 28); ctx.fill(); }
       ctx.strokeStyle = 'rgba(255,255,255,.12)'; for (let x = -H; x < W; x += 48) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
       ctx.fillStyle = '#233726'; ctx.fillRect(0, 34, W, 30); ctx.fillRect(0, H - 32, W, 32);
-      ctx.font = '800 15px var(--font-heading)'; ctx.fillStyle = '#f1e3c3'; ctx.textAlign = 'center'; ctx.fillText('KAMPUNG MERDEKA · ARENA 5v5', W / 2, 55);
+      ctx.font = '800 15px var(--font-heading)'; ctx.fillStyle = '#f1e3c3'; ctx.textAlign = 'center'; ctx.fillText(`${field.name.toUpperCase()} · ARENA 5v5`, W / 2, 55);
       for (let x = 28; x < W; x += 62) { ctx.fillStyle = x % 124 ? '#f4e2bd' : '#d83a33'; ctx.beginPath(); ctx.moveTo(x, 38); ctx.lineTo(x + 18, 38); ctx.lineTo(x + 9, 59); ctx.fill(); }
       const building = (x: number, y: number, w: number, h: number, color: string, label: string) => {
         ctx.fillStyle = 'rgba(0,0,0,.22)'; rounded(x + 10, y + 11, w, h, 8); ctx.fill(); ctx.fillStyle = color; rounded(x, y, w, h, 8); ctx.fill();
         ctx.fillStyle = '#3e3025'; ctx.fillRect(x, y, w, 14); ctx.fillStyle = '#f4e3bd'; ctx.font = '800 10px Arial'; ctx.textAlign = 'left'; ctx.fillText(label, x + 10, y + 38);
       };
-      building(60, 78, 164, 78, '#aa6b3b', 'WARUNG BU SRI'); building(1200, 616, 170, 82, '#a45e34', 'POS RONDA'); building(1136, 76, 160, 74, '#84623d', 'BALAI WARGA');
-      OBSTACLES.forEach(o => {
+      building(60, 78, 164, 78, '#aa6b3b', field.landmarks[0]); building(1200, 616, 170, 82, '#a45e34', field.landmarks[1]); building(1136, 76, 160, 74, '#84623d', field.landmarks[2]);
+      obstacles.forEach(o => {
         if (o.kind === 'canal') { ctx.fillStyle = '#294e54'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.strokeStyle = '#81b2ae'; ctx.setLineDash([10, 8]); ctx.strokeRect(o.x, o.y, o.w, o.h); ctx.setLineDash([]); }
         else if (o.kind === 'stall') { ctx.fillStyle = '#762d2b'; rounded(o.x, o.y, o.w, o.h, 5); ctx.fill(); ctx.fillStyle = '#f0d16f'; ctx.fillRect(o.x + 8, o.y + 8, o.w - 16, 10); }
         else if (o.kind === 'chairs') { ctx.fillStyle = '#327b62'; for (let x = o.x; x < o.x + o.w; x += 23) { rounded(x, o.y, 18, o.h, 4); ctx.fill(); } }
@@ -431,12 +458,12 @@ export function BentenganPrototype() {
       const stats = CHARACTER_BY_ID[p.characterId], image = getSpriteImage(p.characterId), speed = Math.hypot(p.vx, p.vy);
       const horizontal = Math.abs(p.vx) > Math.abs(p.vy);
       const direction = horizontal ? (p.vx >= 0 ? 'east' : 'west') : p.vy < 0 ? 'north' : 'south';
-      let row = direction === 'north' ? 2 : direction === 'south' ? 0 : 1, columns = [0], mirror = direction === 'east';
-      if (phase === 'ROUND_OVER' || phase === 'MATCH_OVER') { row = 4; columns = roundWinner === p.team ? [2, 3, 4] : [5, 6, 7]; mirror = false; }
-      else if (p.state === 'PRISONER') { row = 4; columns = [0, 1]; mirror = false; }
-      else if (p.action && now < p.actionUntil) { row = 3; columns = p.action === 'tag' ? [0, 1, 2, 3] : [4, 5, 6, 7]; mirror = false; }
+      let row = direction === 'north' ? 3 : direction === 'east' ? 2 : direction === 'south' ? 0 : 1, columns = [0], mirror = direction === 'east' && !characterUsesDedicatedEast(p.characterId);
+      if (phase === 'ROUND_OVER' || phase === 'MATCH_OVER') { row = 5; columns = roundWinner === p.team ? [2, 3, 4] : [5, 6, 7]; mirror = false; }
+      else if (p.state === 'PRISONER') { row = 5; columns = [0, 1]; mirror = false; }
+      else if (p.action && now < p.actionUntil) { row = 4; columns = p.action === 'tag' ? [0, 1, 2, 3] : [4, 5, 6, 7]; mirror = false; }
       else if (speed > 8) columns = speed > stats.speed * 1.16 ? [7] : [1, 2, 3, 4, 5, 6];
-      const frame = spriteFrame(columns[Math.floor(now / (columns.length > 1 ? 92 : 180)) % columns.length], row);
+      const frame = spriteFrame(image.naturalWidth || 1536, image.naturalHeight || 1120, columns[Math.floor(now / (columns.length > 1 ? 92 : 180)) % columns.length], row);
 
       ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 15, 22 * stats.visualScale, 8, 0, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = outline; ctx.lineWidth = p.controlled ? 5 : 3; ctx.beginPath(); ctx.ellipse(p.x, p.y + 10, 21 * stats.visualScale, 10, 0, 0, Math.PI * 2); ctx.stroke();
@@ -467,10 +494,14 @@ export function BentenganPrototype() {
       if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) { canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
       const me = players[0];
-      const scale = mode === 'playing' ? Math.max(cw / 980, ch / 620) : Math.min(cw / W, ch / H);
+      const activeCamera = cameraModeRef.current;
+      const scale = mode !== 'playing' || activeCamera === 'overview'
+        ? Math.min(cw / W, ch / H)
+        : activeCamera === 'tactical' ? Math.max(cw / 1220, ch / 720) : Math.max(cw / 980, ch / 620);
       const halfW = cw / (2 * scale), halfH = ch / (2 * scale);
-      const camX = mode === 'playing' ? clamp(me.x, halfW, W - halfW) : W / 2;
-      const camY = mode === 'playing' ? clamp(me.y, halfH, H - halfH) : H / 2;
+      const followsPlayer = mode === 'playing' && activeCamera !== 'overview';
+      const camX = followsPlayer ? clamp(me.x, halfW, W - halfW) : W / 2;
+      const camY = followsPlayer ? clamp(me.y, halfH, H - halfH) : H / 2;
       ctx.save(); ctx.translate(cw / 2, ch / 2); ctx.scale(scale, scale); ctx.translate(-camX, -camY);
       drawMap(); refills.forEach(item => drawRefill(item, now)); drawBase('blue'); drawBase('red');
       players.slice().sort((a, b) => a.y - b.y).forEach(p => drawPlayer(p, me, now));
@@ -514,7 +545,7 @@ export function BentenganPrototype() {
     };
     raf = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(raf); audio?.close(); };
-  }, [mode, run, selected, selectedId]);
+  }, [mode, run, selected, selectedFieldId, selectedId]);
 
   const missionCount = useMemo(() => Object.values(snapshot.mission).filter(Boolean).length, [snapshot.mission]);
   const start = () => { setSnapshot(initialSnapshot); setMode('playing'); setRun(v => v + 1); };
@@ -523,14 +554,15 @@ export function BentenganPrototype() {
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><span className="brand-kicker">Playable rules prototype</span><strong>BENTENGAN</strong><span>Squad Tag</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v2 · Distinct roles</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v3 · 10 unique</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
-          <canvas ref={canvasRef} aria-label="Arena Kampung Merdeka 5 lawan 5 yang dapat dimainkan" />
+          <canvas ref={canvasRef} aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`} />
           <div className="stage-hud"><div><b>BIRU</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>MERAH</b></div></div>
           {mode === 'menu' && <div className="start-panel character-select">
-            <div className="character-select-heading"><div><p>ROSTER 5v5 · PILIH KARAKTER</p><h1>Keluar terakhir.<br />Tangkap lebih dulu.</h1></div><span>Setiap karakter kini memiliki trade-off dan passive yang benar-benar aktif di arena.</span></div>
+            <div className="character-select-heading"><div><p>10 KARAKTER UNIK · PILIH PEMAIN</p><h1>Tidak ada duplikat.<br />Semua punya peran.</h1></div><span>Sepuluh karakter dibagi 5v5 tanpa karakter kembar di field. Pilihanmu menentukan komposisi kedua tim.</span></div>
+            <div className="field-row"><span>PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
             <div className="character-row">{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)} aria-pressed={selectedId === character.id}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><b>{character.name}</b><small>{character.role}</small><em>{character.passiveName}</em></span></button>)}</div>
             <div className="selected-character" style={{ borderColor: selected.accent }}>
               <img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} />
@@ -541,9 +573,9 @@ export function BentenganPrototype() {
                 <div><dt>Agility <b>{selected.agility.toFixed(2)}</b></dt><dd><i><span style={{ width: statPercent(selected.agility, .82, 1.25) }} /></i></dd></div>
               </dl>
             </div>
-            <div className="squad-preview"><span>SKUAD BIRU</span><div>{squad.map((id, index) => <figure key={id} className={index === 0 ? 'controlled' : ''}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div>
+            <div className="squad-preview"><span>10 UNIK</span><div>{squad.map((id, index) => <figure key={`blue-${id}`} className={index === 0 ? 'controlled' : ''}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : 'B'}</figcaption></figure>)}{opponentSquad.map(id => <figure key={`red-${id}`} className="team-red"><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>M</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main di {FIELD_BY_ID[selectedFieldId].name}</button></div>
           </div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="character-hud"><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selected.passiveName}</small></span></div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="character-hud"><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
         </div>
         <aside className="mission-panel">
           <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>{mode === 'menu' ? 'Kuasai aturan baru' : 'Buktikan core loop'}</h2></div>
@@ -555,7 +587,7 @@ export function BentenganPrototype() {
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
           </ul>
-          {mode === 'playing' ? <><div className="team-status"><span>TIM BIRU · 5 PEMAIN</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png')} alt="Referensi karakter Bentengan Squad Tag" /><div><b>Enam sprite produksi terpasang</b><span>Atlas, portrait, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
+          {mode === 'playing' ? <><div className="team-status"><span>TIM BIRU · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png')} alt="Referensi karakter Bentengan Squad Tag" /><div><b>Sepuluh sprite produksi terpasang</b><span>Atlas bergutter, portrait bersih, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>
         </aside>
       </section>

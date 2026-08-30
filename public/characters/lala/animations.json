@@ -1,19 +1,20 @@
 {
   "version": 3,
-  "id": "ciici",
-  "name": "Ciici",
-  "role": "Rescuer",
+  "id": "lala",
+  "name": "Lala",
+  "role": "Scout",
   "source": {
     "width": 1448,
     "height": 1086,
     "columns": 8,
-    "rows": 5,
+    "rows": 6,
     "rowBounds": [
       0,
-      225,
-      440,
-      655,
-      863,
+      192,
+      362,
+      542,
+      725,
+      902,
       1086
     ]
   },
@@ -142,7 +143,60 @@
       ]
     },
     "east": {
-      "mirror": "west"
+      "idle": [
+        {
+          "x": 0,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        }
+      ],
+      "run": [
+        {
+          "x": 192,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        },
+        {
+          "x": 384,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        },
+        {
+          "x": 576,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        },
+        {
+          "x": 768,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        },
+        {
+          "x": 960,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        },
+        {
+          "x": 1152,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        }
+      ],
+      "boost": [
+        {
+          "x": 1344,
+          "y": 448,
+          "width": 192,
+          "height": 224
+        }
+      ]
     },
     "north": {
       "idle": [
