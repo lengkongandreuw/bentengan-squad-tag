@@ -1,0 +1,10 @@
+:root {
+  --font-body: Arial, Helvetica, sans-serif;
+  --font-heading: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
