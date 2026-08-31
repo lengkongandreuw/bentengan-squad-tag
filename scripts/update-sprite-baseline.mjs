@@ -11,6 +11,7 @@ for (const character of manifest.characters) {
   characters[character.id] = {
     source: await sha256(`sprite-sources/${character.id}.png`),
     atlas: await sha256(`public/characters/${character.id}/atlas.webp`),
+    runtime: await sha256(`public/characters/${character.id}/atlas-runtime.webp`),
     portrait: await sha256(`public/characters/${character.id}/portrait.webp`),
     animation: await sha256(`public/characters/${character.id}/animations.json`),
   };

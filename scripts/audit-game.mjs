@@ -14,6 +14,8 @@ const manifest = await readJson('public/characters/manifest.json');
 const spriteBaseline = await readJson('config/sprite-baseline.json');
 const charactersSource = await readFile(path.join(root, 'lib/characters.ts'), 'utf8');
 const prototypeSource = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
+const workshopSource = await readFile(path.join(root, 'components/character-workshop.tsx'), 'utf8');
+const motion = await import('../lib/sprite-motion.js');
 const ids = [...charactersSource.matchAll(/\{ id: '([a-z]+)', name:/g)].map(match => match[1]);
 const teamIds = Object.values(rules.teams).flatMap(team => team.roster);
 
@@ -23,10 +25,10 @@ assert(rules.teams.red.roster.join(',') === 'raja,robot,jago,lala,kumis,tui', 'r
 assert(rules.teams.green.roster.join(',') === 'ciici,kaka,buto,maria,boke,lui', 'roster Tim Hijau sesuai spesifikasi');
 assert(new Set(teamIds).size === 12 && teamIds.length === 12, 'dua roster berisi 12 karakter tanpa duplikat');
 assert(ids.length === 12 && ids.every(id => teamIds.includes(id)), 'definisi karakter dan roster tim sinkron');
-assert(manifest.version === 6 && manifest.characters.length === 12, 'manifest sprite v6 memuat 12 karakter');
-assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8, 'atlas produksi adaptif konsisten 7×6');
+assert(manifest.version === 7 && manifest.characters.length === 12, 'manifest sprite v7 memuat 12 karakter');
+assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('column * width / 7') && !prototypeSource.includes('column * width / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
-assert(charactersSource.includes('?v=6') && !charactersSource.includes('?v=5'), 'cache key runtime menunjuk pipeline sprite v6');
+assert(charactersSource.includes('?v=7') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v7');
 
 const offsets = rules.spawnOffsets;
 let minimumSpawnDistance = Infinity;
@@ -38,21 +40,47 @@ assert(rules.boostKey === 'space' && rules.boostDurationMs >= 1000 && rules.boos
 assert(rules.parkourKey === 'shift', 'parkour dipindahkan ke Shift');
 assert(prototypeSource.includes("const boostKey = keys.current.has(' ')") && prototypeSource.includes("const parkourKey = keys.current.has('shift')"), 'implementasi kontrol mengikuti konfigurasi Space/Shift');
 assert(!prototypeSource.includes('Shift untuk boost') && !prototypeSource.includes('Space di dekat rintangan'), 'tidak ada petunjuk kontrol lama yang tertinggal');
+assert(motion.directionFromVelocity(100, 0) === 'east' && motion.directionFromVelocity(-100, 0) === 'west' && motion.directionFromVelocity(0, -100) === 'north' && motion.directionFromVelocity(0, 100) === 'south', 'resolver arah gerak lulus untuk empat arah');
+assert(motion.BOOST_COLUMNS === motion.RUN_COLUMNS && motion.BOOST_COLUMNS.join(',') === '1,2,3,4,5', 'boost memakai run cycle directional tanpa pose kolom 6 yang ambigu');
+assert(motion.shouldMirrorSprite('east', false) && !motion.shouldMirrorSprite('west', false) && !motion.shouldMirrorSprite('east', true), 'mirror sprite hanya aktif untuk timur tanpa row khusus');
+assert(motion.sprintEffectRotation('east') === 0 && motion.sprintEffectRotation('west') === Math.PI && motion.sprintEffectRotation('north') === -Math.PI / 2 && motion.sprintEffectRotation('south') === Math.PI / 2, 'jejak sprint diputar searah empat arah gerak');
+assert(prototypeSource.includes('ctx.rotate(sprintEffectRotation(direction))') && !prototypeSource.includes('if (p.vx > 0)'), 'renderer VFX memakai rotasi arah, bukan flip kanan yang terbalik');
+assert(workshopSource.includes('animation === \'boost\'') && workshopSource.includes('BOOST_COLUMNS'), 'workshop mempratinjau boost directional yang sama dengan arena');
+assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage') && prototypeSource.includes("image.decoding = 'async'") && prototypeSource.includes("if (mode === 'playing') {"), 'atlas dimuat lazy hanya saat pertandingan dan decode gambar tidak memblokir layar awal');
+assert((prototypeSource.match(/Math\.min\(2, Math\.max\(1, window\.devicePixelRatio/g) ?? []).length >= 1 && workshopSource.includes('Math.min(2, Math.max(1, window.devicePixelRatio'), 'pixel ratio canvas dibatasi 2×');
+assert(!prototypeSource.includes('ctx.filter = \'drop-shadow'), 'filter bayangan per pemain dihapus dari render loop');
 
 const logo = await sharp(path.join(root, 'public/brand/benteng-tag-logo.png')).metadata();
 assert((logo.width ?? 0) >= 1200 && (logo.height ?? 0) >= 500 && logo.hasAlpha, 'logo judul resolusi tinggi dan transparan');
+const webLogoPath = path.join(root, 'public/brand/benteng-tag-logo.webp');
+const webLogo = await sharp(webLogoPath).metadata();
+assert(webLogo.width === logo.width && webLogo.height === logo.height && webLogo.hasAlpha && (await stat(webLogoPath)).size <= 650 * 1024, 'logo WebP mempertahankan dimensi dalam budget 650 KiB');
+const montagePath = path.join(root, 'public/characters.webp');
+const montage = await sharp(montagePath).metadata();
+assert(montage.width === 1920 && montage.height === 900 && (await stat(montagePath)).size <= 350 * 1024, 'montage WebP layar awal berada dalam budget 350 KiB');
+assert(prototypeSource.includes('benteng-tag-logo.webp?v=7') && prototypeSource.includes('characters.webp?v=7'), 'UI memakai asset WebP ringan, bukan master PNG');
 const sprintDust = await sharp(path.join(root, 'public/vfx/sprint-dust.webp')).metadata();
 assert(sprintDust.width === 1024 && sprintDust.height === 192 && sprintDust.hasAlpha, 'VFX sprint RPG memiliki empat frame transparan');
 
+let runtimeEncodedBytes = 0;
+let runtimeDecodedBytes = 0;
 for (const id of ids) {
   const atlasPath = path.join(root, `public/characters/${id}/atlas.webp`);
+  const runtimePath = path.join(root, `public/characters/${id}/atlas-runtime.webp`);
   const portraitPath = path.join(root, `public/characters/${id}/portrait.webp`);
   const animation = await readJson(`public/characters/${id}/animations.json`);
   await stat(atlasPath); await stat(portraitPath);
   const atlasMeta = await sharp(atlasPath).metadata();
+  const runtimeStat = await stat(runtimePath);
+  const runtimeMeta = await sharp(runtimePath).metadata();
+  runtimeEncodedBytes += runtimeStat.size;
+  runtimeDecodedBytes += (runtimeMeta.width ?? 0) * (runtimeMeta.height ?? 0) * 4;
   assert(atlasMeta.width === animation.atlas.width && atlasMeta.height === animation.atlas.height && atlasMeta.hasAlpha, `${id}: dimensi atlas adaptif sinkron dan transparan`);
-  assert(animation.version === 6 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v6 sinkron`);
+  assert(runtimeMeta.width === atlasMeta.width / 2 && runtimeMeta.height === atlasMeta.height / 2 && runtimeMeta.hasAlpha, `${id}: atlas runtime tepat 50% dan transparan`);
+  assert(animation.version === 7 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v7 sinkron`);
   assert(animation.quality.frameCount === 42 && animation.source.frames.length === 42, `${id}: 42 frame sumber terlacak satu per satu`);
+  for (const direction of ['south', 'west', 'north']) assert(animation.directions[direction].boost.length === 5, `${id}: boost ${direction} memakai lima frame halus`);
+  if (animation.directions.east.mirror !== 'west') assert(animation.directions.east.boost.length === 5, `${id}: boost east memakai lima frame halus`);
 
   const { data: portrait, info } = await sharp(portraitPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let opaque = 0, edgeOpaque = 0, edgePixels = 0;
@@ -104,9 +132,13 @@ for (const id of ids) {
   const sha256 = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
   assert(hashes?.source === await sha256(`sprite-sources/${id}.png`), `${id}: sumber cocok dengan golden baseline`);
   assert(hashes?.atlas === await sha256(`public/characters/${id}/atlas.webp`), `${id}: atlas cocok dengan golden baseline tervalidasi`);
+  assert(hashes?.runtime === await sha256(`public/characters/${id}/atlas-runtime.webp`), `${id}: atlas runtime cocok dengan golden baseline tervalidasi`);
   assert(hashes?.portrait === await sha256(`public/characters/${id}/portrait.webp`), `${id}: portrait cocok dengan golden baseline tervalidasi`);
   assert(hashes?.animation === await sha256(`public/characters/${id}/animations.json`), `${id}: metadata cocok dengan golden baseline tervalidasi`);
 }
+
+assert(runtimeEncodedBytes <= 5.5 * 1024 * 1024, `total atlas gameplay ${(runtimeEncodedBytes / 1024 / 1024).toFixed(2)} MiB berada dalam budget 5.50 MiB`);
+assert(runtimeDecodedBytes <= 48 * 1024 * 1024, `memori decode 12 atlas gameplay ${(runtimeDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 48 MiB`);
 
 if (failures.length) {
   console.error('\nAUDIT GAGAL');

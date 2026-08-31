@@ -1,10 +1,11 @@
 {
-  "version": 6,
+  "version": 7,
   "atlas": {
     "minimumCell": 256,
     "padding": 8,
     "columns": 7,
-    "rows": 6
+    "rows": 6,
+    "runtimeScale": 0.5
   },
   "characters": [
     {

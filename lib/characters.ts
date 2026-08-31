@@ -43,7 +43,9 @@ export const characterUsesDedicatedEast = (id: CharacterId) => DEDICATED_EAST_CH
 
 const publicBase = ((import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/').replace(/\/?$/, '/');
 
-export const characterAsset = (id: CharacterId, file: 'atlas.webp' | 'portrait.webp' | 'animations.json') =>
-  `${publicBase}characters/${id}/${file}?v=6`;
+export const characterAsset = (id: CharacterId, file: 'atlas.webp' | 'atlas-runtime.webp' | 'portrait.webp' | 'animations.json') =>
+  `${publicBase}characters/${id}/${file}?v=7`;
+
+export const characterRuntimeAsset = (id: CharacterId) => characterAsset(id, 'atlas-runtime.webp');
 
 export const publicAsset = (file: string) => `${publicBase}${file.replace(/^\//, '')}`;

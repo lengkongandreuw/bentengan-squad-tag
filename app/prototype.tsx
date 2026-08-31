@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
-import { CHARACTERS, CHARACTER_BY_ID, CharacterId, characterAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
+import { CHARACTER_BY_ID, CharacterId, characterAsset, characterRuntimeAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
+import { BOOST_COLUMNS, directionFromVelocity, directionalRow, RUN_COLUMNS, shouldMirrorSprite, sprintEffectRotation } from '../lib/sprite-motion.js';
 import GAME_RULES from '../config/game-rules.json';
 
 type Team = 'blue' | 'red';
@@ -105,12 +106,12 @@ const spriteFrame = (width: number, height: number, column: number, row: number)
 const getSpriteImage = (id: CharacterId) => {
   const cached = spriteImages.get(id);
   if (cached) return cached;
-  const image = new Image(); image.src = characterAsset(id, 'atlas.webp'); spriteImages.set(id, image); return image;
+  const image = new Image(); image.decoding = 'async'; image.src = characterRuntimeAsset(id); spriteImages.set(id, image); return image;
 };
 
 const getSprintDustImage = () => {
   if (sprintDustImage) return sprintDustImage;
-  sprintDustImage = new Image(); sprintDustImage.src = publicAsset('vfx/sprint-dust.webp?v=5'); return sprintDustImage;
+  sprintDustImage = new Image(); sprintDustImage.decoding = 'async'; sprintDustImage.src = publicAsset('vfx/sprint-dust.webp?v=7'); return sprintDustImage;
 };
 
 export function BentenganPrototype() {
@@ -136,8 +137,6 @@ export function BentenganPrototype() {
   };
 
   useEffect(() => { cameraModeRef.current = cameraMode; }, [cameraMode]);
-
-  useEffect(() => { CHARACTERS.forEach(character => getSpriteImage(character.id)); getSprintDustImage(); }, []);
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
@@ -508,20 +507,21 @@ export function BentenganPrototype() {
       const color = TEAM_COLOR[p.team], outline = relationColor(p, me, now), bob = now < p.parkourUntil ? -15 : 0;
       const stats = CHARACTER_BY_ID[p.characterId], image = getSpriteImage(p.characterId), speed = Math.hypot(p.vx, p.vy);
       const dust = getSprintDustImage();
-      const horizontal = Math.abs(p.vx) > Math.abs(p.vy);
-      const direction = horizontal ? (p.vx >= 0 ? 'east' : 'west') : p.vy < 0 ? 'north' : 'south';
-      let row = direction === 'north' ? 3 : direction === 'east' ? 2 : direction === 'south' ? 0 : 1, columns = [0], mirror = direction === 'east' && !characterUsesDedicatedEast(p.characterId);
+      const direction = directionFromVelocity(p.vx, p.vy);
+      const sprinting = speed > stats.speed * 1.16;
+      let row = directionalRow(direction), columns: readonly number[] = [0], mirror = shouldMirrorSprite(direction, characterUsesDedicatedEast(p.characterId));
       if (phase === 'ROUND_OVER' || phase === 'MATCH_OVER') { row = 5; columns = roundWinner === p.team ? [2, 3, 4] : [5, 6]; mirror = false; }
       else if (p.state === 'PRISONER') { row = 5; columns = [0, 1]; mirror = false; }
       else if (p.action && now < p.actionUntil) { row = 4; columns = p.action === 'tag' ? [0, 1, 2, 3] : [3, 4, 5, 6]; mirror = false; }
-      else if (speed > 8) columns = speed > stats.speed * 1.16 ? [6] : [1, 2, 3, 4, 5];
-      const frame = spriteFrame(image.naturalWidth || 1344, image.naturalHeight || 1344, columns[Math.floor(now / (columns.length > 1 ? 92 : 180)) % columns.length], row);
+      else if (speed > 8) columns = sprinting ? BOOST_COLUMNS : RUN_COLUMNS;
+      const frameDuration = sprinting ? 62 : columns.length > 1 ? 92 : 180;
+      const frame = spriteFrame(image.naturalWidth || 896, image.naturalHeight || 816, columns[Math.floor(now / frameDuration) % columns.length], row);
 
-      if (speed > stats.speed * 1.14 && dust.complete && dust.naturalWidth) {
+      if (sprinting && dust.complete && dust.naturalWidth) {
         const dustColumn = Math.floor(now / 78) % 4;
         ctx.save(); ctx.globalAlpha = .58; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-        if (p.vx > 0) { ctx.translate(p.x * 2, 0); ctx.scale(-1, 1); }
-        ctx.drawImage(dust, dustColumn * 256, 0, 256, 192, p.x - 43, p.y - 11, 86, 64);
+        ctx.translate(p.x, p.y + 3); ctx.rotate(sprintEffectRotation(direction));
+        ctx.drawImage(dust, dustColumn * 256, 0, 256, 192, -78, -29, 92, 69);
         ctx.restore();
       }
       ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 15, 22 * stats.visualScale, 8, 0, 0, Math.PI * 2); ctx.fill();
@@ -530,10 +530,9 @@ export function BentenganPrototype() {
       if (p.state === 'PRISONER') { ctx.strokeStyle = '#d5d0c4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x - 20, p.y + 2); ctx.lineTo(p.x + 20, p.y + 2); ctx.stroke(); }
 
       if (image.complete && image.naturalWidth) {
-        const height = 74 * stats.visualScale * frame.height / 272, width = height * frame.width / frame.height;
+        const height = 74 * stats.visualScale * frame.height / 136, width = height * frame.width / frame.height;
         ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         if (mirror) { ctx.translate(p.x * 2, 0); ctx.scale(-1, 1); }
-        ctx.filter = 'drop-shadow(0 2px 1.5px rgba(4,8,5,.72)) drop-shadow(0 0 1px rgba(255,244,214,.2))';
         ctx.drawImage(image, frame.x, frame.y, frame.width, frame.height, p.x - width / 2, p.y + 18 - height + bob, width, height);
         ctx.restore();
       } else {
@@ -555,7 +554,7 @@ export function BentenganPrototype() {
       if (p.fortCharge > 0) { ctx.fillStyle = '#f5cf45'; ctx.fillRect(p.x - 18, p.y + 40, 36 * Math.min(1, p.fortCharge / 1.5), 4); }
     };
     const draw = (now: number) => {
-      const rect = canvas.getBoundingClientRect(), dpr = Math.max(1, window.devicePixelRatio || 1), cw = rect.width, ch = rect.height;
+      const rect = canvas.getBoundingClientRect(), dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)), cw = rect.width, ch = rect.height;
       if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) { canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
       const me = players[0];
@@ -568,9 +567,12 @@ export function BentenganPrototype() {
       const camX = followsPlayer ? clamp(me.x, halfW, W - halfW) : W / 2;
       const camY = followsPlayer ? clamp(me.y, halfH, H - halfH) : H / 2;
       ctx.save(); ctx.translate(cw / 2, ch / 2); ctx.scale(scale, scale); ctx.translate(-camX, -camY);
-      drawMap(); refills.forEach(item => drawRefill(item, now)); drawBase('blue'); drawBase('red');
-      players.slice().sort((a, b) => a.y - b.y).forEach(p => drawPlayer(p, me, now));
-      particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life / .65); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1;
+      drawMap(); drawBase('blue'); drawBase('red');
+      if (mode === 'playing') {
+        refills.forEach(item => drawRefill(item, now));
+        players.slice().sort((a, b) => a.y - b.y).forEach(p => drawPlayer(p, me, now));
+        particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life / .65); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1;
+      }
       ctx.restore();
       if (mode === 'playing') {
         const marker = (point: { x: number; y: number }, label: string, color: string) => {
@@ -622,8 +624,8 @@ export function BentenganPrototype() {
   return (
     <main className="game-shell">
       <header className="game-topbar">
-        <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.png')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v6 · 504 frame guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v7 · directional boost guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
@@ -665,7 +667,7 @@ export function BentenganPrototype() {
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
           </ul>
-          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png?v=6')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Dua belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
+          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.webp?v=7')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Dua belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>
         </aside>
       </section>

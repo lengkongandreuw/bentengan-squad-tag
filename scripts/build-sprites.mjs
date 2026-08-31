@@ -22,6 +22,8 @@ const sourceRoot = path.join(root, 'sprite-sources');
 const outputRoot = path.join(root, 'public', 'characters');
 const sourceColumns = 7;
 const atlasRows = 6;
+const pipelineVersion = 7;
+const runtimeScale = .5;
 const minimumAtlasCellHeight = 256;
 const atlasPadding = 8;
 const segmentationAlpha = 18;
@@ -164,7 +166,7 @@ for (const character of buildCharacters) {
   const height = metadata.height;
   if (!width || !height) throw new Error(`Ukuran sprite ${character.id} tidak dapat dibaca.`);
 
-  const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   for (let index = 0; index < data.length; index += 4) {
     if (data[index + 3] <= 12) {
       data[index] = 0; data[index + 1] = 0; data[index + 2] = 0; data[index + 3] = 0;
@@ -218,6 +220,11 @@ for (const character of buildCharacters) {
     .webp({ quality: 97, alphaQuality: 100, effort: 6, smartSubsample: true })
     .toFile(path.join(outputDir, 'atlas.webp'));
 
+  await sharp(path.join(outputDir, 'atlas.webp'))
+    .resize({ width: atlasWidth * runtimeScale, height: atlasHeight * runtimeScale, kernel: sharp.kernel.lanczos3 })
+    .webp({ quality: 94, alphaQuality: 100, effort: 6, smartSubsample: true })
+    .toFile(path.join(outputDir, 'atlas-runtime.webp'));
+
   const portraitFrame = rawFrames[0]?.input;
   if (!portraitFrame) throw new Error(`Frame portrait ${character.id} tidak tersedia.`);
   await sharp(portraitFrame)
@@ -230,7 +237,7 @@ for (const character of buildCharacters) {
     row, column, sourceRow, box: sourceBox, width: frameSourceWidth, height: frameSourceHeight, componentCount, retainedRatio,
   }));
   const manifest = {
-    version: 6,
+    version: pipelineVersion,
     id: character.id,
     name: character.name,
     role: character.role,
@@ -245,10 +252,10 @@ for (const character of buildCharacters) {
     },
     anchor: { x: 0.5, y: 0.91 },
     directions: {
-      south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 0, [6]) },
-      west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 1, [6]) },
-      east: character.rows === 5 ? { mirror: 'west' } : { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 2, [6]) },
-      north: { idle: frames(atlasWidth, atlasHeight, 3, [0]), run: frames(atlasWidth, atlasHeight, 3, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 3, [6]) },
+      south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]) },
+      west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]) },
+      east: character.rows === 5 ? { mirror: 'west' } : { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5]) },
+      north: { idle: frames(atlasWidth, atlasHeight, 3, [0]), run: frames(atlasWidth, atlasHeight, 3, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 3, [1, 2, 3, 4, 5]) },
     },
     actions: {
       tag: frames(atlasWidth, atlasHeight, 4, [0, 1, 2, 3]),
@@ -277,8 +284,8 @@ await sharp({ create: { width: 1920, height: 900, channels: 4, background: { r: 
 
 await writeFile(
   path.join(outputRoot, 'manifest.json'),
-  `${JSON.stringify({ version: 6, atlas: { minimumCell: 256, padding: atlasPadding, columns: sourceColumns, rows: atlasRows }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceColumns, sourceRows: rows })) }, null, 2)}\n`,
+  `${JSON.stringify({ version: pipelineVersion, atlas: { minimumCell: 256, padding: atlasPadding, columns: sourceColumns, rows: atlasRows, runtimeScale }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceColumns, sourceRows: rows })) }, null, 2)}\n`,
   'utf8',
 );
 
-console.log('Sprite atlas v6 dibangun tanpa pemotongan grid tetap.');
+console.log(`Sprite atlas v${pipelineVersion} + runtime 50% dibangun tanpa pemotongan grid tetap.`);

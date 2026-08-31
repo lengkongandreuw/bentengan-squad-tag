@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CHARACTERS, CharacterId, characterAsset, characterUsesDedicatedEast } from '../lib/characters';
+import { BOOST_COLUMNS, directionalRow, RUN_COLUMNS } from '../lib/sprite-motion.js';
 import { ChevronLeft, Download, Grid3X3, Pause, Play, Upload } from 'lucide-react';
 
 type Direction = 'south' | 'west' | 'east' | 'north';
@@ -14,10 +15,10 @@ const animationOptions: Array<{ id: AnimationName; label: string }> = [
 ];
 
 const sequenceFor = (animation: AnimationName, direction: Direction) => {
-  const directionalRow = direction === 'north' ? 3 : direction === 'east' ? 2 : direction === 'south' ? 0 : 1;
-  if (animation === 'idle') return { row: directionalRow, columns: [0] };
-  if (animation === 'run') return { row: directionalRow, columns: [1, 2, 3, 4, 5] };
-  if (animation === 'boost') return { row: directionalRow, columns: [6] };
+  const row = directionalRow(direction);
+  if (animation === 'idle') return { row, columns: [0] };
+  if (animation === 'run') return { row, columns: RUN_COLUMNS };
+  if (animation === 'boost') return { row, columns: BOOST_COLUMNS };
   if (animation === 'tag') return { row: 4, columns: [0, 1, 2, 3] };
   if (animation === 'rescue') return { row: 4, columns: [3, 4, 5, 6] };
   if (animation === 'prisoner') return { row: 5, columns: [0, 1] };
@@ -51,7 +52,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
     image.src = atlasUrl;
     let raf = 0;
     const render = (now: number) => {
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
       const rect = canvas.getBoundingClientRect();
       if (canvas.width !== Math.round(rect.width * dpr) || canvas.height !== Math.round(rect.height * dpr)) {
         canvas.width = Math.round(rect.width * dpr); canvas.height = Math.round(rect.height * dpr);
@@ -115,7 +116,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
   return (
     <section className="workshop-shell" aria-label="Bentengan Character Workshop">
       <header className="workshop-head">
-        <div><span>Asset pipeline v6 · segmentasi siluet 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
+        <div><span>Asset pipeline v7 · runtime ringan 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
         <button className="workshop-back" onClick={onClose}><ChevronLeft size={17} /> Kembali ke game</button>
       </header>
       <div className="workshop-layout">
