@@ -16,13 +16,13 @@ const animationOptions: Array<{ id: AnimationName; label: string }> = [
 const sequenceFor = (animation: AnimationName, direction: Direction) => {
   const directionalRow = direction === 'north' ? 3 : direction === 'east' ? 2 : direction === 'south' ? 0 : 1;
   if (animation === 'idle') return { row: directionalRow, columns: [0] };
-  if (animation === 'run') return { row: directionalRow, columns: [1, 2, 3, 4, 5, 6] };
-  if (animation === 'boost') return { row: directionalRow, columns: [7] };
+  if (animation === 'run') return { row: directionalRow, columns: [1, 2, 3, 4, 5] };
+  if (animation === 'boost') return { row: directionalRow, columns: [6] };
   if (animation === 'tag') return { row: 4, columns: [0, 1, 2, 3] };
-  if (animation === 'rescue') return { row: 4, columns: [4, 5, 6, 7] };
+  if (animation === 'rescue') return { row: 4, columns: [3, 4, 5, 6] };
   if (animation === 'prisoner') return { row: 5, columns: [0, 1] };
   if (animation === 'victory') return { row: 5, columns: [2, 3, 4] };
-  return { row: 5, columns: [5, 6, 7] };
+  return { row: 5, columns: [5, 6] };
 };
 
 export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
@@ -69,9 +69,9 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
       if (image.complete && image.naturalWidth) {
         const frameIndex = playing ? Math.floor(now / (1000 / fps)) % sequence.columns.length : 0;
         const column = sequence.columns[frameIndex];
-        const sourceLeft = Math.round(column * image.naturalWidth / 8);
+        const sourceLeft = Math.round(column * image.naturalWidth / 7);
         const sourceTop = Math.round(sequence.row * image.naturalHeight / 6);
-        const sourceRight = Math.round((column + 1) * image.naturalWidth / 8);
+        const sourceRight = Math.round((column + 1) * image.naturalWidth / 7);
         const sourceBottom = Math.round((sequence.row + 1) * image.naturalHeight / 6);
         const sourceWidth = sourceRight - sourceLeft, sourceHeight = sourceBottom - sourceTop;
         const drawHeight = Math.min(height * .68, 268) * scale / 100 * selected.visualScale;
@@ -103,7 +103,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
   const exportConfig = () => {
     const config = {
       character: customName ?? selected.id,
-      grid: { columns: 8, rows: 6 },
+      grid: { columns: 7, rows: 6 },
       anchor: { x: anchorX / 100, y: anchorY / 100 },
       preview: { animation, direction, fps, scale: scale / 100 },
       gameplay: { role: selected.role, speed: selected.speed, boost: selected.boost, agility: selected.agility, tagRange: selected.tagRange, rescueRange: selected.rescueRange, tagCooldownMs: selected.tagCooldownMs, passive: selected.passiveName },
@@ -115,14 +115,14 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
   return (
     <section className="workshop-shell" aria-label="Bentengan Character Workshop">
       <header className="workshop-head">
-        <div><span>Asset pipeline · atlas 8×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
+        <div><span>Asset pipeline v5 · atlas 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
         <button className="workshop-back" onClick={onClose}><ChevronLeft size={17} /> Kembali ke game</button>
       </header>
       <div className="workshop-layout">
         <aside className="workshop-roster">
           <b>ROSTER · {CHARACTERS.length} KARAKTER</b>
           <div>{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id && !customUrl ? 'selected' : ''} onClick={() => { setSelectedId(character.id); setCustomUrl(undefined); setCustomName(undefined); }}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><strong>{character.name}</strong><small>{character.role}</small></span></button>)}</div>
-          <label className="upload-sprite"><Upload size={16} /><span>Uji sprite baru<small>PNG transparan · atlas 8×6</small></span><input type="file" accept="image/png,image/webp" onChange={event => upload(event.target.files?.[0])} /></label>
+          <label className="upload-sprite"><Upload size={16} /><span>Uji sprite baru<small>PNG transparan · atlas 7×6</small></span><input type="file" accept="image/png,image/webp" onChange={event => upload(event.target.files?.[0])} /></label>
         </aside>
         <div className="workshop-stage">
           <div className="workshop-stagebar"><span><i style={{ background: selected.accent }} />{customName ?? `${selected.name} · ${selected.role}`}</span><button onClick={() => setShowSheet(value => !value)}><Grid3X3 size={15} /> {showSheet ? 'Preview' : 'Lihat sheet'}</button></div>

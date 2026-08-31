@@ -28,7 +28,7 @@ npm run build:pages
 
 ## Character Workshop
 
-Gunakan tombol **Character Workshop** di dalam aplikasi untuk memeriksa animasi, arah, kecepatan, skala, dan titik pijakan. Workshop juga dapat memuat sementara sprite sheet PNG/WebP yang dinormalisasi ke atlas produksi 8×6 dan mengekspor konfigurasi preview.
+Gunakan tombol **Character Workshop** di dalam aplikasi untuk memeriksa animasi, arah, kecepatan, skala, dan titik pijakan. Workshop juga dapat memuat sementara sprite sheet PNG/WebP yang dinormalisasi ke atlas produksi 7×6 dan mengekspor konfigurasi preview.
 
 Untuk memproses ulang seluruh sprite sumber:
 

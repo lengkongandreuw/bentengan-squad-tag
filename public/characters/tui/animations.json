@@ -1,12 +1,12 @@
 {
-  "version": 4,
+  "version": 5,
   "id": "tui",
   "name": "Tui",
   "role": "Runner",
   "source": {
     "width": 1702,
     "height": 1276,
-    "columns": 8,
+    "columns": 7,
     "rows": 6,
     "rowBounds": [
       0,
@@ -19,11 +19,16 @@
     ]
   },
   "atlas": {
-    "width": 1536,
+    "width": 1344,
     "height": 1344,
-    "columns": 8,
+    "columns": 7,
     "rows": 6,
     "gutter": 4
+  },
+  "quality": {
+    "frameCount": 42,
+    "minimumRetainedRatio": 0.9996098931107124,
+    "normalization": "shared-idle-scale-south-anchor-lanczos3"
   },
   "anchor": {
     "x": 0.5,
@@ -69,17 +74,11 @@
           "y": 0,
           "width": 192,
           "height": 224
-        },
-        {
-          "x": 1152,
-          "y": 0,
-          "width": 192,
-          "height": 224
         }
       ],
       "boost": [
         {
-          "x": 1344,
+          "x": 1152,
           "y": 0,
           "width": 192,
           "height": 224
@@ -125,17 +124,11 @@
           "y": 224,
           "width": 192,
           "height": 224
-        },
-        {
-          "x": 1152,
-          "y": 224,
-          "width": 192,
-          "height": 224
         }
       ],
       "boost": [
         {
-          "x": 1344,
+          "x": 1152,
           "y": 224,
           "width": 192,
           "height": 224
@@ -181,17 +174,11 @@
           "y": 448,
           "width": 192,
           "height": 224
-        },
-        {
-          "x": 1152,
-          "y": 448,
-          "width": 192,
-          "height": 224
         }
       ],
       "boost": [
         {
-          "x": 1344,
+          "x": 1152,
           "y": 448,
           "width": 192,
           "height": 224
@@ -237,17 +224,11 @@
           "y": 672,
           "width": 192,
           "height": 224
-        },
-        {
-          "x": 1152,
-          "y": 672,
-          "width": 192,
-          "height": 224
         }
       ],
       "boost": [
         {
-          "x": 1344,
+          "x": 1152,
           "y": 672,
           "width": 192,
           "height": 224
@@ -284,6 +265,12 @@
     ],
     "rescue": [
       {
+        "x": 576,
+        "y": 896,
+        "width": 192,
+        "height": 224
+      },
+      {
         "x": 768,
         "y": 896,
         "width": 192,
@@ -297,12 +284,6 @@
       },
       {
         "x": 1152,
-        "y": 896,
-        "width": 192,
-        "height": 224
-      },
-      {
-        "x": 1344,
         "y": 896,
         "width": 192,
         "height": 224
@@ -351,12 +332,6 @@
       },
       {
         "x": 1152,
-        "y": 1120,
-        "width": 192,
-        "height": 224
-      },
-      {
-        "x": 1344,
         "y": 1120,
         "width": 192,
         "height": 224

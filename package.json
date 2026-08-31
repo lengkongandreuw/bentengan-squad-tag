@@ -9,7 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "build:pages": "vite build --config vite.github.config.ts",
-    "sprites:build": "node scripts/build-sprites.mjs",
+    "sprites:build": "node scripts/build-sprites.mjs && node scripts/build-vfx.mjs",
     "audit": "node scripts/audit-game.mjs",
     "verify": "npm run sprites:build && npm run audit && npm run build && npm run build:pages",
     "start": "wrangler dev --config dist/server/wrangler.json",

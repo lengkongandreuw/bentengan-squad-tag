@@ -1,13 +1,14 @@
 {
-  "version": 4,
+  "version": 5,
   "atlas": {
     "cell": {
       "width": 192,
       "height": 224,
       "padding": 4
     },
-    "width": 1536,
+    "width": 1344,
     "height": 1344,
+    "columns": 7,
     "rows": 6
   },
   "characters": [
@@ -15,72 +16,84 @@
       "id": "robot",
       "name": "Robot",
       "role": "Guardian",
+      "sourceColumns": 7,
       "sourceRows": 5
     },
     {
       "id": "ciici",
       "name": "Ciici",
       "role": "Rescuer",
+      "sourceColumns": 7,
       "sourceRows": 5
     },
     {
       "id": "kaka",
       "name": "Kaka",
       "role": "Runner",
+      "sourceColumns": 7,
       "sourceRows": 5
     },
     {
       "id": "buto",
       "name": "Buto",
       "role": "Guardian",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "jago",
       "name": "Jago",
       "role": "Chaser",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "raja",
       "name": "Raja",
       "role": "All-rounder",
+      "sourceColumns": 7,
       "sourceRows": 5
     },
     {
       "id": "lala",
       "name": "Lala",
       "role": "Scout",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "maria",
       "name": "Maria",
       "role": "Chaser",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "kumis",
       "name": "Kumis",
       "role": "Guardian",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "boke",
       "name": "Boke",
       "role": "Disruptor",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "tui",
       "name": "Tui",
       "role": "Runner",
+      "sourceColumns": 7,
       "sourceRows": 6
     },
     {
       "id": "lui",
       "name": "Lui",
       "role": "Scout",
+      "sourceColumns": 7,
       "sourceRows": 6
     }
   ]
