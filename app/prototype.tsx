@@ -530,7 +530,7 @@ export function BentenganPrototype() {
       if (p.state === 'PRISONER') { ctx.strokeStyle = '#d5d0c4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x - 20, p.y + 2); ctx.lineTo(p.x + 20, p.y + 2); ctx.stroke(); }
 
       if (image.complete && image.naturalWidth) {
-        const height = 74 * stats.visualScale, width = height * frame.width / frame.height;
+        const height = 74 * stats.visualScale * frame.height / 272, width = height * frame.width / frame.height;
         ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         if (mirror) { ctx.translate(p.x * 2, 0); ctx.scale(-1, 1); }
         ctx.filter = 'drop-shadow(0 2px 1.5px rgba(4,8,5,.72)) drop-shadow(0 0 1px rgba(255,244,214,.2))';
@@ -665,7 +665,7 @@ export function BentenganPrototype() {
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
           </ul>
-          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png?v=5')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Dua belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
+          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png?v=6')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Dua belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>
         </aside>
       </section>

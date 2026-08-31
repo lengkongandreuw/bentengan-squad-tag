@@ -1,13 +1,8 @@
 {
-  "version": 5,
+  "version": 6,
   "atlas": {
-    "cell": {
-      "width": 192,
-      "height": 224,
-      "padding": 4
-    },
-    "width": 1344,
-    "height": 1344,
+    "minimumCell": 256,
+    "padding": 8,
     "columns": 7,
     "rows": 6
   },

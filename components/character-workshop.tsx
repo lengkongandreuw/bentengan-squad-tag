@@ -74,7 +74,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
         const sourceRight = Math.round((column + 1) * image.naturalWidth / 7);
         const sourceBottom = Math.round((sequence.row + 1) * image.naturalHeight / 6);
         const sourceWidth = sourceRight - sourceLeft, sourceHeight = sourceBottom - sourceTop;
-        const drawHeight = Math.min(height * .68, 268) * scale / 100 * selected.visualScale;
+        const drawHeight = Math.min(height * .68, 268) * scale / 100 * selected.visualScale * sourceHeight / 272;
         const drawWidth = drawHeight * sourceWidth / sourceHeight;
         const centerX = width * anchorX / 100;
         ctx.save();
@@ -82,7 +82,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(image, sourceLeft, sourceTop, sourceWidth, sourceHeight, centerX - drawWidth / 2, groundY - drawHeight * anchorY / 100, drawWidth, drawHeight);
         ctx.restore();
-        ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.beginPath(); ctx.ellipse(centerX, groundY + 4, drawWidth * .22, 8, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.beginPath(); ctx.ellipse(centerX, groundY + 4, drawHeight * .16, 8, 0, 0, Math.PI * 2); ctx.fill();
       } else {
         ctx.fillStyle = '#d9d0be'; ctx.font = '700 13px Arial'; ctx.textAlign = 'center'; ctx.fillText('Memuat atlas…', width / 2, height / 2);
       }
@@ -115,14 +115,14 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
   return (
     <section className="workshop-shell" aria-label="Bentengan Character Workshop">
       <header className="workshop-head">
-        <div><span>Asset pipeline v5 · atlas 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
+        <div><span>Asset pipeline v6 · segmentasi siluet 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
         <button className="workshop-back" onClick={onClose}><ChevronLeft size={17} /> Kembali ke game</button>
       </header>
       <div className="workshop-layout">
         <aside className="workshop-roster">
           <b>ROSTER · {CHARACTERS.length} KARAKTER</b>
           <div>{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id && !customUrl ? 'selected' : ''} onClick={() => { setSelectedId(character.id); setCustomUrl(undefined); setCustomName(undefined); }}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><strong>{character.name}</strong><small>{character.role}</small></span></button>)}</div>
-          <label className="upload-sprite"><Upload size={16} /><span>Uji sprite baru<small>PNG transparan · atlas 7×6</small></span><input type="file" accept="image/png,image/webp" onChange={event => upload(event.target.files?.[0])} /></label>
+          <label className="upload-sprite"><Upload size={16} /><span>Uji sprite baru<small>PNG transparan · atlas 7×6 adaptif</small></span><input type="file" accept="image/png,image/webp" onChange={event => upload(event.target.files?.[0])} /></label>
         </aside>
         <div className="workshop-stage">
           <div className="workshop-stagebar"><span><i style={{ background: selected.accent }} />{customName ?? `${selected.name} · ${selected.role}`}</span><button onClick={() => setShowSheet(value => !value)}><Grid3X3 size={15} /> {showSheet ? 'Preview' : 'Lihat sheet'}</button></div>

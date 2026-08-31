@@ -44,6 +44,6 @@ export const characterUsesDedicatedEast = (id: CharacterId) => DEDICATED_EAST_CH
 const publicBase = ((import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/').replace(/\/?$/, '/');
 
 export const characterAsset = (id: CharacterId, file: 'atlas.webp' | 'portrait.webp' | 'animations.json') =>
-  `${publicBase}characters/${id}/${file}?v=5`;
+  `${publicBase}characters/${id}/${file}?v=6`;
 
 export const publicAsset = (file: string) => `${publicBase}${file.replace(/^\//, '')}`;

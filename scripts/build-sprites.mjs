@@ -21,10 +21,10 @@ const root = process.cwd();
 const sourceRoot = path.join(root, 'sprite-sources');
 const outputRoot = path.join(root, 'public', 'characters');
 const sourceColumns = 7;
-const atlasCell = { width: 192, height: 224, padding: 4 };
-const atlasWidth = atlasCell.width * sourceColumns;
 const atlasRows = 6;
-const atlasHeight = atlasCell.height * atlasRows;
+const minimumAtlasCellHeight = 256;
+const atlasPadding = 8;
+const segmentationAlpha = 18;
 
 const frameRect = (width, height, column, row, rows, columns = sourceColumns) => {
   const left = Math.round((column * width) / columns);
@@ -36,70 +36,129 @@ const frameRect = (width, height, column, row, rows, columns = sourceColumns) =>
 
 const frames = (width, height, row, columns, rows = atlasRows) => columns.map(column => frameRect(width, height, column, row, rows));
 
-const findRowBounds = (source, width, height, rows) => {
-  const density = Array.from({ length: height }, (_, y) => {
+const componentFrames = (source, width, height, rows, columns) => {
+  const rowDensity = Array.from({ length: height }, (_, y) => {
     let count = 0;
-    for (let x = 0; x < width; x++) if (source[(y * width + x) * 4 + 3] > 48) count++;
+    for (let x = 0; x < width; x++) if (source[(y * width + x) * 4 + 3] > segmentationAlpha) count++;
     return count;
   });
-  const bounds = [0];
+  const rowBounds = [0];
   for (let row = 1; row < rows; row++) {
     const expected = row * height / rows;
-    const from = Math.max(bounds[bounds.length - 1] + 120, Math.round(expected - 34));
-    const to = Math.min(height - 120, Math.round(expected + 34));
+    const radius = Math.round(height / rows * .28);
+    const from = Math.max(rowBounds[row - 1] + Math.round(height / rows * .55), Math.round(expected - radius));
+    const to = Math.min(height - Math.round((rows - row) * height / rows * .55), Math.round(expected + radius));
     let best = from;
     for (let y = from + 1; y <= to; y++) {
-      const score = density[y] + Math.abs(y - expected) * .2;
-      const bestScore = density[best] + Math.abs(best - expected) * .2;
+      const score = (rowDensity[y - 1] + rowDensity[y] + rowDensity[y + 1]) * 100 + Math.abs(y - expected);
+      const bestScore = (rowDensity[best - 1] + rowDensity[best] + rowDensity[best + 1]) * 100 + Math.abs(best - expected);
       if (score < bestScore) best = y;
     }
-    bounds.push(best);
+    rowBounds.push(best);
   }
-  bounds.push(height);
-  return bounds;
-};
+  rowBounds.push(height);
+  const rowForY = new Uint8Array(height);
+  for (let row = 0; row < rows; row++) rowForY.fill(row, rowBounds[row], rowBounds[row + 1]);
 
-const removeTinyComponents = (source, width, height) => {
   const visited = new Uint8Array(width * height);
   const components = [];
   for (let start = 0; start < width * height; start++) {
-    if (visited[start] || source[start * 4 + 3] <= 18) continue;
-    const component = [];
+    if (visited[start] || source[start * 4 + 3] <= segmentationAlpha) continue;
+    const indices = [];
     const stack = [start];
+    let minX = width, minY = height, maxX = 0, maxY = 0, sumX = 0, sumY = 0;
     visited[start] = 1;
     while (stack.length) {
       const index = stack.pop();
-      component.push(index);
-      const x = index % width, y = Math.floor(index / width);
+      indices.push(index);
+      const x = index % width;
+      const y = Math.floor(index / width);
+      minX = Math.min(minX, x); minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+      sumX += x; sumY += y;
       for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
-        if ((!ox && !oy) || x + ox < 0 || x + ox >= width || y + oy < 0 || y + oy >= height) continue;
+        if ((!ox && !oy) || x + ox < 0 || x + ox >= width || y + oy < 0 || y + oy >= height || rowForY[y + oy] !== rowForY[y]) continue;
         const next = (y + oy) * width + x + ox;
-        if (!visited[next] && source[next * 4 + 3] > 18) { visited[next] = 1; stack.push(next); }
+        if (!visited[next] && source[next * 4 + 3] > segmentationAlpha) {
+          visited[next] = 1;
+          stack.push(next);
+        }
       }
     }
-    components.push(component);
+    components.push({ indices, size: indices.length, minX, minY, maxX, maxY, cx: sumX / indices.length, cy: sumY / indices.length });
   }
-  const largestSize = Math.max(0, ...components.map(component => component.length));
-  const minimumSize = Math.max(6, Math.floor(largestSize * .0008));
-  const keep = new Uint8Array(width * height);
-  components.filter(component => component.length >= minimumSize).forEach(component => component.forEach(index => { keep[index] = 1; }));
-  const output = Buffer.from(source);
-  let sourceOpaque = 0, retainedOpaque = 0;
-  for (let index = 0; index < width * height; index++) {
-    if (source[index * 4 + 3] > 18) sourceOpaque++;
-    if (keep[index]) { retainedOpaque++; continue; }
-    output[index * 4] = 0; output[index * 4 + 1] = 0; output[index * 4 + 2] = 0; output[index * 4 + 3] = 0;
+
+  const rowComponents = Array.from({ length: rows }, () => []);
+  for (const component of components) {
+    const row = rowForY[Math.max(0, Math.min(height - 1, Math.round(component.cy)))];
+    rowComponents[row].push(component);
   }
-  return { data: output, retainedRatio: sourceOpaque ? retainedOpaque / sourceOpaque : 1 };
+
+  const groups = rowComponents.map((componentsInRow, row) => {
+    const seeds = [...componentsInRow].sort((a, b) => b.size - a.size).slice(0, columns).sort((a, b) => a.cx - b.cx);
+    if (seeds.length !== columns) throw new Error(`Baris sumber ${row} hanya memiliki ${seeds.length} pose utama (${componentsInRow.map(component => `${Math.round(component.cx)},${Math.round(component.cy)}:${component.size}`).join(' | ')}).`);
+    const seedSet = new Set(seeds);
+    const rowGroups = seeds.map(seed => [seed]);
+    for (const component of componentsInRow) {
+      if (seedSet.has(component)) continue;
+      let nearest = 0;
+      for (let column = 1; column < columns; column++) {
+        if (Math.abs(component.cx - seeds[column].cx) < Math.abs(component.cx - seeds[nearest].cx)) nearest = column;
+      }
+      rowGroups[nearest].push(component);
+    }
+    return rowGroups;
+  });
+
+  return { rowBounds, frames: groups.map((rowGroups, row) => rowGroups.map((group, column) => {
+    const largest = Math.max(0, ...group.map(component => component.size));
+    const minimumSize = Math.max(24, Math.floor(largest * .01));
+    const primary = group[0];
+    const associationRadius = Math.max(18, Math.max(primary.maxX - primary.minX, primary.maxY - primary.minY) * .16);
+    const distanceFromPrimary = component => Math.hypot(
+      Math.max(0, primary.minX - component.maxX, component.minX - primary.maxX),
+      Math.max(0, primary.minY - component.maxY, component.minY - primary.maxY),
+    );
+    const kept = group.filter(component => component.size >= minimumSize && (component === primary || distanceFromPrimary(component) <= associationRadius));
+    if (!kept.length) throw new Error(`Frame sumber kosong pada baris ${row}, kolom ${column}.`);
+    const minX = Math.max(0, Math.min(...kept.map(component => component.minX)) - 1);
+    const minY = Math.max(0, Math.min(...kept.map(component => component.minY)) - 1);
+    const maxX = Math.min(width - 1, Math.max(...kept.map(component => component.maxX)) + 1);
+    const maxY = Math.min(height - 1, Math.max(...kept.map(component => component.maxY)) + 1);
+    const frameWidth = maxX - minX + 1;
+    const frameHeight = maxY - minY + 1;
+    const data = Buffer.alloc(frameWidth * frameHeight * 4);
+    for (const component of kept) for (const index of component.indices) {
+      if (source[index * 4 + 3] <= 48) continue;
+      const sourceX = index % width;
+      const sourceY = Math.floor(index / width);
+      const target = ((sourceY - minY) * frameWidth + sourceX - minX) * 4;
+      source.copy(data, target, index * 4, index * 4 + 4);
+    }
+    const assignedPixels = group.reduce((total, component) => total + component.size, 0);
+    const retainedPixels = kept.reduce((total, component) => total + component.size, 0);
+    return {
+      input: sharp(data, { raw: { width: frameWidth, height: frameHeight, channels: 4 } }).png({ compressionLevel: 9 }).toBuffer(),
+      width: frameWidth,
+      height: frameHeight,
+      sourceBox: { x: minX, y: minY, width: frameWidth, height: frameHeight },
+      componentCount: kept.length,
+      retainedRatio: assignedPixels ? retainedPixels / assignedPixels : 1,
+    };
+  })) };
 };
 
-for (const character of characters) {
+const requestedCharacter = process.argv[2];
+const buildCharacters = requestedCharacter ? characters.filter(character => character.id === requestedCharacter) : characters;
+if (requestedCharacter && !buildCharacters.length) throw new Error(`Karakter ${requestedCharacter} tidak dikenal.`);
+
+for (const character of buildCharacters) {
   const inputPath = path.join(sourceRoot, `${character.id}.png`);
   const outputDir = path.join(outputRoot, character.id);
   await mkdir(outputDir, { recursive: true });
 
-  const source = await readFile(inputPath);
-  const image = sharp(source, { failOn: 'none' });
+  const sourceFile = await readFile(inputPath);
+  const image = sharp(sourceFile, { failOn: 'none' });
   const metadata = await image.metadata();
   const width = metadata.width;
   const height = metadata.height;
@@ -108,58 +167,52 @@ for (const character of characters) {
   const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   for (let index = 0; index < data.length; index += 4) {
     if (data[index + 3] <= 12) {
-      data[index] = 0;
-      data[index + 1] = 0;
-      data[index + 2] = 0;
-      data[index + 3] = 0;
+      data[index] = 0; data[index + 1] = 0; data[index + 2] = 0; data[index + 3] = 0;
     }
   }
 
-  const cleaned = sharp(data, { raw: info });
-  const rowBounds = findRowBounds(data, width, height, character.rows);
+  const segmented = componentFrames(data, width, height, character.rows, sourceColumns);
+  const logicalFrames = segmented.frames;
   const rawFrames = [];
   for (let row = 0; row < atlasRows; row++) {
+    const sourceRow = character.rows === 5 ? [0, 1, 1, 2, 3, 4][row] : row;
     for (let column = 0; column < sourceColumns; column++) {
-      const sourceRow = character.rows === 5 ? [0, 1, 1, 2, 3, 4][row] : row;
-      const horizontal = frameRect(width, height, column, 0, 1);
-      const sourceCell = { x: horizontal.x, y: rowBounds[sourceRow], width: horizontal.width, height: rowBounds[sourceRow + 1] - rowBounds[sourceRow] };
-      const extracted = await cleaned
-        .clone()
-        .extract({ left: sourceCell.x, top: sourceCell.y, width: sourceCell.width, height: sourceCell.height })
-        .raw()
-        .toBuffer({ resolveWithObject: true });
-      const cleanedFrame = removeTinyComponents(extracted.data, extracted.info.width, extracted.info.height);
-      const trimmed = await sharp(cleanedFrame.data, { raw: extracted.info })
-        .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 10 })
-        .png()
-        .toBuffer();
-      const trimmedMeta = await sharp(trimmed).metadata();
-      if (!trimmedMeta.width || !trimmedMeta.height) throw new Error(`Frame kosong ${character.id} r${row} c${column}.`);
-      rawFrames.push({ input: trimmed, width: trimmedMeta.width, height: trimmedMeta.height, row, column, retainedRatio: cleanedFrame.retainedRatio });
+      const frame = logicalFrames[sourceRow][column];
+      rawFrames.push({ ...frame, input: await frame.input, row, column, sourceRow });
     }
   }
 
-  const idleHeights = rawFrames.filter(frame => frame.row < 4 && frame.column === 0).map(frame => frame.height).sort((a, b) => a - b);
+  const idleHeights = logicalFrames.slice(0, Math.min(4, character.rows)).map(row => row[0].height).sort((a, b) => a - b);
   const referenceHeight = idleHeights[Math.floor(idleHeights.length / 2)];
-  const frameWidth = atlasCell.width - atlasCell.padding * 2;
-  const frameHeight = atlasCell.height - atlasCell.padding * 2;
-  const baseScale = (frameHeight - 6) / referenceHeight;
+  const baseScale = 232 / referenceHeight;
+  const requiredWidth = Math.max(...rawFrames.map(frame => Math.ceil(frame.width * baseScale)));
+  const requiredHeight = Math.max(...rawFrames.map(frame => Math.ceil(frame.height * baseScale)));
+  const widestFrame = rawFrames.reduce((widest, frame) => frame.width > widest.width ? frame : widest, rawFrames[0]);
+  const atlasCellWidth = Math.max(256, Math.ceil((requiredWidth + atlasPadding * 2 + 8) / 16) * 16);
+  const atlasCellHeight = Math.max(minimumAtlasCellHeight, Math.ceil((requiredHeight + atlasPadding * 2 + 8) / 16) * 16);
+  if (atlasCellWidth > 512) throw new Error(`${character.name}: lebar frame ${atlasCellWidth}px tidak wajar pada r${widestFrame.row} c${widestFrame.column} (${widestFrame.width}×${widestFrame.height}); kemungkinan dua pose tergabung.`);
+  if (atlasCellHeight > 512) throw new Error(`${character.name}: tinggi frame ${atlasCellHeight}px tidak wajar; kemungkinan dua pose tergabung.`);
+  const atlasWidth = atlasCellWidth * sourceColumns;
+  const atlasHeight = atlasCellHeight * atlasRows;
+  const frameWidth = atlasCellWidth - atlasPadding * 2;
+  const frameHeight = atlasCellHeight - atlasPadding * 2;
+
   const packedFrames = [];
   for (const frame of rawFrames) {
-    const scale = Math.min(baseScale, (frameWidth - 4) / frame.width, (frameHeight - 4) / frame.height);
-    const resizeWidth = Math.max(1, Math.round(frame.width * scale));
-    const resizeHeight = Math.max(1, Math.round(frame.height * scale));
+    const resizeWidth = Math.max(1, Math.round(frame.width * baseScale));
+    const resizeHeight = Math.max(1, Math.round(frame.height * baseScale));
     const resized = await sharp(frame.input)
       .resize({ width: resizeWidth, height: resizeHeight, fit: 'fill', kernel: sharp.kernel.lanczos3 })
-      .sharpen(.35)
+      .sharpen(.25)
       .png({ compressionLevel: 9 })
       .toBuffer();
     const normalized = await sharp({ create: { width: frameWidth, height: frameHeight, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
       .composite([{ input: resized, left: Math.round((frameWidth - resizeWidth) / 2), top: frameHeight - resizeHeight }])
       .png({ compressionLevel: 9 })
       .toBuffer();
-    packedFrames.push({ input: normalized, left: frame.column * atlasCell.width + atlasCell.padding, top: frame.row * atlasCell.height + atlasCell.padding });
+    packedFrames.push({ input: normalized, left: frame.column * atlasCellWidth + atlasPadding, top: frame.row * atlasCellHeight + atlasPadding });
   }
+
   await sharp({ create: { width: atlasWidth, height: atlasHeight, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
     .composite(packedFrames)
     .webp({ quality: 97, alphaQuality: 100, effort: 6, smartSubsample: true })
@@ -173,14 +226,23 @@ for (const character of characters) {
     .webp({ quality: 93, alphaQuality: 100, effort: 6 })
     .toFile(path.join(outputDir, 'portrait.webp'));
 
+  const sourceFrames = rawFrames.map(({ row, column, sourceRow, sourceBox, width: frameSourceWidth, height: frameSourceHeight, componentCount, retainedRatio }) => ({
+    row, column, sourceRow, box: sourceBox, width: frameSourceWidth, height: frameSourceHeight, componentCount, retainedRatio,
+  }));
   const manifest = {
-    version: 5,
+    version: 6,
     id: character.id,
     name: character.name,
     role: character.role,
-    source: { width, height, columns: sourceColumns, rows: character.rows, rowBounds },
-    atlas: { width: atlasWidth, height: atlasHeight, columns: sourceColumns, rows: atlasRows, gutter: atlasCell.padding },
-    quality: { frameCount: rawFrames.length, minimumRetainedRatio: Math.min(...rawFrames.map(frame => frame.retainedRatio)), normalization: 'shared-idle-scale-south-anchor-lanczos3' },
+    source: { width, height, columns: sourceColumns, rows: character.rows, segmentation: 'row-separated-alpha-components', rowBounds: segmented.rowBounds, frames: sourceFrames },
+    atlas: { width: atlasWidth, height: atlasHeight, columns: sourceColumns, rows: atlasRows, cell: { width: atlasCellWidth, height: atlasCellHeight }, gutter: atlasPadding },
+    quality: {
+      frameCount: rawFrames.length,
+      minimumRetainedRatio: Math.min(...rawFrames.map(frame => frame.retainedRatio)),
+      normalization: 'uniform-character-scale-south-anchor-lanczos3',
+      referenceHeight,
+      scale: baseScale,
+    },
     anchor: { x: 0.5, y: 0.91 },
     directions: {
       south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 0, [6]) },
@@ -197,7 +259,7 @@ for (const character of characters) {
     },
   };
   await writeFile(path.join(outputDir, 'animations.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
-  console.log(`✓ ${character.name}: ${width}×${height}`);
+  console.log(`✓ ${character.name}: ${rawFrames.length} frame komponen · sel ${atlasCellWidth}×${atlasCellHeight}`);
 }
 
 const montagePortraits = await Promise.all(characters.map(async (character, index) => ({
@@ -215,8 +277,8 @@ await sharp({ create: { width: 1920, height: 900, channels: 4, background: { r: 
 
 await writeFile(
   path.join(outputRoot, 'manifest.json'),
-  `${JSON.stringify({ version: 5, atlas: { cell: atlasCell, width: atlasWidth, height: atlasHeight, columns: sourceColumns, rows: atlasRows }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceColumns, sourceRows: rows })) }, null, 2)}\n`,
+  `${JSON.stringify({ version: 6, atlas: { minimumCell: 256, padding: atlasPadding, columns: sourceColumns, rows: atlasRows }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceColumns, sourceRows: rows })) }, null, 2)}\n`,
   'utf8',
 );
 
-console.log('Sprite atlas, portrait, dan metadata siap digunakan.');
+console.log('Sprite atlas v6 dibangun tanpa pemotongan grid tetap.');
