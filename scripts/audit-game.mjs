@@ -19,6 +19,8 @@ const prototypeSource = await readFile(path.join(root, 'app/prototype.tsx'), 'ut
 const globalStyles = await readFile(path.join(root, 'app/globals.css'), 'utf8');
 const workshopSource = await readFile(path.join(root, 'components/character-workshop.tsx'), 'utf8');
 const motion = await import('../lib/sprite-motion.js');
+const { fieldCycleDecision } = await import('../lib/field-cycle.js');
+const { sweptContactDistance } = await import('../lib/tag-contact.js');
 const ids = [...charactersSource.matchAll(/\{ id: '([a-z]+)', name:/g)].map(match => match[1]);
 const teamIds = Object.values(rules.teams).flatMap(team => team.roster);
 
@@ -53,21 +55,37 @@ assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage
 assert((prototypeSource.match(/Math\.min\(2, Math\.max\(1, window\.devicePixelRatio/g) ?? []).length >= 1 && workshopSource.includes('Math.min(2, Math.max(1, window.devicePixelRatio'), 'pixel ratio canvas dibatasi 2×');
 assert(!prototypeSource.includes('ctx.filter = \'drop-shadow'), 'filter bayangan per pemain dihapus dari render loop');
 
-assert(fieldManifest.version === 1 && Object.keys(fieldManifest.objects.assets).length === 15, 'manifest field v1 memuat 15 objek runtime');
+assert(fieldManifest.version === 2 && Object.keys(fieldManifest.objects.assets).length === 28, 'manifest field v2 memuat 28 objek statis runtime');
+assert(Object.keys(fieldManifest.animated.animations).join(',') === 'fountain,flag,vendor,boost25,boost40,boost75,boost100', 'tujuh animasi objek dan pickup terdaftar eksplisit');
+for (const [id, animation] of Object.entries(fieldManifest.animated.animations)) assert(animation.frames.length === 6, `${id}: enam frame animasi terpotong lengkap`);
 assert(Object.keys(fieldManifest.grounds.tiles).join(',') === 'grass,dirt,paving,concrete', 'empat pola tanah dipotong tanpa label sumber');
 const fieldObjectsPath = path.join(root, 'public/field/objects.webp');
+const fieldAnimatedPath = path.join(root, 'public/field/animated.webp');
 const fieldGroundsPath = path.join(root, 'public/field/grounds.webp');
 const fieldObjects = await sharp(fieldObjectsPath).metadata();
+const fieldAnimated = await sharp(fieldAnimatedPath).metadata();
 const fieldGrounds = await sharp(fieldGroundsPath).metadata();
-const fieldRuntimeBytes = (await stat(fieldObjectsPath)).size + (await stat(fieldGroundsPath)).size;
-const fieldDecodedBytes = (fieldObjects.width ?? 0) * (fieldObjects.height ?? 0) * 4 + (fieldGrounds.width ?? 0) * (fieldGrounds.height ?? 0) * 4;
-assert(fieldObjects.width === 1024 && fieldObjects.height === 1024 && fieldObjects.hasAlpha, 'atlas objek field 1024² transparan dan terpotong rapat');
+const fieldRuntimeBytes = (await stat(fieldObjectsPath)).size + (await stat(fieldAnimatedPath)).size + (await stat(fieldGroundsPath)).size;
+const fieldDecodedBytes = (fieldObjects.width ?? 0) * (fieldObjects.height ?? 0) * 4 + (fieldAnimated.width ?? 0) * (fieldAnimated.height ?? 0) * 4 + (fieldGrounds.width ?? 0) * (fieldGrounds.height ?? 0) * 4;
+assert(fieldObjects.width === 1536 && fieldObjects.height === 768 && fieldObjects.hasAlpha, 'atlas objek statis 1536×768 transparan dan terpotong rapat');
+assert(fieldAnimated.width === 1024 && fieldAnimated.height === 384 && fieldAnimated.hasAlpha, 'atlas animasi 1024×384 transparan dan hemat memori');
 assert(fieldGrounds.width === 768 && fieldGrounds.height === 512 && !fieldGrounds.hasAlpha, 'atlas pola tanah 768×512 tanpa kanal alpha mubazir');
-assert(fieldRuntimeBytes <= 220 * 1024, `dua atlas field ${(fieldRuntimeBytes / 1024).toFixed(0)} KiB berada dalam budget 220 KiB`);
-assert(fieldDecodedBytes <= 6 * 1024 * 1024, `memori decode field ${(fieldDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 6 MiB`);
+assert(fieldRuntimeBytes <= 900 * 1024, `tiga atlas field ${(fieldRuntimeBytes / 1024).toFixed(0)} KiB berada dalam budget 900 KiB`);
+assert(fieldDecodedBytes <= 8.5 * 1024 * 1024, `memori decode field ${(fieldDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 8,5 MiB`);
 assert(prototypeSource.includes('const staticLayer = document.createElement(\'canvas\')') && prototypeSource.includes('if (staticLayerContext && staticMapDirty)'), 'field statis diraster sekali dan di-cache di luar render loop');
-assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSource.includes("getFieldImage('grounds.webp')"), 'seluruh dekorasi memakai hanya dua request gambar runtime');
+assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSource.includes("getFieldImage('animated.webp')") && prototypeSource.includes("getFieldImage('grounds.webp')"), 'seluruh dekorasi memakai hanya tiga request atlas runtime');
 assert(prototypeSource.includes("ground: 'dirt'") && prototypeSource.includes("ground: 'concrete'") && prototypeSource.includes("ground: 'grass'"), 'tiga stage memiliki identitas pola tanah berbeda');
+assert(prototypeSource.includes('const WORLD_SCALE = 1.25') && prototypeSource.includes('const W = world(1440)') && prototypeSource.includes('const H = world(800)'), 'semua dimensi dunia diperluas tepat 25%');
+const fieldOrder = ['kampung', 'pasar', 'taman'];
+assert(fieldCycleDecision('kampung', 2, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('kampung', 2, fieldOrder).wins === 2, 'field bertahan sebelum tiga kemenangan pertandingan');
+assert(fieldCycleDecision('kampung', 3, fieldOrder).fieldId === 'pasar' && fieldCycleDecision('taman', 3, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('taman', 3, fieldOrder).wins === 0, 'field berpindah dan berputar otomatis tepat setiap tiga kemenangan');
+assert(prototypeSource.includes('const quit = () =>') && prototypeSource.includes('setMode(\'menu\')') && prototypeSource.includes('<LogOut size={15} /> Quit'), 'tombol Quit mengembalikan pemain ke menu awal');
+const crossingA = { lastX: 0, lastY: 0, x: 100, y: 0 };
+const crossingB = { lastX: 100, lastY: 0, x: 0, y: 0 };
+const parallelB = { lastX: 0, lastY: 40, x: 100, y: 40 };
+assert(sweptContactDistance(crossingA, crossingB) < .001 && Math.abs(sweptContactDistance(crossingA, parallelB) - 40) < .001, 'swept contact menangkap lintasan silang tanpa false positive paralel');
+assert(prototypeSource.includes('Math.min(distance(a, b), sweptContactDistance(a, b))'), 'runtime tag memakai swept contact agar tidak melewatkan tabrakan antar-frame');
+assert(prototypeSource.includes("drawFieldAsset(ctx, 'prisonOverlay'") && prototypeSource.includes("drawFieldAsset(target, 'prisonFloor'"), 'penjara memakai lantai belakang dan pagar overlay terpisah');
 assert(globalStyles.includes('align-items:start') && globalStyles.includes('.stage-card { height:min(79vh,900px)'), 'stage tidak meregang mengikuti panel misi dan kamera Overall tetap terpusat');
 
 const sha256 = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
@@ -169,4 +187,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`\nAUDIT LULUS · ${ids.length} karakter · 504 frame + 16 sumber field dibandingkan dengan golden baseline`);
+console.log(`\nAUDIT LULUS · ${ids.length} karakter · 504 frame + ${Object.keys(fieldBaseline.sources).length} sumber field dibandingkan dengan golden baseline`);

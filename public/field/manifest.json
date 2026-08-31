@@ -1,99 +1,485 @@
 {
-  "version": 1,
+  "version": 2,
   "objects": {
     "file": "objects.webp",
-    "width": 1024,
-    "height": 1024,
+    "width": 1536,
+    "height": 768,
     "assets": {
-      "hall": {
+      "coffeeStall": {
         "x": 8,
+        "y": 8,
+        "width": 207,
+        "height": 206
+      },
+      "guardPost": {
+        "x": 223,
+        "y": 8,
+        "width": 222,
+        "height": 202
+      },
+      "hall": {
+        "x": 453,
         "y": 8,
         "width": 222,
         "height": 198
       },
       "warung": {
-        "x": 238,
+        "x": 683,
         "y": 8,
-        "width": 221,
-        "height": 198
-      },
-      "guardPost": {
-        "x": 467,
-        "y": 8,
-        "width": 179,
+        "width": 209,
         "height": 198
       },
       "fortGreen": {
-        "x": 654,
+        "x": 900,
         "y": 8,
         "width": 167,
         "height": 188
       },
       "fortRed": {
-        "x": 829,
+        "x": 1075,
         "y": 8,
         "width": 167,
         "height": 188
       },
       "tree": {
-        "x": 8,
-        "y": 214,
+        "x": 1250,
+        "y": 8,
         "width": 139,
         "height": 184
       },
+      "parkTree": {
+        "x": 1397,
+        "y": 8,
+        "width": 130,
+        "height": 184
+      },
+      "snackCart": {
+        "x": 8,
+        "y": 222,
+        "width": 148,
+        "height": 178
+      },
       "clothesline": {
-        "x": 155,
-        "y": 214,
-        "width": 205,
+        "x": 164,
+        "y": 222,
+        "width": 206,
         "height": 170
       },
+      "foodCart": {
+        "x": 378,
+        "y": 222,
+        "width": 166,
+        "height": 163
+      },
+      "marketStallB": {
+        "x": 552,
+        "y": 222,
+        "width": 172,
+        "height": 160
+      },
+      "marketStallC": {
+        "x": 732,
+        "y": 222,
+        "width": 165,
+        "height": 160
+      },
+      "marketStallA": {
+        "x": 905,
+        "y": 222,
+        "width": 163,
+        "height": 160
+      },
+      "prisonOverlay": {
+        "x": 1076,
+        "y": 222,
+        "width": 254,
+        "height": 157
+      },
       "lamp": {
-        "x": 368,
-        "y": 214,
+        "x": 1338,
+        "y": 222,
         "width": 57,
         "height": 152
       },
+      "gardenMedium": {
+        "x": 8,
+        "y": 408,
+        "width": 190,
+        "height": 148
+      },
+      "prisonFloor": {
+        "x": 206,
+        "y": 408,
+        "width": 254,
+        "height": 142
+      },
       "bush": {
-        "x": 433,
-        "y": 214,
+        "x": 468,
+        "y": 408,
         "width": 144,
         "height": 118
       },
       "bunting": {
-        "x": 585,
-        "y": 214,
+        "x": 620,
+        "y": 408,
         "width": 198,
         "height": 116
       },
+      "crates": {
+        "x": 826,
+        "y": 408,
+        "width": 132,
+        "height": 114
+      },
       "trash": {
-        "x": 791,
-        "y": 214,
+        "x": 966,
+        "y": 408,
         "width": 74,
         "height": 110
       },
-      "crates": {
-        "x": 873,
-        "y": 214,
-        "width": 105,
+      "flowerBedSmall": {
+        "x": 1048,
+        "y": 408,
+        "width": 126,
         "height": 104
       },
       "plant": {
-        "x": 8,
-        "y": 406,
+        "x": 1182,
+        "y": 408,
         "width": 88,
         "height": 104
       },
+      "bucket": {
+        "x": 1278,
+        "y": 408,
+        "width": 112,
+        "height": 97
+      },
       "drain": {
-        "x": 104,
-        "y": 406,
+        "x": 8,
+        "y": 564,
         "width": 233,
         "height": 88
       },
-      "bucket": {
-        "x": 345,
-        "y": 406,
-        "width": 76,
-        "height": 82
+      "plantFence": {
+        "x": 249,
+        "y": 564,
+        "width": 244,
+        "height": 47
+      },
+      "flowerFence": {
+        "x": 501,
+        "y": 564,
+        "width": 244,
+        "height": 40
+      }
+    }
+  },
+  "animated": {
+    "file": "animated.webp",
+    "width": 1024,
+    "height": 384,
+    "animations": {
+      "fountain": {
+        "fps": 8,
+        "width": 92,
+        "height": 90,
+        "frames": [
+          {
+            "x": 336,
+            "y": 124,
+            "width": 92,
+            "height": 90
+          },
+          {
+            "x": 436,
+            "y": 124,
+            "width": 92,
+            "height": 90
+          },
+          {
+            "x": 536,
+            "y": 124,
+            "width": 92,
+            "height": 90
+          },
+          {
+            "x": 636,
+            "y": 124,
+            "width": 92,
+            "height": 90
+          },
+          {
+            "x": 736,
+            "y": 124,
+            "width": 92,
+            "height": 90
+          },
+          {
+            "x": 836,
+            "y": 124,
+            "width": 92,
+            "height": 90
+          }
+        ]
+      },
+      "flag": {
+        "fps": 7,
+        "width": 74,
+        "height": 102,
+        "frames": [
+          {
+            "x": 848,
+            "y": 8,
+            "width": 74,
+            "height": 102
+          },
+          {
+            "x": 930,
+            "y": 8,
+            "width": 74,
+            "height": 102
+          },
+          {
+            "x": 8,
+            "y": 124,
+            "width": 74,
+            "height": 102
+          },
+          {
+            "x": 90,
+            "y": 124,
+            "width": 74,
+            "height": 102
+          },
+          {
+            "x": 172,
+            "y": 124,
+            "width": 74,
+            "height": 102
+          },
+          {
+            "x": 254,
+            "y": 124,
+            "width": 74,
+            "height": 102
+          }
+        ]
+      },
+      "vendor": {
+        "fps": 5,
+        "width": 132,
+        "height": 108,
+        "frames": [
+          {
+            "x": 8,
+            "y": 8,
+            "width": 132,
+            "height": 108
+          },
+          {
+            "x": 148,
+            "y": 8,
+            "width": 132,
+            "height": 108
+          },
+          {
+            "x": 288,
+            "y": 8,
+            "width": 132,
+            "height": 108
+          },
+          {
+            "x": 428,
+            "y": 8,
+            "width": 132,
+            "height": 108
+          },
+          {
+            "x": 568,
+            "y": 8,
+            "width": 132,
+            "height": 108
+          },
+          {
+            "x": 708,
+            "y": 8,
+            "width": 132,
+            "height": 108
+          }
+        ]
+      },
+      "boost25": {
+        "fps": 10,
+        "width": 52,
+        "height": 56,
+        "frames": [
+          {
+            "x": 318,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 378,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 438,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 498,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 558,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 618,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          }
+        ]
+      },
+      "boost40": {
+        "fps": 10,
+        "width": 52,
+        "height": 56,
+        "frames": [
+          {
+            "x": 678,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 738,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 798,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 858,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 918,
+            "y": 234,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 8,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          }
+        ]
+      },
+      "boost75": {
+        "fps": 10,
+        "width": 52,
+        "height": 56,
+        "frames": [
+          {
+            "x": 68,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 128,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 188,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 248,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 308,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          },
+          {
+            "x": 368,
+            "y": 300,
+            "width": 52,
+            "height": 56
+          }
+        ]
+      },
+      "boost100": {
+        "fps": 10,
+        "width": 54,
+        "height": 58,
+        "frames": [
+          {
+            "x": 936,
+            "y": 124,
+            "width": 54,
+            "height": 58
+          },
+          {
+            "x": 8,
+            "y": 234,
+            "width": 54,
+            "height": 58
+          },
+          {
+            "x": 70,
+            "y": 234,
+            "width": 54,
+            "height": 58
+          },
+          {
+            "x": 132,
+            "y": 234,
+            "width": 54,
+            "height": 58
+          },
+          {
+            "x": 194,
+            "y": 234,
+            "width": 54,
+            "height": 58
+          },
+          {
+            "x": 256,
+            "y": 234,
+            "width": 54,
+            "height": 58
+          }
+        ]
       }
     }
   },

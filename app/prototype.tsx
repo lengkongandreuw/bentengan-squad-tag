@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
+import { BatteryCharging, Flag, Gauge, LogOut, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { CHARACTER_BY_ID, CharacterId, characterAsset, characterRuntimeAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
-import { FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAssetId, GroundTileId } from '../lib/field-assets.generated';
+import { FIELD_ANIMATED_ATLAS, FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAnimatedId, FieldAssetId, GroundTileId } from '../lib/field-assets.generated';
 import { BOOST_COLUMNS, directionFromVelocity, directionalRow, RUN_COLUMNS, shouldMirrorSprite, sprintEffectRotation } from '../lib/sprite-motion.js';
+import { fieldCycleDecision } from '../lib/field-cycle.js';
+import { sweptContactDistance } from '../lib/tag-contact.js';
 import GAME_RULES from '../config/game-rules.json';
 
 type Team = 'blue' | 'red';
 type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type PlayerAction = 'tag' | 'rescue';
-type Grade = 25 | 50 | 100;
+type Grade = 25 | 40 | 75 | 100;
 type FieldId = 'kampung' | 'pasar' | 'taman';
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type Player = {
@@ -22,24 +24,32 @@ type Player = {
   fortCharge: number; prisonOwner?: Team; prisonIndex: number; captures: number; aiSeed: number;
   rescueShieldUntil: number; capturedIds: string[];
   action?: PlayerAction; actionUntil: number;
+  lastX: number; lastY: number;
 };
 type Obstacle = { x: number; y: number; w: number; h: number; asset: FieldAssetId; visualW: number; visualH: number; flip?: boolean };
 type FieldDecoration = { asset: FieldAssetId; x: number; y: number; w: number; h: number; flip?: boolean; opacity?: number };
+type AnimatedDecoration = { animation: FieldAnimatedId; x: number; y: number; w: number; h: number; flip?: boolean; opacity?: number };
 type FieldPath = { tile: GroundTileId; x: number; y: number; w: number; h: number; opacity: number; radius: number };
-type FieldConfig = { id: FieldId; name: string; kicker: string; ground: GroundTileId; paths: FieldPath[]; obstacles: Obstacle[]; decorations: FieldDecoration[] };
+type FieldConfig = { id: FieldId; name: string; kicker: string; ground: GroundTileId; paths: FieldPath[]; obstacles: Obstacle[]; decorations: FieldDecoration[]; animated: AnimatedDecoration[] };
 type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
 type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean };
 type Snapshot = {
   blue: number; red: number; round: number; timer: number; boost: number; boostCountdown: number;
   order: number; state: PlayerState; paused: boolean; logs: string[]; mission: Mission;
   team: Array<{ name: string; characterId: CharacterId; state: PlayerState; boost: number }>;
-  blueHeld: number; redHeld: number; pickupCount: number; fortLock: string; baseGrace: number; suddenDeath: boolean;
+  blueHeld: number; redHeld: number; pickupCount: number; fortLock: string; baseGrace: number; suddenDeath: boolean; fieldWins: number;
 };
 
-const W = 1440;
-const H = 800;
-const BASE_RADIUS = 112;
-const BASES = { blue: { x: 112, y: 410 }, red: { x: 1328, y: 390 } };
+const WORLD_SCALE = 1.25;
+const world = (value: number) => Math.round(value * WORLD_SCALE);
+const W = world(1440);
+const H = world(800);
+const BASE_RADIUS = 118;
+const BASES = { blue: { x: world(112), y: world(410) }, red: { x: world(1328), y: world(390) } };
+const PRISONS = {
+  blue: { x: world(244), y: world(472), w: 254, h: 190 },
+  red: { x: world(942), y: world(154), w: 254, h: 190 },
+};
 const TEAM_COLOR = { blue: GAME_RULES.teams.red.color, red: GAME_RULES.teams.green.color };
 const FIXED_ROSTERS = {
   red: GAME_RULES.teams.red.roster as CharacterId[],
@@ -55,7 +65,7 @@ const lineupFor = (faction: Faction, selectedId?: CharacterId) => {
     ? [selectedId, ...roster.filter(id => id !== selectedId)].slice(0, GAME_RULES.matchSize)
     : roster.slice(0, GAME_RULES.matchSize);
 };
-const FIELD_CONFIGS: FieldConfig[] = [
+const RAW_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'kampung', name: 'Kampung Merdeka', kicker: 'Jalan tanah · seimbang', ground: 'dirt',
     paths: [{ tile: 'paving', x: 214, y: 306, w: 1012, h: 184, opacity: .52, radius: 54 }],
@@ -71,11 +81,15 @@ const FIELD_CONFIGS: FieldConfig[] = [
       { x: 704, y: 516, w: 74, h: 54, asset: 'crates', visualW: 88, visualH: 74, flip: true },
       { x: 534, y: 612, w: 42, h: 44, asset: 'bucket', visualW: 50, visualH: 54 },
       { x: 866, y: 142, w: 44, h: 60, asset: 'trash', visualW: 52, visualH: 78 },
+      { x: 540, y: 582, w: 136, h: 44, asset: 'coffeeStall', visualW: 196, visualH: 188 },
+      { x: 468, y: 150, w: 92, h: 46, asset: 'snackCart', visualW: 132, visualH: 150 },
+      { x: 934, y: 586, w: 98, h: 48, asset: 'foodCart', visualW: 138, visualH: 148 },
     ],
     decorations: [
       { asset: 'bunting', x: 602, y: 68, w: 236, h: 122, opacity: .94 },
       { asset: 'plant', x: 242, y: 650, w: 62, h: 78 }, { asset: 'bush', x: 1060, y: 86, w: 100, h: 66 },
     ],
+    animated: [{ animation: 'flag', x: 690, y: 76, w: 66, h: 92 }],
   },
   {
     id: 'pasar', name: 'Pasar Senggol', kicker: 'Beton · jalur rapat', ground: 'concrete',
@@ -90,17 +104,23 @@ const FIELD_CONFIGS: FieldConfig[] = [
       { x: 1082, y: 610, w: 98, h: 64, asset: 'crates', visualW: 112, visualH: 94, flip: true },
       { x: 438, y: 254, w: 148, h: 30, asset: 'drain', visualW: 170, visualH: 60 },
       { x: 854, y: 516, w: 148, h: 30, asset: 'drain', visualW: 170, visualH: 60 },
-      { x: 390, y: 434, w: 118, h: 58, asset: 'crates', visualW: 128, visualH: 106 },
-      { x: 932, y: 308, w: 118, h: 58, asset: 'crates', visualW: 128, visualH: 106, flip: true },
+      { x: 390, y: 390, w: 118, h: 58, asset: 'crates', visualW: 128, visualH: 106 },
+      { x: 932, y: 390, w: 118, h: 58, asset: 'crates', visualW: 128, visualH: 106, flip: true },
       { x: 636, y: 162, w: 48, h: 66, asset: 'trash', visualW: 56, visualH: 84 },
       { x: 758, y: 564, w: 48, h: 54, asset: 'bucket', visualW: 54, visualH: 58 },
       { x: 630, y: 378, w: 180, h: 38, asset: 'drain', visualW: 204, visualH: 72 },
+      { x: 236, y: 150, w: 146, h: 42, asset: 'marketStallA', visualW: 190, visualH: 152 },
+      { x: 608, y: 132, w: 150, h: 42, asset: 'marketStallB', visualW: 194, visualH: 154 },
+      { x: 1018, y: 570, w: 146, h: 42, asset: 'marketStallC', visualW: 190, visualH: 152 },
+      { x: 470, y: 548, w: 94, h: 46, asset: 'snackCart', visualW: 134, visualH: 152 },
+      { x: 780, y: 188, w: 98, h: 46, asset: 'foodCart', visualW: 140, visualH: 150 },
     ],
     decorations: [
       { asset: 'bunting', x: 600, y: 66, w: 240, h: 124 },
       { asset: 'lamp', x: 344, y: 588, w: 46, h: 96 }, { asset: 'lamp', x: 1046, y: 106, w: 46, h: 96 },
       { asset: 'plant', x: 1188, y: 670, w: 58, h: 74 },
     ],
+    animated: [{ animation: 'vendor', x: 690, y: 360, w: 122, h: 100 }, { animation: 'flag', x: 1188, y: 92, w: 62, h: 88, flip: true }],
   },
   {
     id: 'taman', name: 'Taman Kota', kicker: 'Rumput · ruang terbuka', ground: 'grass',
@@ -109,30 +129,48 @@ const FIELD_CONFIGS: FieldConfig[] = [
       { tile: 'paving', x: 224, y: 324, w: 992, h: 152, opacity: .52, radius: 58 },
     ],
     obstacles: [
-      { x: 302, y: 188, w: 70, h: 56, asset: 'tree', visualW: 120, visualH: 158 },
-      { x: 1068, y: 556, w: 70, h: 56, asset: 'tree', visualW: 120, visualH: 158, flip: true },
-      { x: 332, y: 558, w: 100, h: 42, asset: 'bush', visualW: 126, visualH: 82 },
-      { x: 1008, y: 200, w: 100, h: 42, asset: 'bush', visualW: 126, visualH: 82, flip: true },
+      { x: 302, y: 188, w: 70, h: 56, asset: 'parkTree', visualW: 124, visualH: 158 },
+      { x: 1068, y: 556, w: 70, h: 56, asset: 'parkTree', visualW: 124, visualH: 158, flip: true },
+      { x: 500, y: 604, w: 100, h: 42, asset: 'flowerBedSmall', visualW: 126, visualH: 88 },
+      { x: 840, y: 218, w: 100, h: 42, asset: 'flowerBedSmall', visualW: 126, visualH: 88, flip: true },
       { x: 544, y: 344, w: 112, h: 34, asset: 'drain', visualW: 132, visualH: 50 },
       { x: 784, y: 424, w: 112, h: 34, asset: 'drain', visualW: 132, visualH: 50 },
       { x: 666, y: 154, w: 48, h: 56, asset: 'plant', visualW: 66, visualH: 84 },
       { x: 726, y: 598, w: 48, h: 56, asset: 'plant', visualW: 66, visualH: 84, flip: true },
       { x: 1180, y: 158, w: 150, h: 48, asset: 'hall', visualW: 214, visualH: 178 },
+      { x: 202, y: 354, w: 154, h: 44, asset: 'gardenMedium', visualW: 188, visualH: 142 },
+      { x: 1080, y: 390, w: 154, h: 44, asset: 'gardenMedium', visualW: 188, visualH: 142, flip: true },
+      { x: 566, y: 176, w: 182, h: 34, asset: 'plantFence', visualW: 218, visualH: 70 },
+      { x: 698, y: 592, w: 182, h: 34, asset: 'flowerFence', visualW: 218, visualH: 74 },
+      { x: 660, y: 366, w: 120, h: 48, asset: 'flowerBedSmall', visualW: 138, visualH: 94 },
     ],
     decorations: [
       { asset: 'lamp', x: 498, y: 612, w: 48, h: 100 }, { asset: 'lamp', x: 894, y: 88, w: 48, h: 100 },
       { asset: 'bunting', x: 606, y: 68, w: 228, h: 118, opacity: .86 },
       { asset: 'bush', x: 228, y: 92, w: 92, h: 60 }, { asset: 'bush', x: 1118, y: 650, w: 92, h: 60, flip: true },
     ],
+    animated: [{ animation: 'fountain', x: 674, y: 332, w: 92, h: 90 }, { animation: 'flag', x: 690, y: 82, w: 64, h: 90 }],
   },
 ];
+const FIELD_CONFIGS: FieldConfig[] = RAW_FIELD_CONFIGS.map(field => ({
+  ...field,
+  paths: field.paths.map(path => ({ ...path, x: world(path.x), y: world(path.y), w: world(path.w), h: world(path.h), radius: world(path.radius) })),
+  obstacles: field.obstacles.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
+  decorations: field.decorations.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
+  animated: field.animated.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
+}));
+const prisonClearance = 12;
+for (const field of FIELD_CONFIGS) for (const obstacle of field.obstacles) for (const prison of Object.values(PRISONS)) {
+  const overlapsPrison = obstacle.x < prison.x + prison.w + prisonClearance && obstacle.x + obstacle.w > prison.x - prisonClearance && obstacle.y < prison.y + prison.h + prisonClearance && obstacle.y + obstacle.h > prison.y - prisonClearance;
+  if (overlapsPrison) throw new Error(`${field.id}: obstacle ${obstacle.asset} masuk zona penjara`);
+}
 const FIELD_BY_ID = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field])) as Record<FieldId, FieldConfig>;
 const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [{ id: 'follow', label: 'Dekat' }, { id: 'tactical', label: 'Taktis' }, { id: 'overview', label: 'Overall' }];
 const initialSnapshot: Snapshot = {
   blue: 0, red: 0, round: 1, timer: 240, boost: 100, boostCountdown: 0, order: 0,
   state: 'IN_BASE', paused: false, logs: ['Prototype 5v5 siap.'],
   mission: { refresh: false, boost: false, parkour: false, tag: false, rescue: false }, team: [],
-  blueHeld: 0, redHeld: 0, pickupCount: 0, fortLock: 'Benteng terbuka', baseGrace: 0, suddenDeath: false,
+  blueHeld: 0, redHeld: 0, pickupCount: 0, fortLock: 'Benteng terbuka', baseGrace: 0, suddenDeath: false, fieldWins: 0,
 };
 
 const other = (team: Team): Team => team === 'blue' ? 'red' : 'blue';
@@ -175,6 +213,7 @@ export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
   const cameraModeRef = useRef<CameraMode>('follow');
+  const completedMatchesRef = useRef(0);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
   const [selectedId, setSelectedId] = useState<CharacterId>('raja');
   const [selectedFieldId, setSelectedFieldId] = useState<FieldId>('kampung');
@@ -215,6 +254,7 @@ export function BentenganPrototype() {
     let phase: 'COUNTDOWN' | 'PLAYING' | 'ROUND_OVER' | 'MATCH_OVER' = 'COUNTDOWN';
     let phaseUntil = performance.now() + 3000, timer = 240, round = 1, exitCounter = 0;
     let score = { blue: 0, red: 0 }, paused = false, announcement = mode === 'playing' ? 'BERSIAP!' : '', roundWinner: Team | undefined;
+    let fieldRotationPending = false;
     let logs = ['5v5 · pemain yang keluar terakhir memiliki prioritas tangkap tertinggi.'];
     let mission: Mission = { refresh: false, boost: false, parkour: false, tag: false, rescue: false };
     let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 8000, refillId = 0, suddenDeath = false;
@@ -222,6 +262,7 @@ export function BentenganPrototype() {
     let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false, boostLatch = false, boostBurstUntil = 0;
     const field = FIELD_BY_ID[selectedFieldId], obstacles = field.obstacles;
     const fieldObjectAtlas = getFieldImage('objects.webp');
+    const fieldAnimatedAtlas = getFieldImage('animated.webp');
     const fieldGroundAtlas = getFieldImage('grounds.webp');
     const staticLayer = document.createElement('canvas'); staticLayer.width = W; staticLayer.height = H;
     const staticLayerContext = staticLayer.getContext('2d');
@@ -248,6 +289,7 @@ export function BentenganPrototype() {
         vx: 0, vy: 0, state: 'IN_BASE', exitOrder: 0, boost: character.boost,
         baseCharge: 0, exitDeadline: 0, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
         prisonIndex: 0, captures: 0, rescueShieldUntil: 0, capturedIds: [], actionUntil: 0,
+        lastX: b.x + offset.x * direction, lastY: b.y + offset.y,
         aiSeed: .35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
       };
     };
@@ -271,11 +313,11 @@ export function BentenganPrototype() {
         particles.push({ x, y, vx: Math.cos(a) * (30 + Math.random() * 80), vy: Math.sin(a) * (30 + Math.random() * 80), life: .65, color });
       }
     };
-    const randomGrade = (): Grade => { const roll = Math.random(); return roll < .7 ? 25 : roll < .93 ? 50 : 100; };
+    const randomGrade = (): Grade => { const roll = Math.random(); return roll < .52 ? 25 : roll < .78 ? 40 : roll < .95 ? 75 : 100; };
     const spawnRefill = (now = performance.now()) => {
       const laneCounts = ([0, 1, 2] as const).map(lane => refills.filter(item => item.lane === lane).length);
       const minimum = Math.min(...laneCounts); const lane = laneCounts.indexOf(minimum) as 0 | 1 | 2;
-      const laneBounds = [[92, 292], [300, 516], [524, 712]] as const;
+      const laneBounds = [[world(92), world(292)], [world(300), world(516)], [world(524), world(712)]] as const;
       for (let tries = 0; tries < 30; tries++) {
         const x = 236 + Math.random() * (W - 472), y = laneBounds[lane][0] + Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
         if (obstacles.every(o => x < o.x - 28 || x > o.x + o.w + 28 || y < o.y - 28 || y > o.y + o.h + 28)) {
@@ -293,8 +335,11 @@ export function BentenganPrototype() {
     const winRound = (team: Team, reason: string) => {
       if (phase !== 'PLAYING') return;
       score[team]++; roundWinner = team; phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
+      if (phase === 'MATCH_OVER') { completedMatchesRef.current++; fieldRotationPending = completedMatchesRef.current >= 3; }
       phaseUntil = performance.now() + (phase === 'MATCH_OVER' ? 7000 : 3800);
-      announcement = phase === 'MATCH_OVER' ? `${teamName(team).toUpperCase()} MENANG MATCH` : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
+      announcement = phase === 'MATCH_OVER'
+        ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
+        : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
       beep(team === 'blue' ? 720 : 320, .25); burst(W / 2, H / 2, TEAM_COLOR[team], 38); log(announcement);
     };
     const fortOccupant = (baseTeam: Team, exceptId?: string) =>
@@ -306,7 +351,6 @@ export function BentenganPrototype() {
       return value >>> 0;
     };
     const segmentHitsRect = (a: Player, b: Player, o: Obstacle) => {
-      if (o.kind === 'canal') return false;
       const steps = 8;
       for (let i = 1; i < steps; i++) {
         const t = i / steps, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
@@ -361,8 +405,12 @@ export function BentenganPrototype() {
     };
     const layoutPrisons = () => {
       (['blue', 'red'] as Team[]).forEach(owner => {
+        const prison = PRISONS[owner];
         players.filter(p => p.state === 'PRISONER' && p.prisonOwner === owner).forEach((p, i) => {
-          p.prisonIndex = i; p.x = owner === 'blue' ? 306 + i * 34 : 1134 - i * 34; p.y = owner === 'blue' ? 540 + i * 8 : 248 - i * 8;
+          p.prisonIndex = i;
+          p.x = owner === 'blue' ? prison.x + 62 + i * 31 : prison.x + prison.w - 62 - i * 31;
+          p.y = owner === 'blue' ? prison.y + 116 + i * 6 : prison.y + 82 - i * 6;
+          p.lastX = p.x; p.lastY = p.y;
         });
       });
     };
@@ -380,12 +428,12 @@ export function BentenganPrototype() {
     const tagCheck = (now: number) => {
       const contacts: Array<{ attacker: Player; target: Player }> = [];
       for (let i = 0; i < players.length; i++) for (let j = i + 1; j < players.length; j++) {
-        const a = players[i], b = players[j], contactDistance = distance(a, b);
+        const a = players[i], b = players[j], contactDistance = Math.min(distance(a, b), sweptContactDistance(a, b));
         if (a.team === b.team || !hasLineOfSight(a, b) || now < a.parkourUntil || now < b.parkourUntil) continue;
         const aTargetable = a.state === 'ACTIVE' || (a.state === 'RETURNING' && now >= a.rescueShieldUntil);
         const bTargetable = b.state === 'ACTIVE' || (b.state === 'RETURNING' && now >= b.rescueShieldUntil);
-        if (a.state === 'ACTIVE' && bTargetable && a.exitOrder > b.exitOrder && contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange) contacts.push({ attacker: a, target: b });
-        else if (b.state === 'ACTIVE' && aTargetable && b.exitOrder > a.exitOrder && contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange) contacts.push({ attacker: b, target: a });
+        if (a.state === 'ACTIVE' && bTargetable && a.exitOrder > b.exitOrder && contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange + 4) contacts.push({ attacker: a, target: b });
+        else if (b.state === 'ACTIVE' && aTargetable && b.exitOrder > a.exitOrder && contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange + 4) contacts.push({ attacker: b, target: a });
       }
       contacts.sort((a, b) => b.attacker.exitOrder - a.attacker.exitOrder || b.target.exitOrder - a.target.exitOrder || a.attacker.id.localeCompare(b.attacker.id));
       const resolved = new Set<string>();
@@ -412,7 +460,8 @@ export function BentenganPrototype() {
         const item = refills.find(i => distance(p, i) < 27); if (!item) return;
         const maxBoost = CHARACTER_BY_ID[p.characterId].boost;
         p.boost = Math.min(maxBoost, p.boost + maxBoost * item.grade / 100); refills = refills.filter(i => i.id !== item.id);
-        burst(item.x, item.y, item.grade === 100 ? '#ef75ff' : item.grade === 50 ? '#60e6ff' : '#b9ee3d', 18);
+        const refillColor = item.grade === 100 ? '#60e6ff' : item.grade === 75 ? '#ef75ff' : item.grade === 40 ? '#f5cf45' : '#b9ee3d';
+        burst(item.x, item.y, refillColor, 18);
         beep(560 + item.grade * 2, .12); if (p.controlled) mission.boost = true; log(`${p.name} mengambil refill boost ${item.grade}%.`);
       });
     };
@@ -459,7 +508,16 @@ export function BentenganPrototype() {
         return;
       }
       if (phase === 'ROUND_OVER' && now >= phaseUntil) { round++; resetRound(); return; }
-      if (phase === 'MATCH_OVER') { if (now >= phaseUntil) { score = { blue: 0, red: 0 }; round = 1; resetRound(); } return; }
+      if (phase === 'MATCH_OVER') {
+        if (now >= phaseUntil) {
+          if (fieldRotationPending) {
+            const decision = fieldCycleDecision(selectedFieldId, completedMatchesRef.current, FIELD_CONFIGS.map(item => item.id));
+            completedMatchesRef.current = decision.wins;
+            setSelectedFieldId(decision.fieldId);
+          } else { score = { blue: 0, red: 0 }; round = 1; resetRound(); }
+        }
+        return;
+      }
       if (!suddenDeath) timer -= dt;
       if (!suddenDeath && timer <= 0) {
         const blueHeld = players.filter(p => p.team === 'red' && p.state === 'PRISONER').length;
@@ -472,6 +530,7 @@ export function BentenganPrototype() {
       }
       refills = refills.filter(item => item.expiresAt > now);
       if (now >= nextRefillSpawn && refills.length < 9) { spawnRefill(now); nextRefillSpawn = now + 8000 + Math.random() * 4000; }
+      players.forEach(player => { player.lastX = player.x; player.lastY = player.y; });
       const me = players[0]; let dx = 0, dy = 0;
       if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
@@ -535,6 +594,15 @@ export function BentenganPrototype() {
       target.drawImage(fieldObjectAtlas, source.x, source.y, source.width, source.height, x, y, w, h);
       target.restore();
     };
+    const drawAnimatedAsset = (target: CanvasRenderingContext2D, animationId: FieldAnimatedId, x: number, y: number, w: number, h: number, now: number, flip = false, opacity = 1) => {
+      const animation = FIELD_ANIMATED_ATLAS.animations[animationId];
+      const frame = animation.frames[Math.floor(now * animation.fps / 1000) % animation.frames.length];
+      if (!fieldAnimatedAtlas.complete || !fieldAnimatedAtlas.naturalWidth) return;
+      target.save(); target.globalAlpha = opacity; target.imageSmoothingEnabled = true; target.imageSmoothingQuality = 'high';
+      if (flip) { target.translate(x * 2 + w, 0); target.scale(-1, 1); }
+      target.drawImage(fieldAnimatedAtlas, frame.x, frame.y, frame.width, frame.height, x, y, w, h);
+      target.restore();
+    };
     const groundTileCanvas = (tile: GroundTileId) => {
       const source = FIELD_GROUND_ATLAS.tiles[tile];
       const surface = document.createElement('canvas'); surface.width = source.width; surface.height = source.height;
@@ -566,9 +634,10 @@ export function BentenganPrototype() {
         drawFieldAsset(target, fortAsset, b.x - 84, b.y - 130, 168, 188, false, .96);
       });
 
-      target.fillStyle = 'rgba(23,29,24,.66)'; roundedOn(target, 260, 500, 218, 92, 14); target.fill(); roundedOn(target, 962, 208, 218, 92, 14); target.fill();
-      target.strokeStyle = 'rgba(245,232,198,.32)'; target.lineWidth = 2; roundedOn(target, 260, 500, 218, 92, 14); target.stroke(); roundedOn(target, 962, 208, 218, 92, 14); target.stroke();
-      target.fillStyle = '#f5e8c6'; target.font = '800 11px Arial'; target.textAlign = 'center'; target.fillText('PENJARA MERAH', 369, 519); target.fillText('PENJARA HIJAU', 1071, 227);
+      (['blue', 'red'] as Team[]).forEach(team => {
+        const prison = PRISONS[team];
+        drawFieldAsset(target, 'prisonFloor', prison.x, prison.y, prison.w, prison.h, team === 'red', .96);
+      });
 
       const scenery = [
         ...field.decorations.map(item => ({ baseline: item.y + item.h, draw: () => drawFieldAsset(target, item.asset, item.x, item.y, item.w, item.h, item.flip, item.opacity) })),
@@ -584,6 +653,14 @@ export function BentenganPrototype() {
       if (staticLayerContext && staticMapDirty) { drawStaticMap(staticLayerContext); staticMapDirty = false; }
       if (staticLayerContext) ctx.drawImage(staticLayer, 0, 0); else { ctx.fillStyle = '#667556'; ctx.fillRect(0, 0, W, H); }
     };
+    const drawFieldAnimations = (now: number) => field.animated.forEach(item =>
+      drawAnimatedAsset(ctx, item.animation, item.x, item.y, item.w, item.h, now, item.flip, item.opacity));
+    const drawPrisonOverlays = (now: number) => {
+      (['blue', 'red'] as Team[]).forEach(team => {
+        const prison = PRISONS[team];
+        drawFieldAsset(ctx, 'prisonOverlay', prison.x, prison.y, prison.w, prison.h, team === 'red', .98);
+      });
+    };
     const drawBase = (team: Team) => {
       const b = BASES[team], color = TEAM_COLOR[team], occupant = fortOccupant(team);
       ctx.strokeStyle = occupant ? '#f5cf45' : color; ctx.lineWidth = occupant ? 7 : 4; ctx.setLineDash(occupant ? [3, 5] : [8, 7]);
@@ -592,10 +669,11 @@ export function BentenganPrototype() {
       if (occupant) { ctx.fillStyle = '#f5cf45'; ctx.font = '900 9px Arial'; ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, b.y + 144); }
     };
     const drawRefill = (item: Refill, now: number) => {
-      const color = item.grade === 100 ? '#ef75ff' : item.grade === 50 ? '#60e6ff' : '#b9ee3d', pulse = 1 + Math.sin(now / 220 + item.id) * .12;
-      ctx.save(); ctx.translate(item.x, item.y); ctx.scale(pulse, pulse); ctx.shadowColor = color; ctx.shadowBlur = 16;
-      ctx.fillStyle = '#172019'; ctx.strokeStyle = color; ctx.lineWidth = 3; rounded(-17, -17, 34, 34, 9); ctx.fill(); ctx.stroke();
-      ctx.shadowBlur = 0; ctx.fillStyle = color; ctx.font = '900 10px Arial'; ctx.textAlign = 'center'; ctx.fillText(`+${item.grade}`, 0, 4); ctx.restore();
+      const animation: FieldAnimatedId = item.grade === 100 ? 'boost100' : item.grade === 75 ? 'boost75' : item.grade === 40 ? 'boost40' : 'boost25';
+      const pulse = 1 + Math.sin(now / 220 + item.id) * .08;
+      ctx.save(); ctx.translate(item.x, item.y); ctx.scale(pulse, pulse);
+      drawAnimatedAsset(ctx, animation, -27, -30, 54, 58, now + item.id * 37);
+      ctx.restore();
     };
     const relationColor = (p: Player, me: Player, now: number) => {
       if (p.team === me.team) return '#9fd0ff'; if (p.state === 'PRISONER') return '#8f8d84';
@@ -670,8 +748,10 @@ export function BentenganPrototype() {
       ctx.save(); ctx.translate(cw / 2, ch / 2); ctx.scale(scale, scale); ctx.translate(-camX, -camY);
       drawMap(); drawBase('blue'); drawBase('red');
       if (mode === 'playing') {
+        drawFieldAnimations(now);
         refills.forEach(item => drawRefill(item, now));
         players.slice().sort((a, b) => a.y - b.y).forEach(p => drawPlayer(p, me, now));
+        drawPrisonOverlays(now);
         particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life / .65); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1;
       }
       ctx.restore();
@@ -706,7 +786,7 @@ export function BentenganPrototype() {
           pickupCount: refills.length,
           fortLock: blueLock ? `Merah dikunci ${blueLock.name}` : redLock ? `Hijau dikunci ${redLock.name}` : 'Benteng terbuka',
           baseGrace: me.state === 'IN_BASE' && me.exitDeadline ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000)) : 0,
-          suddenDeath,
+          suddenDeath, fieldWins: completedMatchesRef.current,
         });
       }
       raf = requestAnimationFrame(loop);
@@ -722,7 +802,12 @@ export function BentenganPrototype() {
   const missionCount = useMemo(() => Object.values(snapshot.mission).filter(Boolean).length, [snapshot.mission]);
   const start = () => {
     if (!selectedFaction) return;
+    completedMatchesRef.current = 0;
     setSnapshot(initialSnapshot); setMode('playing'); setRun(v => v + 1);
+  };
+  const quit = () => {
+    keys.current.clear(); completedMatchesRef.current = 0;
+    setSnapshot(initialSnapshot); setMode('menu'); setSelectedFaction(null); setSelectedId('raja'); setSelectedFieldId('kampung'); setCameraMode('follow'); setRun(v => v + 1);
   };
   const touchKey = (key: string, pressed: boolean) => pressed ? keys.current.add(key) : keys.current.delete(key);
   if (view === 'workshop') return <main className="game-shell"><CharacterWorkshop onClose={() => setView('game')} /></main>;
@@ -730,7 +815,7 @@ export function BentenganPrototype() {
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v7 · Fields v1 · guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v7 · Fields v2 · guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="quit-button" onClick={quit}><LogOut size={15} /> Quit</button><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
@@ -760,7 +845,7 @@ export function BentenganPrototype() {
             <div className="field-row"><span>LANGKAH 3 · PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
             {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
           </div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" onPointerDown={e => { e.preventDefault(); touchKey('w', true); }} onPointerUp={() => touchKey('w', false)} onPointerCancel={() => touchKey('w', false)}>▲</button><button aria-label="Gerak kiri" onPointerDown={e => { e.preventDefault(); touchKey('a', true); }} onPointerUp={() => touchKey('a', false)} onPointerCancel={() => touchKey('a', false)}>◀</button><button aria-label="Gerak kanan" onPointerDown={e => { e.preventDefault(); touchKey('d', true); }} onPointerUp={() => touchKey('d', false)} onPointerCancel={() => touchKey('d', false)}>▶</button><button aria-label="Gerak bawah" onPointerDown={e => { e.preventDefault(); touchKey('s', true); }} onPointerUp={() => touchKey('s', false)} onPointerCancel={() => touchKey('s', false)}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" onPointerDown={e => { e.preventDefault(); touchKey(' ', true); }} onPointerUp={() => touchKey(' ', false)} onPointerCancel={() => touchKey(' ', false)}>SPRINT</button><button aria-label="Parkour" onPointerDown={e => { e.preventDefault(); touchKey('shift', true); }} onPointerUp={() => touchKey('shift', false)} onPointerCancel={() => touchKey('shift', false)}>PARKOUR</button></div></div></>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" onPointerDown={e => { e.preventDefault(); touchKey('w', true); }} onPointerUp={() => touchKey('w', false)} onPointerCancel={() => touchKey('w', false)}>▲</button><button aria-label="Gerak kiri" onPointerDown={e => { e.preventDefault(); touchKey('a', true); }} onPointerUp={() => touchKey('a', false)} onPointerCancel={() => touchKey('a', false)}>◀</button><button aria-label="Gerak kanan" onPointerDown={e => { e.preventDefault(); touchKey('d', true); }} onPointerUp={() => touchKey('d', false)} onPointerCancel={() => touchKey('d', false)}>▶</button><button aria-label="Gerak bawah" onPointerDown={e => { e.preventDefault(); touchKey('s', true); }} onPointerUp={() => touchKey('s', false)} onPointerCancel={() => touchKey('s', false)}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" onPointerDown={e => { e.preventDefault(); touchKey(' ', true); }} onPointerUp={() => touchKey(' ', false)} onPointerCancel={() => touchKey(' ', false)}>SPRINT</button><button aria-label="Parkour" onPointerDown={e => { e.preventDefault(); touchKey('shift', true); }} onPointerUp={() => touchKey('shift', false)} onPointerCancel={() => touchKey('shift', false)}>PARKOUR</button></div></div></>}
         </div>
         <aside className="mission-panel">
           <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>{mode === 'menu' ? 'Kuasai aturan baru' : 'Buktikan core loop'}</h2></div>
