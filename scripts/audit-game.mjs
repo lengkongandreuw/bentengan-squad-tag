@@ -12,8 +12,11 @@ const readJson = async file => JSON.parse(await readFile(path.join(root, file), 
 const rules = await readJson('config/game-rules.json');
 const manifest = await readJson('public/characters/manifest.json');
 const spriteBaseline = await readJson('config/sprite-baseline.json');
+const fieldManifest = await readJson('public/field/manifest.json');
+const fieldBaseline = await readJson('config/field-baseline.json');
 const charactersSource = await readFile(path.join(root, 'lib/characters.ts'), 'utf8');
 const prototypeSource = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
+const globalStyles = await readFile(path.join(root, 'app/globals.css'), 'utf8');
 const workshopSource = await readFile(path.join(root, 'components/character-workshop.tsx'), 'utf8');
 const motion = await import('../lib/sprite-motion.js');
 const ids = [...charactersSource.matchAll(/\{ id: '([a-z]+)', name:/g)].map(match => match[1]);
@@ -49,6 +52,27 @@ assert(workshopSource.includes('animation === \'boost\'') && workshopSource.incl
 assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage') && prototypeSource.includes("image.decoding = 'async'") && prototypeSource.includes("if (mode === 'playing') {"), 'atlas dimuat lazy hanya saat pertandingan dan decode gambar tidak memblokir layar awal');
 assert((prototypeSource.match(/Math\.min\(2, Math\.max\(1, window\.devicePixelRatio/g) ?? []).length >= 1 && workshopSource.includes('Math.min(2, Math.max(1, window.devicePixelRatio'), 'pixel ratio canvas dibatasi 2×');
 assert(!prototypeSource.includes('ctx.filter = \'drop-shadow'), 'filter bayangan per pemain dihapus dari render loop');
+
+assert(fieldManifest.version === 1 && Object.keys(fieldManifest.objects.assets).length === 15, 'manifest field v1 memuat 15 objek runtime');
+assert(Object.keys(fieldManifest.grounds.tiles).join(',') === 'grass,dirt,paving,concrete', 'empat pola tanah dipotong tanpa label sumber');
+const fieldObjectsPath = path.join(root, 'public/field/objects.webp');
+const fieldGroundsPath = path.join(root, 'public/field/grounds.webp');
+const fieldObjects = await sharp(fieldObjectsPath).metadata();
+const fieldGrounds = await sharp(fieldGroundsPath).metadata();
+const fieldRuntimeBytes = (await stat(fieldObjectsPath)).size + (await stat(fieldGroundsPath)).size;
+const fieldDecodedBytes = (fieldObjects.width ?? 0) * (fieldObjects.height ?? 0) * 4 + (fieldGrounds.width ?? 0) * (fieldGrounds.height ?? 0) * 4;
+assert(fieldObjects.width === 1024 && fieldObjects.height === 1024 && fieldObjects.hasAlpha, 'atlas objek field 1024² transparan dan terpotong rapat');
+assert(fieldGrounds.width === 768 && fieldGrounds.height === 512 && !fieldGrounds.hasAlpha, 'atlas pola tanah 768×512 tanpa kanal alpha mubazir');
+assert(fieldRuntimeBytes <= 220 * 1024, `dua atlas field ${(fieldRuntimeBytes / 1024).toFixed(0)} KiB berada dalam budget 220 KiB`);
+assert(fieldDecodedBytes <= 6 * 1024 * 1024, `memori decode field ${(fieldDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 6 MiB`);
+assert(prototypeSource.includes('const staticLayer = document.createElement(\'canvas\')') && prototypeSource.includes('if (staticLayerContext && staticMapDirty)'), 'field statis diraster sekali dan di-cache di luar render loop');
+assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSource.includes("getFieldImage('grounds.webp')"), 'seluruh dekorasi memakai hanya dua request gambar runtime');
+assert(prototypeSource.includes("ground: 'dirt'") && prototypeSource.includes("ground: 'concrete'") && prototypeSource.includes("ground: 'grass'"), 'tiga stage memiliki identitas pola tanah berbeda');
+assert(globalStyles.includes('align-items:start') && globalStyles.includes('.stage-card { height:min(79vh,900px)'), 'stage tidak meregang mengikuti panel misi dan kamera Overall tetap terpusat');
+
+const sha256 = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
+for (const [filename, hash] of Object.entries(fieldBaseline.sources)) assert(hash === await sha256(`field-sources/${filename}`), `${filename}: sumber field cocok golden baseline`);
+for (const [filename, hash] of Object.entries(fieldBaseline.runtime)) assert(hash === await sha256(`public/field/${filename}`), `${filename}: runtime field cocok golden baseline`);
 
 const logo = await sharp(path.join(root, 'public/brand/benteng-tag-logo.png')).metadata();
 assert((logo.width ?? 0) >= 1200 && (logo.height ?? 0) >= 500 && logo.hasAlpha, 'logo judul resolusi tinggi dan transparan');
@@ -129,7 +153,6 @@ for (const id of ids) {
   assert(scaleMismatchFrames === 0, `${id}: skala sumber-ke-atlas seragam pada seluruh pose`);
 
   const hashes = spriteBaseline.characters[id];
-  const sha256 = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
   assert(hashes?.source === await sha256(`sprite-sources/${id}.png`), `${id}: sumber cocok dengan golden baseline`);
   assert(hashes?.atlas === await sha256(`public/characters/${id}/atlas.webp`), `${id}: atlas cocok dengan golden baseline tervalidasi`);
   assert(hashes?.runtime === await sha256(`public/characters/${id}/atlas-runtime.webp`), `${id}: atlas runtime cocok dengan golden baseline tervalidasi`);
@@ -146,4 +169,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`\nAUDIT LULUS · ${ids.length} karakter · 504 frame dibandingkan dengan sumber + golden baseline`);
+console.log(`\nAUDIT LULUS · ${ids.length} karakter · 504 frame + 16 sumber field dibandingkan dengan golden baseline`);

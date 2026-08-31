@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "objects": {
+    "file": "objects.webp",
+    "width": 1024,
+    "height": 1024,
+    "assets": {
+      "hall": {
+        "x": 8,
+        "y": 8,
+        "width": 222,
+        "height": 198
+      },
+      "warung": {
+        "x": 238,
+        "y": 8,
+        "width": 221,
+        "height": 198
+      },
+      "guardPost": {
+        "x": 467,
+        "y": 8,
+        "width": 179,
+        "height": 198
+      },
+      "fortGreen": {
+        "x": 654,
+        "y": 8,
+        "width": 167,
+        "height": 188
+      },
+      "fortRed": {
+        "x": 829,
+        "y": 8,
+        "width": 167,
+        "height": 188
+      },
+      "tree": {
+        "x": 8,
+        "y": 214,
+        "width": 139,
+        "height": 184
+      },
+      "clothesline": {
+        "x": 155,
+        "y": 214,
+        "width": 205,
+        "height": 170
+      },
+      "lamp": {
+        "x": 368,
+        "y": 214,
+        "width": 57,
+        "height": 152
+      },
+      "bush": {
+        "x": 433,
+        "y": 214,
+        "width": 144,
+        "height": 118
+      },
+      "bunting": {
+        "x": 585,
+        "y": 214,
+        "width": 198,
+        "height": 116
+      },
+      "trash": {
+        "x": 791,
+        "y": 214,
+        "width": 74,
+        "height": 110
+      },
+      "crates": {
+        "x": 873,
+        "y": 214,
+        "width": 105,
+        "height": 104
+      },
+      "plant": {
+        "x": 8,
+        "y": 406,
+        "width": 88,
+        "height": 104
+      },
+      "drain": {
+        "x": 104,
+        "y": 406,
+        "width": 233,
+        "height": 88
+      },
+      "bucket": {
+        "x": 345,
+        "y": 406,
+        "width": 76,
+        "height": 82
+      }
+    }
+  },
+  "grounds": {
+    "file": "grounds.webp",
+    "width": 768,
+    "height": 512,
+    "tiles": {
+      "grass": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 256
+      },
+      "dirt": {
+        "x": 384,
+        "y": 0,
+        "width": 384,
+        "height": 256
+      },
+      "paving": {
+        "x": 0,
+        "y": 256,
+        "width": 384,
+        "height": 256
+      },
+      "concrete": {
+        "x": 384,
+        "y": 256,
+        "width": 384,
+        "height": 256
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "sources": {
+    "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
+    "benteng tim hijau.png": "cf4bbe45e0cbaccec67c0ae662a9708f7fa3017c4aaa8b3e3818201cf1d31fbe",
+    "benteng tim merah.png": "8938693dcb25c582ca42c44d1b7c1dab357eb65e64d9fff1f87644dccd557768",
+    "crates.png": "62ae3d85973586072ffade3896a513a9e15725fd2cbfe34000060e6c3eee5cbf",
+    "ember.png": "a0675e662ef8eb2344c35f980628a82d8989a266f5af098ca23346acfdf305af",
+    "got.png": "a2d73ad5c8eef35af821a5505038b995b4de9783154a3c65efe2cfe9b1887be8",
+    "jemuran.png": "8fb2e200646734d9881bc730249cf8945d5c9924b419ead83187c4417579ba8d",
+    "lampu.png": "e97be15db585b6df499b4c89c881bf458e70576d5eceb45b34218fa9a78580e0",
+    "lines.png": "930b755781604ae2c66fe0a7469ad7e2fe584c6b2b695a54091c3f3ad2702a4c",
+    "pohon.png": "0c23e6d7ad95a8f382d8891dce98ea7a2ce2e7408bebeeee1560d100ff9a3e4c",
+    "pos ronda.png": "54cb863d0a397c58d3597cf8a9a368548a868ac15241a31f3d9219fedf08fe24",
+    "pot bunga.png": "323ebbf7dacc0c95f8e24df244464f0898d79c390108aeee627450f644bbe62f",
+    "semak.png": "6d57451c61742e270c3e5fee58e419c7e7ed38fb1a87a3db5a8ffd72fd504d99",
+    "tempat sampaj.png": "60a7ccb0755a5ddf7d375ebebeb40035547de38111f55b0b8e4f7e909f0bd210",
+    "tiles latar.png": "1efb319b9819ccb3155059c79ce778a19edeea08d4b607c6be129d33a28461ec",
+    "warung.png": "dfbcfda585a4fc2ef256e931e864ffaae0eb1a5641fc891b677046eb5169d11c"
+  },
+  "runtime": {
+    "grounds.webp": "adcfa3f36a5fd42d1418bc5c73e9baf1c2b866953bd6e4298ea0a4d01c7f473b",
+    "manifest.json": "3e51743862356b016c0f584b0d6f69719493c981692960c34a64c425140e54ff",
+    "objects.webp": "c1a1901b3140cff330bb1792aa8d13c9006a46d2c1615237e12da12440113bb9"
+  }
+}

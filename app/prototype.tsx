@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { CHARACTER_BY_ID, CharacterId, characterAsset, characterRuntimeAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
+import { FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAssetId, GroundTileId } from '../lib/field-assets.generated';
 import { BOOST_COLUMNS, directionFromVelocity, directionalRow, RUN_COLUMNS, shouldMirrorSprite, sprintEffectRotation } from '../lib/sprite-motion.js';
 import GAME_RULES from '../config/game-rules.json';
 
@@ -22,8 +23,10 @@ type Player = {
   rescueShieldUntil: number; capturedIds: string[];
   action?: PlayerAction; actionUntil: number;
 };
-type Obstacle = { x: number; y: number; w: number; h: number; kind: 'fence' | 'canal' | 'stall' | 'chairs' };
-type FieldConfig = { id: FieldId; name: string; kicker: string; colors: [string, string, string]; landmarks: [string, string, string]; obstacles: Obstacle[] };
+type Obstacle = { x: number; y: number; w: number; h: number; asset: FieldAssetId; visualW: number; visualH: number; flip?: boolean };
+type FieldDecoration = { asset: FieldAssetId; x: number; y: number; w: number; h: number; flip?: boolean; opacity?: number };
+type FieldPath = { tile: GroundTileId; x: number; y: number; w: number; h: number; opacity: number; radius: number };
+type FieldConfig = { id: FieldId; name: string; kicker: string; ground: GroundTileId; paths: FieldPath[]; obstacles: Obstacle[]; decorations: FieldDecoration[] };
 type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
 type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean };
 type Snapshot = {
@@ -52,30 +55,76 @@ const lineupFor = (faction: Faction, selectedId?: CharacterId) => {
     ? [selectedId, ...roster.filter(id => id !== selectedId)].slice(0, GAME_RULES.matchSize)
     : roster.slice(0, GAME_RULES.matchSize);
 };
-const KAMPUNG_OBSTACLES: Obstacle[] = [
-  { x: 244, y: 122, w: 146, h: 24, kind: 'fence' }, { x: 1044, y: 628, w: 142, h: 24, kind: 'fence' },
-  { x: 538, y: 148, w: 102, h: 58, kind: 'stall' }, { x: 812, y: 596, w: 112, h: 48, kind: 'chairs' },
-  { x: 402, y: 354, w: 168, h: 36, kind: 'canal' }, { x: 870, y: 410, w: 168, h: 36, kind: 'canal' },
-  { x: 286, y: 598, w: 114, h: 24, kind: 'fence' }, { x: 1044, y: 166, w: 114, h: 24, kind: 'fence' },
-  { x: 648, y: 296, w: 138, h: 54, kind: 'stall' }, { x: 652, y: 502, w: 136, h: 44, kind: 'chairs' },
-  { x: 474, y: 666, w: 146, h: 24, kind: 'fence' }, { x: 820, y: 94, w: 146, h: 24, kind: 'fence' },
-];
 const FIELD_CONFIGS: FieldConfig[] = [
-  { id: 'kampung', name: 'Kampung Merdeka', kicker: 'Seimbang', colors: ['#cdbb92', '#87925d', '#43563d'], landmarks: ['WARUNG BU SRI', 'POS RONDA', 'BALAI WARGA'], obstacles: KAMPUNG_OBSTACLES },
-  { id: 'pasar', name: 'Pasar Senggol', kicker: 'Jalur rapat', colors: ['#d4a06b', '#8a654f', '#463d3b'], landmarks: ['LOS SAYUR', 'PARKIR PASAR', 'KEDAI MALAM'], obstacles: [
-    { x: 250, y: 116, w: 118, h: 48, kind: 'stall' }, { x: 1060, y: 626, w: 118, h: 48, kind: 'stall' },
-    { x: 438, y: 248, w: 152, h: 30, kind: 'chairs' }, { x: 850, y: 522, w: 152, h: 30, kind: 'chairs' },
-    { x: 390, y: 438, w: 190, h: 28, kind: 'fence' }, { x: 860, y: 332, w: 190, h: 28, kind: 'fence' },
-    { x: 634, y: 160, w: 82, h: 92, kind: 'stall' }, { x: 724, y: 548, w: 82, h: 92, kind: 'stall' },
-    { x: 628, y: 376, w: 184, h: 38, kind: 'canal' }, { x: 270, y: 620, w: 124, h: 24, kind: 'fence' }, { x: 1046, y: 142, w: 124, h: 24, kind: 'fence' },
-  ] },
-  { id: 'taman', name: 'Taman Kota', kicker: 'Ruang terbuka', colors: ['#b8d29b', '#67966f', '#34594c'], landmarks: ['RUMAH KACA', 'KIOS TAMAN', 'PANGGUNG RAKYAT'], obstacles: [
-    { x: 312, y: 178, w: 138, h: 24, kind: 'fence' }, { x: 990, y: 598, w: 138, h: 24, kind: 'fence' },
-    { x: 338, y: 558, w: 110, h: 42, kind: 'chairs' }, { x: 992, y: 200, w: 110, h: 42, kind: 'chairs' },
-    { x: 544, y: 342, w: 112, h: 34, kind: 'canal' }, { x: 784, y: 424, w: 112, h: 34, kind: 'canal' },
-    { x: 652, y: 158, w: 136, h: 42, kind: 'stall' }, { x: 652, y: 604, w: 136, h: 42, kind: 'stall' },
-    { x: 594, y: 492, w: 252, h: 22, kind: 'fence' },
-  ] },
+  {
+    id: 'kampung', name: 'Kampung Merdeka', kicker: 'Jalan tanah · seimbang', ground: 'dirt',
+    paths: [{ tile: 'paving', x: 214, y: 306, w: 1012, h: 184, opacity: .52, radius: 54 }],
+    obstacles: [
+      { x: 58, y: 166, w: 174, h: 54, asset: 'warung', visualW: 220, visualH: 183 },
+      { x: 1160, y: 168, w: 176, h: 54, asset: 'hall', visualW: 230, visualH: 190 },
+      { x: 1180, y: 610, w: 168, h: 52, asset: 'guardPost', visualW: 205, visualH: 184 },
+      { x: 286, y: 190, w: 122, h: 26, asset: 'clothesline', visualW: 176, visualH: 142 },
+      { x: 1032, y: 588, w: 122, h: 26, asset: 'clothesline', visualW: 166, visualH: 134, flip: true },
+      { x: 402, y: 354, w: 168, h: 36, asset: 'drain', visualW: 190, visualH: 72 },
+      { x: 870, y: 410, w: 168, h: 36, asset: 'drain', visualW: 190, visualH: 72 },
+      { x: 650, y: 282, w: 88, h: 58, asset: 'crates', visualW: 100, visualH: 84 },
+      { x: 704, y: 516, w: 74, h: 54, asset: 'crates', visualW: 88, visualH: 74, flip: true },
+      { x: 534, y: 612, w: 42, h: 44, asset: 'bucket', visualW: 50, visualH: 54 },
+      { x: 866, y: 142, w: 44, h: 60, asset: 'trash', visualW: 52, visualH: 78 },
+    ],
+    decorations: [
+      { asset: 'bunting', x: 602, y: 68, w: 236, h: 122, opacity: .94 },
+      { asset: 'plant', x: 242, y: 650, w: 62, h: 78 }, { asset: 'bush', x: 1060, y: 86, w: 100, h: 66 },
+    ],
+  },
+  {
+    id: 'pasar', name: 'Pasar Senggol', kicker: 'Beton · jalur rapat', ground: 'concrete',
+    paths: [
+      { tile: 'paving', x: 226, y: 116, w: 988, h: 126, opacity: .54, radius: 38 },
+      { tile: 'paving', x: 214, y: 338, w: 1012, h: 128, opacity: .54, radius: 38 },
+      { tile: 'paving', x: 226, y: 560, w: 988, h: 126, opacity: .54, radius: 38 },
+    ],
+    obstacles: [
+      { x: 54, y: 170, w: 176, h: 54, asset: 'warung', visualW: 220, visualH: 183 },
+      { x: 260, y: 126, w: 98, h: 64, asset: 'crates', visualW: 112, visualH: 94 },
+      { x: 1082, y: 610, w: 98, h: 64, asset: 'crates', visualW: 112, visualH: 94, flip: true },
+      { x: 438, y: 254, w: 148, h: 30, asset: 'drain', visualW: 170, visualH: 60 },
+      { x: 854, y: 516, w: 148, h: 30, asset: 'drain', visualW: 170, visualH: 60 },
+      { x: 390, y: 434, w: 118, h: 58, asset: 'crates', visualW: 128, visualH: 106 },
+      { x: 932, y: 308, w: 118, h: 58, asset: 'crates', visualW: 128, visualH: 106, flip: true },
+      { x: 636, y: 162, w: 48, h: 66, asset: 'trash', visualW: 56, visualH: 84 },
+      { x: 758, y: 564, w: 48, h: 54, asset: 'bucket', visualW: 54, visualH: 58 },
+      { x: 630, y: 378, w: 180, h: 38, asset: 'drain', visualW: 204, visualH: 72 },
+    ],
+    decorations: [
+      { asset: 'bunting', x: 600, y: 66, w: 240, h: 124 },
+      { asset: 'lamp', x: 344, y: 588, w: 46, h: 96 }, { asset: 'lamp', x: 1046, y: 106, w: 46, h: 96 },
+      { asset: 'plant', x: 1188, y: 670, w: 58, h: 74 },
+    ],
+  },
+  {
+    id: 'taman', name: 'Taman Kota', kicker: 'Rumput · ruang terbuka', ground: 'grass',
+    paths: [
+      { tile: 'paving', x: 624, y: 72, w: 192, h: 656, opacity: .52, radius: 58 },
+      { tile: 'paving', x: 224, y: 324, w: 992, h: 152, opacity: .52, radius: 58 },
+    ],
+    obstacles: [
+      { x: 302, y: 188, w: 70, h: 56, asset: 'tree', visualW: 120, visualH: 158 },
+      { x: 1068, y: 556, w: 70, h: 56, asset: 'tree', visualW: 120, visualH: 158, flip: true },
+      { x: 332, y: 558, w: 100, h: 42, asset: 'bush', visualW: 126, visualH: 82 },
+      { x: 1008, y: 200, w: 100, h: 42, asset: 'bush', visualW: 126, visualH: 82, flip: true },
+      { x: 544, y: 344, w: 112, h: 34, asset: 'drain', visualW: 132, visualH: 50 },
+      { x: 784, y: 424, w: 112, h: 34, asset: 'drain', visualW: 132, visualH: 50 },
+      { x: 666, y: 154, w: 48, h: 56, asset: 'plant', visualW: 66, visualH: 84 },
+      { x: 726, y: 598, w: 48, h: 56, asset: 'plant', visualW: 66, visualH: 84, flip: true },
+      { x: 1180, y: 158, w: 150, h: 48, asset: 'hall', visualW: 214, visualH: 178 },
+    ],
+    decorations: [
+      { asset: 'lamp', x: 498, y: 612, w: 48, h: 100 }, { asset: 'lamp', x: 894, y: 88, w: 48, h: 100 },
+      { asset: 'bunting', x: 606, y: 68, w: 228, h: 118, opacity: .86 },
+      { asset: 'bush', x: 228, y: 92, w: 92, h: 60 }, { asset: 'bush', x: 1118, y: 650, w: 92, h: 60, flip: true },
+    ],
+  },
 ];
 const FIELD_BY_ID = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field])) as Record<FieldId, FieldConfig>;
 const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [{ id: 'follow', label: 'Dekat' }, { id: 'tactical', label: 'Taktis' }, { id: 'overview', label: 'Overall' }];
@@ -96,6 +145,7 @@ const formatTime = (seconds: number) => {
 const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
+const fieldImages = new Map<string, HTMLImageElement>();
 let sprintDustImage: HTMLImageElement | null = null;
 const spriteFrame = (width: number, height: number, column: number, row: number) => {
   const x = Math.round(column * width / 7), y = Math.round(row * height / 6);
@@ -112,6 +162,13 @@ const getSpriteImage = (id: CharacterId) => {
 const getSprintDustImage = () => {
   if (sprintDustImage) return sprintDustImage;
   sprintDustImage = new Image(); sprintDustImage.decoding = 'async'; sprintDustImage.src = publicAsset('vfx/sprint-dust.webp?v=7'); return sprintDustImage;
+};
+
+const getFieldImage = (asset: string) => {
+  const url = publicAsset(`field/${asset}?v=${FIELD_ASSET_VERSION}`);
+  const cached = fieldImages.get(url);
+  if (cached) return cached;
+  const image = new Image(); image.decoding = 'async'; image.src = url; fieldImages.set(url, image); return image;
 };
 
 export function BentenganPrototype() {
@@ -164,6 +221,14 @@ export function BentenganPrototype() {
     let particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; color: string }> = [];
     let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false, boostLatch = false, boostBurstUntil = 0;
     const field = FIELD_BY_ID[selectedFieldId], obstacles = field.obstacles;
+    const fieldObjectAtlas = getFieldImage('objects.webp');
+    const fieldGroundAtlas = getFieldImage('grounds.webp');
+    const staticLayer = document.createElement('canvas'); staticLayer.width = W; staticLayer.height = H;
+    const staticLayerContext = staticLayer.getContext('2d');
+    let staticMapDirty = true;
+    const invalidateStaticMap = () => { staticMapDirty = true; };
+    fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
+    fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
 
     const beep = (frequency: number, duration = .08) => {
       try {
@@ -458,35 +523,71 @@ export function BentenganPrototype() {
       particles = particles.filter(p => p.life > 0);
     };
 
-    const rounded = (x: number, y: number, w: number, h: number, r: number) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); };
-    const drawMap = () => {
-      const ground = ctx.createLinearGradient(0, 0, 0, H); ground.addColorStop(0, field.colors[0]); ground.addColorStop(.45, field.colors[1]); ground.addColorStop(1, field.colors[2]);
-      ctx.fillStyle = ground; ctx.fillRect(0, 0, W, H); ctx.fillStyle = 'rgba(242,216,165,.2)';
-      for (let y = 80; y < H; y += 48) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y - 130); ctx.lineTo(W, y - 102); ctx.lineTo(0, y + 28); ctx.fill(); }
-      ctx.strokeStyle = 'rgba(255,255,255,.12)'; for (let x = -H; x < W; x += 48) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
-      ctx.fillStyle = '#233726'; ctx.fillRect(0, 34, W, 30); ctx.fillRect(0, H - 32, W, 32);
-      ctx.font = '800 15px var(--font-heading)'; ctx.fillStyle = '#f1e3c3'; ctx.textAlign = 'center'; ctx.fillText(`${field.name.toUpperCase()} · ARENA 5v5`, W / 2, 55);
-      for (let x = 28; x < W; x += 62) { ctx.fillStyle = x % 124 ? '#f4e2bd' : '#d83a33'; ctx.beginPath(); ctx.moveTo(x, 38); ctx.lineTo(x + 18, 38); ctx.lineTo(x + 9, 59); ctx.fill(); }
-      const building = (x: number, y: number, w: number, h: number, color: string, label: string) => {
-        ctx.fillStyle = 'rgba(0,0,0,.22)'; rounded(x + 10, y + 11, w, h, 8); ctx.fill(); ctx.fillStyle = color; rounded(x, y, w, h, 8); ctx.fill();
-        ctx.fillStyle = '#3e3025'; ctx.fillRect(x, y, w, 14); ctx.fillStyle = '#f4e3bd'; ctx.font = '800 10px Arial'; ctx.textAlign = 'left'; ctx.fillText(label, x + 10, y + 38);
-      };
-      building(60, 78, 164, 78, '#aa6b3b', field.landmarks[0]); building(1200, 616, 170, 82, '#a45e34', field.landmarks[1]); building(1136, 76, 160, 74, '#84623d', field.landmarks[2]);
-      obstacles.forEach(o => {
-        if (o.kind === 'canal') { ctx.fillStyle = '#294e54'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.strokeStyle = '#81b2ae'; ctx.setLineDash([10, 8]); ctx.strokeRect(o.x, o.y, o.w, o.h); ctx.setLineDash([]); }
-        else if (o.kind === 'stall') { ctx.fillStyle = '#762d2b'; rounded(o.x, o.y, o.w, o.h, 5); ctx.fill(); ctx.fillStyle = '#f0d16f'; ctx.fillRect(o.x + 8, o.y + 8, o.w - 16, 10); }
-        else if (o.kind === 'chairs') { ctx.fillStyle = '#327b62'; for (let x = o.x; x < o.x + o.w; x += 23) { rounded(x, o.y, 18, o.h, 4); ctx.fill(); } }
-        else { ctx.fillStyle = '#ddd2ad'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.strokeStyle = '#473c2e'; ctx.lineWidth = 3; for (let x = o.x + 8; x < o.x + o.w; x += 22) { ctx.beginPath(); ctx.moveTo(x, o.y); ctx.lineTo(x, o.y + o.h); ctx.stroke(); } }
+    const roundedOn = (target: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => { target.beginPath(); target.roundRect(x, y, w, h, r); };
+    const rounded = (x: number, y: number, w: number, h: number, r: number) => roundedOn(ctx, x, y, w, h, r);
+    const drawFieldAsset = (target: CanvasRenderingContext2D, asset: FieldAssetId, x: number, y: number, w: number, h: number, flip = false, opacity = 1) => {
+      const source = FIELD_OBJECT_ATLAS.assets[asset];
+      if (!fieldObjectAtlas.complete || !fieldObjectAtlas.naturalWidth) {
+        target.fillStyle = 'rgba(28,43,31,.34)'; roundedOn(target, x, y, w, h, Math.min(12, w / 5)); target.fill(); return;
+      }
+      target.save(); target.globalAlpha = opacity; target.imageSmoothingEnabled = true; target.imageSmoothingQuality = 'high';
+      if (flip) { target.translate(x * 2 + w, 0); target.scale(-1, 1); }
+      target.drawImage(fieldObjectAtlas, source.x, source.y, source.width, source.height, x, y, w, h);
+      target.restore();
+    };
+    const groundTileCanvas = (tile: GroundTileId) => {
+      const source = FIELD_GROUND_ATLAS.tiles[tile];
+      const surface = document.createElement('canvas'); surface.width = source.width; surface.height = source.height;
+      const surfaceContext = surface.getContext('2d');
+      if (surfaceContext && fieldGroundAtlas.complete && fieldGroundAtlas.naturalWidth) {
+        surfaceContext.drawImage(fieldGroundAtlas, source.x, source.y, source.width, source.height, 0, 0, source.width, source.height);
+      }
+      return surface;
+    };
+    const drawStaticMap = (target: CanvasRenderingContext2D) => {
+      target.clearRect(0, 0, W, H); target.imageSmoothingEnabled = true; target.imageSmoothingQuality = 'high';
+      const primaryPattern = target.createPattern(groundTileCanvas(field.ground), 'repeat');
+      target.fillStyle = primaryPattern ?? '#7f815a'; target.fillRect(0, 0, W, H);
+      target.fillStyle = 'rgba(19,27,21,.08)'; target.fillRect(0, 0, W, H);
+      field.paths.forEach(pathConfig => {
+        const pattern = target.createPattern(groundTileCanvas(pathConfig.tile), 'repeat');
+        target.save(); target.globalAlpha = pathConfig.opacity; roundedOn(target, pathConfig.x, pathConfig.y, pathConfig.w, pathConfig.h, pathConfig.radius); target.clip();
+        target.fillStyle = pattern ?? '#88877a'; target.fillRect(pathConfig.x, pathConfig.y, pathConfig.w, pathConfig.h); target.restore();
+        target.strokeStyle = 'rgba(255,245,211,.18)'; target.lineWidth = 3; roundedOn(target, pathConfig.x, pathConfig.y, pathConfig.w, pathConfig.h, pathConfig.radius); target.stroke();
       });
-      ctx.fillStyle = 'rgba(23,29,24,.7)'; rounded(260, 500, 218, 92, 10); ctx.fill(); rounded(962, 208, 218, 92, 10); ctx.fill();
-      ctx.fillStyle = '#f5e8c6'; ctx.font = '800 11px Arial'; ctx.textAlign = 'center'; ctx.fillText('PENJARA MERAH', 369, 519); ctx.fillText('PENJARA HIJAU', 1071, 227);
+      target.strokeStyle = 'rgba(255,255,255,.13)'; target.lineWidth = 2; target.setLineDash([16, 18]);
+      [296, 506].forEach(y => { target.beginPath(); target.moveTo(238, y); target.lineTo(W - 238, y); target.stroke(); }); target.setLineDash([]);
+
+      (['blue', 'red'] as Team[]).forEach(team => {
+        const b = BASES[team], color = TEAM_COLOR[team];
+        target.fillStyle = `${color}20`; target.beginPath(); target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2); target.fill();
+        target.strokeStyle = `${color}68`; target.lineWidth = 3; target.beginPath(); target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2); target.stroke();
+        const fortAsset: FieldAssetId = team === 'blue' ? 'fortRed' : 'fortGreen';
+        drawFieldAsset(target, fortAsset, b.x - 84, b.y - 130, 168, 188, false, .96);
+      });
+
+      target.fillStyle = 'rgba(23,29,24,.66)'; roundedOn(target, 260, 500, 218, 92, 14); target.fill(); roundedOn(target, 962, 208, 218, 92, 14); target.fill();
+      target.strokeStyle = 'rgba(245,232,198,.32)'; target.lineWidth = 2; roundedOn(target, 260, 500, 218, 92, 14); target.stroke(); roundedOn(target, 962, 208, 218, 92, 14); target.stroke();
+      target.fillStyle = '#f5e8c6'; target.font = '800 11px Arial'; target.textAlign = 'center'; target.fillText('PENJARA MERAH', 369, 519); target.fillText('PENJARA HIJAU', 1071, 227);
+
+      const scenery = [
+        ...field.decorations.map(item => ({ baseline: item.y + item.h, draw: () => drawFieldAsset(target, item.asset, item.x, item.y, item.w, item.h, item.flip, item.opacity) })),
+        ...obstacles.map(item => ({ baseline: item.y + item.h, draw: () => drawFieldAsset(target, item.asset, item.x + item.w / 2 - item.visualW / 2, item.y + item.h - item.visualH, item.visualW, item.visualH, item.flip) })),
+      ].sort((a, b) => a.baseline - b.baseline);
+      scenery.forEach(item => item.draw());
+
+      target.fillStyle = 'rgba(20,31,23,.94)'; target.fillRect(0, 32, W, 34); target.fillRect(0, H - 32, W, 32);
+      target.strokeStyle = 'rgba(255,241,205,.24)'; target.lineWidth = 2; target.beginPath(); target.moveTo(0, 66); target.lineTo(W, 66); target.stroke();
+      target.font = '800 15px var(--font-heading)'; target.fillStyle = '#fff0cf'; target.textAlign = 'center'; target.fillText(`${field.name.toUpperCase()} · ARENA 5v5`, W / 2, 55);
+    };
+    const drawMap = () => {
+      if (staticLayerContext && staticMapDirty) { drawStaticMap(staticLayerContext); staticMapDirty = false; }
+      if (staticLayerContext) ctx.drawImage(staticLayer, 0, 0); else { ctx.fillStyle = '#667556'; ctx.fillRect(0, 0, W, H); }
     };
     const drawBase = (team: Team) => {
       const b = BASES[team], color = TEAM_COLOR[team], occupant = fortOccupant(team);
-      ctx.fillStyle = `${color}${occupant ? '42' : '27'}`; ctx.beginPath(); ctx.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = occupant ? '#f5cf45' : color; ctx.lineWidth = occupant ? 7 : 4; ctx.setLineDash(occupant ? [3, 5] : [8, 7]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = '#171d18'; rounded(b.x - 31, b.y - 34, 62, 68, 8); ctx.fill(); ctx.fillStyle = color; ctx.fillRect(b.x - 4, b.y - 58, 8, 59);
-      ctx.beginPath(); ctx.moveTo(b.x + 4, b.y - 56); ctx.lineTo(b.x + (team === 'blue' ? 34 : -34), b.y - 45); ctx.lineTo(b.x + 4, b.y - 31); ctx.fill();
+      ctx.strokeStyle = occupant ? '#f5cf45' : color; ctx.lineWidth = occupant ? 7 : 4; ctx.setLineDash(occupant ? [3, 5] : [8, 7]);
+      ctx.beginPath(); ctx.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#fff3d0'; ctx.font = '800 10px Arial'; ctx.textAlign = 'center'; ctx.fillText(team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU', b.x, b.y + 130);
       if (occupant) { ctx.fillStyle = '#f5cf45'; ctx.font = '900 9px Arial'; ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, b.y + 144); }
     };
@@ -611,7 +712,11 @@ export function BentenganPrototype() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf); audio?.close(); };
+    return () => {
+      cancelAnimationFrame(raf); audio?.close();
+      fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
+      fieldGroundAtlas.removeEventListener('load', invalidateStaticMap);
+    };
   }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId]);
 
   const missionCount = useMemo(() => Object.values(snapshot.mission).filter(Boolean).length, [snapshot.mission]);
@@ -625,7 +730,7 @@ export function BentenganPrototype() {
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v7 · directional boost guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v7 · Fields v1 · guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
