@@ -13,6 +13,8 @@ const characters = [
   { id: 'maria', name: 'Maria', role: 'Chaser', rows: 6 },
   { id: 'kumis', name: 'Kumis', role: 'Guardian', rows: 6 },
   { id: 'boke', name: 'Boke', role: 'Disruptor', rows: 6 },
+  { id: 'tui', name: 'Tui', role: 'Runner', rows: 6 },
+  { id: 'lui', name: 'Lui', role: 'Scout', rows: 6 },
 ];
 
 const root = process.cwd();
@@ -145,12 +147,13 @@ for (const character of characters) {
   if (!portraitFrame) throw new Error(`Frame portrait ${character.id} tidak tersedia.`);
   await sharp(portraitFrame.data, { raw: portraitFrame.info })
     .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .resize({ width: 320, height: 320, fit: 'contain', position: 'south', withoutEnlargement: false })
+    .resize({ width: 304, height: 304, fit: 'contain', position: 'south', withoutEnlargement: false, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .extend({ top: 8, bottom: 8, left: 8, right: 8, background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .webp({ quality: 93, alphaQuality: 100, effort: 6 })
     .toFile(path.join(outputDir, 'portrait.webp'));
 
   const manifest = {
-    version: 3,
+    version: 4,
     id: character.id,
     name: character.name,
     role: character.role,
@@ -177,20 +180,20 @@ for (const character of characters) {
 
 const montagePortraits = await Promise.all(characters.map(async (character, index) => ({
   input: await sharp(path.join(outputRoot, character.id, 'portrait.webp'))
-    .resize({ width: 260, height: 360, fit: 'contain', position: 'south' })
+    .resize({ width: 260, height: 360, fit: 'contain', position: 'south', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer(),
-  left: (index % 5) * 320 + 30,
-  top: Math.floor(index / 5) * 450 + 45,
+  left: (index % 6) * 320 + 30,
+  top: Math.floor(index / 6) * 450 + 45,
 })));
-await sharp({ create: { width: 1600, height: 900, channels: 4, background: { r: 38, g: 55, b: 71, alpha: 1 } } })
+await sharp({ create: { width: 1920, height: 900, channels: 4, background: { r: 38, g: 55, b: 71, alpha: 1 } } })
   .composite(montagePortraits)
   .png({ compressionLevel: 9 })
   .toFile(path.join(root, 'public', 'characters.png'));
 
 await writeFile(
   path.join(outputRoot, 'manifest.json'),
-  `${JSON.stringify({ version: 3, atlas: { cell: atlasCell, width: atlasWidth, height: atlasHeight, rows: atlasRows }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceRows: rows })) }, null, 2)}\n`,
+  `${JSON.stringify({ version: 4, atlas: { cell: atlasCell, width: atlasWidth, height: atlasHeight, rows: atlasRows }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceRows: rows })) }, null, 2)}\n`,
   'utf8',
 );
 

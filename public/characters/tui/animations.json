@@ -1,21 +1,21 @@
 {
   "version": 4,
-  "id": "boke",
-  "name": "Boke",
-  "role": "Disruptor",
+  "id": "tui",
+  "name": "Tui",
+  "role": "Runner",
   "source": {
-    "width": 1448,
-    "height": 1086,
+    "width": 1702,
+    "height": 1276,
     "columns": 8,
     "rows": 6,
     "rowBounds": [
       0,
-      194,
-      374,
-      564,
-      749,
-      904,
-      1086
+      222,
+      430,
+      646,
+      861,
+      1063,
+      1276
     ]
   },
   "atlas": {

@@ -1,6 +1,6 @@
 # Bentengan Squad Tag
 
-Prototype game web 2.5D **Bentengan 5v5** dengan aturan prioritas tangkap berdasarkan urutan keluar benteng, penjara dan rescue, stamina boost, item refill bertingkat, serta enam karakter beranimasi.
+Prototype game web 2.5D **Bentengan 5v5** dengan aturan prioritas tangkap berdasarkan urutan keluar benteng, penjara dan rescue, sprint terbatas, item refill bertingkat, serta dua belas karakter beranimasi dalam tim tetap Merah dan Hijau.
 
 ## Mainkan
 
@@ -22,8 +22,8 @@ npm run build:pages
 ## Kontrol
 
 - Gerak: `WASD` atau tombol panah
-- Boost: tahan `Shift`
-- Parkour: `Space`
+- Sprint: tekan `Space` untuk ledakan lari selama 1,4 detik
+- Parkour: `Shift` di dekat rintangan
 - Jeda: `P`
 
 ## Character Workshop
@@ -36,7 +36,21 @@ Untuk memproses ulang seluruh sprite sumber:
 npm run sprites:build
 ```
 
-Pipeline menghasilkan atlas WebP, portrait, dan metadata animasi untuk Robot, Ciici, Kaka, Buto, Jago, dan Raja.
+Pipeline menghasilkan atlas WebP, portrait, dan metadata animasi untuk Raja, Robot, Jago, Lala, Kumis, Tui, Ciici, Kaka, Buto, Maria, Boke, dan Lui.
+
+## Pemeriksaan regresi
+
+Jalankan audit cepat untuk memeriksa roster unik, jarak spawn, kontrol, ukuran atlas, area aman portrait, dan kebocoran antarsel sprite:
+
+```bash
+npm run audit
+```
+
+Untuk membangun ulang aset sekaligus menjalankan semua pemeriksaan produksi:
+
+```bash
+npm run verify
+```
 
 ## Status
 

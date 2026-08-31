@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "atlas": {
     "cell": {
       "width": 192,
@@ -69,6 +69,18 @@
       "id": "boke",
       "name": "Boke",
       "role": "Disruptor",
+      "sourceRows": 6
+    },
+    {
+      "id": "tui",
+      "name": "Tui",
+      "role": "Runner",
+      "sourceRows": 6
+    },
+    {
+      "id": "lui",
+      "name": "Lui",
+      "role": "Scout",
       "sourceRows": 6
     }
   ]

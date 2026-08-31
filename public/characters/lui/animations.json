@@ -1,8 +1,8 @@
 {
   "version": 4,
-  "id": "boke",
-  "name": "Boke",
-  "role": "Disruptor",
+  "id": "lui",
+  "name": "Lui",
+  "role": "Scout",
   "source": {
     "width": 1448,
     "height": 1086,
@@ -10,11 +10,11 @@
     "rows": 6,
     "rowBounds": [
       0,
-      194,
-      374,
-      564,
-      749,
-      904,
+      184,
+      363,
+      545,
+      728,
+      896,
       1086
     ]
   },

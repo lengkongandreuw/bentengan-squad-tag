@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BatteryCharging, Flag, Gauge, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { CHARACTERS, CHARACTER_BY_ID, CharacterId, characterAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
+import GAME_RULES from '../config/game-rules.json';
 
 type Team = 'blue' | 'red';
+type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type PlayerAction = 'tag' | 'rescue';
 type Grade = 25 | 50 | 100;
@@ -32,9 +34,23 @@ type Snapshot = {
 
 const W = 1440;
 const H = 800;
-const BASE_RADIUS = 74;
+const BASE_RADIUS = 112;
 const BASES = { blue: { x: 112, y: 410 }, red: { x: 1328, y: 390 } };
-const TEAM_COLOR = { blue: '#2f87ff', red: '#f0473e' };
+const TEAM_COLOR = { blue: GAME_RULES.teams.red.color, red: GAME_RULES.teams.green.color };
+const FIXED_ROSTERS = {
+  red: GAME_RULES.teams.red.roster as CharacterId[],
+  green: GAME_RULES.teams.green.roster as CharacterId[],
+};
+const TEAM_FOR_FACTION: Record<Faction, Team> = { red: 'blue', green: 'red' };
+const FACTION_FOR_TEAM: Record<Team, Faction> = { blue: 'red', red: 'green' };
+const factionName = (faction: Faction) => GAME_RULES.teams[faction].label;
+const teamName = (team: Team) => factionName(FACTION_FOR_TEAM[team]);
+const lineupFor = (faction: Faction, selectedId?: CharacterId) => {
+  const roster = FIXED_ROSTERS[faction];
+  return selectedId && roster.includes(selectedId)
+    ? [selectedId, ...roster.filter(id => id !== selectedId)].slice(0, GAME_RULES.matchSize)
+    : roster.slice(0, GAME_RULES.matchSize);
+};
 const KAMPUNG_OBSTACLES: Obstacle[] = [
   { x: 244, y: 122, w: 146, h: 24, kind: 'fence' }, { x: 1044, y: 628, w: 142, h: 24, kind: 'fence' },
   { x: 538, y: 148, w: 102, h: 58, kind: 'stall' }, { x: 812, y: 596, w: 112, h: 48, kind: 'chairs' },
@@ -95,7 +111,8 @@ export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
   const cameraModeRef = useRef<CameraMode>('follow');
-  const [selectedId, setSelectedId] = useState<CharacterId>('kaka');
+  const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
+  const [selectedId, setSelectedId] = useState<CharacterId>('raja');
   const [selectedFieldId, setSelectedFieldId] = useState<FieldId>('kampung');
   const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
@@ -103,8 +120,14 @@ export function BentenganPrototype() {
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
   const selected = CHARACTER_BY_ID[selectedId];
-  const squad = useMemo(() => [selectedId, ...CHARACTERS.map(character => character.id).filter(id => id !== selectedId)].slice(0, 5), [selectedId]);
-  const opponentSquad = useMemo(() => CHARACTERS.map(character => character.id).filter(id => !squad.includes(id)).slice(0, 5), [squad]);
+  const availableCharacters = useMemo(() => selectedFaction ? FIXED_ROSTERS[selectedFaction].map(id => CHARACTER_BY_ID[id]) : [], [selectedFaction]);
+  const squad = useMemo(() => selectedFaction ? lineupFor(selectedFaction, selectedId) : [], [selectedFaction, selectedId]);
+  const opponentSquad = useMemo(() => selectedFaction ? lineupFor(selectedFaction === 'red' ? 'green' : 'red') : [], [selectedFaction]);
+
+  const chooseFaction = (faction: Faction) => {
+    setSelectedFaction(faction);
+    setSelectedId(FIXED_ROSTERS[faction][0]);
+  };
 
   useEffect(() => { cameraModeRef.current = cameraMode; }, [cameraMode]);
 
@@ -134,7 +157,7 @@ export function BentenganPrototype() {
     let mission: Mission = { refresh: false, boost: false, parkour: false, tag: false, rescue: false };
     let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 8000, refillId = 0, suddenDeath = false;
     let particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; color: string }> = [];
-    let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false;
+    let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false, boostLatch = false, boostBurstUntil = 0;
     const field = FIELD_BY_ID[selectedFieldId], obstacles = field.obstacles;
 
     const beep = (frequency: number, duration = .08) => {
@@ -148,8 +171,10 @@ export function BentenganPrototype() {
     const makePlayer = (id: string, characterId: CharacterId, team: Team, slot: number, controlled = false): Player => {
       const b = BASES[team];
       const character = CHARACTER_BY_ID[characterId];
+      const offset = GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
+      const direction = team === 'blue' ? 1 : -1;
       return {
-        id, name: character.name.toUpperCase(), team, characterId, controlled, x: b.x + (slot % 2) * (team === 'blue' ? 18 : -18), y: b.y - 52 + slot * 26,
+        id, name: character.name.toUpperCase(), team, characterId, controlled, x: b.x + offset.x * direction, y: b.y + offset.y,
         vx: 0, vy: 0, state: 'IN_BASE', exitOrder: 0, boost: character.boost,
         baseCharge: 0, exitDeadline: 0, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
         prisonIndex: 0, captures: 0, rescueShieldUntil: 0, capturedIds: [], actionUntil: 0,
@@ -157,12 +182,15 @@ export function BentenganPrototype() {
       };
     };
     const makePlayers = () => {
-      const ids = CHARACTERS.map(character => character.id);
-      const blueRoster = [selectedId, ...ids.filter(id => id !== selectedId)].slice(0, 5);
-      const redRoster = ids.filter(id => !blueRoster.includes(id)).slice(0, 5);
+      const faction = selectedFaction ?? 'red';
+      const opponentFaction: Faction = faction === 'red' ? 'green' : 'red';
+      const userTeam = TEAM_FOR_FACTION[faction];
+      const opponentTeam = TEAM_FOR_FACTION[opponentFaction];
+      const userRoster = lineupFor(faction, selectedId);
+      const opponentRoster = lineupFor(opponentFaction);
       return [
-        ...blueRoster.map((characterId, slot) => makePlayer(slot === 0 ? 'you' : `b${slot + 1}`, characterId, 'blue', slot, slot === 0)),
-        ...redRoster.map((characterId, slot) => makePlayer(`r${slot + 1}`, characterId, 'red', slot)),
+        ...userRoster.map((characterId, slot) => makePlayer(slot === 0 ? 'you' : `ally${slot + 1}`, characterId, userTeam, slot, slot === 0)),
+        ...opponentRoster.map((characterId, slot) => makePlayer(`enemy${slot + 1}`, characterId, opponentTeam, slot)),
       ];
     };
     let players = makePlayers();
@@ -196,7 +224,7 @@ export function BentenganPrototype() {
       if (phase !== 'PLAYING') return;
       score[team]++; roundWinner = team; phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
       phaseUntil = performance.now() + (phase === 'MATCH_OVER' ? 7000 : 3800);
-      announcement = phase === 'MATCH_OVER' ? `${team === 'blue' ? 'BIRU' : 'MERAH'} MENANG MATCH` : `${team === 'blue' ? 'BIRU' : 'MERAH'} MENANG · ${reason}`;
+      announcement = phase === 'MATCH_OVER' ? `${teamName(team).toUpperCase()} MENANG MATCH` : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
       beep(team === 'blue' ? 720 : 320, .25); burst(W / 2, H / 2, TEAM_COLOR[team], 38); log(announcement);
     };
     const fortOccupant = (baseTeam: Team, exceptId?: string) =>
@@ -231,6 +259,19 @@ export function BentenganPrototype() {
       const nx = clamp(p.x + p.vx * dt, 34, W - 34), ny = clamp(p.y + p.vy * dt, 58, H - 32);
       if (!blocked(nx, p.y, p, now)) p.x = nx; if (!blocked(p.x, ny, p, now)) p.y = ny;
     };
+    const resolvePlayerSpacing = () => {
+      const visible = players.filter(p => p.state !== 'PRISONER');
+      for (let i = 0; i < visible.length; i++) for (let j = i + 1; j < visible.length; j++) {
+        const a = visible[i], b = visible[j];
+        const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+        const minimum = a.state === 'IN_BASE' && b.state === 'IN_BASE' ? 42 : 30;
+        if (d >= minimum) continue;
+        const nx = d > .01 ? dx / d : (tieHash(a.id) % 2 ? 1 : -1), ny = d > .01 ? dy / d : 0;
+        const push = (minimum - d) * .52;
+        a.x = clamp(a.x - nx * push, 34, W - 34); a.y = clamp(a.y - ny * push, 58, H - 32);
+        b.x = clamp(b.x + nx * push, 34, W - 34); b.y = clamp(b.y + ny * push, 58, H - 32);
+      }
+    };
     const baseVector = (p: Player) => ({ x: BASES[p.team].x - p.x, y: BASES[p.team].y - p.y });
     const aiVector = (p: Player, now: number) => {
       if (p.state === 'RETURNING') return baseVector(p);
@@ -251,7 +292,7 @@ export function BentenganPrototype() {
     const layoutPrisons = () => {
       (['blue', 'red'] as Team[]).forEach(owner => {
         players.filter(p => p.state === 'PRISONER' && p.prisonOwner === owner).forEach((p, i) => {
-          p.prisonIndex = i; p.x = owner === 'blue' ? 214 + i * 34 : 1226 - i * 34; p.y = owner === 'blue' ? 492 + i * 11 : 288 - i * 11;
+          p.prisonIndex = i; p.x = owner === 'blue' ? 306 + i * 34 : 1134 - i * 34; p.y = owner === 'blue' ? 540 + i * 8 : 248 - i * 8;
         });
       });
     };
@@ -366,11 +407,14 @@ export function BentenganPrototype() {
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
       if (keys.current.has('s') || keys.current.has('arrowdown')) dy++;
-      const boosting = keys.current.has('shift') && me.boost > 0 && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE');
+      const boostKey = keys.current.has(' ');
+      if (boostKey && !boostLatch && me.boost > 0 && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) boostBurstUntil = now + GAME_RULES.boostDurationMs;
+      boostLatch = boostKey;
+      const boosting = now < boostBurstUntil && me.boost > 0 && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE');
       if (boosting) { me.boost = Math.max(0, me.boost - selected.boostDrain * dt); me.boostReadyAt = now + 20000; mission.boost = true; }
-      const space = keys.current.has(' ');
+      const parkourKey = keys.current.has('shift');
       const parkourCost = 8 / selected.agility;
-      if (space && !parkourLatch && me.boost >= parkourCost && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
+      if (parkourKey && !parkourLatch && me.boost >= parkourCost && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
         const near = obstacles.some(o => me.x + 44 > o.x && me.x - 44 < o.x + o.w && me.y + 44 > o.y && me.y - 44 < o.y + o.h);
         if (near) {
           const parkourDistance = 54 * selected.agility;
@@ -379,7 +423,7 @@ export function BentenganPrototype() {
           mission.parkour = true; burst(me.x, me.y, '#f4df9a', 9); beep(460);
         }
       }
-      parkourLatch = space;
+      parkourLatch = parkourKey;
       if (me.state === 'RETURNING') { const vector = baseVector(me); move(me, vector.x, vector.y, selected.speed, dt, now); }
       else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? selected.boostMultiplier : 1), dt, now);
       else { me.vx = 0; me.vy = 0; }
@@ -391,6 +435,7 @@ export function BentenganPrototype() {
         if (boostAi) { p.boost = Math.max(0, p.boost - stats.boostDrain * .66 * dt); p.boostReadyAt = now + 20000; }
         move(p, vector.x, vector.y, stats.speed * .89 * (boostAi ? stats.boostMultiplier : 1), dt, now);
       });
+      resolvePlayerSpacing();
       const exitCandidates: Player[] = [];
       players.forEach(p => baseCheck(p, dt, now, exitCandidates));
       Array.from(new Map(exitCandidates.map(p => [p.id, p])).values()).sort((a, b) => tieHash(a.id) - tieHash(b.id)).forEach(p => {
@@ -428,8 +473,8 @@ export function BentenganPrototype() {
         else if (o.kind === 'chairs') { ctx.fillStyle = '#327b62'; for (let x = o.x; x < o.x + o.w; x += 23) { rounded(x, o.y, 18, o.h, 4); ctx.fill(); } }
         else { ctx.fillStyle = '#ddd2ad'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.strokeStyle = '#473c2e'; ctx.lineWidth = 3; for (let x = o.x + 8; x < o.x + o.w; x += 22) { ctx.beginPath(); ctx.moveTo(x, o.y); ctx.lineTo(x, o.y + o.h); ctx.stroke(); } }
       });
-      ctx.fillStyle = 'rgba(23,29,24,.7)'; rounded(168, 462, 218, 92, 10); ctx.fill(); rounded(1054, 226, 218, 92, 10); ctx.fill();
-      ctx.fillStyle = '#f5e8c6'; ctx.font = '800 11px Arial'; ctx.textAlign = 'center'; ctx.fillText('PENJARA BIRU', 277, 481); ctx.fillText('PENJARA MERAH', 1163, 245);
+      ctx.fillStyle = 'rgba(23,29,24,.7)'; rounded(260, 500, 218, 92, 10); ctx.fill(); rounded(962, 208, 218, 92, 10); ctx.fill();
+      ctx.fillStyle = '#f5e8c6'; ctx.font = '800 11px Arial'; ctx.textAlign = 'center'; ctx.fillText('PENJARA MERAH', 369, 519); ctx.fillText('PENJARA HIJAU', 1071, 227);
     };
     const drawBase = (team: Team) => {
       const b = BASES[team], color = TEAM_COLOR[team], occupant = fortOccupant(team);
@@ -437,8 +482,8 @@ export function BentenganPrototype() {
       ctx.strokeStyle = occupant ? '#f5cf45' : color; ctx.lineWidth = occupant ? 7 : 4; ctx.setLineDash(occupant ? [3, 5] : [8, 7]); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#171d18'; rounded(b.x - 31, b.y - 34, 62, 68, 8); ctx.fill(); ctx.fillStyle = color; ctx.fillRect(b.x - 4, b.y - 58, 8, 59);
       ctx.beginPath(); ctx.moveTo(b.x + 4, b.y - 56); ctx.lineTo(b.x + (team === 'blue' ? 34 : -34), b.y - 45); ctx.lineTo(b.x + 4, b.y - 31); ctx.fill();
-      ctx.fillStyle = '#fff3d0'; ctx.font = '800 10px Arial'; ctx.textAlign = 'center'; ctx.fillText(team === 'blue' ? 'BENTENG BIRU' : 'BENTENG MERAH', b.x, b.y + 53);
-      if (occupant) { ctx.fillStyle = '#f5cf45'; ctx.font = '900 9px Arial'; ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, b.y + 70); }
+      ctx.fillStyle = '#fff3d0'; ctx.font = '800 10px Arial'; ctx.textAlign = 'center'; ctx.fillText(team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU', b.x, b.y + 130);
+      if (occupant) { ctx.fillStyle = '#f5cf45'; ctx.font = '900 9px Arial'; ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, b.y + 144); }
     };
     const drawRefill = (item: Refill, now: number) => {
       const color = item.grade === 100 ? '#ef75ff' : item.grade === 50 ? '#60e6ff' : '#b9ee3d', pulse = 1 + Math.sin(now / 220 + item.id) * .12;
@@ -480,7 +525,12 @@ export function BentenganPrototype() {
         ctx.fillStyle = color; ctx.strokeStyle = outline; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y - 2 + bob, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
       if (p.controlled) { ctx.fillStyle = '#fff4d1'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 58 + bob); ctx.lineTo(p.x - 7, p.y - 69 + bob); ctx.lineTo(p.x + 7, p.y - 69 + bob); ctx.fill(); }
-      ctx.font = '800 9px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#111612'; ctx.lineWidth = 3; ctx.strokeText(p.name, p.x, p.y + 34); ctx.fillText(p.name, p.x, p.y + 34);
+      const label = p.controlled ? `★ ${p.name}` : p.name;
+      ctx.font = '900 9px Arial';
+      const labelWidth = Math.max(38, ctx.measureText(label).width + 14);
+      ctx.fillStyle = 'rgba(13,18,14,.92)'; rounded(p.x - labelWidth / 2, p.y + 23, labelWidth, 17, 5); ctx.fill();
+      ctx.strokeStyle = color; ctx.lineWidth = p.controlled ? 2.5 : 1.5; ctx.stroke();
+      ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(label, p.x, p.y + 35);
       if (p.state === 'ACTIVE') {
         ctx.fillStyle = '#141a15'; ctx.beginPath(); ctx.arc(p.x + 23, p.y - 35 + bob, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = outline; ctx.lineWidth = 2; ctx.stroke();
         ctx.fillStyle = '#fff'; ctx.font = '800 9px Arial'; ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 + bob);
@@ -515,7 +565,7 @@ export function BentenganPrototype() {
           ctx.fillStyle = '#111812dd'; ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
           ctx.fillStyle = color; ctx.font = '900 9px Arial'; ctx.textAlign = 'center'; ctx.fillText(label, x, y + 3);
         };
-        marker(BASES.blue, 'B', TEAM_COLOR.blue); marker(BASES.red, 'M', TEAM_COLOR.red);
+        marker(BASES.blue, 'M', TEAM_COLOR.blue); marker(BASES.red, 'H', TEAM_COLOR.red);
         const outerPrisoner = players.filter(p => p.team === me.team && p.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex)[0];
         if (outerPrisoner) marker(outerPrisoner, 'P', '#b9ee3d');
       }
@@ -532,11 +582,11 @@ export function BentenganPrototype() {
           blue: score.blue, red: score.red, round, timer, boost: me.boost / selected.boost * 100,
           boostCountdown: me.boost >= selected.boost || !me.boostReadyAt ? 0 : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
           order: me.exitOrder, state: me.state, paused, logs, mission: { ...mission },
-          team: players.filter(p => p.team === 'blue').map(p => ({ name: p.name, characterId: p.characterId, state: p.state, boost: p.boost / CHARACTER_BY_ID[p.characterId].boost * 100 })),
+          team: players.filter(p => p.team === me.team).map(p => ({ name: p.name, characterId: p.characterId, state: p.state, boost: p.boost / CHARACTER_BY_ID[p.characterId].boost * 100 })),
           blueHeld: players.filter(p => p.team === 'red' && p.state === 'PRISONER').length,
           redHeld: players.filter(p => p.team === 'blue' && p.state === 'PRISONER').length,
           pickupCount: refills.length,
-          fortLock: blueLock ? `Biru dikunci ${blueLock.name}` : redLock ? `Merah dikunci ${redLock.name}` : 'Benteng terbuka',
+          fortLock: blueLock ? `Merah dikunci ${blueLock.name}` : redLock ? `Hijau dikunci ${redLock.name}` : 'Benteng terbuka',
           baseGrace: me.state === 'IN_BASE' && me.exitDeadline ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000)) : 0,
           suddenDeath,
         });
@@ -545,49 +595,62 @@ export function BentenganPrototype() {
     };
     raf = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(raf); audio?.close(); };
-  }, [mode, run, selected, selectedFieldId, selectedId]);
+  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId]);
 
   const missionCount = useMemo(() => Object.values(snapshot.mission).filter(Boolean).length, [snapshot.mission]);
-  const start = () => { setSnapshot(initialSnapshot); setMode('playing'); setRun(v => v + 1); };
+  const start = () => {
+    if (!selectedFaction) return;
+    setSnapshot(initialSnapshot); setMode('playing'); setRun(v => v + 1);
+  };
+  const touchKey = (key: string, pressed: boolean) => pressed ? keys.current.add(key) : keys.current.delete(key);
   if (view === 'workshop') return <main className="game-shell"><CharacterWorkshop onClose={() => setView('game')} /></main>;
   return (
     <main className="game-shell">
       <header className="game-topbar">
-        <div className="brand-lockup"><span className="brand-kicker">Playable rules prototype</span><strong>BENTENGAN</strong><span>Squad Tag</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v3 · 10 unique</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.png')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v4 · 12 unique</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`} />
-          <div className="stage-hud"><div><b>BIRU</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>MERAH</b></div></div>
+          <div className="stage-hud"><div className="hud-red"><b>MERAH · KIRI</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div className="hud-green"><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>HIJAU · KANAN</b></div></div>
           {mode === 'menu' && <div className="start-panel character-select">
-            <div className="character-select-heading"><div><p>10 KARAKTER UNIK · PILIH PEMAIN</p><h1>Tidak ada duplikat.<br />Semua punya peran.</h1></div><span>Sepuluh karakter dibagi 5v5 tanpa karakter kembar di field. Pilihanmu menentukan komposisi kedua tim.</span></div>
-            <div className="field-row"><span>PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
-            <div className="character-row">{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)} aria-pressed={selectedId === character.id}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><b>{character.name}</b><small>{character.role}</small><em>{character.passiveName}</em></span></button>)}</div>
-            <div className="selected-character" style={{ borderColor: selected.accent }}>
-              <img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} />
-              <div className="selected-summary"><span>{selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small><div className="character-passive"><strong>{selected.passiveName}</strong><i>{selected.passiveCopy}</i></div></div>
-              <dl>
-                <div><dt>Speed <b>{selected.speed}</b></dt><dd><i><span style={{ width: statPercent(selected.speed, 190, 240) }} /></i></dd></div>
-                <div><dt>Boost <b>{selected.boost}</b></dt><dd><i><span style={{ width: statPercent(selected.boost, 84, 124) }} /></i></dd></div>
-                <div><dt>Agility <b>{selected.agility.toFixed(2)}</b></dt><dd><i><span style={{ width: statPercent(selected.agility, .82, 1.25) }} /></i></dd></div>
-              </dl>
+            <div className="character-select-heading"><div><p>LANGKAH 1 · PILIH TIM</p><h1>Merah atau Hijau.<br />Tentukan pihakmu.</h1></div><span>Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki enam karakter tetap dan membawa lima pemain ke field.</span></div>
+            <div className="team-chooser" aria-label="Pilih tim">
+              {(['red', 'green'] as Faction[]).map(faction => <button key={faction} className={`${faction} ${selectedFaction === faction ? 'selected' : ''}`} onClick={() => chooseFaction(faction)} aria-pressed={selectedFaction === faction}>
+                <span><b>{factionName(faction)}</b><small>{GAME_RULES.teams[faction].side} · 6 karakter</small></span>
+                <span className="team-mini-roster">{FIXED_ROSTERS[faction].map(id => <img key={id} src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} />)}</span>
+              </button>)}
             </div>
-            <div className="squad-preview"><span>10 UNIK</span><div>{squad.map((id, index) => <figure key={`blue-${id}`} className={index === 0 ? 'controlled' : ''}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : 'B'}</figcaption></figure>)}{opponentSquad.map(id => <figure key={`red-${id}`} className="team-red"><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>M</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main di {FIELD_BY_ID[selectedFieldId].name}</button></div>
+            {selectedFaction && <div className={`selection-step ${selectedFaction}`}>
+              <div className="selection-step-head"><span>LANGKAH 2 · PILIH KARAKTER {factionName(selectedFaction).toUpperCase()}</span><b>1 cadangan · 5 turun ke field</b></div>
+              <div className="character-row">{availableCharacters.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)} aria-pressed={selectedId === character.id}><img src={characterAsset(character.id, 'portrait.webp')} alt={`Portrait ${character.name}`} /><span><b>{character.name}</b><small>{character.role}</small><em>{character.passiveName}</em></span></button>)}</div>
+              <div className="selected-character" style={{ borderColor: selected.accent }}>
+                <img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} />
+                <div className="selected-summary"><span>{factionName(selectedFaction)} · {selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small><div className="character-passive"><strong>{selected.passiveName}</strong><i>{selected.passiveCopy}</i></div></div>
+                <dl>
+                  <div><dt>Speed <b>{selected.speed}</b></dt><dd><i><span style={{ width: statPercent(selected.speed, 188, 240) }} /></i></dd></div>
+                  <div><dt>Boost <b>{selected.boost}</b></dt><dd><i><span style={{ width: statPercent(selected.boost, 84, 128) }} /></i></dd></div>
+                  <div><dt>Agility <b>{selected.agility.toFixed(2)}</b></dt><dd><i><span style={{ width: statPercent(selected.agility, .82, 1.25) }} /></i></dd></div>
+                </dl>
+              </div>
+            </div>}
+            <div className="field-row"><span>LANGKAH 3 · PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
+            {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
           </div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className="character-hud"><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>BOOST</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SHIFT</b> boost <b>SPACE</b> parkour <b>P</b> jeda</div></>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-50">+50%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" onPointerDown={e => { e.preventDefault(); touchKey('w', true); }} onPointerUp={() => touchKey('w', false)} onPointerCancel={() => touchKey('w', false)}>▲</button><button aria-label="Gerak kiri" onPointerDown={e => { e.preventDefault(); touchKey('a', true); }} onPointerUp={() => touchKey('a', false)} onPointerCancel={() => touchKey('a', false)}>◀</button><button aria-label="Gerak kanan" onPointerDown={e => { e.preventDefault(); touchKey('d', true); }} onPointerUp={() => touchKey('d', false)} onPointerCancel={() => touchKey('d', false)}>▶</button><button aria-label="Gerak bawah" onPointerDown={e => { e.preventDefault(); touchKey('s', true); }} onPointerUp={() => touchKey('s', false)} onPointerCancel={() => touchKey('s', false)}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" onPointerDown={e => { e.preventDefault(); touchKey(' ', true); }} onPointerUp={() => touchKey(' ', false)} onPointerCancel={() => touchKey(' ', false)}>SPRINT</button><button aria-label="Parkour" onPointerDown={e => { e.preventDefault(); touchKey('shift', true); }} onPointerUp={() => touchKey('shift', false)} onPointerCancel={() => touchKey('shift', false)}>PARKOUR</button></div></div></>}
         </div>
         <aside className="mission-panel">
           <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>{mode === 'menu' ? 'Kuasai aturan baru' : 'Buktikan core loop'}</h2></div>
           <div className="mission-progress"><span style={{ width: `${missionCount * 20}%` }} /></div>
           <ul className="mission-list">
             <li className={snapshot.mission.refresh ? 'done' : ''}><Flag size={18} /><div><b>Refresh prioritas</b><span>Kembali ke benteng dan keluar lagi sebagai urutan terbaru.</span></div></li>
-            <li className={snapshot.mission.boost ? 'done' : ''}><BatteryCharging size={18} /><div><b>Kelola boost</b><span>Shift untuk boost. Pulih 20 detik, ambil +25/+50/+100, atau pulang.</span></div></li>
-            <li className={snapshot.mission.parkour ? 'done' : ''}><Gauge size={18} /><div><b>Parkour kontekstual</b><span>Tekan Space di dekat rintangan.</span></div></li>
+            <li className={snapshot.mission.boost ? 'done' : ''}><BatteryCharging size={18} /><div><b>Sprint terbatas</b><span>Tekan Space untuk ledakan lari {GAME_RULES.boostDurationMs / 1000} detik. Pulih 20 detik atau ambil refill.</span></div></li>
+            <li className={snapshot.mission.parkour ? 'done' : ''}><Gauge size={18} /><div><b>Parkour kontekstual</b><span>Tekan Shift di dekat rintangan.</span></div></li>
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
           </ul>
-          {mode === 'playing' ? <><div className="team-status"><span>TIM BIRU · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png')} alt="Referensi karakter Bentengan Squad Tag" /><div><b>Sepuluh sprite produksi terpasang</b><span>Atlas bergutter, portrait bersih, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
+          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.png?v=4')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Dua belas sprite produksi terpasang</b><span>Tim tetap, atlas bergutter, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>
         </aside>
       </section>

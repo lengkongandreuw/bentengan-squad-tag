@@ -1,4 +1,4 @@
-export type CharacterId = 'robot' | 'ciici' | 'kaka' | 'buto' | 'jago' | 'raja' | 'lala' | 'maria' | 'kumis' | 'boke';
+export type CharacterId = 'robot' | 'ciici' | 'kaka' | 'buto' | 'jago' | 'raja' | 'lala' | 'maria' | 'kumis' | 'boke' | 'tui' | 'lui';
 export type CharacterRole = 'Guardian' | 'Rescuer' | 'Runner' | 'Chaser' | 'All-rounder' | 'Scout' | 'Disruptor';
 
 export type CharacterDefinition = {
@@ -33,10 +33,12 @@ export const CHARACTERS: CharacterDefinition[] = [
   { id: 'maria', name: 'Maria', role: 'Chaser', speed: 232, boost: 94, agility: 1.12, visualScale: 1.01, accent: '#df8b49', copy: 'Pemburu cepat yang efektif mengunci target secara beruntun.', passiveName: 'Tempo Tag', passiveCopy: 'Cooldown setelah menangkap 28% lebih singkat.', tagRange: 30, rescueRange: 32, boostMultiplier: 1.72, boostDrain: 32, baseChargeTime: .75, rescueShieldMs: 1500, tagCooldownMs: 360 },
   { id: 'kumis', name: 'Kumis', role: 'Guardian', speed: 188, boost: 128, agility: 0.82, visualScale: 1.1, accent: '#e2554a', copy: 'Penjaga terbesar dengan daya tahan dan wilayah tangkap luas.', passiveName: 'Benteng Hidup', passiveCopy: 'Boost terbesar dan jangkauan tangkap terluas.', tagRange: 36, rescueRange: 30, boostMultiplier: 1.58, boostDrain: 25, baseChargeTime: .8, rescueShieldMs: 1500, tagCooldownMs: 540 },
   { id: 'boke', name: 'Boke', role: 'Disruptor', speed: 202, boost: 116, agility: 0.88, visualScale: 1.08, accent: '#ef677c', copy: 'Pengacau garis depan yang kuat memecah formasi lawan.', passiveName: 'Tag Kasar', passiveCopy: 'Jangkauan besar dengan recovery tag lebih cepat.', tagRange: 32, rescueRange: 31, boostMultiplier: 1.66, boostDrain: 29, baseChargeTime: .76, rescueShieldMs: 1500, tagCooldownMs: 410 },
+  { id: 'tui', name: 'Tui', role: 'Runner', speed: 230, boost: 96, agility: 1.17, visualScale: 1, accent: '#ef3f43', copy: 'Sprinter Tim Merah dengan akselerasi kuat untuk membuka serangan.', passiveName: 'Start Meledak', passiveCopy: 'Sprint Space mencapai kecepatan puncak lebih cepat.', tagRange: 28, rescueRange: 32, boostMultiplier: 1.78, boostDrain: 32, baseChargeTime: .65, rescueShieldMs: 1500, tagCooldownMs: 480 },
+  { id: 'lui', name: 'Lui', role: 'Scout', speed: 226, boost: 104, agility: 1.19, visualScale: .98, accent: '#42d875', copy: 'Pengintai Tim Hijau yang unggul menyelinap melalui jalur sempit.', passiveName: 'Jalur Sunyi', passiveCopy: 'Sprint stabil dengan kendali parkour yang presisi.', tagRange: 28, rescueRange: 35, boostMultiplier: 1.72, boostDrain: 29, baseChargeTime: .68, rescueShieldMs: 1750, tagCooldownMs: 480 },
 ];
 
 export const CHARACTER_BY_ID = Object.fromEntries(CHARACTERS.map(character => [character.id, character])) as Record<CharacterId, CharacterDefinition>;
-const DEDICATED_EAST_CHARACTERS = new Set<CharacterId>(['buto', 'jago', 'lala', 'maria', 'kumis', 'boke']);
+const DEDICATED_EAST_CHARACTERS = new Set<CharacterId>(['buto', 'jago', 'lala', 'maria', 'kumis', 'boke', 'tui', 'lui']);
 export const characterUsesDedicatedEast = (id: CharacterId) => DEDICATED_EAST_CHARACTERS.has(id);
 
 const publicBase = ((import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/').replace(/\/?$/, '/');

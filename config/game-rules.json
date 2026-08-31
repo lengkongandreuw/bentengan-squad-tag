@@ -1,0 +1,28 @@
+{
+  "matchSize": 5,
+  "reserveCount": 1,
+  "boostKey": "space",
+  "parkourKey": "shift",
+  "boostDurationMs": 1400,
+  "teams": {
+    "red": {
+      "label": "Tim Merah",
+      "side": "Kiri",
+      "color": "#ef3f43",
+      "roster": ["raja", "robot", "jago", "lala", "kumis", "tui"]
+    },
+    "green": {
+      "label": "Tim Hijau",
+      "side": "Kanan",
+      "color": "#42d875",
+      "roster": ["ciici", "kaka", "buto", "maria", "boke", "lui"]
+    }
+  },
+  "spawnOffsets": [
+    { "x": 0, "y": 0 },
+    { "x": 46, "y": -52 },
+    { "x": 46, "y": 52 },
+    { "x": 92, "y": -52 },
+    { "x": 92, "y": 52 }
+  ]
+}

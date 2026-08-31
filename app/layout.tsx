@@ -7,7 +7,7 @@ const body = Inter({ variable: '--font-body', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Bentengan: Squad Tag — Playable Prototype',
-  description: 'Prototipe web 2,5D Bentengan: prioritas dinamis, parkour, prison chain, dan rescue.',
+  description: 'Bentengan web 2,5D 5v5: pilih Tim Merah atau Hijau, mainkan 12 karakter unik, sprint, parkour, penjara, dan rescue.',
 };
 
 export default function RootLayout({
