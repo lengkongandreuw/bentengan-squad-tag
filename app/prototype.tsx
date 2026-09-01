@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { BatteryCharging, Flag, Gauge, LogOut, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
+import { BatteryCharging, Flag, Gauge, LogOut, Pause, Play, RotateCcw, Shield, Users, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { CHARACTER_BY_ID, CharacterId, characterAsset, characterRuntimeAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
 import { FIELD_ANIMATED_ATLAS, FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAnimatedId, FieldAssetId, GroundTileId } from '../lib/field-assets.generated';
@@ -9,6 +9,7 @@ import { BOOST_COLUMNS, directionFromVelocity, directionalRow, RUN_COLUMNS, shou
 import { fieldCycleDecision } from '../lib/field-cycle.js';
 import { sweptContactDistance } from '../lib/tag-contact.js';
 import { depenetrateFromRects, pointHitsExpandedRect, steerAroundRects } from '../lib/collision-navigation.js';
+import { advanceTeamCombo, createTeamComboState, teamComboSeconds, teamComboSpeedMultiplier } from '../lib/team-combo.js';
 import GAME_RULES from '../config/game-rules.json';
 
 type Team = 'blue' | 'red';
@@ -34,12 +35,13 @@ type AnimatedDecoration = { animation: FieldAnimatedId; x: number; y: number; w:
 type FieldPath = { tile: GroundTileId; x: number; y: number; w: number; h: number; opacity: number; radius: number };
 type FieldConfig = { id: FieldId; name: string; kicker: string; ground: GroundTileId; paths: FieldPath[]; obstacles: Obstacle[]; decorations: FieldDecoration[]; animated: AnimatedDecoration[] };
 type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
-type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean };
+type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean; combo: boolean };
 type Snapshot = {
   blue: number; red: number; round: number; timer: number; boost: number; boostCountdown: number;
   order: number; state: PlayerState; paused: boolean; logs: string[]; mission: Mission;
   team: Array<{ name: string; characterId: CharacterId; state: PlayerState; boost: number }>;
   blueHeld: number; redHeld: number; pickupCount: number; fortLock: string; baseGrace: number; suddenDeath: boolean; fieldWins: number;
+  comboLevel: number; comboRemaining: number; comboSurgeRemaining: number; comboCallout: string;
 };
 
 const WORLD_SCALE = 2.5;
@@ -231,8 +233,9 @@ const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [{ id: 'follow'
 const initialSnapshot: Snapshot = {
   blue: 0, red: 0, round: 1, timer: 240, boost: 100, boostCountdown: 0, order: 0,
   state: 'IN_BASE', paused: false, logs: ['Prototype 5v5 siap.'],
-  mission: { refresh: false, boost: false, parkour: false, tag: false, rescue: false }, team: [],
+  mission: { refresh: false, boost: false, parkour: false, tag: false, rescue: false, combo: false }, team: [],
   blueHeld: 0, redHeld: 0, pickupCount: 0, fortLock: 'Benteng terbuka', baseGrace: 0, suddenDeath: false, fieldWins: 0,
+  comboLevel: 0, comboRemaining: 0, comboSurgeRemaining: 0, comboCallout: '',
 };
 
 const other = (team: Team): Team => team === 'blue' ? 'red' : 'blue';
@@ -328,8 +331,10 @@ export function BentenganPrototype() {
     let score = { blue: 0, red: 0 }, paused = false, announcement = mode === 'playing' ? 'BERSIAP!' : '', roundWinner: Team | undefined;
     let fieldRotationPending = false;
     let logs = ['5v5 · pemain yang keluar terakhir memiliki prioritas tangkap tertinggi.'];
-    let mission: Mission = { refresh: false, boost: false, parkour: false, tag: false, rescue: false };
+    let mission: Mission = { refresh: false, boost: false, parkour: false, tag: false, rescue: false, combo: false };
     let totalCapture = { blue: 0, red: 0 }, nextRefillSpawn = performance.now() + 8000, refillId = 0, suddenDeath = false;
+    let teamCombos = { blue: createTeamComboState(), red: createTeamComboState() };
+    let comboCallout = '', comboCalloutUntil = 0;
     let particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; color: string }> = [];
     let refills: Refill[] = [], audio: AudioContext | null = null, parkourLatch = false, boostLatch = false, boostBurstUntil = 0;
     const field = FIELD_BY_ID[selectedFieldId], obstacles = field.obstacles;
@@ -401,6 +406,7 @@ export function BentenganPrototype() {
     seedRefills();
     const resetRound = () => {
       players = makePlayers(); seedRefills(); timer = 240; exitCounter = 0; totalCapture = { blue: 0, red: 0 }; suddenDeath = false; roundWinner = undefined;
+      teamCombos = { blue: createTeamComboState(), red: createTeamComboState() }; comboCallout = ''; comboCalloutUntil = 0;
       phase = 'COUNTDOWN'; phaseUntil = performance.now() + 2800; announcement = `RONDE ${round}`;
       log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
     };
@@ -503,6 +509,39 @@ export function BentenganPrototype() {
         });
       });
     };
+    const registerTeamAction = (actor: Player, actionLabel: 'TAG' | 'RESCUE', x: number, y: number, now: number) => {
+      const result = advanceTeamCombo(teamCombos[actor.team], actor.id, now);
+      teamCombos[actor.team] = result.state;
+      if (result.outcome === 'ignored') return;
+
+      const isPlayerTeam = actor.team === players[0].team;
+      if (result.outcome === 'started') {
+        if (isPlayerTeam) { comboCallout = `LINK 1/3 · ${actor.name} ${actionLabel}`; comboCalloutUntil = now + 1400; }
+        return;
+      }
+
+      const teammates = players.filter(p => p.team === actor.team && p.state !== 'PRISONER');
+      if (result.outcome === 'duo') {
+        teammates.forEach(p => {
+          const maximum = CHARACTER_BY_ID[p.characterId].boost;
+          p.boost = Math.min(maximum, p.boost + maximum * .12);
+        });
+        burst(x, y, '#f5cf45', 20); beep(isPlayerTeam ? 680 : 390, .14);
+        log(`${teamName(actor.team)} merangkai DUO LINK · boost tim +12%.`);
+        if (isPlayerTeam) { comboCallout = 'DUO LINK · BOOST TIM +12%'; comboCalloutUntil = now + 1900; }
+        return;
+      }
+
+      teammates.forEach(p => {
+        const maximum = CHARACTER_BY_ID[p.characterId].boost;
+        p.boost = Math.min(maximum, p.boost + maximum * .16);
+      });
+      burst(x, y, TEAM_COLOR[actor.team], 32); beep(isPlayerTeam ? 880 : 440, .22);
+      log(`${teamName(actor.team)} mengaktifkan SQUAD SURGE · gerak +10% selama 5 detik.`);
+      if (isPlayerTeam) {
+        mission.combo = true; comboCallout = 'SQUAD SURGE · SPEED +10%'; comboCalloutUntil = now + 2500;
+      }
+    };
     const capture = (winner: Player, loser: Player, now: number) => {
       const targetable = loser.state === 'ACTIVE' || (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
       if (winner.state !== 'ACTIVE' || now < winner.parkourUntil || now < loser.parkourUntil || winner.tagCooldown > now || !targetable || winner.exitOrder <= loser.exitOrder) return;
@@ -511,6 +550,7 @@ export function BentenganPrototype() {
       loser.state = 'PRISONER'; loser.prisonOwner = winner.team; loser.fortCharge = 0; loser.rescueShieldUntil = 0;
       burst(loser.x, loser.y, TEAM_COLOR[winner.team]); beep(winner.controlled ? 820 : 250);
       log(`${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`);
+      registerTeamAction(winner, 'TAG', loser.x, loser.y, now);
       if (winner.controlled) mission.tag = true; layoutPrisons();
       if (suddenDeath) winRound(winner.team, 'SUDDEN DEATH TAG');
     };
@@ -540,6 +580,7 @@ export function BentenganPrototype() {
           held.forEach(p => { p.state = 'RETURNING'; p.prisonOwner = undefined; p.rescueShieldUntil = now + rescuerStats.rescueShieldMs; p.x += rescuer.team === 'blue' ? -22 : 22; });
           rescuer.action = 'rescue'; rescuer.actionUntil = now + 460;
           burst(held[0].x, held[0].y, '#b9ee3d', 26); beep(620, .16); log(`${rescuer.name} membebaskan ${held.length} rekan.`);
+          registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
           if (rescuer.controlled) mission.rescue = true;
         }
       });
@@ -624,6 +665,7 @@ export function BentenganPrototype() {
       players.forEach(player => recoverFromObstacle(player, now));
       players.forEach(player => { player.lastX = player.x; player.lastY = player.y; });
       const me = players[0]; let dx = 0, dy = 0;
+      const playerComboMultiplier = teamComboSpeedMultiplier(teamCombos[me.team], now);
       if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
@@ -632,7 +674,7 @@ export function BentenganPrototype() {
       if (boostKey && !boostLatch && me.boost > 0 && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) boostBurstUntil = now + GAME_RULES.boostDurationMs;
       boostLatch = boostKey;
       const boosting = now < boostBurstUntil && me.boost > 0 && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE');
-      if (boosting) { me.boost = Math.max(0, me.boost - selected.boostDrain * dt); me.boostReadyAt = now + 20000; mission.boost = true; }
+      if (boosting) { me.boost = Math.max(0, me.boost - selected.boostDrain * (playerComboMultiplier > 1 ? .8 : 1) * dt); me.boostReadyAt = now + 20000; mission.boost = true; }
       const parkourKey = keys.current.has('shift');
       const parkourCost = 8 / selected.agility;
       if (parkourKey && !parkourLatch && me.boost >= parkourCost && now > me.parkourUntil && (dx || dy) && (me.state === 'ACTIVE' || me.state === 'IN_BASE')) {
@@ -645,8 +687,8 @@ export function BentenganPrototype() {
         }
       }
       parkourLatch = parkourKey;
-      if (me.state === 'RETURNING') { const vector = baseVector(me); move(me, vector.x, vector.y, selected.speed, dt, now); }
-      else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * (boosting ? selected.boostMultiplier : 1), dt, now);
+      if (me.state === 'RETURNING') { const vector = baseVector(me); move(me, vector.x, vector.y, selected.speed * playerComboMultiplier, dt, now); }
+      else if ((dx || dy) && me.state !== 'PRISONER') move(me, dx, dy, selected.speed * playerComboMultiplier * (boosting ? selected.boostMultiplier : 1), dt, now);
       else { me.vx = 0; me.vy = 0; }
       players.slice(1).forEach(p => {
         if (p.state === 'PRISONER') { p.vx = 0; p.vy = 0; return; }
@@ -658,7 +700,8 @@ export function BentenganPrototype() {
         const boostThreshold = enemyOfPlayer ? -.58 : -.15;
         const boostAi = p.state === 'ACTIVE' && p.boost > (enemyOfPlayer ? 7 : 12) && far && Math.sin(now / 950 + p.aiSeed) > boostThreshold;
         if (boostAi) { p.boost = Math.max(0, p.boost - stats.boostDrain * (enemyOfPlayer ? .5 : .66) * dt); p.boostReadyAt = now + 20000; }
-        move(p, vector.x, vector.y, stats.speed * (enemyOfPlayer ? AI_ENEMY_SPEED_MULTIPLIER : AI_ALLY_SPEED_MULTIPLIER) * (boostAi ? stats.boostMultiplier : 1), dt, now);
+        const comboMultiplier = teamComboSpeedMultiplier(teamCombos[p.team], now);
+        move(p, vector.x, vector.y, stats.speed * comboMultiplier * (enemyOfPlayer ? AI_ENEMY_SPEED_MULTIPLIER : AI_ALLY_SPEED_MULTIPLIER) * (boostAi ? stats.boostMultiplier : 1), dt, now);
       });
       resolvePlayerSpacing(now);
       const exitCandidates: Player[] = [];
@@ -795,6 +838,13 @@ export function BentenganPrototype() {
       const frameDuration = sprinting ? 62 : columns.length > 1 ? 92 : 180;
       const frame = spriteFrame(image.naturalWidth || 896, image.naturalHeight || 816, columns[Math.floor(now / frameDuration) % columns.length], row);
 
+      if (p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
+        const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
+        ctx.save(); ctx.globalAlpha = .7; ctx.strokeStyle = '#f5cf45'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(p.x, p.y - 4 + bob, pulse, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = .16; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y - 4 + bob, pulse + 5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+
       if (sprinting && dust.complete && dust.naturalWidth) {
         const dustColumn = Math.floor(now / 78) % 4;
         ctx.save(); ctx.globalAlpha = .58; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
@@ -879,6 +929,8 @@ export function BentenganPrototype() {
         canvas.dataset.embeddedPlayers = String(players.filter(p => p.state !== 'PRISONER' && hitsObstacle(p.x, p.y)).length);
         canvas.dataset.aiMoving = String(players.slice(1).filter(p => p.state !== 'PRISONER' && Math.hypot(p.vx, p.vy) > 8).length);
         canvas.dataset.enemyCaptures = String(players.filter(p => p.team !== me.team).reduce((sum, p) => sum + p.captures, 0));
+        canvas.dataset.teamCombo = `${teamCombos[me.team].step}:${teamComboSeconds(teamCombos[me.team], now)}`;
+        const playerCombo = teamCombos[me.team];
         setSnapshot({
           blue: score.blue, red: score.red, round, timer, boost: me.boost / selected.boost * 100,
           boostCountdown: me.boost >= selected.boost || !me.boostReadyAt ? 0 : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
@@ -890,6 +942,9 @@ export function BentenganPrototype() {
           fortLock: blueLock ? `Merah dikunci ${blueLock.name}` : redLock ? `Hijau dikunci ${redLock.name}` : 'Benteng terbuka',
           baseGrace: me.state === 'IN_BASE' && me.exitDeadline ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000)) : 0,
           suddenDeath, fieldWins: completedMatchesRef.current,
+          comboLevel: playerCombo.step, comboRemaining: playerCombo.surgeUntil > now ? 0 : teamComboSeconds(playerCombo, now),
+          comboSurgeRemaining: playerCombo.surgeUntil > now ? teamComboSeconds(playerCombo, now) : 0,
+          comboCallout: now < comboCalloutUntil ? comboCallout : '',
         });
       }
       raf = requestAnimationFrame(loop);
@@ -1047,7 +1102,7 @@ export function BentenganPrototype() {
 
       {menuStep !== 'splash' && <button className="graffiti-back" onClick={goBack} aria-label="Kembali"><img src={uiAsset('controls/back.webp')} alt="Kembali" /></button>}
       <div className={`pregame-actions step-${menuStep}`}><button className="rules-button graffiti-primary" onClick={() => setRulesOpen(true)}><span>GAME RULES</span></button><button className="workshop-link" onClick={() => setView('workshop')}><Wrench size={14} /> Workshop</button></div>
-      {rulesOpen && <div className="rules-overlay" role="dialog" aria-modal="true" aria-labelledby="rules-title"><div className="rules-dialog"><button className="rules-close" onClick={() => setRulesOpen(false)} aria-label="Tutup">×</button><span>BENTENGAN 5V5</span><h2 id="rules-title">Cara merebut kemenangan</h2><ol><li><b>Keluar dari benteng.</b> Urutan keluar menentukan siapa yang boleh menangkap siapa.</li><li><b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara timmu.</li><li><b>Sentuh rekan terluar di penjara</b> untuk membebaskan seluruh rantai.</li><li><b>Serbu benteng lawan.</b> Isi meter benteng tanpa tertangkap untuk menang.</li></ol><p>WASD gerak · Space sprint · Shift parkour · P jeda</p></div></div>}
+      {rulesOpen && <div className="rules-overlay" role="dialog" aria-modal="true" aria-labelledby="rules-title"><div className="rules-dialog"><button className="rules-close" onClick={() => setRulesOpen(false)} aria-label="Tutup">×</button><span>BENTENGAN 5V5</span><h2 id="rules-title">Cara merebut kemenangan</h2><ol><li><b>Keluar dari benteng.</b> Urutan keluar menentukan siapa yang boleh menangkap siapa.</li><li><b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara timmu.</li><li><b>Sentuh rekan terluar di penjara</b> untuk membebaskan seluruh rantai.</li><li><b>Rangkai combo aksi tim.</b> Tag atau rescue dari rekan berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.</li><li><b>Serbu benteng lawan.</b> Isi meter benteng tanpa tertangkap untuk menang.</li></ol><p>WASD gerak · Space sprint · Shift parkour · P jeda</p></div></div>}
     </main>;
   }
   return (
@@ -1084,17 +1139,18 @@ export function BentenganPrototype() {
             <div className="field-row"><span>LANGKAH 3 · PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
             {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction!).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
           </div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" {...touchControl('w')}>▲</button><button aria-label="Gerak kiri" {...touchControl('a')}>◀</button><button aria-label="Gerak kanan" {...touchControl('d')}>▶</button><button aria-label="Gerak bawah" {...touchControl('s')}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" {...touchControl(' ')}>SPRINT</button><button aria-label="Parkour" {...touchControl('shift')}>PARKOUR</button></div></div></>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''}`} aria-label="Status combo aksi tim"><Users size={17} /><span><small>{snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM'}</small><b>{snapshot.comboSurgeRemaining ? `SQUAD SURGE ${snapshot.comboSurgeRemaining}s` : snapshot.comboLevel ? `LINK ${snapshot.comboLevel}/3 · ${snapshot.comboRemaining}s` : 'RANGKAI 3 AKSI'}</b></span><i>{[1, 2, 3].map(step => <u key={step} className={snapshot.comboSurgeRemaining || snapshot.comboLevel >= step ? 'filled' : ''} />)}</i></div>{snapshot.comboCallout && <div className={`combo-callout ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}><Users size={22} /><span>{snapshot.comboCallout}</span></div>}<div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" {...touchControl('w')}>▲</button><button aria-label="Gerak kiri" {...touchControl('a')}>◀</button><button aria-label="Gerak kanan" {...touchControl('d')}>▶</button><button aria-label="Gerak bawah" {...touchControl('s')}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" {...touchControl(' ')}>SPRINT</button><button aria-label="Parkour" {...touchControl('shift')}>PARKOUR</button></div></div></>}
         </div>
         <aside className="mission-panel">
-          <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>Buktikan core loop</h2></div>
-          <div className="mission-progress"><span style={{ width: `${missionCount * 20}%` }} /></div>
+          <div className="mission-head"><span>Rules test · {missionCount}/6</span><h2>Buktikan core loop</h2></div>
+          <div className="mission-progress"><span style={{ width: `${missionCount * (100 / 6)}%` }} /></div>
           <ul className="mission-list">
             <li className={snapshot.mission.refresh ? 'done' : ''}><Flag size={18} /><div><b>Refresh prioritas</b><span>Kembali ke benteng dan keluar lagi sebagai urutan terbaru.</span></div></li>
             <li className={snapshot.mission.boost ? 'done' : ''}><BatteryCharging size={18} /><div><b>Sprint terbatas</b><span>Tekan Space untuk ledakan lari {GAME_RULES.boostDurationMs / 1000} detik. Pulih 20 detik atau ambil refill.</span></div></li>
             <li className={snapshot.mission.parkour ? 'done' : ''}><Gauge size={18} /><div><b>Parkour kontekstual</b><span>Tekan Shift di dekat rintangan.</span></div></li>
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
+            <li className={snapshot.mission.combo ? 'done' : ''}><Users size={18} /><div><b>Combo aksi tim</b><span>Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik untuk Squad Surge.</span></div></li>
           </ul>
           {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.webp?v=8')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Empat belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>

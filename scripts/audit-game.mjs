@@ -23,6 +23,7 @@ const motion = await import('../lib/sprite-motion.js');
 const { fieldCycleDecision } = await import('../lib/field-cycle.js');
 const { sweptContactDistance } = await import('../lib/tag-contact.js');
 const { depenetrateFromRects, pointHitsExpandedRect, steerAroundRects } = await import('../lib/collision-navigation.js');
+const { advanceTeamCombo, createTeamComboState, teamComboSpeedMultiplier } = await import('../lib/team-combo.js');
 const ids = [...charactersSource.matchAll(/\{ id: '([a-z]+)', name:/g)].map(match => match[1]);
 const teamIds = Object.values(rules.teams).flatMap(team => team.roster);
 
@@ -107,6 +108,17 @@ assert(Math.abs(detour.y) > 1 && Math.abs(detour.x) > 1, 'navigasi AI membelok k
 assert(prototypeSource.includes('recoverFromObstacle(player, now)') && prototypeSource.includes('spacingPositionAllowed') && prototypeSource.includes('onPointerLeave: release') && prototypeSource.includes("window.addEventListener('blur', releaseAll)"), 'pemulihan collider, spacing aman, serta pelepasan input keyboard dan sentuh terpasang');
 assert(prototypeSource.includes('BASE_REENTRY_COOLDOWN_MS = 1500') && prototypeSource.includes('p.lastExitAt = now'), 'jitter di tepi benteng tidak memicu keluar-masuk dan prioritas berulang');
 assert(prototypeSource.includes('AI_ENEMY_SPEED_MULTIPLIER = 1.04') && prototypeSource.includes('steerAroundRects') && prototypeSource.includes('aPlayerBias = a.controlled ? -150 : 0'), 'AI lawan lebih cepat, dapat menghindari halangan, dan memprioritaskan pemain');
+let comboState = createTeamComboState();
+comboState = advanceTeamCombo(comboState, 'ally1', 1000).state;
+const repeatedActor = advanceTeamCombo(comboState, 'ally1', 1800);
+assert(comboState.step === 1 && repeatedActor.outcome === 'ignored', 'aktor yang sama tidak dapat menaikkan combo aksi tim sendirian');
+comboState = advanceTeamCombo(comboState, 'ally2', 2400).state;
+const teamSurge = advanceTeamCombo(comboState, 'you', 3200);
+assert(comboState.step === 2 && teamSurge.outcome === 'surge' && teamComboSpeedMultiplier(teamSurge.state, 4000) === 1.1, 'tiga aksi berantai dari rekan berbeda memicu Squad Surge +10%');
+const expiredCombo = advanceTeamCombo(createTeamComboState(), 'ally1', 1000).state;
+assert(advanceTeamCombo(expiredCombo, 'ally2', 8000).state.step === 1, 'rantai combo kedaluwarsa setelah jendela 6,5 detik');
+assert(prototypeSource.includes("registerTeamAction(winner, 'TAG'") && prototypeSource.includes("registerTeamAction(rescuer, 'RESCUE'") && prototypeSource.includes('team-combo-hud') && globalStyles.includes('@keyframes combo-callout-in'), 'tag dan rescue terhubung ke HUD serta aset kode-native combo aksi tim');
+assert(globalStyles.includes('.team-combo-hud{top:91px;right:8px;width:126px') && globalStyles.includes('@media(max-width:360px)') && prototypeSource.includes('aria-label="Status combo aksi tim"'), 'HUD combo tetap ringkas dan terbaca pada kontrol mobile sempit');
 assert(prototypeSource.includes("drawFieldAsset(ctx, 'prisonOverlay'") && prototypeSource.includes("drawFieldAsset(target, 'prisonFloor'"), 'penjara memakai lantai belakang dan pagar overlay terpisah');
 assert(globalStyles.includes('align-items:start') && globalStyles.includes('.stage-card { height:min(79vh,900px)'), 'stage tidak meregang mengikuti panel misi dan kamera Overall tetap terpusat');
 
