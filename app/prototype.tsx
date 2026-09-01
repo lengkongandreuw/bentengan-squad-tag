@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { BatteryCharging, Flag, Gauge, LogOut, Pause, Play, RotateCcw, Shield, Volume2, Wrench, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { CHARACTER_BY_ID, CharacterId, characterAsset, characterRuntimeAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
@@ -8,6 +8,7 @@ import { FIELD_ANIMATED_ATLAS, FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OB
 import { BOOST_COLUMNS, directionFromVelocity, directionalRow, RUN_COLUMNS, shouldMirrorSprite, sprintEffectRotation } from '../lib/sprite-motion.js';
 import { fieldCycleDecision } from '../lib/field-cycle.js';
 import { sweptContactDistance } from '../lib/tag-contact.js';
+import { depenetrateFromRects, pointHitsExpandedRect, steerAroundRects } from '../lib/collision-navigation.js';
 import GAME_RULES from '../config/game-rules.json';
 
 type Team = 'blue' | 'red';
@@ -21,7 +22,7 @@ type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type Player = {
   id: string; name: string; team: Team; characterId: CharacterId; controlled?: boolean; x: number; y: number;
   vx: number; vy: number; state: PlayerState; exitOrder: number; boost: number;
-  baseCharge: number; exitDeadline: number; tagCooldown: number; parkourUntil: number; boostReadyAt: number;
+  baseCharge: number; exitDeadline: number; lastExitAt: number; tagCooldown: number; parkourUntil: number; boostReadyAt: number;
   fortCharge: number; prisonOwner?: Team; prisonIndex: number; captures: number; aiSeed: number;
   rescueShieldUntil: number; capturedIds: string[];
   action?: PlayerAction; actionUntil: number;
@@ -43,6 +44,10 @@ type Snapshot = {
 
 const WORLD_SCALE = 2.5;
 const STATIC_MAP_SCALE = .5;
+const PLAYER_COLLISION_RADIUS = 13;
+const BASE_REENTRY_COOLDOWN_MS = 1500;
+const AI_ENEMY_SPEED_MULTIPLIER = 1.04;
+const AI_ALLY_SPEED_MULTIPLIER = .92;
 const world = (value: number) => Math.round(value * WORLD_SCALE);
 const W = world(1440);
 const H = world(800);
@@ -306,8 +311,10 @@ export function BentenganPrototype() {
       }
     };
     const up = (event: KeyboardEvent) => keys.current.delete(event.key.toLowerCase());
-    window.addEventListener('keydown', down); window.addEventListener('keyup', up);
-    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
+    const releaseAll = () => keys.current.clear();
+    const visibility = () => { if (document.hidden) releaseAll(); };
+    window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('blur', releaseAll); document.addEventListener('visibilitychange', visibility);
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('blur', releaseAll); document.removeEventListener('visibilitychange', visibility); };
   }, [mode]);
 
   useEffect(() => {
@@ -352,7 +359,7 @@ export function BentenganPrototype() {
       return {
         id, name: character.name.toUpperCase(), team, characterId, controlled, x: b.x + offset.x * direction, y: b.y + offset.y,
         vx: 0, vy: 0, state: 'IN_BASE', exitOrder: 0, boost: character.boost,
-        baseCharge: 0, exitDeadline: 0, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
+        baseCharge: 0, exitDeadline: 0, lastExitAt: 0, tagCooldown: 0, parkourUntil: 0, boostReadyAt: 0, fortCharge: 0,
         prisonIndex: 0, captures: 0, rescueShieldUntil: 0, capturedIds: [], actionUntil: 0,
         lastX: b.x + offset.x * direction, lastY: b.y + offset.y,
         aiSeed: .35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
@@ -424,8 +431,14 @@ export function BentenganPrototype() {
       return false;
     };
     const hasLineOfSight = (a: Player, b: Player) => !obstacles.some(o => segmentHitsRect(a, b, o));
+    const hitsObstacle = (x: number, y: number) => obstacles.some(o => pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS));
+    const recoverFromObstacle = (p: Player, now: number) => {
+      if (p.state === 'PRISONER' || now < p.parkourUntil || !hitsObstacle(p.x, p.y)) return;
+      const recovered = depenetrateFromRects(p, obstacles, PLAYER_COLLISION_RADIUS, { minX: 34, maxX: W - 34, minY: 58, maxY: H - 32 });
+      p.x = recovered.x; p.y = recovered.y;
+    };
     const blocked = (x: number, y: number, p: Player, now: number) => {
-      if (now >= p.parkourUntil && obstacles.some(o => x + 13 > o.x && x - 13 < o.x + o.w && y + 13 > o.y && y - 13 < o.y + o.h)) return true;
+      if (now >= p.parkourUntil && hitsObstacle(x, y)) return true;
       if (p.state === 'IN_BASE' && p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime && distance(p, BASES[p.team]) < BASE_RADIUS && distance({ x, y }, BASES[p.team]) >= BASE_RADIUS) return true;
       for (const team of ['blue', 'red'] as Team[]) {
         const entering = distance({ x, y }, BASES[team]) < BASE_RADIUS && distance(p, BASES[team]) >= BASE_RADIUS;
@@ -438,7 +451,12 @@ export function BentenganPrototype() {
       const nx = clamp(p.x + p.vx * dt, 34, W - 34), ny = clamp(p.y + p.vy * dt, 58, H - 32);
       if (!blocked(nx, p.y, p, now)) p.x = nx; if (!blocked(p.x, ny, p, now)) p.y = ny;
     };
-    const resolvePlayerSpacing = () => {
+    const spacingPositionAllowed = (p: Player, x: number, y: number) => {
+      if (hitsObstacle(x, y)) return false;
+      if (p.state === 'IN_BASE' && p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime && distance({ x, y }, BASES[p.team]) >= BASE_RADIUS) return false;
+      return true;
+    };
+    const resolvePlayerSpacing = (now: number) => {
       const visible = players.filter(p => p.state !== 'PRISONER');
       for (let i = 0; i < visible.length; i++) for (let j = i + 1; j < visible.length; j++) {
         const a = visible[i], b = visible[j];
@@ -447,9 +465,12 @@ export function BentenganPrototype() {
         if (d >= minimum) continue;
         const nx = d > .01 ? dx / d : (tieHash(a.id) % 2 ? 1 : -1), ny = d > .01 ? dy / d : 0;
         const push = (minimum - d) * .52;
-        a.x = clamp(a.x - nx * push, 34, W - 34); a.y = clamp(a.y - ny * push, 58, H - 32);
-        b.x = clamp(b.x + nx * push, 34, W - 34); b.y = clamp(b.y + ny * push, 58, H - 32);
+        const ax = clamp(a.x - nx * push, 34, W - 34), ay = clamp(a.y - ny * push, 58, H - 32);
+        const bx = clamp(b.x + nx * push, 34, W - 34), by = clamp(b.y + ny * push, 58, H - 32);
+        if (spacingPositionAllowed(a, ax, ay)) { a.x = ax; a.y = ay; }
+        if (spacingPositionAllowed(b, bx, by)) { b.x = bx; b.y = by; }
       }
+      visible.forEach(p => recoverFromObstacle(p, now));
     };
     const baseVector = (p: Player) => ({ x: BASES[p.team].x - p.x, y: BASES[p.team].y - p.y });
     const aiVector = (p: Player, now: number) => {
@@ -463,8 +484,11 @@ export function BentenganPrototype() {
       }
       const threat = players.filter(q => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder > p.exitOrder).sort((a, b) => distance(p, a) - distance(p, b))[0];
       if (threat && distance(p, threat) < 175) return { x: p.x - threat.x, y: p.y - threat.y };
-      const target = players.filter(q => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder < p.exitOrder).sort((a, b) => distance(p, a) - distance(p, b))[0];
-      if (target) return { x: target.x - p.x, y: target.y - p.y };
+      const target = players.filter(q => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder < p.exitOrder).sort((a, b) => {
+        const aPlayerBias = a.controlled ? -150 : 0, bPlayerBias = b.controlled ? -150 : 0;
+        return distance(p, a) + aPlayerBias - distance(p, b) - bPlayerBias;
+      })[0];
+      if (target) return { x: target.x + target.vx * .28 - p.x, y: target.y + target.vy * .28 - p.y };
       if (p.boost < 18 || Math.sin(now / 4300 + p.aiSeed) > .86) return baseVector(p);
       const enemy = BASES[other(p.team)]; return { x: enemy.x - p.x, y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150 };
     };
@@ -537,6 +561,8 @@ export function BentenganPrototype() {
       if (insideOwn) {
         if (contested) {
           if (p.state === 'IN_BASE' || p.state === 'RETURNING') exitCandidates.push(p);
+        } else if (p.state === 'ACTIVE' && now - p.lastExitAt < BASE_REENTRY_COOLDOWN_MS) {
+          p.fortCharge = 0;
         } else {
           if (p.state !== 'IN_BASE') { p.state = 'IN_BASE'; p.baseCharge = 0; p.exitDeadline = 0; p.fortCharge = 0; }
           const charging = players
@@ -595,6 +621,7 @@ export function BentenganPrototype() {
       }
       refills = refills.filter(item => item.expiresAt > now);
       if (now >= nextRefillSpawn && refills.length < 9) { spawnRefill(now); nextRefillSpawn = now + 8000 + Math.random() * 4000; }
+      players.forEach(player => recoverFromObstacle(player, now));
       players.forEach(player => { player.lastX = player.x; player.lastY = player.y; });
       const me = players[0]; let dx = 0, dy = 0;
       if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
@@ -624,16 +651,20 @@ export function BentenganPrototype() {
       players.slice(1).forEach(p => {
         if (p.state === 'PRISONER') { p.vx = 0; p.vy = 0; return; }
         const stats = CHARACTER_BY_ID[p.characterId];
-        const vector = aiVector(p, now), far = Math.hypot(vector.x, vector.y) > 165;
-        const boostAi = p.state === 'ACTIVE' && p.boost > 12 && far && Math.sin(now / 950 + p.aiSeed) > -.15;
-        if (boostAi) { p.boost = Math.max(0, p.boost - stats.boostDrain * .66 * dt); p.boostReadyAt = now + 20000; }
-        move(p, vector.x, vector.y, stats.speed * .89 * (boostAi ? stats.boostMultiplier : 1), dt, now);
+        const enemyOfPlayer = p.team !== me.team;
+        const desired = aiVector(p, now);
+        const vector = steerAroundRects(p, desired, obstacles, PLAYER_COLLISION_RADIUS, enemyOfPlayer ? 96 : 78, Math.sin(p.aiSeed + now / 1700));
+        const far = Math.hypot(vector.x, vector.y) > (enemyOfPlayer ? 120 : 165);
+        const boostThreshold = enemyOfPlayer ? -.58 : -.15;
+        const boostAi = p.state === 'ACTIVE' && p.boost > (enemyOfPlayer ? 7 : 12) && far && Math.sin(now / 950 + p.aiSeed) > boostThreshold;
+        if (boostAi) { p.boost = Math.max(0, p.boost - stats.boostDrain * (enemyOfPlayer ? .5 : .66) * dt); p.boostReadyAt = now + 20000; }
+        move(p, vector.x, vector.y, stats.speed * (enemyOfPlayer ? AI_ENEMY_SPEED_MULTIPLIER : AI_ALLY_SPEED_MULTIPLIER) * (boostAi ? stats.boostMultiplier : 1), dt, now);
       });
-      resolvePlayerSpacing();
+      resolvePlayerSpacing(now);
       const exitCandidates: Player[] = [];
       players.forEach(p => baseCheck(p, dt, now, exitCandidates));
       Array.from(new Map(exitCandidates.map(p => [p.id, p])).values()).sort((a, b) => tieHash(a.id) - tieHash(b.id)).forEach(p => {
-        p.state = 'ACTIVE'; p.exitOrder = ++exitCounter; p.baseCharge = 0; p.exitDeadline = 0; p.rescueShieldUntil = 0;
+        p.state = 'ACTIVE'; p.exitOrder = ++exitCounter; p.lastExitAt = now; p.baseCharge = 0; p.exitDeadline = 0; p.rescueShieldUntil = 0;
         if (p.controlled && p.exitOrder > 5) mission.refresh = true;
         log(`${p.name} keluar sebagai urutan #${p.exitOrder}.`); beep(p.controlled ? 520 : 380);
       });
@@ -844,6 +875,10 @@ export function BentenganPrototype() {
       const dt = Math.min(.033, (now - last) / 1000); last = now; update(dt, now); draw(now);
       if (now - lastHud > 100) {
         lastHud = now; const me = players[0], blueLock = fortOccupant('blue'), redLock = fortOccupant('red');
+        canvas.dataset.playerPosition = `${me.x.toFixed(1)},${me.y.toFixed(1)}`;
+        canvas.dataset.embeddedPlayers = String(players.filter(p => p.state !== 'PRISONER' && hitsObstacle(p.x, p.y)).length);
+        canvas.dataset.aiMoving = String(players.slice(1).filter(p => p.state !== 'PRISONER' && Math.hypot(p.vx, p.vy) > 8).length);
+        canvas.dataset.enemyCaptures = String(players.filter(p => p.team !== me.team).reduce((sum, p) => sum + p.captures, 0));
         setSnapshot({
           blue: score.blue, red: score.red, round, timer, boost: me.boost / selected.boost * 100,
           boostCountdown: me.boost >= selected.boost || !me.boostReadyAt ? 0 : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
@@ -924,6 +959,16 @@ export function BentenganPrototype() {
   }, [hoveredFaction, menuStep, mode, rulesOpen, selectedFaction, selectedFieldId, selectedId, view]);
 
   const touchKey = (key: string, pressed: boolean) => pressed ? keys.current.add(key) : keys.current.delete(key);
+  const touchControl = (key: string) => {
+    const release = () => touchKey(key, false);
+    return {
+      onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => { event.preventDefault(); touchKey(key, true); },
+      onPointerUp: release,
+      onPointerCancel: release,
+      onPointerLeave: release,
+      onLostPointerCapture: release,
+    };
+  };
   if (view === 'workshop') return <main className="game-shell"><CharacterWorkshop onClose={() => setView('game')} /></main>;
   if (mode === 'menu') {
     const activeFaction = hoveredFaction;
@@ -1001,7 +1046,7 @@ export function BentenganPrototype() {
       </section>}
 
       {menuStep !== 'splash' && <button className="graffiti-back" onClick={goBack} aria-label="Kembali"><img src={uiAsset('controls/back.webp')} alt="Kembali" /></button>}
-      <div className="pregame-actions"><button className="rules-button graffiti-primary" onClick={() => setRulesOpen(true)}><span>GAME RULES</span></button><button className="workshop-link" onClick={() => setView('workshop')}><Wrench size={14} /> Workshop</button></div>
+      <div className={`pregame-actions step-${menuStep}`}><button className="rules-button graffiti-primary" onClick={() => setRulesOpen(true)}><span>GAME RULES</span></button><button className="workshop-link" onClick={() => setView('workshop')}><Wrench size={14} /> Workshop</button></div>
       {rulesOpen && <div className="rules-overlay" role="dialog" aria-modal="true" aria-labelledby="rules-title"><div className="rules-dialog"><button className="rules-close" onClick={() => setRulesOpen(false)} aria-label="Tutup">×</button><span>BENTENGAN 5V5</span><h2 id="rules-title">Cara merebut kemenangan</h2><ol><li><b>Keluar dari benteng.</b> Urutan keluar menentukan siapa yang boleh menangkap siapa.</li><li><b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara timmu.</li><li><b>Sentuh rekan terluar di penjara</b> untuk membebaskan seluruh rantai.</li><li><b>Serbu benteng lawan.</b> Isi meter benteng tanpa tertangkap untuk menang.</li></ol><p>WASD gerak · Space sprint · Shift parkour · P jeda</p></div></div>}
     </main>;
   }
@@ -1039,7 +1084,7 @@ export function BentenganPrototype() {
             <div className="field-row"><span>LANGKAH 3 · PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
             {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction!).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
           </div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" onPointerDown={e => { e.preventDefault(); touchKey('w', true); }} onPointerUp={() => touchKey('w', false)} onPointerCancel={() => touchKey('w', false)}>▲</button><button aria-label="Gerak kiri" onPointerDown={e => { e.preventDefault(); touchKey('a', true); }} onPointerUp={() => touchKey('a', false)} onPointerCancel={() => touchKey('a', false)}>◀</button><button aria-label="Gerak kanan" onPointerDown={e => { e.preventDefault(); touchKey('d', true); }} onPointerUp={() => touchKey('d', false)} onPointerCancel={() => touchKey('d', false)}>▶</button><button aria-label="Gerak bawah" onPointerDown={e => { e.preventDefault(); touchKey('s', true); }} onPointerUp={() => touchKey('s', false)} onPointerCancel={() => touchKey('s', false)}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" onPointerDown={e => { e.preventDefault(); touchKey(' ', true); }} onPointerUp={() => touchKey(' ', false)} onPointerCancel={() => touchKey(' ', false)}>SPRINT</button><button aria-label="Parkour" onPointerDown={e => { e.preventDefault(); touchKey('shift', true); }} onPointerUp={() => touchKey('shift', false)} onPointerCancel={() => touchKey('shift', false)}>PARKOUR</button></div></div></>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" {...touchControl('w')}>▲</button><button aria-label="Gerak kiri" {...touchControl('a')}>◀</button><button aria-label="Gerak kanan" {...touchControl('d')}>▶</button><button aria-label="Gerak bawah" {...touchControl('s')}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" {...touchControl(' ')}>SPRINT</button><button aria-label="Parkour" {...touchControl('shift')}>PARKOUR</button></div></div></>}
         </div>
         <aside className="mission-panel">
           <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>Buktikan core loop</h2></div>

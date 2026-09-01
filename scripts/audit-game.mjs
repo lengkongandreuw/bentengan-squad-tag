@@ -22,6 +22,7 @@ const workshopSource = await readFile(path.join(root, 'components/character-work
 const motion = await import('../lib/sprite-motion.js');
 const { fieldCycleDecision } = await import('../lib/field-cycle.js');
 const { sweptContactDistance } = await import('../lib/tag-contact.js');
+const { depenetrateFromRects, pointHitsExpandedRect, steerAroundRects } = await import('../lib/collision-navigation.js');
 const ids = [...charactersSource.matchAll(/\{ id: '([a-z]+)', name:/g)].map(match => match[1]);
 const teamIds = Object.values(rules.teams).flatMap(team => team.roster);
 
@@ -97,6 +98,15 @@ const crossingB = { lastX: 100, lastY: 0, x: 0, y: 0 };
 const parallelB = { lastX: 0, lastY: 40, x: 100, y: 40 };
 assert(sweptContactDistance(crossingA, crossingB) < .001 && Math.abs(sweptContactDistance(crossingA, parallelB) - 40) < .001, 'swept contact menangkap lintasan silang tanpa false positive paralel');
 assert(prototypeSource.includes('Math.min(distance(a, b), sweptContactDistance(a, b))'), 'runtime tag memakai swept contact agar tidak melewatkan tabrakan antar-frame');
+const collisionRect = { x: 100, y: 100, w: 80, h: 60 };
+const embeddedPlayer = { x: 125, y: 125 };
+const recoveredPlayer = depenetrateFromRects(embeddedPlayer, [collisionRect], 13, { minX: 0, maxX: 400, minY: 0, maxY: 300 });
+assert(pointHitsExpandedRect(embeddedPlayer.x, embeddedPlayer.y, collisionRect, 13) && !pointHitsExpandedRect(recoveredPlayer.x, recoveredPlayer.y, collisionRect, 13), 'player yang terdorong masuk collider selalu dikeluarkan ke sisi terdekat');
+const detour = steerAroundRects({ x: 40, y: 130 }, { x: 200, y: 0 }, [collisionRect], 13, 100, 1);
+assert(Math.abs(detour.y) > 1 && Math.abs(detour.x) > 1, 'navigasi AI membelok ketika jalur langsung terhalang');
+assert(prototypeSource.includes('recoverFromObstacle(player, now)') && prototypeSource.includes('spacingPositionAllowed') && prototypeSource.includes('onPointerLeave: release') && prototypeSource.includes("window.addEventListener('blur', releaseAll)"), 'pemulihan collider, spacing aman, serta pelepasan input keyboard dan sentuh terpasang');
+assert(prototypeSource.includes('BASE_REENTRY_COOLDOWN_MS = 1500') && prototypeSource.includes('p.lastExitAt = now'), 'jitter di tepi benteng tidak memicu keluar-masuk dan prioritas berulang');
+assert(prototypeSource.includes('AI_ENEMY_SPEED_MULTIPLIER = 1.04') && prototypeSource.includes('steerAroundRects') && prototypeSource.includes('aPlayerBias = a.controlled ? -150 : 0'), 'AI lawan lebih cepat, dapat menghindari halangan, dan memprioritaskan pemain');
 assert(prototypeSource.includes("drawFieldAsset(ctx, 'prisonOverlay'") && prototypeSource.includes("drawFieldAsset(target, 'prisonFloor'"), 'penjara memakai lantai belakang dan pagar overlay terpisah');
 assert(globalStyles.includes('align-items:start') && globalStyles.includes('.stage-card { height:min(79vh,900px)'), 'stage tidak meregang mengikuti panel misi dan kamera Overall tetap terpusat');
 
