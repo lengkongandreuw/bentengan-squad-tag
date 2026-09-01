@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { BatteryCharging, Flag, Gauge, LogOut, Pause, Play, RotateCcw, Shield, Users, Volume2, Wrench, Zap } from 'lucide-react';
+import { BatteryCharging, Check, Flag, Gauge, Lock, LogOut, Map as MapIcon, Menu, Pause, Play, RotateCcw, Shield, Users, Volume2, Wrench, X, Zap } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { CHARACTER_BY_ID, CharacterId, characterAsset, characterRuntimeAsset, characterUsesDedicatedEast, publicAsset } from '../lib/characters';
 import { FIELD_ANIMATED_ATLAS, FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAnimatedId, FieldAssetId, GroundTileId } from '../lib/field-assets.generated';
@@ -247,7 +247,7 @@ const formatTime = (seconds: number) => {
 };
 const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 const UI_V2_PORTRAITS = new Set<CharacterId>(['raja', 'robot', 'jago', 'lala', 'kumis', 'tui', 'bebe', 'kaka', 'ciici', 'buto', 'maria', 'boke', 'lui', 'kodo']);
-const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=3`);
+const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=4`);
 const menuPortraitAsset = (id: CharacterId) => UI_V2_PORTRAITS.has(id) ? uiAsset(`portraits/${id}.webp`) : characterAsset(id, 'portrait.webp');
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
@@ -290,6 +290,7 @@ export function BentenganPrototype() {
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');
   const [hoveredFaction, setHoveredFaction] = useState<Faction | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [missionOpen, setMissionOpen] = useState(false);
   const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
@@ -961,11 +962,11 @@ export function BentenganPrototype() {
   const start = () => {
     if (!selectedFaction) return;
     completedMatchesRef.current = 0;
-    setSnapshot(initialSnapshot); setMode('playing'); setRun(v => v + 1);
+    setSnapshot(initialSnapshot); setMissionOpen(false); setMode('playing'); setRun(v => v + 1);
   };
   const quit = () => {
     keys.current.clear(); completedMatchesRef.current = 0;
-    setSnapshot(initialSnapshot); setMode('menu'); setMenuStep('splash'); setRulesOpen(false); setSelectedFaction(null); setSelectedId('raja'); setSelectedFieldId('kampung'); setCameraMode('follow'); setRun(v => v + 1);
+    setSnapshot(initialSnapshot); setMode('menu'); setMenuStep('splash'); setRulesOpen(false); setMissionOpen(false); setSelectedFaction(null); setSelectedId('raja'); setSelectedFieldId('kampung'); setCameraMode('follow'); setRun(v => v + 1);
   };
   const cycleCharacter = (direction: -1 | 1) => {
     if (!selectedFaction) return;
@@ -1033,14 +1034,14 @@ export function BentenganPrototype() {
         <img className="splash-hero splash-red" src={uiAsset('heroes/red-active.webp')} alt="Raja dari Tim Merah" />
         <img className="splash-hero splash-green" src={uiAsset('heroes/green-active.webp')} alt="Kaka dari Tim Hijau" />
         <div className="splash-center">
-          <img className="splash-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" id="game-title" />
+          <img className="splash-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=9')} alt="Benteng Squad Tag" id="game-title" />
           <button className="enter-game" onClick={() => setMenuStep('team')}><span>PRESS</span> SPACE <small>atau klik untuk masuk</small></button>
         </div>
       </section>}
 
       {menuStep === 'team' && <section className="team-screen" aria-labelledby="team-title">
         <h1 id="team-title" className="sr-only">Pilih tim</h1>
-        <img className="ghost-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="" />
+        <img className="ghost-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=9')} alt="" />
         {(['red', 'green'] as Faction[]).map(faction => <button
           key={faction}
           className={`team-pick team-pick-${faction} ${activeFaction === faction ? 'active' : ''}`}
@@ -1106,15 +1107,15 @@ export function BentenganPrototype() {
     </main>;
   }
   return (
-    <main className="game-shell">
+    <main className="game-shell playing-shell">
       <header className="game-topbar">
-        <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v8 · Fields 2× · guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="quit-button" onClick={quit}><LogOut size={15} /> Quit</button><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=9')} alt="Benteng Squad Tag" /><span className="brand-kicker"><i /> Playable rules prototype<br />Field 2× · guarded</span></div>
+        <div className="top-actions"><button className="icon-button hud-menu-button" onClick={() => setMissionOpen(value => !value)} aria-label="Buka menu misi"><Menu size={19} /></button><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={18} /></button></div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`} />
-          <div className="stage-hud"><div className="hud-red"><b>MERAH · KIRI</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div className="hud-green"><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>HIJAU · KANAN</b></div></div>
+          <div className="stage-hud"><div className="hud-red"><span>{snapshot.blue}</span><b>TIM MERAH<small>{snapshot.blueHeld}/5 TAHANAN</small></b></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}<small>WAKTU</small></time><div className="hud-green"><b>HIJAU<small>{snapshot.redHeld}/5 TAHANAN</small></b><span>{snapshot.red}</span></div></div>
           {false && <div className="start-panel character-select">
             <div className="character-select-heading"><div><p>LANGKAH 1 · PILIH TIM</p><h1>Merah atau Hijau.<br />Tentukan pihakmu.</h1></div><span>Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki tujuh karakter tetap dan membawa lima pemain ke field.</span></div>
             <div className="team-chooser" aria-label="Pilih tim">
@@ -1139,13 +1140,13 @@ export function BentenganPrototype() {
             <div className="field-row"><span>LANGKAH 3 · PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
             {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction!).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
           </div>}
-          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''}`} aria-label="Status combo aksi tim"><Users size={17} /><span><small>{snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM'}</small><b>{snapshot.comboSurgeRemaining ? `SQUAD SURGE ${snapshot.comboSurgeRemaining}s` : snapshot.comboLevel ? `LINK ${snapshot.comboLevel}/3 · ${snapshot.comboRemaining}s` : 'RANGKAI 3 AKSI'}</b></span><i>{[1, 2, 3].map(step => <u key={step} className={snapshot.comboSurgeRemaining || snapshot.comboLevel >= step ? 'filled' : ''} />)}</i></div>{snapshot.comboCallout && <div className={`combo-callout ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}><Users size={22} /><span>{snapshot.comboCallout}</span></div>}<div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" {...touchControl('w')}>▲</button><button aria-label="Gerak kiri" {...touchControl('a')}>◀</button><button aria-label="Gerak kanan" {...touchControl('d')}>▶</button><button aria-label="Gerak bawah" {...touchControl('s')}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" {...touchControl(' ')}>SPRINT</button><button aria-label="Parkour" {...touchControl('shift')}>PARKOUR</button></div></div></>}
+          {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} /><span><b>{selected.name}</b>{selectedFaction ? factionName(selectedFaction) : ''}</span><strong>{snapshot.state.replace('_', ' ')}</strong><em>PRIORITAS #{snapshot.order || '—'}</em></div><button className="active-objective" onClick={() => setMissionOpen(true)}><Flag size={20} /><span><small>TUJUAN AKTIF · {missionCount}/6</small><b>{missionCount === 6 ? 'Semua misi selesai' : 'Buktikan core loop'}</b></span><i>›</i></button><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''}`} aria-label="Status combo aksi tim"><Users size={17} /><span><small>{snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM'}</small><b>{snapshot.comboSurgeRemaining ? `SQUAD SURGE ${snapshot.comboSurgeRemaining}s` : snapshot.comboLevel ? `LINK ${snapshot.comboLevel}/3 · ${snapshot.comboRemaining}s` : 'RANGKAI 3 AKSI'}</b></span><i>{[1, 2, 3].map(step => <u key={step} className={snapshot.comboSurgeRemaining || snapshot.comboLevel >= step ? 'filled' : ''} />)}</i></div>{snapshot.comboCallout && <div className={`combo-callout ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}><Users size={22} /><span>{snapshot.comboCallout}</span></div>}<div className="camera-switcher camera-map" aria-label="Pilihan kamera"><span><MapIcon size={13} /> PETA</span>{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>⚡ STAMINA</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="action-dock" aria-label="Aksi pemain"><span className="ready-action"><Zap size={19} /><b>1</b><small>SPRINT</small></span><span><Gauge size={19} /><b>2</b><small>PARKOUR</small></span><span className={snapshot.comboSurgeRemaining ? 'combo-ready' : ''}><Users size={19} /><b>3</b><small>COMBO</small></span><span><Shield size={19} /><b>4</b><small>RESCUE</small></span><span className="locked"><Lock size={16} /><b>5</b></span><span className="locked"><Lock size={16} /><b>6</b></span></div><div className="control-ribbon"><b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR <b>P</b> JEDA</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" {...touchControl('w')}>▲</button><button aria-label="Gerak kiri" {...touchControl('a')}>◀</button><button aria-label="Gerak kanan" {...touchControl('d')}>▶</button><button aria-label="Gerak bawah" {...touchControl('s')}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" {...touchControl(' ')}>SPRINT</button><button aria-label="Parkour" {...touchControl('shift')}>PARKOUR</button></div></div>{snapshot.paused && <div className="pause-overlay"><div><small>PERMAINAN DIJEDA</small><h2>Ambil napas.<br />Lanjut saat siap.</h2><button onClick={() => keys.current.add('p')}><Play size={17} fill="currentColor" /> Lanjutkan</button><button onClick={() => setRun(value => value + 1)}><RotateCcw size={17} /> Mulai ulang</button><button onClick={quit}><LogOut size={17} /> Keluar ke menu</button></div></div>}</>}
         </div>
-        <aside className="mission-panel">
-          <div className="mission-head"><span>Rules test · {missionCount}/6</span><h2>Buktikan core loop</h2></div>
+        <aside className={`mission-panel ${missionOpen ? 'open' : ''}`} aria-hidden={!missionOpen}>
+          <button className="mission-close" onClick={() => setMissionOpen(false)} aria-label="Tutup tujuan"><X size={20} /></button><div className="mission-head"><span>Rules test · {missionCount}/6</span><h2>Buktikan core loop</h2></div>
           <div className="mission-progress"><span style={{ width: `${missionCount * (100 / 6)}%` }} /></div>
           <ul className="mission-list">
-            <li className={snapshot.mission.refresh ? 'done' : ''}><Flag size={18} /><div><b>Refresh prioritas</b><span>Kembali ke benteng dan keluar lagi sebagai urutan terbaru.</span></div></li>
+            <li className={snapshot.mission.refresh ? 'done' : ''}>{snapshot.mission.refresh ? <Check size={18} /> : <Flag size={18} />}<div><b>Refresh prioritas</b><span>Kembali ke benteng dan keluar lagi sebagai urutan terbaru.</span></div></li>
             <li className={snapshot.mission.boost ? 'done' : ''}><BatteryCharging size={18} /><div><b>Sprint terbatas</b><span>Tekan Space untuk ledakan lari {GAME_RULES.boostDurationMs / 1000} detik. Pulih 20 detik atau ambil refill.</span></div></li>
             <li className={snapshot.mission.parkour ? 'done' : ''}><Gauge size={18} /><div><b>Parkour kontekstual</b><span>Tekan Shift di dekat rintangan.</span></div></li>
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>

@@ -5,7 +5,9 @@ import sharp from 'sharp';
 const root = process.cwd();
 const source = path.join(root, 'asset-inbox', '2026-08-31-character-select-v1');
 const rosterExpansion = path.join(root, 'asset-inbox', '2026-09-01-roster-expansion-v1');
+const uiRefresh = path.join(root, 'asset-inbox', '2026-09-01-ui-refresh-v3');
 const output = path.join(root, 'public', 'ui-v2');
+const brandOutput = path.join(root, 'public', 'brand');
 
 const portraits = {
   maria: 'characters/hijau maria.png',
@@ -57,6 +59,15 @@ const encodeContained = async (input, destination, width, height, quality = 78) 
 await fs.mkdir(path.join(output, 'portraits'), { recursive: true });
 await fs.mkdir(path.join(output, 'heroes'), { recursive: true });
 await fs.mkdir(path.join(output, 'controls'), { recursive: true });
+await fs.mkdir(brandOutput, { recursive: true });
+
+await encodeContained(
+  path.join(uiRefresh, 'brand', 'benteng-tag-logo.png'),
+  path.join(brandOutput, 'benteng-tag-logo.webp'),
+  1080,
+  500,
+  80,
+);
 
 for (const [id, relative] of Object.entries(portraits)) {
   await encodeContained(await ensureSource(relative), path.join(output, 'portraits', `${id}.webp`), 400, 600, 76);
@@ -75,7 +86,7 @@ for (const [id, relative] of Object.entries(controls)) {
 }
 
 for (const faction of ['red', 'green']) {
-  const input = await ensureSource(`buttons/button tim ${faction === 'red' ? 'merah' : 'hijau'}.png`);
+  const input = path.join(uiRefresh, 'buttons', `button tim ${faction === 'red' ? 'merah' : 'hijau'}.png`);
   const metadata = await sharp(input).metadata();
   const half = Math.floor((metadata.height ?? 0) / 2);
   for (const [state, top] of [['normal', 0], ['active', half]]) {
@@ -85,8 +96,8 @@ for (const faction of ['red', 'green']) {
       .toBuffer();
     await sharp(crop)
       .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .resize({ width: 720, height: 250, fit: 'inside' })
-      .webp({ quality: 82, alphaQuality: 88, effort: 5 })
+      .resize({ width: 720, height: 360, fit: 'inside' })
+      .webp({ quality: 80, alphaQuality: 88, effort: 5 })
       .toFile(path.join(output, 'controls', `team-${faction}-${state}.webp`));
   }
 }
@@ -104,5 +115,6 @@ const walk = async directory => {
 };
 await walk(output);
 files.sort((a, b) => a.file.localeCompare(b.file));
-await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 3, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
-console.log(`UI runtime v3: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB`);
+await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 4, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
+const logoBytes = (await fs.stat(path.join(brandOutput, 'benteng-tag-logo.webp'))).size;
+console.log(`UI runtime v4: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);

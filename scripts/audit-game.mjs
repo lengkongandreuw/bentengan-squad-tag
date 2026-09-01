@@ -38,11 +38,11 @@ assert(manifest.version === 8 && manifest.characters.length === 14, 'manifest sp
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('column * width / 7') && !prototypeSource.includes('column * width / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
 assert(charactersSource.includes('?v=8') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v8');
-assert(uiManifest.version === 3 && uiManifest.files.length === 25, 'paket UI v3 memuat 14 portrait, 4 hero, dan 7 kontrol');
-assert(uiManifest.totalBytes <= 900 * 1024, `paket UI v3 ${(uiManifest.totalBytes / 1024).toFixed(0)} KiB berada dalam budget 900 KiB`);
+assert(uiManifest.version === 4 && uiManifest.files.length === 25, 'paket UI v4 memuat 14 portrait, 4 hero, dan 7 kontrol');
+assert(uiManifest.totalBytes <= 900 * 1024, `paket UI v4 ${(uiManifest.totalBytes / 1024).toFixed(0)} KiB berada dalam budget 900 KiB`);
 for (const id of ['tui', 'lui', 'bebe', 'kodo']) assert(uiManifest.files.some(entry => entry.file === `portraits/${id}.webp`), `${id}: portrait seleksi karakter tersedia`);
 assert(prototypeSource.includes("type MenuStep = 'splash' | 'team' | 'character' | 'field'") && prototypeSource.includes("key === 'escape'") && prototypeSource.includes('cycleCharacter'), 'alur layar baru dan navigasi keyboard terpasang');
-assert(prototypeSource.includes("ui-v2/${file}?v=3") && !prototypeSource.includes('asset-inbox/'), 'runtime memakai WebP UI v3 tanpa merujuk master PNG');
+assert(prototypeSource.includes("ui-v2/${file}?v=4") && !prototypeSource.includes('asset-inbox/'), 'runtime memakai WebP UI v4 tanpa merujuk master PNG');
 
 const offsets = rules.spawnOffsets;
 let minimumSpawnDistance = Infinity;
@@ -93,7 +93,7 @@ assert(prototypeSource.includes('kepadatan arena 2× tidak mencukupi') && protot
 const fieldOrder = ['kampung', 'pasar', 'taman'];
 assert(fieldCycleDecision('kampung', 2, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('kampung', 2, fieldOrder).wins === 2, 'field bertahan sebelum tiga kemenangan pertandingan');
 assert(fieldCycleDecision('kampung', 3, fieldOrder).fieldId === 'pasar' && fieldCycleDecision('taman', 3, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('taman', 3, fieldOrder).wins === 0, 'field berpindah dan berputar otomatis tepat setiap tiga kemenangan');
-assert(prototypeSource.includes('const quit = () =>') && prototypeSource.includes('setMode(\'menu\')') && prototypeSource.includes('<LogOut size={15} /> Quit'), 'tombol Quit mengembalikan pemain ke menu awal');
+assert(prototypeSource.includes('const quit = () =>') && prototypeSource.includes('setMode(\'menu\')') && prototypeSource.includes('<LogOut size={17} /> Keluar ke menu'), 'menu jeda dapat mengembalikan pemain ke menu awal');
 const crossingA = { lastX: 0, lastY: 0, x: 100, y: 0 };
 const crossingB = { lastX: 100, lastY: 0, x: 0, y: 0 };
 const parallelB = { lastX: 0, lastY: 40, x: 100, y: 40 };
@@ -126,15 +126,16 @@ const sha256 = async file => createHash('sha256').update(await readFile(path.joi
 for (const [filename, hash] of Object.entries(fieldBaseline.sources)) assert(hash === await sha256(`field-sources/${filename}`), `${filename}: sumber field cocok golden baseline`);
 for (const [filename, hash] of Object.entries(fieldBaseline.runtime)) assert(hash === await sha256(`public/field/${filename}`), `${filename}: runtime field cocok golden baseline`);
 
-const logo = await sharp(path.join(root, 'public/brand/benteng-tag-logo.png')).metadata();
-assert((logo.width ?? 0) >= 1200 && (logo.height ?? 0) >= 500 && logo.hasAlpha, 'logo judul resolusi tinggi dan transparan');
+const logo = await sharp(path.join(root, 'asset-inbox/2026-09-01-ui-refresh-v3/brand/benteng-tag-logo.png')).metadata();
+assert((logo.width ?? 0) >= 1900 && (logo.height ?? 0) >= 850 && logo.hasAlpha, 'master logo judul baru resolusi tinggi dan transparan');
 const webLogoPath = path.join(root, 'public/brand/benteng-tag-logo.webp');
 const webLogo = await sharp(webLogoPath).metadata();
-assert(webLogo.width === logo.width && webLogo.height === logo.height && webLogo.hasAlpha && (await stat(webLogoPath)).size <= 650 * 1024, 'logo WebP mempertahankan dimensi dalam budget 650 KiB');
+assert((webLogo.width ?? 0) <= 1080 && (webLogo.height ?? 0) <= 500 && webLogo.hasAlpha && (await stat(webLogoPath)).size <= 160 * 1024, 'logo WebP baru transparan dan berada dalam budget 160 KiB');
 const montagePath = path.join(root, 'public/characters.webp');
 const montage = await sharp(montagePath).metadata();
 assert(montage.width === 1920 && montage.height === 900 && (await stat(montagePath)).size <= 350 * 1024, 'montage WebP layar awal berada dalam budget 350 KiB');
-assert(prototypeSource.includes('benteng-tag-logo.webp?v=7') && prototypeSource.includes('characters.webp?v=8'), 'UI memakai asset WebP ringan, bukan master PNG');
+assert(prototypeSource.includes('benteng-tag-logo.webp?v=9') && prototypeSource.includes('characters.webp?v=8'), 'UI memakai asset WebP ringan, bukan master PNG');
+assert(prototypeSource.includes('active-objective') && prototypeSource.includes('action-dock') && prototypeSource.includes('pause-overlay') && globalStyles.includes('.playing-shell .stage-hud'), 'HUD imersif memiliki tujuan aktif, dock aksi, dan menu jeda responsif');
 const sprintDust = await sharp(path.join(root, 'public/vfx/sprint-dust.webp')).metadata();
 assert(sprintDust.width === 1024 && sprintDust.height === 192 && sprintDust.hasAlpha, 'VFX sprint RPG memiliki empat frame transparan');
 

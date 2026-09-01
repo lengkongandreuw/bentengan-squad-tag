@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "files": [
     {
       "file": "controls/back.webp",
@@ -15,19 +15,19 @@
     },
     {
       "file": "controls/team-green-active.webp",
-      "bytes": 64314
+      "bytes": 61104
     },
     {
       "file": "controls/team-green-normal.webp",
-      "bytes": 34026
+      "bytes": 49932
     },
     {
       "file": "controls/team-red-active.webp",
-      "bytes": 55032
+      "bytes": 64608
     },
     {
       "file": "controls/team-red-normal.webp",
-      "bytes": 31454
+      "bytes": 42662
     },
     {
       "file": "heroes/green-active.webp",
@@ -102,5 +102,5 @@
       "bytes": 31948
     }
   ],
-  "totalBytes": 852906
+  "totalBytes": 886386
 }
