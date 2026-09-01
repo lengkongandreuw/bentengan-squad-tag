@@ -116,7 +116,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
   return (
     <section className="workshop-shell" aria-label="Bentengan Character Workshop">
       <header className="workshop-head">
-        <div><span>Asset pipeline v7 · runtime ringan 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
+        <div><span>Asset pipeline v8 · runtime ringan 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
         <button className="workshop-back" onClick={onClose}><ChevronLeft size={17} /> Kembali ke game</button>
       </header>
       <div className="workshop-layout">

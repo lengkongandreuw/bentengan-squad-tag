@@ -15,6 +15,8 @@ const characters = [
   { id: 'boke', name: 'Boke', role: 'Disruptor', rows: 6 },
   { id: 'tui', name: 'Tui', role: 'Runner', rows: 6 },
   { id: 'lui', name: 'Lui', role: 'Scout', rows: 6 },
+  { id: 'bebe', name: 'Bebe', role: 'Rescuer', rows: 6 },
+  { id: 'kodo', name: 'Kodo', role: 'Guardian', rows: 6 },
 ];
 
 const root = process.cwd();
@@ -22,7 +24,7 @@ const sourceRoot = path.join(root, 'sprite-sources');
 const outputRoot = path.join(root, 'public', 'characters');
 const sourceColumns = 7;
 const atlasRows = 6;
-const pipelineVersion = 7;
+const pipelineVersion = 8;
 const runtimeScale = .5;
 const minimumAtlasCellHeight = 256;
 const atlasPadding = 8;
@@ -274,8 +276,8 @@ const montagePortraits = await Promise.all(characters.map(async (character, inde
     .resize({ width: 260, height: 360, fit: 'contain', position: 'south', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer(),
-  left: (index % 6) * 320 + 30,
-  top: Math.floor(index / 6) * 450 + 45,
+  left: (index % 7) * 274 + 22,
+  top: Math.floor(index / 7) * 450 + 45,
 })));
 await sharp({ create: { width: 1920, height: 900, channels: 4, background: { r: 38, g: 55, b: 71, alpha: 1 } } })
   .composite(montagePortraits)

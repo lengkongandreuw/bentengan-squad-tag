@@ -41,7 +41,8 @@ type Snapshot = {
   blueHeld: number; redHeld: number; pickupCount: number; fortLock: string; baseGrace: number; suddenDeath: boolean; fieldWins: number;
 };
 
-const WORLD_SCALE = 1.25;
+const WORLD_SCALE = 2.5;
+const STATIC_MAP_SCALE = .5;
 const world = (value: number) => Math.round(value * WORLD_SCALE);
 const W = world(1440);
 const H = world(800);
@@ -85,10 +86,25 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
       { x: 540, y: 582, w: 136, h: 44, asset: 'coffeeStall', visualW: 196, visualH: 188 },
       { x: 468, y: 150, w: 92, h: 46, asset: 'snackCart', visualW: 132, visualH: 150 },
       { x: 934, y: 586, w: 98, h: 48, asset: 'foodCart', visualW: 138, visualH: 148 },
+      { x: 176, y: 286, w: 98, h: 58, asset: 'crates', visualW: 112, visualH: 92 },
+      { x: 390, y: 518, w: 158, h: 34, asset: 'drain', visualW: 180, visualH: 66 },
+      { x: 454, y: 252, w: 136, h: 42, asset: 'marketStallA', visualW: 186, visualH: 148 },
+      { x: 568, y: 438, w: 142, h: 42, asset: 'coffeeStall', visualW: 194, visualH: 184 },
+      { x: 742, y: 174, w: 84, h: 56, asset: 'crates', visualW: 98, visualH: 80, flip: true },
+      { x: 716, y: 364, w: 154, h: 32, asset: 'drain', visualW: 178, visualH: 62 },
+      { x: 826, y: 610, w: 46, h: 52, asset: 'trash', visualW: 54, visualH: 72 },
+      { x: 908, y: 356, w: 140, h: 42, asset: 'marketStallC', visualW: 188, visualH: 150, flip: true },
+      { x: 1038, y: 516, w: 92, h: 58, asset: 'crates', visualW: 108, visualH: 90 },
+      { x: 1124, y: 302, w: 154, h: 34, asset: 'drain', visualW: 178, visualH: 64 },
+      { x: 1234, y: 488, w: 94, h: 46, asset: 'snackCart', visualW: 132, visualH: 148, flip: true },
+      { x: 306, y: 92, w: 72, h: 58, asset: 'parkTree', visualW: 118, visualH: 154 },
+      { x: 1196, y: 92, w: 72, h: 58, asset: 'parkTree', visualW: 118, visualH: 154, flip: true },
     ],
     decorations: [
       { asset: 'bunting', x: 602, y: 68, w: 236, h: 122, opacity: .94 },
       { asset: 'plant', x: 242, y: 650, w: 62, h: 78 }, { asset: 'bush', x: 1060, y: 86, w: 100, h: 66 },
+      { asset: 'bush', x: 420, y: 74, w: 92, h: 60 }, { asset: 'plant', x: 884, y: 684, w: 58, h: 74 },
+      { asset: 'bunting', x: 196, y: 82, w: 210, h: 110, opacity: .82 }, { asset: 'bunting', x: 1018, y: 626, w: 210, h: 110, flip: true, opacity: .82 },
     ],
     animated: [{ animation: 'flag', x: 690, y: 76, w: 66, h: 92 }],
   },
@@ -115,11 +131,26 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
       { x: 1018, y: 570, w: 146, h: 42, asset: 'marketStallC', visualW: 190, visualH: 152 },
       { x: 470, y: 548, w: 94, h: 46, asset: 'snackCart', visualW: 134, visualH: 152 },
       { x: 780, y: 188, w: 98, h: 46, asset: 'foodCart', visualW: 140, visualH: 150 },
+      { x: 142, y: 294, w: 142, h: 42, asset: 'marketStallA', visualW: 188, visualH: 150 },
+      { x: 300, y: 610, w: 96, h: 46, asset: 'foodCart', visualW: 138, visualH: 148 },
+      { x: 420, y: 470, w: 152, h: 32, asset: 'drain', visualW: 176, visualH: 62 },
+      { x: 520, y: 102, w: 94, h: 58, asset: 'crates', visualW: 108, visualH: 90 },
+      { x: 610, y: 628, w: 48, h: 58, asset: 'trash', visualW: 56, visualH: 78 },
+      { x: 712, y: 274, w: 148, h: 44, asset: 'marketStallB', visualW: 194, visualH: 154 },
+      { x: 842, y: 88, w: 98, h: 46, asset: 'snackCart', visualW: 138, visualH: 150, flip: true },
+      { x: 896, y: 626, w: 146, h: 42, asset: 'marketStallC', visualW: 190, visualH: 152, flip: true },
+      { x: 1010, y: 308, w: 46, h: 54, asset: 'bucket', visualW: 54, visualH: 58 },
+      { x: 1112, y: 306, w: 146, h: 42, asset: 'marketStallA', visualW: 190, visualH: 152, flip: true },
+      { x: 1172, y: 514, w: 152, h: 32, asset: 'drain', visualW: 176, visualH: 62 },
+      { x: 1264, y: 166, w: 92, h: 58, asset: 'crates', visualW: 108, visualH: 90, flip: true },
+      { x: 318, y: 274, w: 46, h: 54, asset: 'bucket', visualW: 54, visualH: 58 },
     ],
     decorations: [
       { asset: 'bunting', x: 600, y: 66, w: 240, h: 124 },
       { asset: 'lamp', x: 344, y: 588, w: 46, h: 96 }, { asset: 'lamp', x: 1046, y: 106, w: 46, h: 96 },
       { asset: 'plant', x: 1188, y: 670, w: 58, h: 74 },
+      { asset: 'lamp', x: 566, y: 86, w: 46, h: 96 }, { asset: 'lamp', x: 828, y: 616, w: 46, h: 96 },
+      { asset: 'bunting', x: 232, y: 618, w: 220, h: 112, opacity: .82 }, { asset: 'bunting', x: 984, y: 72, w: 220, h: 112, flip: true, opacity: .82 },
     ],
     animated: [{ animation: 'vendor', x: 690, y: 360, w: 122, h: 100 }, { animation: 'flag', x: 1188, y: 92, w: 62, h: 88, flip: true }],
   },
@@ -144,11 +175,25 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
       { x: 566, y: 176, w: 182, h: 34, asset: 'plantFence', visualW: 218, visualH: 70 },
       { x: 698, y: 592, w: 182, h: 34, asset: 'flowerFence', visualW: 218, visualH: 74 },
       { x: 660, y: 366, w: 120, h: 48, asset: 'flowerBedSmall', visualW: 138, visualH: 94 },
+      { x: 130, y: 164, w: 72, h: 56, asset: 'parkTree', visualW: 124, visualH: 158 },
+      { x: 278, y: 604, w: 126, h: 40, asset: 'flowerBedSmall', visualW: 160, visualH: 116 },
+      { x: 388, y: 286, w: 148, h: 42, asset: 'gardenMedium', visualW: 184, visualH: 138 },
+      { x: 476, y: 94, w: 174, h: 32, asset: 'plantFence', visualW: 212, visualH: 68 },
+      { x: 530, y: 514, w: 108, h: 40, asset: 'flowerBedSmall', visualW: 132, visualH: 90 },
+      { x: 768, y: 256, w: 108, h: 40, asset: 'flowerBedSmall', visualW: 132, visualH: 90, flip: true },
+      { x: 814, y: 646, w: 174, h: 32, asset: 'flowerFence', visualW: 212, visualH: 72 },
+      { x: 930, y: 470, w: 148, h: 42, asset: 'gardenMedium', visualW: 184, visualH: 138, flip: true },
+      { x: 1034, y: 102, w: 126, h: 40, asset: 'flowerBedSmall', visualW: 160, visualH: 116, flip: true },
+      { x: 1226, y: 586, w: 72, h: 56, asset: 'parkTree', visualW: 124, visualH: 158, flip: true },
+      { x: 352, y: 446, w: 146, h: 32, asset: 'drain', visualW: 170, visualH: 60 },
+      { x: 958, y: 286, w: 146, h: 32, asset: 'drain', visualW: 170, visualH: 60 },
     ],
     decorations: [
       { asset: 'lamp', x: 498, y: 612, w: 48, h: 100 }, { asset: 'lamp', x: 894, y: 88, w: 48, h: 100 },
       { asset: 'bunting', x: 606, y: 68, w: 228, h: 118, opacity: .86 },
       { asset: 'bush', x: 228, y: 92, w: 92, h: 60 }, { asset: 'bush', x: 1118, y: 650, w: 92, h: 60, flip: true },
+      { asset: 'plant', x: 612, y: 664, w: 60, h: 76 }, { asset: 'plant', x: 826, y: 76, w: 60, h: 76 },
+      { asset: 'bush', x: 418, y: 660, w: 94, h: 62 }, { asset: 'bush', x: 954, y: 86, w: 94, h: 62, flip: true },
     ],
     animated: [{ animation: 'fountain', x: 674, y: 332, w: 92, h: 90 }, { animation: 'flag', x: 690, y: 82, w: 64, h: 90 }],
   },
@@ -161,9 +206,20 @@ const FIELD_CONFIGS: FieldConfig[] = RAW_FIELD_CONFIGS.map(field => ({
   animated: field.animated.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
 }));
 const prisonClearance = 12;
-for (const field of FIELD_CONFIGS) for (const obstacle of field.obstacles) for (const prison of Object.values(PRISONS)) {
-  const overlapsPrison = obstacle.x < prison.x + prison.w + prisonClearance && obstacle.x + obstacle.w > prison.x - prisonClearance && obstacle.y < prison.y + prison.h + prisonClearance && obstacle.y + obstacle.h > prison.y - prisonClearance;
-  if (overlapsPrison) throw new Error(`${field.id}: obstacle ${obstacle.asset} masuk zona penjara`);
+for (const field of FIELD_CONFIGS) {
+  if (field.obstacles.length < 26) throw new Error(`${field.id}: kepadatan arena 2× tidak mencukupi`);
+  for (const obstacle of field.obstacles) {
+    if (obstacle.x < 24 || obstacle.y < 72 || obstacle.x + obstacle.w > W - 24 || obstacle.y + obstacle.h > H - 40) throw new Error(`${field.id}: obstacle ${obstacle.asset} keluar batas arena`);
+    for (const prison of Object.values(PRISONS)) {
+      const overlapsPrison = obstacle.x < prison.x + prison.w + prisonClearance && obstacle.x + obstacle.w > prison.x - prisonClearance && obstacle.y < prison.y + prison.h + prisonClearance && obstacle.y + obstacle.h > prison.y - prisonClearance;
+      if (overlapsPrison) throw new Error(`${field.id}: obstacle ${obstacle.asset} masuk zona penjara`);
+    }
+    for (const base of Object.values(BASES)) {
+      const nearestX = Math.max(obstacle.x, Math.min(obstacle.x + obstacle.w, base.x));
+      const nearestY = Math.max(obstacle.y, Math.min(obstacle.y + obstacle.h, base.y));
+      if (Math.hypot(base.x - nearestX, base.y - nearestY) < BASE_RADIUS + 28) throw new Error(`${field.id}: obstacle ${obstacle.asset} menutup akses benteng`);
+    }
+  }
 }
 const FIELD_BY_ID = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field])) as Record<FieldId, FieldConfig>;
 const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [{ id: 'follow', label: 'Dekat' }, { id: 'tactical', label: 'Taktis' }, { id: 'overview', label: 'Overall' }];
@@ -182,8 +238,8 @@ const formatTime = (seconds: number) => {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 };
 const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
-const UI_V2_PORTRAITS = new Set<CharacterId>(['raja', 'robot', 'jago', 'lala', 'kumis', 'kaka', 'ciici', 'buto', 'maria', 'boke']);
-const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=2`);
+const UI_V2_PORTRAITS = new Set<CharacterId>(['raja', 'robot', 'jago', 'lala', 'kumis', 'tui', 'bebe', 'kaka', 'ciici', 'buto', 'maria', 'boke', 'lui', 'kodo']);
+const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=3`);
 const menuPortraitAsset = (id: CharacterId) => UI_V2_PORTRAITS.has(id) ? uiAsset(`portraits/${id}.webp`) : characterAsset(id, 'portrait.webp');
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
@@ -273,7 +329,7 @@ export function BentenganPrototype() {
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const fieldAnimatedAtlas = getFieldImage('animated.webp');
     const fieldGroundAtlas = getFieldImage('grounds.webp');
-    const staticLayer = document.createElement('canvas'); staticLayer.width = W; staticLayer.height = H;
+    const staticLayer = document.createElement('canvas'); staticLayer.width = Math.round(W * STATIC_MAP_SCALE); staticLayer.height = Math.round(H * STATIC_MAP_SCALE);
     const staticLayerContext = staticLayer.getContext('2d');
     let staticMapDirty = true;
     const invalidateStaticMap = () => { staticMapDirty = true; };
@@ -328,7 +384,7 @@ export function BentenganPrototype() {
       const minimum = Math.min(...laneCounts); const lane = laneCounts.indexOf(minimum) as 0 | 1 | 2;
       const laneBounds = [[world(92), world(292)], [world(300), world(516)], [world(524), world(712)]] as const;
       for (let tries = 0; tries < 30; tries++) {
-        const x = 236 + Math.random() * (W - 472), y = laneBounds[lane][0] + Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
+        const x = world(236) + Math.random() * (W - world(472)), y = laneBounds[lane][0] + Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
         if (obstacles.every(o => x < o.x - 28 || x > o.x + o.w + 28 || y < o.y - 28 || y > o.y + o.h + 28)) {
           refills.push({ id: ++refillId, x, y, grade: randomGrade(), lane, expiresAt: now + 25000 }); return;
         }
@@ -633,7 +689,7 @@ export function BentenganPrototype() {
         target.strokeStyle = 'rgba(255,245,211,.18)'; target.lineWidth = 3; roundedOn(target, pathConfig.x, pathConfig.y, pathConfig.w, pathConfig.h, pathConfig.radius); target.stroke();
       });
       target.strokeStyle = 'rgba(255,255,255,.13)'; target.lineWidth = 2; target.setLineDash([16, 18]);
-      [296, 506].forEach(y => { target.beginPath(); target.moveTo(238, y); target.lineTo(W - 238, y); target.stroke(); }); target.setLineDash([]);
+      [world(296), world(506)].forEach(y => { target.beginPath(); target.moveTo(world(238), y); target.lineTo(W - world(238), y); target.stroke(); }); target.setLineDash([]);
 
       (['blue', 'red'] as Team[]).forEach(team => {
         const b = BASES[team], color = TEAM_COLOR[team];
@@ -659,8 +715,11 @@ export function BentenganPrototype() {
       target.font = '800 15px var(--font-heading)'; target.fillStyle = '#fff0cf'; target.textAlign = 'center'; target.fillText(`${field.name.toUpperCase()} · ARENA 5v5`, W / 2, 55);
     };
     const drawMap = () => {
-      if (staticLayerContext && staticMapDirty) { drawStaticMap(staticLayerContext); staticMapDirty = false; }
-      if (staticLayerContext) ctx.drawImage(staticLayer, 0, 0); else { ctx.fillStyle = '#667556'; ctx.fillRect(0, 0, W, H); }
+      if (staticLayerContext && staticMapDirty) {
+        staticLayerContext.setTransform(STATIC_MAP_SCALE, 0, 0, STATIC_MAP_SCALE, 0, 0);
+        drawStaticMap(staticLayerContext); staticMapDirty = false;
+      }
+      if (staticLayerContext) ctx.drawImage(staticLayer, 0, 0, staticLayer.width, staticLayer.height, 0, 0, W, H); else { ctx.fillStyle = '#667556'; ctx.fillRect(0, 0, W, H); }
     };
     const drawFieldAnimations = (now: number) => field.animated.forEach(item =>
       drawAnimatedAsset(ctx, item.animation, item.x, item.y, item.w, item.h, now, item.flip, item.opacity));
@@ -950,22 +1009,22 @@ export function BentenganPrototype() {
     <main className="game-shell">
       <header className="game-topbar">
         <div className="brand-lockup"><img className="game-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" /><span className="brand-kicker">Playable rules prototype</span></div>
-        <div className="top-actions"><div className="build-chip"><span /> Characters v7 · Fields v2 · guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="quit-button" onClick={quit}><LogOut size={15} /> Quit</button><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
+        <div className="top-actions"><div className="build-chip"><span /> Characters v8 · Fields 2× · guarded</div><button className="tool-button" onClick={() => setView('workshop')}><Wrench size={15} /> Character Workshop</button>{mode === 'playing' && <><button className="quit-button" onClick={quit}><LogOut size={15} /> Quit</button><button className="icon-button" onClick={() => keys.current.add('p')} aria-label="Jeda"><Pause size={16} /></button><button className="icon-button" onClick={() => setRun(v => v + 1)} aria-label="Mulai ulang"><RotateCcw size={16} /></button></>}</div>
       </header>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`} />
           <div className="stage-hud"><div className="hud-red"><b>MERAH · KIRI</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div className="hud-green"><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>HIJAU · KANAN</b></div></div>
           {false && <div className="start-panel character-select">
-            <div className="character-select-heading"><div><p>LANGKAH 1 · PILIH TIM</p><h1>Merah atau Hijau.<br />Tentukan pihakmu.</h1></div><span>Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki enam karakter tetap dan membawa lima pemain ke field.</span></div>
+            <div className="character-select-heading"><div><p>LANGKAH 1 · PILIH TIM</p><h1>Merah atau Hijau.<br />Tentukan pihakmu.</h1></div><span>Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki tujuh karakter tetap dan membawa lima pemain ke field.</span></div>
             <div className="team-chooser" aria-label="Pilih tim">
               {(['red', 'green'] as Faction[]).map(faction => <button key={faction} className={`${faction} ${selectedFaction === faction ? 'selected' : ''}`} onClick={() => chooseFaction(faction)} aria-pressed={selectedFaction === faction}>
-                <span><b>{factionName(faction)}</b><small>{GAME_RULES.teams[faction].side} · 6 karakter</small></span>
+                <span><b>{factionName(faction)}</b><small>{GAME_RULES.teams[faction].side} · 7 karakter</small></span>
                 <span className="team-mini-roster">{FIXED_ROSTERS[faction].map(id => <img key={id} src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} />)}</span>
               </button>)}
             </div>
             {selectedFaction && <div className={`selection-step ${selectedFaction}`}>
-              <div className="selection-step-head"><span>LANGKAH 2 · PILIH KARAKTER {factionName(selectedFaction!).toUpperCase()}</span><b>1 cadangan · 5 turun ke field</b></div>
+              <div className="selection-step-head"><span>LANGKAH 2 · PILIH KARAKTER {factionName(selectedFaction!).toUpperCase()}</span><b>2 cadangan · 5 turun ke field</b></div>
               <div className="character-row">{availableCharacters.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)} aria-pressed={selectedId === character.id}><img src={characterAsset(character.id, 'portrait.webp')} alt={`Portrait ${character.name}`} /><span><b>{character.name}</b><small>{character.role}</small><em>{character.passiveName}</em></span></button>)}</div>
               <div className="selected-character" style={{ borderColor: selected.accent }}>
                 <img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} />
@@ -992,7 +1051,7 @@ export function BentenganPrototype() {
             <li className={snapshot.mission.tag ? 'done' : ''}><Zap size={18} /><div><b>Menangkap target</b><span>Outline hijau = keluar lebih dulu dan boleh ditangkap.</span></div></li>
             <li className={snapshot.mission.rescue ? 'done' : ''}><Shield size={18} /><div><b>Bebaskan penjara</b><span>Jangkau rekan terluar untuk membebaskan seluruh rantai.</span></div></li>
           </ul>
-          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.webp?v=7')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Dua belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
+          {mode === 'playing' ? <><div className={`team-status ${selectedFaction}`}><span>{selectedFaction ? factionName(selectedFaction).toUpperCase() : 'TIM'} · 5 PEMAIN UNIK</span>{snapshot.team.map((member, index) => <div key={`${member.name}-${index}`}><img src={characterAsset(member.characterId, 'portrait.webp')} alt="" /><b>{member.name}</b><i style={{ width: `${Math.min(100, member.boost)}%` }} /><em>{member.state.replace('_', ' ')}</em></div>)}</div><div className="event-feed">{snapshot.logs.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}</div></> : <div className="reference-card"><img src={publicAsset('characters.webp?v=8')} alt="Referensi karakter Benteng Squad Tag" /><div><b>Empat belas sprite produksi terpasang</b><span>Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.</span></div></div>}
           <div className="audio-note"><Volume2 size={13} /> Cue audio aktif setelah game dimulai.</div>
         </aside>
       </section>

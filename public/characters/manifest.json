@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "atlas": {
     "minimumCell": 256,
     "padding": 8,
@@ -89,6 +89,20 @@
       "id": "lui",
       "name": "Lui",
       "role": "Scout",
+      "sourceColumns": 7,
+      "sourceRows": 6
+    },
+    {
+      "id": "bebe",
+      "name": "Bebe",
+      "role": "Rescuer",
+      "sourceColumns": 7,
+      "sourceRows": 6
+    },
+    {
+      "id": "kodo",
+      "name": "Kodo",
+      "role": "Guardian",
       "sourceColumns": 7,
       "sourceRows": 6
     }

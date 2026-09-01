@@ -1,4 +1,4 @@
-export type CharacterId = 'robot' | 'ciici' | 'kaka' | 'buto' | 'jago' | 'raja' | 'lala' | 'maria' | 'kumis' | 'boke' | 'tui' | 'lui';
+export type CharacterId = 'robot' | 'ciici' | 'kaka' | 'buto' | 'jago' | 'raja' | 'lala' | 'maria' | 'kumis' | 'boke' | 'tui' | 'lui' | 'bebe' | 'kodo';
 export type CharacterRole = 'Guardian' | 'Rescuer' | 'Runner' | 'Chaser' | 'All-rounder' | 'Scout' | 'Disruptor';
 
 export type CharacterDefinition = {
@@ -35,16 +35,18 @@ export const CHARACTERS: CharacterDefinition[] = [
   { id: 'boke', name: 'Boke', role: 'Disruptor', speed: 202, boost: 116, agility: 0.88, visualScale: 1.08, accent: '#ef677c', copy: 'Pengacau garis depan yang kuat memecah formasi lawan.', passiveName: 'Tag Kasar', passiveCopy: 'Jangkauan besar dengan recovery tag lebih cepat.', tagRange: 32, rescueRange: 31, boostMultiplier: 1.66, boostDrain: 29, baseChargeTime: .76, rescueShieldMs: 1500, tagCooldownMs: 410 },
   { id: 'tui', name: 'Tui', role: 'Runner', speed: 230, boost: 96, agility: 1.17, visualScale: 1, accent: '#ef3f43', copy: 'Sprinter Tim Merah dengan akselerasi kuat untuk membuka serangan.', passiveName: 'Start Meledak', passiveCopy: 'Sprint Space mencapai kecepatan puncak lebih cepat.', tagRange: 28, rescueRange: 32, boostMultiplier: 1.78, boostDrain: 32, baseChargeTime: .65, rescueShieldMs: 1500, tagCooldownMs: 480 },
   { id: 'lui', name: 'Lui', role: 'Scout', speed: 226, boost: 104, agility: 1.19, visualScale: .98, accent: '#42d875', copy: 'Pengintai Tim Hijau yang unggul menyelinap melalui jalur sempit.', passiveName: 'Jalur Sunyi', passiveCopy: 'Sprint stabil dengan kendali parkour yang presisi.', tagRange: 28, rescueRange: 35, boostMultiplier: 1.72, boostDrain: 29, baseChargeTime: .68, rescueShieldMs: 1750, tagCooldownMs: 480 },
+  { id: 'bebe', name: 'Bebe', role: 'Rescuer', speed: 218, boost: 110, agility: 1.1, visualScale: .96, accent: '#4eeaf2', copy: 'Teknisi drone Tim Merah yang membuka jalur penyelamatan di tengah tekanan.', passiveName: 'Drone Penolong', passiveCopy: 'Jangkauan rescue luas dan memberi pelindung lebih lama kepada rekan.', tagRange: 27, rescueRange: 41, boostMultiplier: 1.7, boostDrain: 29, baseChargeTime: .7, rescueShieldMs: 2150, tagCooldownMs: 490 },
+  { id: 'kodo', name: 'Kodo', role: 'Guardian', speed: 200, boost: 124, agility: .9, visualScale: 1.1, accent: '#f28a2d', copy: 'Penjaga reptil Tim Hijau yang menguasai koridor sempit dan jalur penjara.', passiveName: 'Ekor Penghadang', passiveCopy: 'Jangkauan tag besar dengan cadangan boost yang tahan lama.', tagRange: 35, rescueRange: 31, boostMultiplier: 1.62, boostDrain: 26, baseChargeTime: .78, rescueShieldMs: 1500, tagCooldownMs: 520 },
 ];
 
 export const CHARACTER_BY_ID = Object.fromEntries(CHARACTERS.map(character => [character.id, character])) as Record<CharacterId, CharacterDefinition>;
-const DEDICATED_EAST_CHARACTERS = new Set<CharacterId>(['buto', 'jago', 'lala', 'maria', 'kumis', 'boke', 'tui', 'lui']);
+const DEDICATED_EAST_CHARACTERS = new Set<CharacterId>(['buto', 'jago', 'lala', 'maria', 'kumis', 'boke', 'tui', 'lui', 'bebe', 'kodo']);
 export const characterUsesDedicatedEast = (id: CharacterId) => DEDICATED_EAST_CHARACTERS.has(id);
 
 const publicBase = ((import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/').replace(/\/?$/, '/');
 
 export const characterAsset = (id: CharacterId, file: 'atlas.webp' | 'atlas-runtime.webp' | 'portrait.webp' | 'animations.json') =>
-  `${publicBase}characters/${id}/${file}?v=7`;
+  `${publicBase}characters/${id}/${file}?v=8`;
 
 export const characterRuntimeAsset = (id: CharacterId) => characterAsset(id, 'atlas-runtime.webp');
 

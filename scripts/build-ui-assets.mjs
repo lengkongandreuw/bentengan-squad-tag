@@ -4,6 +4,7 @@ import sharp from 'sharp';
 
 const root = process.cwd();
 const source = path.join(root, 'asset-inbox', '2026-08-31-character-select-v1');
+const rosterExpansion = path.join(root, 'asset-inbox', '2026-09-01-roster-expansion-v1');
 const output = path.join(root, 'public', 'ui-v2');
 
 const portraits = {
@@ -17,6 +18,13 @@ const portraits = {
   jago: 'characters/merah jago.png',
   lala: 'characters/merah lala.png',
   raja: 'characters/merah raja.png',
+};
+
+const expansionPortraits = {
+  tui: 'portraits/merah tui.png',
+  lui: 'portraits/hijau lui.png',
+  bebe: 'portraits/merah bebe.png',
+  kodo: 'portraits/hijau kodo.png',
 };
 
 const heroes = {
@@ -51,7 +59,11 @@ await fs.mkdir(path.join(output, 'heroes'), { recursive: true });
 await fs.mkdir(path.join(output, 'controls'), { recursive: true });
 
 for (const [id, relative] of Object.entries(portraits)) {
-  await encodeContained(await ensureSource(relative), path.join(output, 'portraits', `${id}.webp`), 480, 720, 80);
+  await encodeContained(await ensureSource(relative), path.join(output, 'portraits', `${id}.webp`), 400, 600, 76);
+}
+
+for (const [id, relative] of Object.entries(expansionPortraits)) {
+  await encodeContained(path.join(rosterExpansion, relative), path.join(output, 'portraits', `${id}.webp`), 400, 600, 76);
 }
 
 for (const [id, relative] of Object.entries(heroes)) {
@@ -92,5 +104,5 @@ const walk = async directory => {
 };
 await walk(output);
 files.sort((a, b) => a.file.localeCompare(b.file));
-await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 2, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
-console.log(`UI v2: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB`);
+await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 3, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
+console.log(`UI runtime v3: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB`);

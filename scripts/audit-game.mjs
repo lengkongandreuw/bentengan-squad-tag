@@ -27,18 +27,20 @@ const teamIds = Object.values(rules.teams).flatMap(team => team.roster);
 
 assert(rules.matchSize === 5, 'format pertandingan tetap 5v5');
 assert(Object.keys(rules.teams).join(',') === 'red,green', 'hanya Tim Merah dan Tim Hijau yang tersedia');
-assert(rules.teams.red.roster.join(',') === 'raja,robot,jago,lala,kumis,tui', 'roster Tim Merah sesuai spesifikasi');
-assert(rules.teams.green.roster.join(',') === 'ciici,kaka,buto,maria,boke,lui', 'roster Tim Hijau sesuai spesifikasi');
-assert(new Set(teamIds).size === 12 && teamIds.length === 12, 'dua roster berisi 12 karakter tanpa duplikat');
-assert(ids.length === 12 && ids.every(id => teamIds.includes(id)), 'definisi karakter dan roster tim sinkron');
-assert(manifest.version === 7 && manifest.characters.length === 12, 'manifest sprite v7 memuat 12 karakter');
+assert(rules.teams.red.roster.join(',') === 'raja,robot,jago,lala,kumis,tui,bebe', 'roster Tim Merah sesuai spesifikasi');
+assert(rules.teams.green.roster.join(',') === 'ciici,kaka,buto,maria,boke,lui,kodo', 'roster Tim Hijau sesuai spesifikasi');
+assert(rules.reserveCount === 2, 'setiap tim memiliki dua karakter cadangan');
+assert(new Set(teamIds).size === 14 && teamIds.length === 14, 'dua roster berisi 14 karakter tanpa duplikat');
+assert(ids.length === 14 && ids.every(id => teamIds.includes(id)), 'definisi karakter dan roster tim sinkron');
+assert(manifest.version === 8 && manifest.characters.length === 14, 'manifest sprite v8 memuat 14 karakter');
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('column * width / 7') && !prototypeSource.includes('column * width / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
-assert(charactersSource.includes('?v=7') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v7');
-assert(uiManifest.version === 2 && uiManifest.files.length === 21, 'paket UI v2 memuat 10 portrait, 4 hero, dan 7 kontrol');
-assert(uiManifest.totalBytes <= 900 * 1024, `paket UI v2 ${(uiManifest.totalBytes / 1024).toFixed(0)} KiB berada dalam budget 900 KiB`);
+assert(charactersSource.includes('?v=8') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v8');
+assert(uiManifest.version === 3 && uiManifest.files.length === 25, 'paket UI v3 memuat 14 portrait, 4 hero, dan 7 kontrol');
+assert(uiManifest.totalBytes <= 900 * 1024, `paket UI v3 ${(uiManifest.totalBytes / 1024).toFixed(0)} KiB berada dalam budget 900 KiB`);
+for (const id of ['tui', 'lui', 'bebe', 'kodo']) assert(uiManifest.files.some(entry => entry.file === `portraits/${id}.webp`), `${id}: portrait seleksi karakter tersedia`);
 assert(prototypeSource.includes("type MenuStep = 'splash' | 'team' | 'character' | 'field'") && prototypeSource.includes("key === 'escape'") && prototypeSource.includes('cycleCharacter'), 'alur layar baru dan navigasi keyboard terpasang');
-assert(prototypeSource.includes("ui-v2/${file}?v=2") && !prototypeSource.includes('asset-inbox/'), 'runtime memakai WebP UI v2 tanpa merujuk master PNG');
+assert(prototypeSource.includes("ui-v2/${file}?v=3") && !prototypeSource.includes('asset-inbox/'), 'runtime memakai WebP UI v3 tanpa merujuk master PNG');
 
 const offsets = rules.spawnOffsets;
 let minimumSpawnDistance = Infinity;
@@ -80,7 +82,12 @@ assert(fieldDecodedBytes <= 8.5 * 1024 * 1024, `memori decode field ${(fieldDeco
 assert(prototypeSource.includes('const staticLayer = document.createElement(\'canvas\')') && prototypeSource.includes('if (staticLayerContext && staticMapDirty)'), 'field statis diraster sekali dan di-cache di luar render loop');
 assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSource.includes("getFieldImage('animated.webp')") && prototypeSource.includes("getFieldImage('grounds.webp')"), 'seluruh dekorasi memakai hanya tiga request atlas runtime');
 assert(prototypeSource.includes("ground: 'dirt'") && prototypeSource.includes("ground: 'concrete'") && prototypeSource.includes("ground: 'grass'"), 'tiga stage memiliki identitas pola tanah berbeda');
-assert(prototypeSource.includes('const WORLD_SCALE = 1.25') && prototypeSource.includes('const W = world(1440)') && prototypeSource.includes('const H = world(800)'), 'semua dimensi dunia diperluas tepat 25%');
+assert(prototypeSource.includes('const WORLD_SCALE = 2.5') && prototypeSource.includes('const W = world(1440)') && prototypeSource.includes('const H = world(800)'), 'semua arena memiliki luas 3600×2000, tepat 2× dimensi sebelumnya');
+assert(prototypeSource.includes('const STATIC_MAP_SCALE = .5') && prototypeSource.includes('staticLayer.width = Math.round(W * STATIC_MAP_SCALE)'), 'cache visual arena 2× diraster setengah resolusi agar hemat memori');
+const fieldObstacleSections = [...prototypeSource.matchAll(/id: '(kampung|pasar|taman)'[\s\S]*?obstacles: \[([\s\S]*?)\],\r?\n    decorations:/g)];
+const fieldObstacleCounts = Object.fromEntries(fieldObstacleSections.map(match => [match[1], (match[2].match(/\{ x:/g) ?? []).length]));
+assert(fieldObstacleCounts.kampung >= 26 && fieldObstacleCounts.pasar >= 26 && fieldObstacleCounts.taman >= 26, `tiga arena memiliki kepadatan halangan bermakna (${fieldObstacleCounts.kampung}/${fieldObstacleCounts.pasar}/${fieldObstacleCounts.taman})`);
+assert(prototypeSource.includes('kepadatan arena 2× tidak mencukupi') && prototypeSource.includes('keluar batas arena') && prototypeSource.includes('masuk zona penjara') && prototypeSource.includes('menutup akses benteng'), 'validator geometri mencegah arena kosong, objek keluar batas, dan penjara terhalang');
 const fieldOrder = ['kampung', 'pasar', 'taman'];
 assert(fieldCycleDecision('kampung', 2, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('kampung', 2, fieldOrder).wins === 2, 'field bertahan sebelum tiga kemenangan pertandingan');
 assert(fieldCycleDecision('kampung', 3, fieldOrder).fieldId === 'pasar' && fieldCycleDecision('taman', 3, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('taman', 3, fieldOrder).wins === 0, 'field berpindah dan berputar otomatis tepat setiap tiga kemenangan');
@@ -105,7 +112,7 @@ assert(webLogo.width === logo.width && webLogo.height === logo.height && webLogo
 const montagePath = path.join(root, 'public/characters.webp');
 const montage = await sharp(montagePath).metadata();
 assert(montage.width === 1920 && montage.height === 900 && (await stat(montagePath)).size <= 350 * 1024, 'montage WebP layar awal berada dalam budget 350 KiB');
-assert(prototypeSource.includes('benteng-tag-logo.webp?v=7') && prototypeSource.includes('characters.webp?v=7'), 'UI memakai asset WebP ringan, bukan master PNG');
+assert(prototypeSource.includes('benteng-tag-logo.webp?v=7') && prototypeSource.includes('characters.webp?v=8'), 'UI memakai asset WebP ringan, bukan master PNG');
 const sprintDust = await sharp(path.join(root, 'public/vfx/sprint-dust.webp')).metadata();
 assert(sprintDust.width === 1024 && sprintDust.height === 192 && sprintDust.hasAlpha, 'VFX sprint RPG memiliki empat frame transparan');
 
@@ -124,7 +131,7 @@ for (const id of ids) {
   runtimeDecodedBytes += (runtimeMeta.width ?? 0) * (runtimeMeta.height ?? 0) * 4;
   assert(atlasMeta.width === animation.atlas.width && atlasMeta.height === animation.atlas.height && atlasMeta.hasAlpha, `${id}: dimensi atlas adaptif sinkron dan transparan`);
   assert(runtimeMeta.width === atlasMeta.width / 2 && runtimeMeta.height === atlasMeta.height / 2 && runtimeMeta.hasAlpha, `${id}: atlas runtime tepat 50% dan transparan`);
-  assert(animation.version === 7 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v7 sinkron`);
+  assert(animation.version === 8 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v8 sinkron`);
   assert(animation.quality.frameCount === 42 && animation.source.frames.length === 42, `${id}: 42 frame sumber terlacak satu per satu`);
   for (const direction of ['south', 'west', 'north']) assert(animation.directions[direction].boost.length === 5, `${id}: boost ${direction} memakai lima frame halus`);
   if (animation.directions.east.mirror !== 'west') assert(animation.directions.east.boost.length === 5, `${id}: boost east memakai lima frame halus`);
@@ -183,8 +190,8 @@ for (const id of ids) {
   assert(hashes?.animation === await sha256(`public/characters/${id}/animations.json`), `${id}: metadata cocok dengan golden baseline tervalidasi`);
 }
 
-assert(runtimeEncodedBytes <= 5.5 * 1024 * 1024, `total atlas gameplay ${(runtimeEncodedBytes / 1024 / 1024).toFixed(2)} MiB berada dalam budget 5.50 MiB`);
-assert(runtimeDecodedBytes <= 48 * 1024 * 1024, `memori decode 12 atlas gameplay ${(runtimeDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 48 MiB`);
+assert(runtimeEncodedBytes <= 6 * 1024 * 1024, `total atlas gameplay ${(runtimeEncodedBytes / 1024 / 1024).toFixed(2)} MiB berada dalam budget 6 MiB`);
+assert(runtimeDecodedBytes <= 58 * 1024 * 1024, `memori decode 14 atlas gameplay ${(runtimeDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 58 MiB`);
 
 if (failures.length) {
   console.error('\nAUDIT GAGAL');
@@ -192,4 +199,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`\nAUDIT LULUS · ${ids.length} karakter · 504 frame + ${Object.keys(fieldBaseline.sources).length} sumber field dibandingkan dengan golden baseline`);
+console.log(`\nAUDIT LULUS · ${ids.length} karakter · 588 frame + ${Object.keys(fieldBaseline.sources).length} sumber field dibandingkan dengan golden baseline`);

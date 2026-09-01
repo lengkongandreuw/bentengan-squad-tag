@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "files": [
     {
       "file": "controls/back.webp",
@@ -46,45 +46,61 @@
       "bytes": 39708
     },
     {
+      "file": "portraits/bebe.webp",
+      "bytes": 55874
+    },
+    {
       "file": "portraits/boke.webp",
-      "bytes": 43704
+      "bytes": 30518
     },
     {
       "file": "portraits/buto.webp",
-      "bytes": 51108
+      "bytes": 36546
     },
     {
       "file": "portraits/ciici.webp",
-      "bytes": 34996
+      "bytes": 27032
     },
     {
       "file": "portraits/jago.webp",
-      "bytes": 43760
+      "bytes": 30672
     },
     {
       "file": "portraits/kaka.webp",
-      "bytes": 28186
+      "bytes": 21508
+    },
+    {
+      "file": "portraits/kodo.webp",
+      "bytes": 50508
     },
     {
       "file": "portraits/kumis.webp",
-      "bytes": 33962
+      "bytes": 24610
     },
     {
       "file": "portraits/lala.webp",
-      "bytes": 51642
+      "bytes": 36442
+    },
+    {
+      "file": "portraits/lui.webp",
+      "bytes": 27972
     },
     {
       "file": "portraits/maria.webp",
-      "bytes": 31588
+      "bytes": 23588
     },
     {
       "file": "portraits/raja.webp",
-      "bytes": 32962
+      "bytes": 25082
     },
     {
       "file": "portraits/robot.webp",
-      "bytes": 36982
+      "bytes": 27698
+    },
+    {
+      "file": "portraits/tui.webp",
+      "bytes": 31948
     }
   ],
-  "totalBytes": 791798
+  "totalBytes": 852906
 }
