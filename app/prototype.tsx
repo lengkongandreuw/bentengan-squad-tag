@@ -48,6 +48,7 @@ type Snapshot = {
 
 const WORLD_SCALE = 2.5;
 const STATIC_MAP_SCALE = .5;
+const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
 const BASE_REENTRY_COOLDOWN_MS = 1500;
 const AI_ALLY_SPEED_MULTIPLIER = .92;
@@ -906,6 +907,27 @@ export function BentenganPrototype() {
       }
       if (staticLayerContext) ctx.drawImage(staticLayer, 0, 0, staticLayer.width, staticLayer.height, 0, 0, W, H); else { ctx.fillStyle = '#667556'; ctx.fillRect(0, 0, W, H); }
     };
+    const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
+      if (activeCamera === 'overview' || mode !== 'playing') return;
+      const radiusSquared = NEAR_FIELD_DETAIL_RADIUS * NEAR_FIELD_DETAIL_RADIUS;
+      const isNearby = (x: number, y: number, w: number, h: number) => {
+        const dx = x + w / 2 - me.x, dy = y + h / 2 - me.y;
+        return dx * dx + dy * dy <= radiusSquared;
+      };
+      field.decorations.forEach(item => {
+        if (isNearby(item.x, item.y, item.w, item.h)) drawFieldAsset(ctx, item.asset, item.x, item.y, item.w, item.h, item.flip, item.opacity);
+      });
+      obstacles.forEach(item => {
+        if (!isNearby(item.x, item.y, item.w, item.h)) return;
+        drawFieldAsset(ctx, item.asset, item.x + item.w / 2 - item.visualW / 2, item.y + item.h - item.visualH, item.visualW, item.visualH, item.flip);
+      });
+      (['blue', 'red'] as Team[]).forEach(team => {
+        const base = BASES[team];
+        if (isNearby(base.x - 84, base.y - 130, 168, 188)) drawFieldAsset(ctx, team === 'blue' ? 'fortRed' : 'fortGreen', base.x - 84, base.y - 130, 168, 188, false, .96);
+        const prison = field.prisons[team];
+        if (isNearby(prison.x, prison.y, prison.w, prison.h)) drawFieldAsset(ctx, 'prisonFloor', prison.x, prison.y, prison.w, prison.h, team === 'red', .96);
+      });
+    };
     const drawFieldAnimations = (now: number) => field.animated.forEach(item =>
       drawAnimatedAsset(ctx, item.animation, item.x, item.y, item.w, item.h, now, item.flip, item.opacity));
     const drawPrisonOverlays = (now: number) => {
@@ -1006,7 +1028,7 @@ export function BentenganPrototype() {
       const camX = followsPlayer ? clamp(me.x, halfW, W - halfW) : W / 2;
       const camY = followsPlayer ? clamp(me.y, halfH, H - halfH) : H / 2;
       ctx.save(); ctx.translate(cw / 2, ch / 2); ctx.scale(scale, scale); ctx.translate(-camX, -camY);
-      drawMap(); drawBase('blue'); drawBase('red');
+      drawMap(); drawNearbyFieldDetails(me, activeCamera); drawBase('blue'); drawBase('red');
       if (mode === 'playing') {
         drawFieldAnimations(now);
         refills.forEach(item => drawRefill(item, now));

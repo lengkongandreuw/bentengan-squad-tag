@@ -86,6 +86,7 @@ assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSou
 assert(prototypeSource.includes("ground: 'dirt'") && prototypeSource.includes("ground: 'concrete'") && prototypeSource.includes("ground: 'grass'") && prototypeSource.includes("id: 'kanal'"), 'empat stage memiliki identitas arena yang terdaftar');
 assert(prototypeSource.includes('const WORLD_SCALE = 2.5') && prototypeSource.includes('const W = world(1440)') && prototypeSource.includes('const H = world(800)'), 'semua arena memiliki luas 3600×2000, tepat 2× dimensi sebelumnya');
 assert(prototypeSource.includes('const STATIC_MAP_SCALE = .5') && prototypeSource.includes('staticLayer.width = Math.round(W * STATIC_MAP_SCALE)'), 'cache visual arena 2× diraster setengah resolusi agar hemat memori');
+assert(prototypeSource.includes('const NEAR_FIELD_DETAIL_RADIUS = 560') && prototypeSource.includes('drawNearbyFieldDetails(me, activeCamera)') && prototypeSource.includes("activeCamera === 'overview'"), 'objek dekat pemain digambar ulang tajam tanpa memperbesar cache atau mode overview');
 const fieldObstacleSections = [...prototypeSource.matchAll(/id: '(kampung|pasar|taman|kanal)'[\s\S]*?obstacles: \[([\s\S]*?)\],\r?\n    decorations:/g)];
 const fieldObstacleCounts = Object.fromEntries(fieldObstacleSections.map(match => [match[1], (match[2].match(/\{ x:/g) ?? []).length]));
 const kampungOpenSection = prototypeSource.match(/const KAMPUNG_OPEN_ARENA = \{[\s\S]*?obstacles: \[([\s\S]*?)\],\r?\n  decorations:/);
