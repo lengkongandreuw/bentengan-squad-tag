@@ -1,0 +1,90 @@
+{
+  "version": 2,
+  "files": [
+    {
+      "file": "controls/back.webp",
+      "bytes": 13888
+    },
+    {
+      "file": "controls/primary-hover.webp",
+      "bytes": 27182
+    },
+    {
+      "file": "controls/primary.webp",
+      "bytes": 16836
+    },
+    {
+      "file": "controls/team-green-active.webp",
+      "bytes": 64314
+    },
+    {
+      "file": "controls/team-green-normal.webp",
+      "bytes": 34026
+    },
+    {
+      "file": "controls/team-red-active.webp",
+      "bytes": 55032
+    },
+    {
+      "file": "controls/team-red-normal.webp",
+      "bytes": 31454
+    },
+    {
+      "file": "heroes/green-active.webp",
+      "bytes": 40460
+    },
+    {
+      "file": "heroes/green-inactive.webp",
+      "bytes": 34574
+    },
+    {
+      "file": "heroes/red-active.webp",
+      "bytes": 45434
+    },
+    {
+      "file": "heroes/red-inactive.webp",
+      "bytes": 39708
+    },
+    {
+      "file": "portraits/boke.webp",
+      "bytes": 43704
+    },
+    {
+      "file": "portraits/buto.webp",
+      "bytes": 51108
+    },
+    {
+      "file": "portraits/ciici.webp",
+      "bytes": 34996
+    },
+    {
+      "file": "portraits/jago.webp",
+      "bytes": 43760
+    },
+    {
+      "file": "portraits/kaka.webp",
+      "bytes": 28186
+    },
+    {
+      "file": "portraits/kumis.webp",
+      "bytes": 33962
+    },
+    {
+      "file": "portraits/lala.webp",
+      "bytes": 51642
+    },
+    {
+      "file": "portraits/maria.webp",
+      "bytes": 31588
+    },
+    {
+      "file": "portraits/raja.webp",
+      "bytes": 32962
+    },
+    {
+      "file": "portraits/robot.webp",
+      "bytes": 36982
+    }
+  ],
+  "totalBytes": 791798
+}

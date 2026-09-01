@@ -17,6 +17,7 @@ type PlayerAction = 'tag' | 'rescue';
 type Grade = 25 | 40 | 75 | 100;
 type FieldId = 'kampung' | 'pasar' | 'taman';
 type CameraMode = 'follow' | 'tactical' | 'overview';
+type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type Player = {
   id: string; name: string; team: Team; characterId: CharacterId; controlled?: boolean; x: number; y: number;
   vx: number; vy: number; state: PlayerState; exitOrder: number; boost: number;
@@ -181,6 +182,9 @@ const formatTime = (seconds: number) => {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 };
 const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
+const UI_V2_PORTRAITS = new Set<CharacterId>(['raja', 'robot', 'jago', 'lala', 'kumis', 'kaka', 'ciici', 'buto', 'maria', 'boke']);
+const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=2`);
+const menuPortraitAsset = (id: CharacterId) => UI_V2_PORTRAITS.has(id) ? uiAsset(`portraits/${id}.webp`) : characterAsset(id, 'portrait.webp');
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
 const fieldImages = new Map<string, HTMLImageElement>();
@@ -219,6 +223,9 @@ export function BentenganPrototype() {
   const [selectedFieldId, setSelectedFieldId] = useState<FieldId>('kampung');
   const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
+  const [menuStep, setMenuStep] = useState<MenuStep>('splash');
+  const [hoveredFaction, setHoveredFaction] = useState<Faction | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
@@ -237,13 +244,15 @@ export function BentenganPrototype() {
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(key)) event.preventDefault();
-      keys.current.add(key);
+      if (mode === 'playing') {
+        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(key)) event.preventDefault();
+        keys.current.add(key);
+      }
     };
     const up = (event: KeyboardEvent) => keys.current.delete(event.key.toLowerCase());
     window.addEventListener('keydown', down); window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -807,10 +816,136 @@ export function BentenganPrototype() {
   };
   const quit = () => {
     keys.current.clear(); completedMatchesRef.current = 0;
-    setSnapshot(initialSnapshot); setMode('menu'); setSelectedFaction(null); setSelectedId('raja'); setSelectedFieldId('kampung'); setCameraMode('follow'); setRun(v => v + 1);
+    setSnapshot(initialSnapshot); setMode('menu'); setMenuStep('splash'); setRulesOpen(false); setSelectedFaction(null); setSelectedId('raja'); setSelectedFieldId('kampung'); setCameraMode('follow'); setRun(v => v + 1);
   };
+  const cycleCharacter = (direction: -1 | 1) => {
+    if (!selectedFaction) return;
+    const roster = FIXED_ROSTERS[selectedFaction];
+    const index = roster.indexOf(selectedId);
+    setSelectedId(roster[(index + direction + roster.length) % roster.length]);
+  };
+  const goBack = () => {
+    if (rulesOpen) return setRulesOpen(false);
+    if (menuStep === 'field') return setMenuStep('character');
+    if (menuStep === 'character') return setMenuStep('team');
+    if (menuStep === 'team') return setMenuStep('splash');
+  };
+
+  useEffect(() => {
+    if (mode !== 'menu' || view !== 'game') return;
+    const navigate = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (rulesOpen) {
+        if (key === 'escape') setRulesOpen(false);
+        return;
+      }
+      if (menuStep === 'splash' && (key === ' ' || key === 'enter')) {
+        event.preventDefault(); setMenuStep('team'); return;
+      }
+      if (key === 'escape') { goBack(); return; }
+      if (menuStep === 'team' && (key === 'arrowleft' || key === 'arrowright')) {
+        event.preventDefault(); setHoveredFaction(key === 'arrowleft' ? 'red' : 'green'); return;
+      }
+      if (menuStep === 'team' && key === 'enter' && hoveredFaction) {
+        chooseFaction(hoveredFaction); setMenuStep('character'); return;
+      }
+      if (menuStep === 'character' && (key === 'arrowleft' || key === 'arrowright')) {
+        event.preventDefault(); cycleCharacter(key === 'arrowleft' ? -1 : 1); return;
+      }
+      if (menuStep === 'character' && key === 'enter') { setMenuStep('field'); return; }
+      if (menuStep === 'field' && (key === 'arrowleft' || key === 'arrowright')) {
+        event.preventDefault();
+        const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
+        setSelectedFieldId(FIELD_CONFIGS[(index + (key === 'arrowleft' ? -1 : 1) + FIELD_CONFIGS.length) % FIELD_CONFIGS.length].id);
+      }
+      if (menuStep === 'field' && key === 'enter') start();
+    };
+    window.addEventListener('keydown', navigate);
+    return () => window.removeEventListener('keydown', navigate);
+  }, [hoveredFaction, menuStep, mode, rulesOpen, selectedFaction, selectedFieldId, selectedId, view]);
+
   const touchKey = (key: string, pressed: boolean) => pressed ? keys.current.add(key) : keys.current.delete(key);
   if (view === 'workshop') return <main className="game-shell"><CharacterWorkshop onClose={() => setView('game')} /></main>;
+  if (mode === 'menu') {
+    const activeFaction = hoveredFaction;
+    return <main className={`pregame-shell step-${menuStep}`} style={{ '--button-normal': `url(${uiAsset('controls/primary.webp')})`, '--button-hover': `url(${uiAsset('controls/primary-hover.webp')})` } as React.CSSProperties}>
+      <div className="ink-noise" />
+      {menuStep === 'splash' && <section className="splash-screen" aria-labelledby="game-title">
+        <img className="splash-hero splash-red" src={uiAsset('heroes/red-active.webp')} alt="Raja dari Tim Merah" />
+        <img className="splash-hero splash-green" src={uiAsset('heroes/green-active.webp')} alt="Kaka dari Tim Hijau" />
+        <div className="splash-center">
+          <img className="splash-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="Benteng Squad Tag" id="game-title" />
+          <button className="enter-game" onClick={() => setMenuStep('team')}><span>PRESS</span> SPACE <small>atau klik untuk masuk</small></button>
+        </div>
+      </section>}
+
+      {menuStep === 'team' && <section className="team-screen" aria-labelledby="team-title">
+        <h1 id="team-title" className="sr-only">Pilih tim</h1>
+        <img className="ghost-logo" src={publicAsset('brand/benteng-tag-logo.webp?v=7')} alt="" />
+        {(['red', 'green'] as Faction[]).map(faction => <button
+          key={faction}
+          className={`team-pick team-pick-${faction} ${activeFaction === faction ? 'active' : ''}`}
+          onPointerEnter={() => setHoveredFaction(faction)}
+          onPointerLeave={() => setHoveredFaction(null)}
+          onFocus={() => setHoveredFaction(faction)}
+          onClick={() => { chooseFaction(faction); setMenuStep('character'); }}
+          aria-label={`Pilih ${factionName(faction)}`}
+        >
+          <img className="team-hero" src={uiAsset(`heroes/${faction}-${activeFaction === faction ? 'active' : 'inactive'}.webp`)} alt="" />
+          <img className="team-banner" src={uiAsset(`controls/team-${faction}-${activeFaction === faction ? 'active' : 'normal'}.webp`)} alt={factionName(faction)} />
+        </button>)}
+        <div className="team-hint">Arah kiri/kanan untuk memilih · Enter untuk lanjut</div>
+      </section>}
+
+      {menuStep === 'character' && selectedFaction && <section className={`roster-screen faction-${selectedFaction}`} aria-labelledby="roster-title">
+        <header className="roster-branding">
+          <img className="roster-team-main" src={uiAsset(`controls/team-${selectedFaction}-active.webp`)} alt={factionName(selectedFaction)} />
+          <button className="roster-team-swap" onClick={() => { const next = selectedFaction === 'red' ? 'green' : 'red'; chooseFaction(next); }} aria-label="Ganti tim">
+            <img src={uiAsset(`controls/team-${selectedFaction === 'red' ? 'green' : 'red'}-normal.webp`)} alt={factionName(selectedFaction === 'red' ? 'green' : 'red')} />
+          </button>
+        </header>
+        <h1 id="roster-title" className="sr-only">Pilih karakter {factionName(selectedFaction)}</h1>
+        <div className="roster-stage">
+          <button className="carousel-arrow left" onClick={() => cycleCharacter(-1)} aria-label="Karakter sebelumnya">‹</button>
+          <div className="character-carousel">
+            {availableCharacters.map((character, index) => <button
+              key={character.id}
+              className={`carousel-character ${selectedId === character.id ? 'selected' : ''}`}
+              style={{ '--offset': index - availableCharacters.findIndex(item => item.id === selectedId) } as React.CSSProperties}
+              onClick={() => setSelectedId(character.id)}
+              aria-pressed={selectedId === character.id}
+            ><img src={menuPortraitAsset(character.id)} alt={character.name} /><span>{character.name}</span></button>)}
+          </div>
+          <button className="carousel-arrow right" onClick={() => cycleCharacter(1)} aria-label="Karakter berikutnya">›</button>
+        </div>
+        <aside className="ability-panel">
+          <span>{factionName(selectedFaction)} · {selected.role}</span>
+          <h2>{selected.name}</h2>
+          <p>{selected.copy}</p>
+          <div className="passive-card"><small>KEMAMPUAN KHUSUS</small><b>{selected.passiveName}</b><em>{selected.passiveCopy}</em></div>
+          <dl>
+            <div><dt>Speed <b>{selected.speed}</b></dt><dd><i style={{ width: statPercent(selected.speed, 188, 240) }} /></dd></div>
+            <div><dt>Boost <b>{selected.boost}</b></dt><dd><i style={{ width: statPercent(selected.boost, 84, 128) }} /></dd></div>
+            <div><dt>Agility <b>{selected.agility.toFixed(2)}</b></dt><dd><i style={{ width: statPercent(selected.agility, .82, 1.25) }} /></dd></div>
+          </dl>
+          <button className="graffiti-primary" onClick={() => setMenuStep('field')}><span>PILIH {selected.name}</span></button>
+        </aside>
+      </section>}
+
+      {menuStep === 'field' && selectedFaction && <section className={`field-select-screen faction-${selectedFaction}`} aria-labelledby="field-title">
+        <header><span>LANGKAH TERAKHIR</span><h1 id="field-title">Pilih arena pertarungan</h1><p>Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis terjadi setelah tiga kemenangan.</p></header>
+        <div className="field-card-row">{FIELD_CONFIGS.map((field, index) => <button key={field.id} className={`field-card field-${field.id} ${selectedFieldId === field.id ? 'selected' : ''}`} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}>
+          <small>0{index + 1}</small><strong>{field.name}</strong><span>{field.kicker}</span><i>{selectedFieldId === field.id ? 'ARENA AKTIF' : 'PILIH ARENA'}</i>
+        </button>)}</div>
+        <div className="match-lineup"><div>{squad.map((id, index) => <figure key={id} className={index === 0 ? 'controlled' : ''}><img src={menuPortraitAsset(id)} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}</figcaption></figure>)}</div><b>VS</b><div>{opponentSquad.map(id => <figure key={id}><img src={menuPortraitAsset(id)} alt={CHARACTER_BY_ID[id].name} /><figcaption>{CHARACTER_BY_ID[id].name}</figcaption></figure>)}</div></div>
+        <button className={`graffiti-primary launch-${selectedFaction}`} onClick={start}><span><Play size={19} fill="currentColor" /> MULAI MATCH</span></button>
+      </section>}
+
+      {menuStep !== 'splash' && <button className="graffiti-back" onClick={goBack} aria-label="Kembali"><img src={uiAsset('controls/back.webp')} alt="Kembali" /></button>}
+      <div className="pregame-actions"><button className="rules-button graffiti-primary" onClick={() => setRulesOpen(true)}><span>GAME RULES</span></button><button className="workshop-link" onClick={() => setView('workshop')}><Wrench size={14} /> Workshop</button></div>
+      {rulesOpen && <div className="rules-overlay" role="dialog" aria-modal="true" aria-labelledby="rules-title"><div className="rules-dialog"><button className="rules-close" onClick={() => setRulesOpen(false)} aria-label="Tutup">×</button><span>BENTENGAN 5V5</span><h2 id="rules-title">Cara merebut kemenangan</h2><ol><li><b>Keluar dari benteng.</b> Urutan keluar menentukan siapa yang boleh menangkap siapa.</li><li><b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara timmu.</li><li><b>Sentuh rekan terluar di penjara</b> untuk membebaskan seluruh rantai.</li><li><b>Serbu benteng lawan.</b> Isi meter benteng tanpa tertangkap untuk menang.</li></ol><p>WASD gerak · Space sprint · Shift parkour · P jeda</p></div></div>}
+    </main>;
+  }
   return (
     <main className="game-shell">
       <header className="game-topbar">
@@ -821,7 +956,7 @@ export function BentenganPrototype() {
         <div className="stage-card">
           <canvas ref={canvasRef} aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`} />
           <div className="stage-hud"><div className="hud-red"><b>MERAH · KIRI</b><span>{snapshot.blue}</span><small>{snapshot.blueHeld}/5 ditahan</small></div><time>{snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}</time><div className="hud-green"><small>{snapshot.redHeld}/5 ditahan</small><span>{snapshot.red}</span><b>HIJAU · KANAN</b></div></div>
-          {mode === 'menu' && <div className="start-panel character-select">
+          {false && <div className="start-panel character-select">
             <div className="character-select-heading"><div><p>LANGKAH 1 · PILIH TIM</p><h1>Merah atau Hijau.<br />Tentukan pihakmu.</h1></div><span>Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki enam karakter tetap dan membawa lima pemain ke field.</span></div>
             <div className="team-chooser" aria-label="Pilih tim">
               {(['red', 'green'] as Faction[]).map(faction => <button key={faction} className={`${faction} ${selectedFaction === faction ? 'selected' : ''}`} onClick={() => chooseFaction(faction)} aria-pressed={selectedFaction === faction}>
@@ -830,11 +965,11 @@ export function BentenganPrototype() {
               </button>)}
             </div>
             {selectedFaction && <div className={`selection-step ${selectedFaction}`}>
-              <div className="selection-step-head"><span>LANGKAH 2 · PILIH KARAKTER {factionName(selectedFaction).toUpperCase()}</span><b>1 cadangan · 5 turun ke field</b></div>
+              <div className="selection-step-head"><span>LANGKAH 2 · PILIH KARAKTER {factionName(selectedFaction!).toUpperCase()}</span><b>1 cadangan · 5 turun ke field</b></div>
               <div className="character-row">{availableCharacters.map(character => <button key={character.id} className={selectedId === character.id ? 'selected' : ''} onClick={() => setSelectedId(character.id)} aria-pressed={selectedId === character.id}><img src={characterAsset(character.id, 'portrait.webp')} alt={`Portrait ${character.name}`} /><span><b>{character.name}</b><small>{character.role}</small><em>{character.passiveName}</em></span></button>)}</div>
               <div className="selected-character" style={{ borderColor: selected.accent }}>
                 <img src={characterAsset(selected.id, 'portrait.webp')} alt={`Portrait ${selected.name}`} />
-                <div className="selected-summary"><span>{factionName(selectedFaction)} · {selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small><div className="character-passive"><strong>{selected.passiveName}</strong><i>{selected.passiveCopy}</i></div></div>
+                <div className="selected-summary"><span>{factionName(selectedFaction!)} · {selected.role}</span><b>{selected.name}</b><small>{selected.copy}</small><div className="character-passive"><strong>{selected.passiveName}</strong><i>{selected.passiveCopy}</i></div></div>
                 <dl>
                   <div><dt>Speed <b>{selected.speed}</b></dt><dd><i><span style={{ width: statPercent(selected.speed, 188, 240) }} /></i></dd></div>
                   <div><dt>Boost <b>{selected.boost}</b></dt><dd><i><span style={{ width: statPercent(selected.boost, 84, 128) }} /></i></dd></div>
@@ -843,12 +978,12 @@ export function BentenganPrototype() {
               </div>
             </div>}
             <div className="field-row"><span>LANGKAH 3 · PILIH FIELD</span>{FIELD_CONFIGS.map(field => <button key={field.id} className={selectedFieldId === field.id ? 'selected' : ''} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}><b>{field.name}</b><small>{field.kicker}</small></button>)}</div>
-            {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
+            {selectedFaction ? <div className={`squad-preview ${selectedFaction}`}><span>{factionName(selectedFaction!).toUpperCase()} · LINEUP 5v5</span><div>{squad.map((id, index) => <figure key={`ally-${id}`} className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : selectedFaction === 'red' ? 'M' : 'H'}</figcaption></figure>)}<i>VS</i>{opponentSquad.map(id => <figure key={`enemy-${id}`} className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}><img src={characterAsset(id, 'portrait.webp')} alt={CHARACTER_BY_ID[id].name} /><figcaption>{selectedFaction === 'red' ? 'H' : 'M'}</figcaption></figure>)}</div><button className="start-button" onClick={start}><Play size={18} fill="currentColor" /> Main sebagai {selected.name}</button></div> : <div className="choose-team-hint">Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.</div>}
           </div>}
           {mode === 'playing' && <><div className="status-ribbon"><span className={`state-dot ${snapshot.state.toLowerCase()}`} />{snapshot.state.replace('_', ' ')}<b>PRIORITAS #{snapshot.order || '—'}</b><strong>ROTASI {snapshot.fieldWins}/3</strong>{snapshot.baseGrace > 0 && <strong>KELUAR {snapshot.baseGrace}s</strong>}<em>{snapshot.fortLock}</em></div><div className={`character-hud ${selectedFaction}`}><img src={characterAsset(selected.id, 'portrait.webp')} alt="" /><span><b>{selected.name}</b><small>{selectedFaction ? factionName(selectedFaction) : ''} · {selected.passiveName}</small></span></div><div className="camera-switcher" aria-label="Pilihan kamera">{CAMERA_OPTIONS.map(camera => <button key={camera.id} className={cameraMode === camera.id ? 'selected' : ''} onClick={() => setCameraMode(camera.id)} aria-pressed={cameraMode === camera.id}>{camera.label}</button>)}</div><div className="boost-stack"><div className="boost-label"><span>SPRINT SPACE</span><b>{Math.round(snapshot.boost)}%</b><em>{snapshot.boostCountdown ? `PULIH ${snapshot.boostCountdown}s` : 'SIAP'}</em></div><div className="stamina-bar"><span style={{ width: `${snapshot.boost}%` }} /></div></div><div className="pickup-legend"><span className="grade-25">+25%</span><span className="grade-40">+40%</span><span className="grade-75">+75%</span><span className="grade-100">+100%</span><em>{snapshot.pickupCount} item</em></div><div className="control-ribbon"><b>WASD</b> gerak <b>SPACE</b> sprint <b>SHIFT</b> parkour <b>P</b> jeda</div><div className="mobile-controls" aria-label="Kontrol sentuh"><div className="touch-dpad"><button aria-label="Gerak atas" onPointerDown={e => { e.preventDefault(); touchKey('w', true); }} onPointerUp={() => touchKey('w', false)} onPointerCancel={() => touchKey('w', false)}>▲</button><button aria-label="Gerak kiri" onPointerDown={e => { e.preventDefault(); touchKey('a', true); }} onPointerUp={() => touchKey('a', false)} onPointerCancel={() => touchKey('a', false)}>◀</button><button aria-label="Gerak kanan" onPointerDown={e => { e.preventDefault(); touchKey('d', true); }} onPointerUp={() => touchKey('d', false)} onPointerCancel={() => touchKey('d', false)}>▶</button><button aria-label="Gerak bawah" onPointerDown={e => { e.preventDefault(); touchKey('s', true); }} onPointerUp={() => touchKey('s', false)} onPointerCancel={() => touchKey('s', false)}>▼</button></div><div className="touch-actions"><button className="touch-boost" aria-label="Sprint" onPointerDown={e => { e.preventDefault(); touchKey(' ', true); }} onPointerUp={() => touchKey(' ', false)} onPointerCancel={() => touchKey(' ', false)}>SPRINT</button><button aria-label="Parkour" onPointerDown={e => { e.preventDefault(); touchKey('shift', true); }} onPointerUp={() => touchKey('shift', false)} onPointerCancel={() => touchKey('shift', false)}>PARKOUR</button></div></div></>}
         </div>
         <aside className="mission-panel">
-          <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>{mode === 'menu' ? 'Kuasai aturan baru' : 'Buktikan core loop'}</h2></div>
+          <div className="mission-head"><span>Rules test · {missionCount}/5</span><h2>Buktikan core loop</h2></div>
           <div className="mission-progress"><span style={{ width: `${missionCount * 20}%` }} /></div>
           <ul className="mission-list">
             <li className={snapshot.mission.refresh ? 'done' : ''}><Flag size={18} /><div><b>Refresh prioritas</b><span>Kembali ke benteng dan keluar lagi sebagai urutan terbaru.</span></div></li>

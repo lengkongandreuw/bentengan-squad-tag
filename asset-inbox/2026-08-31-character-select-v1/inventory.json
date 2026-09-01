@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "status": "stored-only",
+  "received": "2026-08-31",
+  "fileCount": 19,
+  "totalBytes": 11093442,
+  "integrated": false,
+  "files": [
+    { "path": "characters/hijau maria.png", "kind": "character-portrait", "team": "green", "character": "maria", "width": 350, "height": 660, "bytes": 275402, "alpha": true, "sha256": "a8658c9fb94391acad0d51ca91e3e318bbce3535ca922bd2ba9c1bc9bb7d944a" },
+    { "path": "characters/hijau kaka.png", "kind": "character-portrait", "team": "green", "character": "kaka", "width": 364, "height": 695, "bytes": 245400, "alpha": true, "sha256": "57d0f4a5119265c8e5e3b03eb4ca5064efcf05861bf6b852550b621304ada4d6" },
+    { "path": "characters/hiijau ciici.png", "kind": "character-portrait", "team": "green", "character": "ciici", "width": 322, "height": 616, "bytes": 222181, "alpha": true, "sha256": "c9917580921cd6924d239a98688733104a47ef7ac30b8c14ce2a950e5fefde45" },
+    { "path": "characters/hiijau buto.png", "kind": "character-portrait", "team": "green", "character": "buto", "width": 394, "height": 604, "bytes": 342493, "alpha": true, "sha256": "a64f13e3230da1fd13d67bf9b2218571f9a273996dd73e776ed378f9a8388e9b" },
+    { "path": "characters/hijau boke.png", "kind": "character-portrait", "team": "green", "character": "boke", "width": 448, "height": 775, "bytes": 459858, "alpha": true, "sha256": "c71ab700eb4d18da0c8a50cf50407edc6f579180b4f4cf3012376985d0468834" },
+    { "path": "characters/merah raja.png", "kind": "character-portrait", "team": "red", "character": "raja", "width": 349, "height": 658, "bytes": 227750, "alpha": true, "sha256": "fea1e0ca95ba09fada6e4bd7037081111f3fc51c7e75937b0235a512895f71cc" },
+    { "path": "characters/merah robot.png", "kind": "character-portrait", "team": "red", "character": "robot", "width": 274, "height": 670, "bytes": 263938, "alpha": true, "sha256": "cbf9a05902034901ea9b635dc5d62143c6895320eb0bd9213172b58db292ecbe" },
+    { "path": "characters/merah jago.png", "kind": "character-portrait", "team": "red", "character": "jago", "width": 451, "height": 831, "bytes": 433748, "alpha": true, "sha256": "a61166d3670912da065e20989c4e003d41dfa3f75dafb7f915b2c093f346c69a" },
+    { "path": "characters/merah lala.png", "kind": "character-portrait", "team": "red", "character": "lala", "width": 383, "height": 763, "bytes": 483000, "alpha": true, "sha256": "f47f7b62c341f7f6d66c669355d57245e055f258c1b9eb47fdb5cf48acdab099" },
+    { "path": "characters/merah kumis.png", "kind": "character-portrait", "team": "red", "character": "kumis", "width": 560, "height": 748, "bytes": 357349, "alpha": true, "sha256": "395234f1d0c7ddb5b99e4cb826c75d56da6c2f47aa46b708a0b2997a3d3d18c9" },
+    { "path": "ui-states/char tim hijau active.png", "kind": "character-state", "team": "green", "character": "kaka", "state": "active", "width": 956, "height": 2297, "bytes": 1892163, "alpha": true, "sha256": "c55faacc6e1784d981ea66313a17c56c2e8d40aff02956b9d6ef87bcd1c3c145" },
+    { "path": "ui-states/char hijau inactive.png", "kind": "character-state", "team": "green", "character": "kaka", "state": "inactive", "width": 709, "height": 1702, "bytes": 547668, "alpha": true, "sha256": "2bb26fa8c1c37e9c6a01c6b80d9a1cc24200ae6b08e8072761e958e12bbc7eec" },
+    { "path": "ui-states/char tim merah active.png", "kind": "character-state", "team": "red", "character": "raja", "state": "active", "width": 907, "height": 2089, "bytes": 1552298, "alpha": true, "sha256": "6e3897abaccea9a9643570627843c404da30d99c53054e837b54190e0cc830ba" },
+    { "path": "ui-states/char merah inactive.png", "kind": "character-state", "team": "red", "character": "raja", "state": "inactive", "width": 683, "height": 1572, "bytes": 479396, "alpha": true, "sha256": "a870fbea26e411b93a00c860f3239bd509c54e8322ffd4de7b8c557cd8d60de5" },
+    { "path": "buttons/backbutton.png", "kind": "back-button", "state": "normal", "width": 186, "height": 191, "bytes": 22713, "alpha": true, "sha256": "3d2b50dd0b4cded9aa197e0701187c37650f19ff0875b000362ff2e85b95ee3f" },
+    { "path": "buttons/button tim merah.png", "kind": "team-button-sheet", "team": "red", "frames": 2, "layout": "vertical", "width": 1448, "height": 1086, "bytes": 1519708, "alpha": true, "sha256": "4988f5adad95fc746294f66af5fa5c71691e6431886fce7e39bbdaafc3d51240" },
+    { "path": "buttons/button tim hijau.png", "kind": "team-button-sheet", "team": "green", "frames": 2, "layout": "vertical", "width": 1448, "height": 1086, "bytes": 1572209, "alpha": true, "sha256": "154b9d9492d652b9eec7fa7a89bcb41a6656d40731c4ad084e449dc74c136de2" },
+    { "path": "buttons/button primary normal state.png", "kind": "primary-button", "state": "normal", "width": 437, "height": 132, "bytes": 92620, "alpha": true, "sha256": "e8adeacafdc7c42a76bb8f8d148aee7c6e025dff044cf06d581308d8cf64fcc5" },
+    { "path": "buttons/button primary hover state.png", "kind": "primary-button", "state": "hover", "width": 462, "height": 162, "bytes": 103548, "alpha": true, "sha256": "faf85dfd1662953828acf4e7a561deaf214e0d15a1c71c60ea49b6f5bedf8216" }
+  ],
+  "missingRosterAssets": [
+    { "team": "red", "character": "tui" },
+    { "team": "green", "character": "lui" }
+  ]
+}

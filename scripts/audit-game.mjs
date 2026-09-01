@@ -14,6 +14,7 @@ const manifest = await readJson('public/characters/manifest.json');
 const spriteBaseline = await readJson('config/sprite-baseline.json');
 const fieldManifest = await readJson('public/field/manifest.json');
 const fieldBaseline = await readJson('config/field-baseline.json');
+const uiManifest = await readJson('public/ui-v2/manifest.json');
 const charactersSource = await readFile(path.join(root, 'lib/characters.ts'), 'utf8');
 const prototypeSource = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
 const globalStyles = await readFile(path.join(root, 'app/globals.css'), 'utf8');
@@ -34,6 +35,10 @@ assert(manifest.version === 7 && manifest.characters.length === 12, 'manifest sp
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('column * width / 7') && !prototypeSource.includes('column * width / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
 assert(charactersSource.includes('?v=7') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v7');
+assert(uiManifest.version === 2 && uiManifest.files.length === 21, 'paket UI v2 memuat 10 portrait, 4 hero, dan 7 kontrol');
+assert(uiManifest.totalBytes <= 900 * 1024, `paket UI v2 ${(uiManifest.totalBytes / 1024).toFixed(0)} KiB berada dalam budget 900 KiB`);
+assert(prototypeSource.includes("type MenuStep = 'splash' | 'team' | 'character' | 'field'") && prototypeSource.includes("key === 'escape'") && prototypeSource.includes('cycleCharacter'), 'alur layar baru dan navigasi keyboard terpasang');
+assert(prototypeSource.includes("ui-v2/${file}?v=2") && !prototypeSource.includes('asset-inbox/'), 'runtime memakai WebP UI v2 tanpa merujuk master PNG');
 
 const offsets = rules.spawnOffsets;
 let minimumSpawnDistance = Infinity;
