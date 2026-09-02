@@ -1,175 +1,391 @@
 {
-  "version": 2,
+  "version": 3,
   "objects": {
     "file": "objects.webp",
-    "width": 1536,
-    "height": 768,
+    "width": 2048,
+    "height": 1664,
     "assets": {
-      "coffeeStall": {
+      "jungleSW": {
         "x": 8,
         "y": 8,
+        "width": 330,
+        "height": 330
+      },
+      "jungleNE": {
+        "x": 346,
+        "y": 8,
+        "width": 329,
+        "height": 330
+      },
+      "jungleNW": {
+        "x": 683,
+        "y": 8,
+        "width": 329,
+        "height": 330
+      },
+      "jungleSE": {
+        "x": 1020,
+        "y": 8,
+        "width": 328,
+        "height": 330
+      },
+      "parkCornerSE": {
+        "x": 1356,
+        "y": 8,
+        "width": 329,
+        "height": 275
+      },
+      "parkCornerSW": {
+        "x": 1693,
+        "y": 8,
+        "width": 322,
+        "height": 275
+      },
+      "parkCornerNE": {
+        "x": 8,
+        "y": 346,
+        "width": 330,
+        "height": 273
+      },
+      "parkCornerNW": {
+        "x": 346,
+        "y": 346,
+        "width": 330,
+        "height": 273
+      },
+      "parkPrisonRedFloor": {
+        "x": 684,
+        "y": 346,
+        "width": 279,
+        "height": 250
+      },
+      "parkPrisonRedOverlay": {
+        "x": 971,
+        "y": 346,
+        "width": 279,
+        "height": 250
+      },
+      "industrialPrisonBlueFloor": {
+        "x": 1258,
+        "y": 346,
+        "width": 273,
+        "height": 250
+      },
+      "industrialPrisonBlueOverlay": {
+        "x": 1539,
+        "y": 346,
+        "width": 273,
+        "height": 250
+      },
+      "parkPrisonBlueFloor": {
+        "x": 8,
+        "y": 627,
+        "width": 264,
+        "height": 250
+      },
+      "parkPrisonBlueOverlay": {
+        "x": 280,
+        "y": 627,
+        "width": 264,
+        "height": 250
+      },
+      "industrialPrisonRedFloor": {
+        "x": 552,
+        "y": 627,
+        "width": 255,
+        "height": 250
+      },
+      "industrialPrisonRedOverlay": {
+        "x": 815,
+        "y": 627,
+        "width": 255,
+        "height": 250
+      },
+      "canalStraightV": {
+        "x": 1078,
+        "y": 627,
+        "width": 127,
+        "height": 240
+      },
+      "canalBridgeV": {
+        "x": 1213,
+        "y": 627,
+        "width": 133,
+        "height": 220
+      },
+      "canalBarrierV": {
+        "x": 1354,
+        "y": 627,
+        "width": 88,
+        "height": 208
+      },
+      "coffeeStall": {
+        "x": 1450,
+        "y": 627,
         "width": 207,
         "height": 206
       },
       "guardPost": {
-        "x": 223,
-        "y": 8,
+        "x": 1665,
+        "y": 627,
         "width": 222,
         "height": 202
       },
+      "canalT": {
+        "x": 8,
+        "y": 885,
+        "width": 250,
+        "height": 200
+      },
+      "canalBridgeDiag": {
+        "x": 266,
+        "y": 885,
+        "width": 195,
+        "height": 200
+      },
       "hall": {
-        "x": 453,
-        "y": 8,
+        "x": 469,
+        "y": 885,
         "width": 222,
         "height": 198
       },
       "warung": {
-        "x": 683,
-        "y": 8,
+        "x": 699,
+        "y": 885,
         "width": 209,
         "height": 198
       },
+      "canalBarrierCorner": {
+        "x": 916,
+        "y": 885,
+        "width": 230,
+        "height": 190
+      },
+      "canalCurve": {
+        "x": 1154,
+        "y": 885,
+        "width": 165,
+        "height": 190
+      },
       "fortGreen": {
-        "x": 900,
-        "y": 8,
+        "x": 1327,
+        "y": 885,
         "width": 167,
         "height": 188
       },
       "fortRed": {
-        "x": 1075,
-        "y": 8,
+        "x": 1502,
+        "y": 885,
         "width": 167,
         "height": 188
       },
       "tree": {
-        "x": 1250,
-        "y": 8,
+        "x": 1677,
+        "y": 885,
         "width": 139,
         "height": 184
       },
       "parkTree": {
-        "x": 1397,
-        "y": 8,
+        "x": 1824,
+        "y": 885,
         "width": 130,
         "height": 184
       },
       "snackCart": {
         "x": 8,
-        "y": 222,
+        "y": 1093,
         "width": 148,
         "height": 178
       },
       "clothesline": {
         "x": 164,
-        "y": 222,
+        "y": 1093,
         "width": 206,
         "height": 170
       },
       "foodCart": {
         "x": 378,
-        "y": 222,
+        "y": 1093,
         "width": 166,
         "height": 163
       },
       "marketStallB": {
         "x": 552,
-        "y": 222,
+        "y": 1093,
         "width": 172,
         "height": 160
       },
       "marketStallC": {
         "x": 732,
-        "y": 222,
+        "y": 1093,
         "width": 165,
         "height": 160
       },
       "marketStallA": {
         "x": 905,
-        "y": 222,
+        "y": 1093,
         "width": 163,
         "height": 160
       },
       "prisonOverlay": {
         "x": 1076,
-        "y": 222,
+        "y": 1093,
         "width": 254,
         "height": 157
       },
       "lamp": {
         "x": 1338,
-        "y": 222,
+        "y": 1093,
         "width": 57,
         "height": 152
       },
+      "parkLamp": {
+        "x": 1403,
+        "y": 1093,
+        "width": 68,
+        "height": 150
+      },
       "gardenMedium": {
-        "x": 8,
-        "y": 408,
+        "x": 1479,
+        "y": 1093,
         "width": 190,
         "height": 148
       },
       "prisonFloor": {
-        "x": 206,
-        "y": 408,
+        "x": 1677,
+        "y": 1093,
         "width": 254,
         "height": 142
       },
+      "parkPlanter": {
+        "x": 8,
+        "y": 1279,
+        "width": 250,
+        "height": 135
+      },
+      "parkFlowerFence": {
+        "x": 266,
+        "y": 1279,
+        "width": 270,
+        "height": 130
+      },
+      "canalBridgeH": {
+        "x": 544,
+        "y": 1279,
+        "width": 220,
+        "height": 128
+      },
+      "canalStraightH": {
+        "x": 772,
+        "y": 1279,
+        "width": 280,
+        "height": 122
+      },
       "bush": {
-        "x": 468,
-        "y": 408,
+        "x": 1060,
+        "y": 1279,
         "width": 144,
         "height": 118
       },
       "bunting": {
-        "x": 620,
-        "y": 408,
+        "x": 1212,
+        "y": 1279,
         "width": 198,
         "height": 116
       },
+      "canalBarrier": {
+        "x": 1418,
+        "y": 1279,
+        "width": 250,
+        "height": 115
+      },
       "crates": {
-        "x": 826,
-        "y": 408,
+        "x": 1676,
+        "y": 1279,
         "width": 132,
         "height": 114
       },
+      "canalBarrierLong": {
+        "x": 8,
+        "y": 1422,
+        "width": 340,
+        "height": 113
+      },
       "trash": {
-        "x": 966,
-        "y": 408,
+        "x": 356,
+        "y": 1422,
         "width": 74,
         "height": 110
       },
       "flowerBedSmall": {
-        "x": 1048,
-        "y": 408,
+        "x": 438,
+        "y": 1422,
         "width": 126,
         "height": 104
       },
       "plant": {
-        "x": 1182,
-        "y": 408,
+        "x": 572,
+        "y": 1422,
         "width": 88,
         "height": 104
       },
+      "parkBench": {
+        "x": 668,
+        "y": 1422,
+        "width": 220,
+        "height": 100
+      },
+      "parkPlanterLong": {
+        "x": 896,
+        "y": 1422,
+        "width": 340,
+        "height": 99
+      },
       "bucket": {
-        "x": 1278,
-        "y": 408,
+        "x": 1244,
+        "y": 1422,
         "width": 112,
         "height": 97
       },
+      "parkFlowerFenceLong": {
+        "x": 1364,
+        "y": 1422,
+        "width": 350,
+        "height": 95
+      },
       "drain": {
-        "x": 8,
-        "y": 564,
+        "x": 1722,
+        "y": 1422,
         "width": 233,
         "height": 88
       },
+      "parkBarrier": {
+        "x": 8,
+        "y": 1543,
+        "width": 218,
+        "height": 88
+      },
+      "parkBenchLong": {
+        "x": 234,
+        "y": 1543,
+        "width": 330,
+        "height": 86
+      },
+      "parkBarrierLong": {
+        "x": 572,
+        "y": 1543,
+        "width": 330,
+        "height": 74
+      },
       "plantFence": {
-        "x": 249,
-        "y": 564,
+        "x": 910,
+        "y": 1543,
         "width": 244,
         "height": 47
       },
       "flowerFence": {
-        "x": 501,
-        "y": 564,
+        "x": 1162,
+        "y": 1543,
         "width": 244,
         "height": 40
       }
@@ -485,32 +701,56 @@
   },
   "grounds": {
     "file": "grounds.webp",
-    "width": 768,
-    "height": 512,
+    "width": 1280,
+    "height": 448,
     "tiles": {
       "grass": {
         "x": 0,
         "y": 0,
-        "width": 384,
-        "height": 256
+        "width": 320,
+        "height": 224
       },
       "dirt": {
-        "x": 384,
+        "x": 320,
         "y": 0,
-        "width": 384,
-        "height": 256
+        "width": 320,
+        "height": 224
       },
       "paving": {
-        "x": 0,
-        "y": 256,
-        "width": 384,
-        "height": 256
+        "x": 640,
+        "y": 0,
+        "width": 320,
+        "height": 224
       },
       "concrete": {
-        "x": 384,
-        "y": 256,
-        "width": 384,
-        "height": 256
+        "x": 960,
+        "y": 0,
+        "width": 320,
+        "height": 224
+      },
+      "kampungGround": {
+        "x": 0,
+        "y": 224,
+        "width": 320,
+        "height": 224
+      },
+      "parkGrass": {
+        "x": 320,
+        "y": 224,
+        "width": 320,
+        "height": 224
+      },
+      "parkPaving": {
+        "x": 640,
+        "y": 224,
+        "width": 320,
+        "height": 224
+      },
+      "canalGrass": {
+        "x": 960,
+        "y": 224,
+        "width": 320,
+        "height": 224
       }
     }
   }

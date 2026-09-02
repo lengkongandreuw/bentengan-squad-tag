@@ -34,7 +34,7 @@ type Obstacle = { x: number; y: number; w: number; h: number; asset: FieldAssetI
 type FieldDecoration = { asset: FieldAssetId; x: number; y: number; w: number; h: number; flip?: boolean; opacity?: number };
 type AnimatedDecoration = { animation: FieldAnimatedId; x: number; y: number; w: number; h: number; flip?: boolean; opacity?: number };
 type FieldPath = { tile: GroundTileId; x: number; y: number; w: number; h: number; opacity: number; radius: number };
-type Prison = { x: number; y: number; w: number; h: number };
+type Prison = { x: number; y: number; w: number; h: number; floorAsset?: FieldAssetId; overlayAsset?: FieldAssetId; flip?: boolean };
 type FieldConfig = { id: FieldId; name: string; kicker: string; difficulty: DifficultyId; aiIntensity: number; ground: GroundTileId; prisons: Record<Team, Prison>; paths: FieldPath[]; obstacles: Obstacle[]; decorations: FieldDecoration[]; animated: AnimatedDecoration[] };
 type Refill = { id: number; x: number; y: number; grade: Grade; lane: 0 | 1 | 2; expiresAt: number };
 type Mission = { refresh: boolean; boost: boolean; parkour: boolean; tag: boolean; rescue: boolean; combo: boolean };
@@ -312,16 +312,134 @@ const KAMPUNG_OPEN_ARENA = {
     { animation: 'vendor' as FieldAnimatedId, x: 690, y: 366, w: 76, h: 64 },
   ],
 };
-const FIELD_CONFIGS: FieldConfig[] = RAW_FIELD_CONFIGS.map(field => ({
+const guideObstacle = (asset: FieldAssetId, x: number, y: number, w: number, h: number, visualW: number, visualH: number, flip = false): Obstacle =>
+  ({ asset, x, y, w, h, visualW, visualH, ...(flip ? { flip } : {}) });
+
+const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
+  {
+    id: 'kampung', name: 'Kampung Merdeka', kicker: 'Lapangan terbuka · ramah pemula', difficulty: 'easy', aiIntensity: 1, ground: 'kampungGround',
+    prisons: {
+      blue: { x: 164, y: 548, w: 310, h: 250, floorAsset: 'industrialPrisonBlueFloor', overlayAsset: 'industrialPrisonBlueOverlay' },
+      red: { x: 906, y: 42, w: 310, h: 250, floorAsset: 'industrialPrisonRedFloor', overlayAsset: 'industrialPrisonRedOverlay' },
+    },
+    paths: [
+      { tile: 'kampungGround', x: 286, y: 220, w: 868, h: 358, opacity: .5, radius: 42 },
+      { tile: 'paving', x: 654, y: 30, w: 132, h: 740, opacity: .42, radius: 34 },
+    ],
+    obstacles: [
+      guideObstacle('warung', 186, 54, 160, 54, 238, 198), guideObstacle('hall', 1220, 54, 170, 54, 238, 198),
+      guideObstacle('guardPost', 1008, 624, 164, 54, 222, 205), guideObstacle('coffeeStall', 590, 650, 150, 46, 214, 206),
+      ...[[350,170],[570,170],[790,170],[1010,170],[350,600],[570,600],[790,600],[1010,600]].map(([x,y], i) => guideObstacle(i % 2 ? 'parkBarrier' : 'parkBench', x, y, 126, 28, 160, 76, i % 3 === 0)),
+      ...[[350,318],[510,318],[830,318],[990,318],[350,468],[510,468],[830,468],[990,468]].map(([x,y], i) => guideObstacle(i % 2 ? 'parkBarrier' : 'drain', x, y, 118, 30, 154, 64, i % 3 === 1)),
+      guideObstacle('crates', 594, 292, 62, 52, 84, 78), guideObstacle('crates', 784, 442, 62, 52, 84, 78, true),
+      guideObstacle('parkTree', 244, 256, 70, 56, 124, 158), guideObstacle('parkTree', 1126, 486, 70, 56, 124, 158, true),
+      guideObstacle('flowerBedSmall', 612, 404, 96, 38, 124, 86), guideObstacle('flowerBedSmall', 738, 404, 96, 38, 124, 86, true),
+      guideObstacle('snackCart', 392, 684, 92, 44, 134, 152), guideObstacle('foodCart', 930, 686, 92, 44, 138, 150, true),
+    ],
+    decorations: [
+      { asset: 'bunting', x: 570, y: 34, w: 300, h: 120, opacity: .92 },
+      { asset: 'flowerFence', x: 22, y: 30, w: 300, h: 86 }, { asset: 'flowerFence', x: 1118, y: 30, w: 300, h: 86, flip: true },
+      { asset: 'flowerFence', x: 22, y: 704, w: 300, h: 86 }, { asset: 'flowerFence', x: 1118, y: 704, w: 300, h: 86, flip: true },
+    ],
+    animated: [{ animation: 'flag', x: 620, y: 46, w: 62, h: 88 }, { animation: 'flag', x: 758, y: 46, w: 62, h: 88, flip: true }],
+  },
+  {
+    id: 'pasar', name: 'Pasar Senggol', kicker: 'Lorong pasar · jalur rapat', difficulty: 'normal', aiIntensity: 1, ground: 'kampungGround',
+    prisons: {
+      blue: { x: 248, y: 42, w: 310, h: 250, floorAsset: 'industrialPrisonBlueFloor', overlayAsset: 'industrialPrisonBlueOverlay' },
+      red: { x: 882, y: 42, w: 310, h: 250, floorAsset: 'industrialPrisonRedFloor', overlayAsset: 'industrialPrisonRedOverlay' },
+    },
+    paths: [
+      { tile: 'dirt', x: 202, y: 98, w: 1036, h: 604, opacity: .7, radius: 38 },
+      { tile: 'paving', x: 236, y: 314, w: 968, h: 170, opacity: .48, radius: 26 },
+    ],
+    obstacles: [
+      guideObstacle('warung', 208, 594, 168, 52, 238, 198), guideObstacle('warung', 1062, 594, 168, 52, 238, 198, true),
+      guideObstacle('coffeeStall', 620, 636, 154, 48, 214, 206), guideObstacle('marketStallA', 606, 276, 174, 44, 214, 164),
+      ...[[286,238],[472,238],[794,238],[980,238],[286,520],[472,520],[794,520],[980,520]].map(([x,y], i) => guideObstacle(i % 2 ? 'marketStallB' : 'marketStallC', x, y, 128, 40, 184, 144, i % 3 === 0)),
+      ...[[340,340],[520,340],[760,340],[940,340],[340,454],[520,454],[760,454],[940,454]].map(([x,y], i) => guideObstacle(i % 2 ? 'parkBarrier' : 'drain', x, y, 118, 28, 156, 62, i % 3 === 1)),
+      guideObstacle('canalStraightH', 470, 382, 148, 34, 200, 112), guideObstacle('canalStraightH', 822, 382, 148, 34, 200, 112, true),
+      guideObstacle('canalBridgeH', 626, 374, 86, 40, 132, 102), guideObstacle('canalBridgeH', 728, 374, 86, 40, 132, 102, true),
+      guideObstacle('snackCart', 430, 648, 92, 44, 134, 152), guideObstacle('foodCart', 918, 648, 92, 44, 138, 150, true),
+      guideObstacle('crates', 568, 206, 62, 52, 86, 78), guideObstacle('crates', 810, 206, 62, 52, 86, 78, true),
+      guideObstacle('trash', 638, 530, 42, 52, 54, 74), guideObstacle('bucket', 760, 530, 42, 52, 54, 66),
+    ],
+    decorations: [
+      { asset: 'bunting', x: 536, y: 622, w: 368, h: 124 },
+      { asset: 'lamp', x: 510, y: 136, w: 48, h: 98 }, { asset: 'lamp', x: 882, y: 136, w: 48, h: 98 },
+      { asset: 'plantFence', x: 536, y: 126, w: 368, h: 78 },
+    ],
+    animated: [{ animation: 'vendor', x: 674, y: 326, w: 92, h: 76 }, { animation: 'flag', x: 684, y: 590, w: 64, h: 90 }],
+  },
+  {
+    id: 'taman', name: 'Taman Kota', kicker: 'Taman simetris · parkour teknis', difficulty: 'hard', aiIntensity: 1, ground: 'parkGrass',
+    prisons: {
+      blue: { x: 164, y: 522, w: 310, h: 250, floorAsset: 'parkPrisonBlueFloor', overlayAsset: 'parkPrisonBlueOverlay' },
+      red: { x: 860, y: 40, w: 310, h: 250, floorAsset: 'parkPrisonRedFloor', overlayAsset: 'parkPrisonRedOverlay' },
+    },
+    paths: [
+      { tile: 'parkPaving', x: 606, y: 28, w: 228, h: 744, opacity: .72, radius: 30 },
+      { tile: 'parkPaving', x: 216, y: 302, w: 1008, h: 196, opacity: .72, radius: 44 },
+    ],
+    obstacles: [
+      ...[[328,188],[510,188],[748,188],[930,188],[328,584],[510,584],[748,584],[930,584]].map(([x,y], i) => guideObstacle(i % 2 ? 'parkBench' : 'parkBarrier', x, y, 124, 28, 168, 78, i % 3 === 0)),
+      ...[[300,294],[480,294],[780,294],[960,294],[300,478],[480,478],[780,478],[960,478]].map(([x,y], i) => guideObstacle(i % 2 ? 'parkPlanter' : 'parkFlowerFence', x, y, 124, 40, 180, 112, i % 3 === 1)),
+      guideObstacle('parkBenchLong', 544, 112, 170, 30, 250, 76), guideObstacle('parkBenchLong', 726, 646, 170, 30, 250, 76, true),
+      guideObstacle('parkBarrierLong', 546, 250, 170, 28, 250, 66), guideObstacle('parkBarrierLong', 724, 522, 170, 28, 250, 66, true),
+      guideObstacle('parkPlanterLong', 548, 358, 164, 40, 242, 92), guideObstacle('parkPlanterLong', 728, 406, 164, 40, 242, 92, true),
+      guideObstacle('parkTree', 238, 164, 72, 56, 124, 158), guideObstacle('parkTree', 1130, 580, 72, 56, 124, 158, true),
+      guideObstacle('flowerBedSmall', 658, 326, 96, 38, 128, 88), guideObstacle('flowerBedSmall', 686, 474, 96, 38, 128, 88, true),
+      guideObstacle('parkLamp', 602, 204, 36, 44, 54, 112), guideObstacle('parkLamp', 802, 548, 36, 44, 54, 112),
+      guideObstacle('parkLamp', 594, 520, 36, 44, 54, 112), guideObstacle('parkLamp', 810, 230, 36, 44, 54, 112),
+    ],
+    decorations: [
+      { asset: 'parkCornerNW', x: 18, y: 30, w: 330, h: 275 }, { asset: 'parkCornerNE', x: 1092, y: 30, w: 330, h: 275 },
+      { asset: 'parkCornerSW', x: 18, y: 508, w: 330, h: 275 }, { asset: 'parkCornerSE', x: 1092, y: 508, w: 330, h: 275 },
+    ],
+    animated: [{ animation: 'fountain', x: 674, y: 354, w: 92, h: 90 }],
+  },
+  {
+    id: 'kanal', name: 'Alun Kanal Nusantara', kicker: 'Kanal cincin · parkour silang', difficulty: 'hard', aiIntensity: 1.03, ground: 'canalGrass',
+    prisons: {
+      blue: { x: 164, y: 548, w: 310, h: 250, floorAsset: 'industrialPrisonBlueFloor', overlayAsset: 'industrialPrisonBlueOverlay' },
+      red: { x: 874, y: 34, w: 310, h: 250, floorAsset: 'industrialPrisonRedFloor', overlayAsset: 'industrialPrisonRedOverlay' },
+    },
+    paths: [
+      { tile: 'parkPaving', x: 198, y: 292, w: 1044, h: 216, opacity: .52, radius: 96 },
+      { tile: 'dirt', x: 414, y: 148, w: 612, h: 504, opacity: .46, radius: 182 },
+    ],
+    obstacles: [
+      ...[[354,160],[566,160],[778,160],[990,160],[354,610],[566,610],[778,610],[990,610]].map(([x,y], i) => guideObstacle('canalStraightH', x, y, 132, 34, 198, 112, i % 2 === 1)),
+      ...[[382,272],[382,438],[1000,272],[1000,438]].map(([x,y], i) => guideObstacle('canalStraightV', x, y, 42, 118, 92, 176, i > 1)),
+      guideObstacle('canalT', 520, 264, 92, 66, 166, 140), guideObstacle('canalT', 828, 264, 92, 66, 166, 140, true),
+      guideObstacle('canalT', 520, 470, 92, 66, 166, 140, true), guideObstacle('canalT', 828, 470, 92, 66, 166, 140),
+      guideObstacle('canalBridgeH', 444, 346, 92, 42, 142, 108), guideObstacle('canalBridgeH', 904, 412, 92, 42, 142, 108, true),
+      guideObstacle('canalBridgeV', 630, 218, 44, 96, 98, 160), guideObstacle('canalBridgeV', 766, 486, 44, 96, 98, 160, true),
+      guideObstacle('canalBridgeDiag', 570, 338, 86, 54, 142, 124), guideObstacle('canalBridgeDiag', 784, 408, 86, 54, 142, 124, true),
+      guideObstacle('canalBarrier', 486, 106, 126, 30, 180, 102), guideObstacle('canalBarrier', 828, 664, 126, 30, 180, 102, true),
+      guideObstacle('canalBarrierLong', 560, 544, 164, 34, 236, 104), guideObstacle('canalBarrierLong', 716, 222, 164, 34, 236, 104, true),
+      guideObstacle('canalBarrierCorner', 526, 394, 82, 58, 148, 128), guideObstacle('canalBarrierCorner', 832, 346, 82, 58, 148, 128, true),
+      guideObstacle('flowerBedSmall', 656, 290, 96, 38, 126, 86), guideObstacle('flowerBedSmall', 688, 472, 96, 38, 126, 86, true),
+      guideObstacle('parkTree', 244, 248, 70, 56, 122, 156), guideObstacle('parkTree', 1126, 498, 70, 56, 122, 156, true),
+    ],
+    decorations: [
+      { asset: 'jungleNW', x: 18, y: 30, w: 330, h: 330 }, { asset: 'jungleNE', x: 1092, y: 30, w: 330, h: 330 },
+      { asset: 'jungleSW', x: 18, y: 452, w: 330, h: 330 }, { asset: 'jungleSE', x: 1092, y: 452, w: 330, h: 330 },
+    ],
+    animated: [{ animation: 'fountain', x: 674, y: 354, w: 92, h: 90 }, { animation: 'flag', x: 676, y: 84, w: 64, h: 90 }],
+  },
+];
+
+const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map(field => ({
   ...field,
   prisons: {
     blue: { ...field.prisons.blue, x: world(field.prisons.blue.x), y: world(field.prisons.blue.y) },
     red: { ...field.prisons.red, x: world(field.prisons.red.x), y: world(field.prisons.red.y) },
   },
-  paths: (field.id === 'kampung' ? KAMPUNG_OPEN_ARENA.paths : field.paths).map(path => ({ ...path, x: world(path.x), y: world(path.y), w: world(path.w), h: world(path.h), radius: world(path.radius) })),
-  obstacles: (field.id === 'kampung' ? KAMPUNG_OPEN_ARENA.obstacles : field.obstacles).map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
-  decorations: (field.id === 'kampung' ? KAMPUNG_OPEN_ARENA.decorations : field.decorations).map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
-  animated: (field.id === 'kampung' ? KAMPUNG_OPEN_ARENA.animated : field.animated).map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
+  paths: field.paths.map(path => ({ ...path, x: world(path.x), y: world(path.y), w: world(path.w), h: world(path.h), radius: world(path.radius) })),
+  obstacles: field.obstacles.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
+  decorations: field.decorations.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
+  animated: field.animated.map(item => ({ ...item, x: world(item.x), y: world(item.y) })),
 }));
 const prisonClearance = 12;
 for (const field of FIELD_CONFIGS) {
@@ -358,7 +476,7 @@ const formatTime = (seconds: number) => {
 };
 const statPercent = (value: number, min: number, max: number) => `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 const UI_V2_PORTRAITS = new Set<CharacterId>(['raja', 'robot', 'jago', 'lala', 'kumis', 'tui', 'bebe', 'kaka', 'ciici', 'buto', 'maria', 'boke', 'lui', 'kodo']);
-const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=4`);
+const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=5`);
 const menuPortraitAsset = (id: CharacterId) => UI_V2_PORTRAITS.has(id) ? uiAsset(`portraits/${id}.webp`) : characterAsset(id, 'portrait.webp');
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
@@ -416,6 +534,45 @@ export function BentenganPrototype() {
   };
 
   useEffect(() => { cameraModeRef.current = cameraMode; }, [cameraMode]);
+
+  useEffect(() => {
+    let uiAudio: AudioContext | null = null;
+    let lastHoverTarget: EventTarget | null = null;
+    let lastHoverAt = 0;
+    const playUiTone = (frequency: number, duration: number, gainValue: number, type: OscillatorType = 'sine') => {
+      try {
+        uiAudio ??= new AudioContext();
+        if (uiAudio.state !== 'running') void uiAudio.resume();
+        const oscillator = uiAudio.createOscillator();
+        const gain = uiAudio.createGain();
+        oscillator.type = type; oscillator.frequency.setValueAtTime(frequency, uiAudio.currentTime);
+        gain.gain.setValueAtTime(gainValue, uiAudio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.0001, uiAudio.currentTime + duration);
+        oscillator.connect(gain); gain.connect(uiAudio.destination); oscillator.start(); oscillator.stop(uiAudio.currentTime + duration);
+      } catch { /* Audio UI bersifat opsional. */ }
+    };
+    const interactive = (target: EventTarget | null) => target instanceof Element ? target.closest('button,[role="button"]') as HTMLElement | null : null;
+    const onPointerOver = (event: PointerEvent) => {
+      const target = interactive(event.target); const now = performance.now();
+      if (!target || target === lastHoverTarget || target.matches(':disabled') || event.pointerType !== 'mouse' || now - lastHoverAt < 55 || !uiAudio) return;
+      lastHoverTarget = target; lastHoverAt = now; playUiTone(560, .035, .012, 'sine');
+    };
+    const onPointerOut = (event: PointerEvent) => { if (interactive(event.target) === lastHoverTarget) lastHoverTarget = null; };
+    const onPointerDown = (event: PointerEvent) => {
+      const target = interactive(event.target); if (!target || target.matches(':disabled')) return;
+      playUiTone(235, .06, .025, 'triangle');
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.key === 'Enter' || event.key === ' ') && interactive(event.target)) playUiTone(300, .055, .02, 'triangle');
+    };
+    document.addEventListener('pointerover', onPointerOver); document.addEventListener('pointerout', onPointerOut);
+    document.addEventListener('pointerdown', onPointerDown); document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerover', onPointerOver); document.removeEventListener('pointerout', onPointerOut);
+      document.removeEventListener('pointerdown', onPointerDown); document.removeEventListener('keydown', onKeyDown);
+      if (uiAudio) void uiAudio.close();
+    };
+  }, []);
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
@@ -887,7 +1044,7 @@ export function BentenganPrototype() {
 
       (['blue', 'red'] as Team[]).forEach(team => {
         const prison = field.prisons[team];
-        drawFieldAsset(target, 'prisonFloor', prison.x, prison.y, prison.w, prison.h, team === 'red', .96);
+        drawFieldAsset(target, prison.floorAsset ?? 'prisonFloor', prison.x, prison.y, prison.w, prison.h, prison.flip ?? team === 'red', .96);
       });
 
       const scenery = [
@@ -925,7 +1082,7 @@ export function BentenganPrototype() {
         const base = BASES[team];
         if (isNearby(base.x - 84, base.y - 130, 168, 188)) drawFieldAsset(ctx, team === 'blue' ? 'fortRed' : 'fortGreen', base.x - 84, base.y - 130, 168, 188, false, .96);
         const prison = field.prisons[team];
-        if (isNearby(prison.x, prison.y, prison.w, prison.h)) drawFieldAsset(ctx, 'prisonFloor', prison.x, prison.y, prison.w, prison.h, team === 'red', .96);
+        if (isNearby(prison.x, prison.y, prison.w, prison.h)) drawFieldAsset(ctx, prison.floorAsset ?? 'prisonFloor', prison.x, prison.y, prison.w, prison.h, prison.flip ?? team === 'red', .96);
       });
     };
     const drawFieldAnimations = (now: number) => field.animated.forEach(item =>
@@ -933,7 +1090,7 @@ export function BentenganPrototype() {
     const drawPrisonOverlays = (now: number) => {
       (['blue', 'red'] as Team[]).forEach(team => {
         const prison = field.prisons[team];
-        drawFieldAsset(ctx, 'prisonOverlay', prison.x, prison.y, prison.w, prison.h, team === 'red', .98);
+        drawFieldAsset(ctx, prison.overlayAsset ?? 'prisonOverlay', prison.x, prison.y, prison.w, prison.h, prison.flip ?? team === 'red', .98);
       });
     };
     const drawBase = (team: Team) => {
@@ -1227,7 +1384,7 @@ export function BentenganPrototype() {
       {menuStep === 'field' && selectedFaction && <section className={`field-select-screen faction-${selectedFaction}`} aria-labelledby="field-title">
         <header><span>LANGKAH TERAKHIR</span><h1 id="field-title">Pilih arena pertarungan</h1><p>Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis terjadi setelah tiga kemenangan.</p></header>
         <div className="field-card-row">{FIELD_CONFIGS.map((field, index) => <button key={field.id} className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''}`} onClick={() => setSelectedFieldId(field.id)} aria-pressed={selectedFieldId === field.id}>
-          <small>0{index + 1}</small><em>{field.difficulty}</em><strong>{field.name}</strong><span>{field.kicker}</span><i>{selectedFieldId === field.id ? 'ARENA AKTIF' : 'PILIH ARENA'}</i>
+          <img className="field-card-preview" src={uiAsset(`fields/${field.id}.webp`)} alt="" aria-hidden="true" /><small>0{index + 1}</small><em>{field.difficulty}</em><strong>{field.name}</strong><span>{field.kicker}</span><i>{selectedFieldId === field.id ? 'ARENA AKTIF' : 'PILIH ARENA'}</i>
         </button>)}</div>
         <div className="match-lineup"><div>{squad.map((id, index) => <figure key={id} className={index === 0 ? 'controlled' : ''}><img src={menuPortraitAsset(id)} alt={CHARACTER_BY_ID[id].name} /><figcaption>{index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}</figcaption></figure>)}</div><b>VS</b><div>{opponentSquad.map(id => <figure key={id}><img src={menuPortraitAsset(id)} alt={CHARACTER_BY_ID[id].name} /><figcaption>{CHARACTER_BY_ID[id].name}</figcaption></figure>)}</div></div>
         <button className={`graffiti-primary launch-${selectedFaction}`} onClick={start}><span><Play size={19} fill="currentColor" /> MULAI MATCH</span></button>

@@ -6,6 +6,7 @@ const root = process.cwd();
 const source = path.join(root, 'asset-inbox', '2026-08-31-character-select-v1');
 const rosterExpansion = path.join(root, 'asset-inbox', '2026-09-01-roster-expansion-v1');
 const uiRefresh = path.join(root, 'asset-inbox', '2026-09-01-ui-refresh-v3');
+const fieldCardSource = path.join(root, 'asset-inbox', '2026-09-02-field-cards-v1', 'field-cards.png');
 const output = path.join(root, 'public', 'ui-v2');
 const brandOutput = path.join(root, 'public', 'brand');
 
@@ -59,6 +60,7 @@ const encodeContained = async (input, destination, width, height, quality = 78) 
 await fs.mkdir(path.join(output, 'portraits'), { recursive: true });
 await fs.mkdir(path.join(output, 'heroes'), { recursive: true });
 await fs.mkdir(path.join(output, 'controls'), { recursive: true });
+await fs.mkdir(path.join(output, 'fields'), { recursive: true });
 await fs.mkdir(brandOutput, { recursive: true });
 
 await encodeContained(
@@ -102,6 +104,21 @@ for (const faction of ['red', 'green']) {
   }
 }
 
+const fieldCardCrops = {
+  kampung: { left: 51, top: 0, width: 479, height: 724 },
+  pasar: { left: 581, top: 0, width: 466, height: 724 },
+  taman: { left: 1104, top: 0, width: 477, height: 724 },
+  kanal: { left: 1637, top: 0, width: 494, height: 724 },
+};
+for (const [id, crop] of Object.entries(fieldCardCrops)) {
+  const card = await sharp(fieldCardSource).extract(crop).png().toBuffer();
+  await sharp(card)
+    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 2 })
+    .resize({ width: 420, height: 560, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .webp({ quality: 78, alphaQuality: 88, effort: 6, smartSubsample: true })
+    .toFile(path.join(output, 'fields', `${id}.webp`));
+}
+
 const files = [];
 const walk = async directory => {
   for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
@@ -115,6 +132,6 @@ const walk = async directory => {
 };
 await walk(output);
 files.sort((a, b) => a.file.localeCompare(b.file));
-await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 4, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
+await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 5, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
 const logoBytes = (await fs.stat(path.join(brandOutput, 'benteng-tag-logo.webp'))).size;
-console.log(`UI runtime v4: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);
+console.log(`UI runtime v5: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);

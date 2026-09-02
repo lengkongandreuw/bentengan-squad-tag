@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "sources": {
     "air mancur.png": "b42574ac6ae0f04c4b9476c8dbd921828f0715e624222e52e34c939883f13c81",
     "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
@@ -38,14 +38,31 @@
     "taman petak sedang.png": "edd4c7d35bd7284a0bf94dc32198fd8e0a6082f52a8f9bb22d19957d63bcfb89",
     "tempat sampaj.png": "60a7ccb0755a5ddf7d375ebebeb40035547de38111f55b0b8e4f7e909f0bd210",
     "tiles latar.png": "1efb319b9819ccb3155059c79ce778a19edeea08d4b607c6be129d33a28461ec",
+    "v3-canal-barriers.png": "a8954444f2d62b5297c398582c5ed1c6e9af98f719e4ab77bd8d29c151502f83",
+    "v3-canal-bridges.png": "794527bbcd60b7b76246147b20f7b747a4cc2025e345d58c9ec8e64f7e1c2612",
+    "v3-canals.png": "8b04e799f9bd10b34507cd2b323a8297ce97ceb5bb5c4747e0d146558217d77a",
+    "v3-edge-ne.png": "c7f26605e40dd4503cb711e33bc1b27d11497084926db048f749c38a435ab2ba",
+    "v3-edge-nw.png": "62d6de726383d06e0a777bc36ab1374a189e0a0d8fd361874b01370ea1bc8ba7",
+    "v3-edge-se.png": "b27bfd29f4d3a87e356e21a74b26c5cb4adf5c2ad9bf251dae9160437cb07209",
+    "v3-edge-sw.png": "2a0b3de3c0bf803063caf7d20709746471d6e4cb581fb9f9dc6bdc7ac3cbc67d",
+    "v3-ground-canal.png": "a6c6802f94302bb3d2ebd982ad7a907325b361bef1e996cc909a3de53bfa3e4b",
+    "v3-ground-kampung.png": "15371b68d46ba0f8b4e9da5cf161c56685f323a1c2266c2c06fbb68a080b7e19",
+    "v3-ground-park-grass.png": "d0d4a279348850ce81db5122f6b51c200367bf7bf03dd0967ddc2940c0c944cd",
+    "v3-ground-park-paving.png": "428118f633d88128146f799e0f4fbb42453dec8bd64ddc77e78db5203442f955",
+    "v3-park-corners.png": "1f760b5cadae8335776ac6c186eeaa01fdf35fd01100a428dbfcb92d8051fe90",
+    "v3-park-objects.png": "9cbbac0140bffcb56352dcf1ce5d43ed0ed6c3f31003d5175cfaf35d2550cce9",
+    "v3-park-prison-blue.png": "51331fd29a2bd34e74e56d2c60ff6d6982f11adb71f53ec0eea833566ff08d8e",
+    "v3-park-prison-red.png": "b7a0f42cb2849fc137cda89d51945e78dfd2bd94918131cfb8240533041182b1",
+    "v3-prison-industrial-blue.png": "2d26dd5f4a5ccc19b85929141cfbf374f374344cdc43be03e4b611ebad3f4294",
+    "v3-prison-industrial-red.png": "9f0ee718055264d1b387a2ea304658bc6875631873ca309edbdad7e24df83d71",
     "variasi lapak.png": "da91fa7279dee1996aaef340926b5d0320d02ff6c2f64dd5dd16b585412cd5d5",
     "warung v2.png": "8157c9ab3585bce4d3a6b0468be7b59872433f73809d9e96f6a8b48442d3f8a1",
     "warung.png": "dfbcfda585a4fc2ef256e931e864ffaae0eb1a5641fc891b677046eb5169d11c"
   },
   "runtime": {
     "animated.webp": "49abbb8cf6dfb77f85fbf8ba17bf30c7c290c636368f8b5d1435774de0a9cf78",
-    "grounds.webp": "8e99795092893e8cfdb4ba41812659665f097fc882d19e1bec154e64b2ed1511",
-    "manifest.json": "84e5eb7b8929cbc563328b05f073bfe636542d74e23735e92fade758fd605a6b",
-    "objects.webp": "6b18e0cb6088f45a7426eaa08e70de8dbf0f03d519449e07dbca55b2f05857a7"
+    "grounds.webp": "a3760b49f251a3001232b059acf77cab30ecda309dfe43539a169ea3f1021db6",
+    "manifest.json": "71c27b01ffdfce5546585f80edb0ab33f5d0587071cc8f88631899fd12f9b74c",
+    "objects.webp": "1dd891176af01f59d8a56f16b578e6701cc1ea7037cb8fda7de9d350e3bbc428"
   }
 }

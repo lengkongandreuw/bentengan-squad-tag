@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "files": [
     {
       "file": "controls/back.webp",
@@ -28,6 +28,22 @@
     {
       "file": "controls/team-red-normal.webp",
       "bytes": 42662
+    },
+    {
+      "file": "fields/kampung.webp",
+      "bytes": 77514
+    },
+    {
+      "file": "fields/kanal.webp",
+      "bytes": 85470
+    },
+    {
+      "file": "fields/pasar.webp",
+      "bytes": 69012
+    },
+    {
+      "file": "fields/taman.webp",
+      "bytes": 70452
     },
     {
       "file": "heroes/green-active.webp",
@@ -102,5 +118,5 @@
       "bytes": 31948
     }
   ],
-  "totalBytes": 886386
+  "totalBytes": 1188834
 }

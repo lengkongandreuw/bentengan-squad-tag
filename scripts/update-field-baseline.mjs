@@ -9,5 +9,5 @@ const runtimeNames = ['animated.webp', 'grounds.webp', 'manifest.json', 'objects
 const sources = Object.fromEntries(await Promise.all(sourceNames.map(async name => [name, await hash(`field-sources/${name}`)])));
 const runtime = Object.fromEntries(await Promise.all(runtimeNames.map(async name => [name, await hash(`public/field/${name}`)])));
 
-await writeFile(path.join(root, 'config', 'field-baseline.json'), `${JSON.stringify({ version: 2, sources, runtime }, null, 2)}\n`);
-console.log(`Field baseline v2 updated: ${sourceNames.length} sources + ${runtimeNames.length} runtime files.`);
+await writeFile(path.join(root, 'config', 'field-baseline.json'), `${JSON.stringify({ version: 3, sources, runtime }, null, 2)}\n`);
+console.log(`Field baseline v3 updated: ${sourceNames.length} sources + ${runtimeNames.length} runtime files.`);

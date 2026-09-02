@@ -37,6 +37,43 @@ const objects = [
   { id: 'marketStallC', file: 'variasi lapak.png', width: 200, height: 160, grid: { columns: 3, rows: 1, column: 2, row: 0 } },
   { id: 'prisonFloor', file: 'panjara latar.png', width: 254, height: 190 },
   { id: 'prisonOverlay', file: 'penjara overlay.png', width: 254, height: 190 },
+  // V3: modular crops supplied for the four guide-based arenas.
+  { id: 'parkBench', file: 'v3-park-objects.png', crop: { left: 54, top: 42, width: 279, height: 136 }, width: 220, height: 108 },
+  { id: 'parkBenchLong', file: 'v3-park-objects.png', crop: { left: 400, top: 42, width: 500, height: 136 }, width: 330, height: 100 },
+  { id: 'parkBarrier', file: 'v3-park-objects.png', crop: { left: 51, top: 226, width: 245, height: 99 }, width: 220, height: 88 },
+  { id: 'parkBarrierLong', file: 'v3-park-objects.png', crop: { left: 383, top: 226, width: 444, height: 99 }, width: 330, height: 76 },
+  { id: 'parkPlanter', file: 'v3-park-objects.png', crop: { left: 38, top: 373, width: 301, height: 224 }, width: 250, height: 160 },
+  { id: 'parkPlanterLong', file: 'v3-park-objects.png', crop: { left: 63, top: 623, width: 569, height: 173 }, width: 340, height: 108 },
+  { id: 'parkFlowerFence', file: 'v3-park-objects.png', crop: { left: 58, top: 830, width: 344, height: 184 }, width: 270, height: 142 },
+  { id: 'parkFlowerFenceLong', file: 'v3-park-objects.png', crop: { left: 518, top: 830, width: 633, height: 184 }, width: 350, height: 120 },
+  { id: 'parkLamp', file: 'v3-park-objects.png', crop: { left: 1279, top: 830, width: 83, height: 184 }, width: 72, height: 150 },
+  { id: 'parkCornerNW', file: 'v3-park-corners.png', crop: { left: 16, top: 33, width: 499, height: 416 }, width: 330, height: 275 },
+  { id: 'parkCornerNE', file: 'v3-park-corners.png', crop: { left: 1152, top: 33, width: 502, height: 416 }, width: 330, height: 275 },
+  { id: 'parkCornerSW', file: 'v3-park-corners.png', crop: { left: 10, top: 492, width: 489, height: 419 }, width: 330, height: 275 },
+  { id: 'parkCornerSE', file: 'v3-park-corners.png', crop: { left: 1168, top: 492, width: 497, height: 419 }, width: 330, height: 275 },
+  { id: 'canalBarrier', file: 'v3-canal-barriers.png', crop: { left: 70, top: 122, width: 466, height: 382 }, width: 250, height: 142 },
+  { id: 'canalBarrierV', file: 'v3-canal-barriers.png', crop: { left: 650, top: 122, width: 148, height: 382 }, width: 88, height: 220 },
+  { id: 'canalBarrierCorner', file: 'v3-canal-barriers.png', crop: { left: 919, top: 122, width: 458, height: 382 }, width: 240, height: 190 },
+  { id: 'canalBarrierLong', file: 'v3-canal-barriers.png', crop: { left: 470, top: 559, width: 670, height: 377 }, width: 340, height: 150 },
+  { id: 'canalBridgeH', file: 'v3-canal-bridges.png', crop: { left: 63, top: 67, width: 420, height: 453 }, width: 220, height: 170 },
+  { id: 'canalBridgeV', file: 'v3-canal-bridges.png', crop: { left: 600, top: 67, width: 252, height: 453 }, width: 136, height: 220 },
+  { id: 'canalBridgeDiag', file: 'v3-canal-bridges.png', crop: { left: 971, top: 67, width: 436, height: 453 }, width: 220, height: 200 },
+  { id: 'canalStraightH', file: 'v3-canals.png', crop: { left: 68, top: 18, width: 476, height: 389 }, width: 280, height: 160 },
+  { id: 'canalStraightV', file: 'v3-canals.png', crop: { left: 634, top: 18, width: 206, height: 389 }, width: 128, height: 240 },
+  { id: 'canalT', file: 'v3-canals.png', crop: { left: 942, top: 18, width: 429, height: 389 }, width: 250, height: 210 },
+  { id: 'canalCurve', file: 'v3-canals.png', crop: { left: 424, top: 432, width: 254, height: 305 }, width: 170, height: 190 },
+  { id: 'jungleNW', file: 'v3-edge-nw.png', width: 330, height: 330 },
+  { id: 'jungleNE', file: 'v3-edge-ne.png', width: 330, height: 330 },
+  { id: 'jungleSW', file: 'v3-edge-sw.png', width: 330, height: 330 },
+  { id: 'jungleSE', file: 'v3-edge-se.png', width: 330, height: 330 },
+  { id: 'industrialPrisonBlueFloor', file: 'v3-prison-industrial-blue.png', width: 310, height: 250 },
+  { id: 'industrialPrisonBlueOverlay', file: 'v3-prison-industrial-blue.png', width: 310, height: 250, overlayBottom: .38 },
+  { id: 'industrialPrisonRedFloor', file: 'v3-prison-industrial-red.png', width: 310, height: 250 },
+  { id: 'industrialPrisonRedOverlay', file: 'v3-prison-industrial-red.png', width: 310, height: 250, overlayBottom: .38 },
+  { id: 'parkPrisonBlueFloor', file: 'v3-park-prison-blue.png', width: 310, height: 250 },
+  { id: 'parkPrisonBlueOverlay', file: 'v3-park-prison-blue.png', width: 310, height: 250, overlayBottom: .38 },
+  { id: 'parkPrisonRedFloor', file: 'v3-park-prison-red.png', width: 310, height: 250 },
+  { id: 'parkPrisonRedOverlay', file: 'v3-park-prison-red.png', width: 310, height: 250, overlayBottom: .38 },
 ];
 
 const animations = [
@@ -50,10 +87,14 @@ const animations = [
 ];
 
 const grounds = [
-  ['grass', { left: 15, top: 55, width: 690, height: 460 }],
-  ['dirt', { left: 742, top: 55, width: 690, height: 460 }],
-  ['paving', { left: 15, top: 578, width: 690, height: 460 }],
-  ['concrete', { left: 742, top: 578, width: 690, height: 460 }],
+  { id: 'grass', file: 'tiles latar.png', crop: { left: 15, top: 55, width: 690, height: 460 } },
+  { id: 'dirt', file: 'tiles latar.png', crop: { left: 742, top: 55, width: 690, height: 460 } },
+  { id: 'paving', file: 'tiles latar.png', crop: { left: 15, top: 578, width: 690, height: 460 } },
+  { id: 'concrete', file: 'tiles latar.png', crop: { left: 742, top: 578, width: 690, height: 460 } },
+  { id: 'kampungGround', file: 'v3-ground-kampung.png' },
+  { id: 'parkGrass', file: 'v3-ground-park-grass.png' },
+  { id: 'parkPaving', file: 'v3-ground-park-paving.png' },
+  { id: 'canalGrass', file: 'v3-ground-canal.png' },
 ];
 
 const gridCrop = (width, height, grid) => {
@@ -86,17 +127,24 @@ const preparedObjects = [];
 for (const object of objects) {
   const sourcePath = path.join(sourceDir, object.file);
   const metadata = await sharp(sourcePath).metadata();
-  const objectInput = object.grid
-    ? await sharp(sourcePath).extract(gridCrop(metadata.width, metadata.height, object.grid)).png().toBuffer()
-    : sourcePath;
-  const { data, info } = await sharp(objectInput)
+  const crop = object.crop ?? (object.grid ? gridCrop(metadata.width, metadata.height, object.grid) : undefined);
+  const objectInput = crop ? await sharp(sourcePath).extract(crop).png().toBuffer() : sourcePath;
+  let pipeline = sharp(objectInput)
     .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 2 })
     .resize({ width: object.width, height: object.height, fit: 'inside', withoutEnlargement: true })
-    .ensureAlpha().png().toBuffer({ resolveWithObject: true });
+    .ensureAlpha();
+  if (object.overlayBottom) {
+    const resized = await pipeline.png().toBuffer({ resolveWithObject: true });
+    const overlayHeight = Math.max(1, Math.round(resized.info.height * object.overlayBottom));
+    const bottom = await sharp(resized.data).extract({ left: 0, top: resized.info.height - overlayHeight, width: resized.info.width, height: overlayHeight }).png().toBuffer();
+    pipeline = sharp({ create: { width: resized.info.width, height: resized.info.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: bottom, left: 0, top: resized.info.height - overlayHeight }]);
+  }
+  const { data, info } = await pipeline.png().toBuffer({ resolveWithObject: true });
   preparedObjects.push({ id: object.id, data, width: info.width, height: info.height });
 }
 
-const objectAtlasWidth = 1536;
+const objectAtlasWidth = 2048;
 const objectPack = pack(preparedObjects, objectAtlasWidth);
 await sharp({ create: { width: objectAtlasWidth, height: objectPack.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
   .composite(objectPack.composites)
@@ -132,29 +180,32 @@ await sharp({ create: { width: animatedAtlasWidth, height: animatedPack.height, 
 for (const animation of Object.values(animationManifest)) animation.frames = animation.frameIds.map(id => animatedPack.placed[id]);
 for (const animation of Object.values(animationManifest)) delete animation.frameIds;
 
-const tileWidth = 384;
-const tileHeight = 256;
-const groundSource = sharp(path.join(sourceDir, 'tiles latar.png'));
+const tileWidth = 320;
+const tileHeight = 224;
+const groundColumns = 4;
 const groundTiles = {};
 const groundComposites = [];
 for (let index = 0; index < grounds.length; index++) {
-  const [id, crop] = grounds[index];
-  const data = await groundSource.clone().extract(crop).resize(tileWidth, tileHeight, { fit: 'fill' }).png().toBuffer();
-  const tileX = (index % 2) * tileWidth;
-  const tileY = Math.floor(index / 2) * tileHeight;
+  const { id, file, crop } = grounds[index];
+  let tile = sharp(path.join(sourceDir, file));
+  if (crop) tile = tile.extract(crop);
+  const data = await tile.resize(tileWidth, tileHeight, { fit: 'cover' }).removeAlpha().png().toBuffer();
+  const tileX = (index % groundColumns) * tileWidth;
+  const tileY = Math.floor(index / groundColumns) * tileHeight;
   groundTiles[id] = { x: tileX, y: tileY, width: tileWidth, height: tileHeight };
   groundComposites.push({ input: data, left: tileX, top: tileY });
 }
-await sharp({ create: { width: tileWidth * 2, height: tileHeight * 2, channels: 3, background: '#737354' } })
+const groundRows = Math.ceil(grounds.length / groundColumns);
+await sharp({ create: { width: tileWidth * groundColumns, height: tileHeight * groundRows, channels: 3, background: '#737354' } })
   .composite(groundComposites)
   .webp({ quality: 72, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'grounds.webp'));
 
 const manifest = {
-  version: 2,
+  version: 3,
   objects: { file: 'objects.webp', width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed },
   animated: { file: 'animated.webp', width: animatedAtlasWidth, height: animatedPack.height, animations: animationManifest },
-  grounds: { file: 'grounds.webp', width: tileWidth * 2, height: tileHeight * 2, tiles: groundTiles },
+  grounds: { file: 'grounds.webp', width: tileWidth * groundColumns, height: tileHeight * groundRows, tiles: groundTiles },
 };
 await writeFile(path.join(outputDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
@@ -162,10 +213,10 @@ const ts = `// Generated by scripts/build-field-assets.mjs. Do not edit by hand.
   `export const FIELD_ASSET_VERSION = ${manifest.version} as const;\n` +
   `export const FIELD_OBJECT_ATLAS = ${JSON.stringify({ width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed }, null, 2)} as const;\n` +
   `export const FIELD_ANIMATED_ATLAS = ${JSON.stringify({ width: animatedAtlasWidth, height: animatedPack.height, animations: animationManifest }, null, 2)} as const;\n` +
-  `export const FIELD_GROUND_ATLAS = ${JSON.stringify({ width: tileWidth * 2, height: tileHeight * 2, tiles: groundTiles }, null, 2)} as const;\n` +
+  `export const FIELD_GROUND_ATLAS = ${JSON.stringify({ width: tileWidth * groundColumns, height: tileHeight * groundRows, tiles: groundTiles }, null, 2)} as const;\n` +
   `export type FieldAssetId = keyof typeof FIELD_OBJECT_ATLAS.assets;\n` +
   `export type FieldAnimatedId = keyof typeof FIELD_ANIMATED_ATLAS.animations;\n` +
   `export type GroundTileId = keyof typeof FIELD_GROUND_ATLAS.tiles;\n`;
 await writeFile(generatedFile, ts);
 
-console.log(`Field runtime v2: objects ${objectAtlasWidth}x${objectPack.height}, animated ${animatedAtlasWidth}x${animatedPack.height}, grounds ${tileWidth * 2}x${tileHeight * 2}.`);
+console.log(`Field runtime v${manifest.version}: objects ${objectAtlasWidth}x${objectPack.height}, animated ${animatedAtlasWidth}x${animatedPack.height}, grounds ${tileWidth * groundColumns}x${tileHeight * groundRows}.`);
