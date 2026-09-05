@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "lala",
   "name": "Lala",
   "role": "Scout",
   "source": {
+    "file": "lala.png",
     "width": 1448,
     "height": 1086,
     "columns": 7,

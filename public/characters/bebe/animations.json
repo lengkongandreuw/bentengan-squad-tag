@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "bebe",
   "name": "Bebe",
   "role": "Rescuer",
   "source": {
+    "file": "bebe.png",
     "width": 2400,
     "height": 1329,
     "columns": 7,

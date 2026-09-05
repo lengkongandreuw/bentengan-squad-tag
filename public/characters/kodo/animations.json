@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "kodo",
   "name": "Kodo",
   "role": "Guardian",
   "source": {
+    "file": "kodo.png",
     "width": 2400,
     "height": 1329,
     "columns": 7,

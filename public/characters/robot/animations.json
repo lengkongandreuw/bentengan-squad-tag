@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "robot",
   "name": "Robot",
   "role": "Guardian",
   "source": {
+    "file": "robot.png",
     "width": 1448,
     "height": 1086,
     "columns": 7,

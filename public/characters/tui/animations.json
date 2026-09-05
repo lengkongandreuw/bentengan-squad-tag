@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "tui",
   "name": "Tui",
   "role": "Runner",
   "source": {
+    "file": "tui.png",
     "width": 1702,
     "height": 1276,
     "columns": 7,

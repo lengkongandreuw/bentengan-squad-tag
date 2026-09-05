@@ -45,8 +45,21 @@ export const characterUsesDedicatedEast = (id: CharacterId) => DEDICATED_EAST_CH
 
 const publicBase = ((import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/').replace(/\/?$/, '/');
 
+const CHARACTER_PREVIEW_ICON_FILES: Record<CharacterId, string> = {
+  robot: 'robot', ciici: 'ciici', kaka: 'kaka', buto: 'buto', jago: 'jago', raja: 'raja', lala: 'lala',
+  maria: 'maria', kumis: 'kumis', boke: 'boke', tui: 'tui', lui: 'lui', bebe: 'bebe', kodo: 'kodo',
+};
+
+export const CHARACTER_PREVIEW_ICONS = Object.freeze(Object.fromEntries(
+  Object.entries(CHARACTER_PREVIEW_ICON_FILES).map(([id, file]) => [id, `${publicBase}ui-v2/character-icons/${file}.webp?v=6`]),
+) as Record<CharacterId, string>);
+
+export const characterPreviewIcon = (id: CharacterId) => CHARACTER_PREVIEW_ICONS[id];
+export const rajaUltimateBannerAsset = () => `${publicBase}ui-v2/skills/raja-titah-halilintar.webp?v=6`;
+export const characterSelectionVideo = (faction: 'red' | 'green') => `${publicBase}ui-v2/videos/team-${faction}.mp4?v=6`;
+
 export const characterAsset = (id: CharacterId, file: 'atlas.webp' | 'atlas-runtime.webp' | 'portrait.webp' | 'animations.json') =>
-  `${publicBase}characters/${id}/${file}?v=8`;
+  `${publicBase}characters/${id}/${file}?v=9`;
 
 export const characterRuntimeAsset = (id: CharacterId) => characterAsset(id, 'atlas-runtime.webp');
 

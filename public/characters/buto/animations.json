@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "buto",
   "name": "Buto",
   "role": "Guardian",
   "source": {
+    "file": "buto.png",
     "width": 1448,
     "height": 1086,
     "columns": 7,

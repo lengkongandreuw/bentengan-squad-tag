@@ -7,6 +7,8 @@ const source = path.join(root, 'asset-inbox', '2026-08-31-character-select-v1');
 const rosterExpansion = path.join(root, 'asset-inbox', '2026-09-01-roster-expansion-v1');
 const uiRefresh = path.join(root, 'asset-inbox', '2026-09-01-ui-refresh-v3');
 const fieldCardSource = path.join(root, 'asset-inbox', '2026-09-02-field-cards-v1', 'field-cards.png');
+const pictures = path.join(root, 'Assets', 'pictures');
+const media = path.join(root, 'Assets', 'Video and GIFs');
 const output = path.join(root, 'public', 'ui-v2');
 const brandOutput = path.join(root, 'public', 'brand');
 
@@ -43,6 +45,8 @@ const controls = {
   'primary-hover': 'buttons/button primary hover state.png',
 };
 
+const characterIcons = ['bebe', 'boke', 'buto', 'ciici', 'jago', 'kaka', 'kodo', 'kumis', 'lala', 'lui', 'maria', 'raja', 'robot', 'tui'];
+
 const ensureSource = async file => {
   const absolute = path.join(source, file);
   await fs.access(absolute);
@@ -61,6 +65,9 @@ await fs.mkdir(path.join(output, 'portraits'), { recursive: true });
 await fs.mkdir(path.join(output, 'heroes'), { recursive: true });
 await fs.mkdir(path.join(output, 'controls'), { recursive: true });
 await fs.mkdir(path.join(output, 'fields'), { recursive: true });
+await fs.mkdir(path.join(output, 'character-icons'), { recursive: true });
+await fs.mkdir(path.join(output, 'skills'), { recursive: true });
+await fs.mkdir(path.join(output, 'videos'), { recursive: true });
 await fs.mkdir(brandOutput, { recursive: true });
 
 await encodeContained(
@@ -78,6 +85,23 @@ for (const [id, relative] of Object.entries(portraits)) {
 for (const [id, relative] of Object.entries(expansionPortraits)) {
   await encodeContained(path.join(rosterExpansion, relative), path.join(output, 'portraits', `${id}.webp`), 400, 600, 76);
 }
+
+for (const id of characterIcons) {
+  await sharp(path.join(pictures, `${id} icon.png`))
+    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .resize({ width: 256, height: 256, fit: 'contain', withoutEnlargement: true, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .webp({ quality: 84, alphaQuality: 94, effort: 6 })
+    .toFile(path.join(output, 'character-icons', `${id}.webp`));
+}
+
+await sharp(path.join(pictures, 'raja ultimate skill banner view.png'))
+  .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .resize({ width: 448, height: 414, fit: 'inside', withoutEnlargement: true })
+  .webp({ quality: 86, alphaQuality: 96, effort: 6 })
+  .toFile(path.join(output, 'skills', 'raja-titah-halilintar.webp'));
+
+await fs.copyFile(path.join(media, 'TimMerah_loop_animation_char_selection.mp4'), path.join(output, 'videos', 'team-red.mp4'));
+await fs.copyFile(path.join(media, 'TimHijau_loop_animation_char_selection.mp4'), path.join(output, 'videos', 'team-green.mp4'));
 
 for (const [id, relative] of Object.entries(heroes)) {
   await encodeContained(await ensureSource(relative), path.join(output, 'heroes', `${id}.webp`), 620, 980, 80);
@@ -132,6 +156,6 @@ const walk = async directory => {
 };
 await walk(output);
 files.sort((a, b) => a.file.localeCompare(b.file));
-await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 5, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
+await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 6, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
 const logoBytes = (await fs.stat(path.join(brandOutput, 'benteng-tag-logo.webp'))).size;
-console.log(`UI runtime v5: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);
+console.log(`UI runtime v6: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);

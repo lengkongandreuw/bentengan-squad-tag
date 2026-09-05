@@ -8,7 +8,7 @@ const characters = [
   { id: 'kaka', name: 'Kaka', role: 'Runner', rows: 5 },
   { id: 'buto', name: 'Buto', role: 'Guardian', rows: 6 },
   { id: 'jago', name: 'Jago', role: 'Chaser', rows: 6 },
-  { id: 'raja', name: 'Raja', role: 'All-rounder', rows: 5 },
+  { id: 'raja', name: 'Raja', role: 'All-rounder', rows: 6, source: 'raja new sprites.png' },
   { id: 'lala', name: 'Lala', role: 'Scout', rows: 6 },
   { id: 'maria', name: 'Maria', role: 'Chaser', rows: 6 },
   { id: 'kumis', name: 'Kumis', role: 'Guardian', rows: 6 },
@@ -24,7 +24,7 @@ const sourceRoot = path.join(root, 'sprite-sources');
 const outputRoot = path.join(root, 'public', 'characters');
 const sourceColumns = 7;
 const atlasRows = 6;
-const pipelineVersion = 8;
+const pipelineVersion = 9;
 const runtimeScale = .5;
 const minimumAtlasCellHeight = 256;
 const atlasPadding = 8;
@@ -40,7 +40,7 @@ const frameRect = (width, height, column, row, rows, columns = sourceColumns) =>
 
 const frames = (width, height, row, columns, rows = atlasRows) => columns.map(column => frameRect(width, height, column, row, rows));
 
-const componentFrames = (source, width, height, rows, columns) => {
+const componentFrames = (source, width, height, rows, columns, removeGeneratedBars = false) => {
   const rowDensity = Array.from({ length: height }, (_, y) => {
     let count = 0;
     for (let x = 0; x < width; x++) if (source[(y * width + x) * 4 + 3] > segmentationAlpha) count++;
@@ -123,7 +123,12 @@ const componentFrames = (source, width, height, rows, columns) => {
       Math.max(0, primary.minX - component.maxX, component.minX - primary.maxX),
       Math.max(0, primary.minY - component.maxY, component.minY - primary.maxY),
     );
-    const kept = group.filter(component => component.size >= minimumSize && (component === primary || distanceFromPrimary(component) <= associationRadius));
+    const isGeneratedBar = component => {
+      const componentWidth = component.maxX - component.minX + 1;
+      const componentHeight = component.maxY - component.minY + 1;
+      return removeGeneratedBars && componentWidth >= 40 && componentHeight <= 14 && componentWidth / componentHeight >= 4;
+    };
+    const kept = group.filter(component => !isGeneratedBar(component) && component.size >= minimumSize && (component === primary || distanceFromPrimary(component) <= associationRadius));
     if (!kept.length) throw new Error(`Frame sumber kosong pada baris ${row}, kolom ${column}.`);
     const minX = Math.max(0, Math.min(...kept.map(component => component.minX)) - 1);
     const minY = Math.max(0, Math.min(...kept.map(component => component.minY)) - 1);
@@ -157,7 +162,7 @@ const buildCharacters = requestedCharacter ? characters.filter(character => char
 if (requestedCharacter && !buildCharacters.length) throw new Error(`Karakter ${requestedCharacter} tidak dikenal.`);
 
 for (const character of buildCharacters) {
-  const inputPath = path.join(sourceRoot, `${character.id}.png`);
+  const inputPath = path.join(sourceRoot, character.source ?? `${character.id}.png`);
   const outputDir = path.join(outputRoot, character.id);
   await mkdir(outputDir, { recursive: true });
 
@@ -170,12 +175,16 @@ for (const character of buildCharacters) {
 
   const { data } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   for (let index = 0; index < data.length; index += 4) {
+    if (character.id === 'raja' && data[index] < 24 && data[index + 1] < 24 && data[index + 2] < 24) {
+      data[index] = 0; data[index + 1] = 0; data[index + 2] = 0; data[index + 3] = 0;
+      continue;
+    }
     if (data[index + 3] <= 12) {
       data[index] = 0; data[index + 1] = 0; data[index + 2] = 0; data[index + 3] = 0;
     }
   }
 
-  const segmented = componentFrames(data, width, height, character.rows, sourceColumns);
+  const segmented = componentFrames(data, width, height, character.rows, sourceColumns, character.id === 'raja');
   const logicalFrames = segmented.frames;
   const rawFrames = [];
   for (let row = 0; row < atlasRows; row++) {
@@ -243,7 +252,7 @@ for (const character of buildCharacters) {
     id: character.id,
     name: character.name,
     role: character.role,
-    source: { width, height, columns: sourceColumns, rows: character.rows, segmentation: 'row-separated-alpha-components', rowBounds: segmented.rowBounds, frames: sourceFrames },
+    source: { file: character.source ?? `${character.id}.png`, width, height, columns: sourceColumns, rows: character.rows, segmentation: 'row-separated-alpha-components', rowBounds: segmented.rowBounds, frames: sourceFrames },
     atlas: { width: atlasWidth, height: atlasHeight, columns: sourceColumns, rows: atlasRows, cell: { width: atlasCellWidth, height: atlasCellHeight }, gutter: atlasPadding },
     quality: {
       frameCount: rawFrames.length,
@@ -253,13 +262,26 @@ for (const character of buildCharacters) {
       scale: baseScale,
     },
     anchor: { x: 0.5, y: 0.91 },
-    directions: {
+    directions: character.id === 'raja' ? {
+      south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3]), boost: frames(atlasWidth, atlasHeight, 0, [4, 5, 6]) },
+      west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3]), boost: frames(atlasWidth, atlasHeight, 1, [4, 5, 6]) },
+      east: { mirror: 'west' },
+      north: { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3]), boost: frames(atlasWidth, atlasHeight, 2, [4, 5, 6]) },
+    } : {
       south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]) },
       west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]) },
       east: character.rows === 5 ? { mirror: 'west' } : { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5]) },
       north: { idle: frames(atlasWidth, atlasHeight, 3, [0]), run: frames(atlasWidth, atlasHeight, 3, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 3, [1, 2, 3, 4, 5]) },
     },
-    actions: {
+    actions: character.id === 'raja' ? {
+      tag: { row: 3, directionalColumns: { south: 0, east: 1, west: 2, north: 3 } },
+      parkour: frames(atlasWidth, atlasHeight, 3, [4, 5, 6]),
+      rescue: frames(atlasWidth, atlasHeight, 4, [6]),
+      prisoner: frames(atlasWidth, atlasHeight, 4, [0, 1, 2]),
+      victory: frames(atlasWidth, atlasHeight, 4, [3, 4, 6]),
+      defeat: frames(atlasWidth, atlasHeight, 4, [5]),
+      ultimate: { name: 'TITAH HALILINTAR', frames: frames(atlasWidth, atlasHeight, 5, [0, 1, 2, 3]) },
+    } : {
       tag: frames(atlasWidth, atlasHeight, 4, [0, 1, 2, 3]),
       rescue: frames(atlasWidth, atlasHeight, 4, [3, 4, 5, 6]),
       prisoner: frames(atlasWidth, atlasHeight, 5, [0, 1]),
@@ -286,7 +308,7 @@ await sharp({ create: { width: 1920, height: 900, channels: 4, background: { r: 
 
 await writeFile(
   path.join(outputRoot, 'manifest.json'),
-  `${JSON.stringify({ version: pipelineVersion, atlas: { minimumCell: 256, padding: atlasPadding, columns: sourceColumns, rows: atlasRows, runtimeScale }, characters: characters.map(({ id, name, role, rows }) => ({ id, name, role, sourceColumns, sourceRows: rows })) }, null, 2)}\n`,
+  `${JSON.stringify({ version: pipelineVersion, atlas: { minimumCell: 256, padding: atlasPadding, columns: sourceColumns, rows: atlasRows, runtimeScale }, characters: characters.map(({ id, name, role, rows, source }) => ({ id, name, role, source: source ?? `${id}.png`, sourceColumns, sourceRows: rows })) }, null, 2)}\n`,
   'utf8',
 );
 

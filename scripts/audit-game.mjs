@@ -20,6 +20,7 @@ const prototypeSource = await readFile(path.join(root, 'app/prototype.tsx'), 'ut
 const globalStyles = await readFile(path.join(root, 'app/globals.css'), 'utf8');
 const workshopSource = await readFile(path.join(root, 'components/character-workshop.tsx'), 'utf8');
 const motion = await import('../lib/sprite-motion.js');
+const characterAnimations = await import('../lib/character-animation.js');
 const { fieldCycleDecision } = await import('../lib/field-cycle.js');
 const { sweptContactDistance } = await import('../lib/tag-contact.js');
 const { depenetrateFromRects, pointHitsExpandedRect, steerAroundRects } = await import('../lib/collision-navigation.js');
@@ -34,15 +35,21 @@ assert(rules.teams.green.roster.join(',') === 'ciici,kaka,buto,maria,boke,lui,ko
 assert(rules.reserveCount === 2, 'setiap tim memiliki dua karakter cadangan');
 assert(new Set(teamIds).size === 14 && teamIds.length === 14, 'dua roster berisi 14 karakter tanpa duplikat');
 assert(ids.length === 14 && ids.every(id => teamIds.includes(id)), 'definisi karakter dan roster tim sinkron');
-assert(manifest.version === 8 && manifest.characters.length === 14, 'manifest sprite v8 memuat 14 karakter');
+assert(manifest.version === 9 && manifest.characters.length === 14, 'manifest sprite v9 memuat 14 karakter');
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('column * width / 7') && !prototypeSource.includes('column * width / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
-assert(charactersSource.includes('?v=8') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v8');
-assert(uiManifest.version === 5 && uiManifest.files.length === 29, 'paket UI v5 memuat 14 portrait, 4 hero, 7 kontrol, dan 4 kartu field');
-assert(uiManifest.totalBytes <= 1250 * 1024, `paket UI v5 ${(uiManifest.totalBytes / 1024).toFixed(0)} KiB berada dalam budget 1.250 KiB`);
-for (const id of ['tui', 'lui', 'bebe', 'kodo']) assert(uiManifest.files.some(entry => entry.file === `portraits/${id}.webp`), `${id}: portrait seleksi karakter tersedia`);
+assert(charactersSource.includes('?v=9') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v9');
+assert(uiManifest.version === 6 && uiManifest.files.length === 46, 'paket UI v6 memuat 14 ikon khusus, banner Raja, dua video tim, dan aset UI sebelumnya');
+const uiImageBytes = uiManifest.files.filter(entry => !entry.file.startsWith('videos/')).reduce((sum, entry) => sum + entry.bytes, 0);
+const uiVideoBytes = uiManifest.files.filter(entry => entry.file.startsWith('videos/')).reduce((sum, entry) => sum + entry.bytes, 0);
+assert(uiImageBytes <= 1700 * 1024, `gambar UI v6 ${(uiImageBytes / 1024).toFixed(0)} KiB berada dalam budget 1.700 KiB`);
+assert(uiVideoBytes <= 6500 * 1024, `dua video seleksi tim ${(uiVideoBytes / 1024 / 1024).toFixed(2)} MiB berada dalam budget 6,5 MiB`);
+for (const id of ids) assert(uiManifest.files.some(entry => entry.file === `character-icons/${id}.webp`), `${id}: ikon preview karakter khusus tersedia`);
 assert(prototypeSource.includes("type MenuStep = 'splash' | 'team' | 'character' | 'field'") && prototypeSource.includes("key === 'escape'") && prototypeSource.includes('cycleCharacter'), 'alur layar baru dan navigasi keyboard terpasang');
-assert(prototypeSource.includes("ui-v2/${file}?v=5") && !prototypeSource.includes('asset-inbox/'), 'runtime memakai WebP UI v5 tanpa merujuk master PNG');
+assert(prototypeSource.includes("ui-v2/${file}?v=6") && !prototypeSource.includes('asset-inbox/') && !prototypeSource.includes('Assets/pictures/'), 'runtime memakai WebP UI v6 tanpa merujuk PNG sumber');
+assert(charactersSource.includes('CHARACTER_PREVIEW_ICONS') && charactersSource.includes('characterPreviewIcon') && prototypeSource.includes('<CharacterPreview'), 'seluruh portrait UI memakai mapping ikon stabil dengan fallback portrait atlas');
+assert(uiManifest.files.some(entry => entry.file === 'skills/raja-titah-halilintar.webp') && prototypeSource.includes('rajaUltimateBannerAsset()'), 'banner Titah Halilintar terpisah dari ikon Raja');
+assert(uiManifest.files.some(entry => entry.file === 'videos/team-red.mp4') && uiManifest.files.some(entry => entry.file === 'videos/team-green.mp4') && prototypeSource.includes('<video className="roster-video"'), 'seleksi karakter memakai tepat satu video tim aktif');
 for (const id of ['kampung', 'pasar', 'taman', 'kanal']) assert(uiManifest.files.some(entry => entry.file === `fields/${id}.webp`), `${id}: kartu preview field WebP tersedia`);
 
 const offsets = rules.spawnOffsets;
@@ -59,6 +66,11 @@ assert(motion.directionFromVelocity(100, 0) === 'east' && motion.directionFromVe
 assert(motion.BOOST_COLUMNS === motion.RUN_COLUMNS && motion.BOOST_COLUMNS.join(',') === '1,2,3,4,5', 'boost memakai run cycle directional tanpa pose kolom 6 yang ambigu');
 assert(motion.shouldMirrorSprite('east', false) && !motion.shouldMirrorSprite('west', false) && !motion.shouldMirrorSprite('east', true), 'mirror sprite hanya aktif untuk timur tanpa row khusus');
 assert(motion.sprintEffectRotation('east') === 0 && motion.sprintEffectRotation('west') === Math.PI && motion.sprintEffectRotation('north') === -Math.PI / 2 && motion.sprintEffectRotation('south') === Math.PI / 2, 'jejak sprint diputar searah empat arah gerak');
+const rajaAnimation = characterAnimations.characterAnimationMapping('raja');
+const defaultAnimation = characterAnimations.characterAnimationMapping('robot');
+assert(rajaAnimation.directionRows.south === 0 && rajaAnimation.directionRows.west === 1 && rajaAnimation.directionRows.east === 1 && rajaAnimation.directionRows.north === 2 && !rajaAnimation.dedicatedEast, 'override arah Raja memakai baris depan, sisi bercermin, dan belakang');
+assert(rajaAnimation.runColumns.join(',') === '1,2,3' && rajaAnimation.boostColumns.join(',') === '4,5,6' && rajaAnimation.ultimate.columns.join(',') === '0,1,2,3', 'override Raja memisahkan lari, boost, dan empat fase Ultimate');
+assert(defaultAnimation === characterAnimations.DEFAULT_ANIMATION_MAPPING, 'karakter selain Raja tetap memakai mapping animasi default');
 assert(prototypeSource.includes('ctx.rotate(sprintEffectRotation(direction))') && !prototypeSource.includes('if (p.vx > 0)'), 'renderer VFX memakai rotasi arah, bukan flip kanan yang terbalik');
 assert(workshopSource.includes('animation === \'boost\'') && workshopSource.includes('BOOST_COLUMNS'), 'workshop mempratinjau boost directional yang sama dengan arena');
 assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage') && prototypeSource.includes("image.decoding = 'async'") && prototypeSource.includes("if (mode === 'playing') {"), 'atlas dimuat lazy hanya saat pertandingan dan decode gambar tidak memblokir layar awal');
@@ -125,6 +137,10 @@ assert(prototypeSource.includes("registerTeamAction(winner, 'TAG'") && prototype
 assert(globalStyles.includes('.team-combo-hud{top:91px;right:8px;width:126px') && globalStyles.includes('@media(max-width:360px)') && prototypeSource.includes('aria-label="Status combo aksi tim"'), 'HUD combo tetap ringkas dan terbaca pada kontrol mobile sempit');
 assert(prototypeSource.includes("prison.overlayAsset ?? 'prisonOverlay'") && prototypeSource.includes("prison.floorAsset ?? 'prisonFloor'"), 'setiap field dapat memakai lantai belakang dan pagar overlay penjara khusus');
 assert(prototypeSource.includes('playUiTone(235') && prototypeSource.includes("document.addEventListener('pointerover', onPointerOver)") && prototypeSource.includes("document.addEventListener('pointerdown', onPointerDown)"), 'klik, tap, dan hover UI memakai efek suara sintetis tanpa request aset tambahan');
+assert(prototypeSource.includes('RAJA_ULTIMATE_RECHARGE_SECONDS = 90') && prototypeSource.includes('RAJA_ULTIMATE_TAG_BONUS = 15') && prototypeSource.includes('RAJA_ULTIMATE_RESCUE_BONUS = 25'), 'meter Ultimate Raja mengisi pasif 90 detik dengan bonus tag +15 dan rescue +25');
+assert(prototypeSource.includes('RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4') && prototypeSource.includes('RAJA_ULTIMATE_BUFF_MS = 5000') && prototypeSource.includes("me.state === 'ACTIVE'") && prototypeSource.includes("player.state === 'ACTIVE'"), 'Titah Halilintar memberi modifier +40% selama 5 detik hanya kepada anggota ACTIVE');
+assert(prototypeSource.includes("keys.current.has('5')") && prototypeSource.includes('snapshot.ultimateMeter >= 100') && prototypeSource.includes('ultimate-banner'), 'Action Dock slot 5, meter, dan banner Ultimate Raja terhubung');
+assert(!prototypeSource.includes('sprite-sources/raja new sprites.png'), 'PNG sumber Raja tidak pernah dirujuk runtime');
 assert(globalStyles.includes('align-items:start') && globalStyles.includes('.stage-card { height:min(79vh,900px)'), 'stage tidak meregang mengikuti panel misi dan kamera Overall tetap terpusat');
 
 const sha256 = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
@@ -159,10 +175,11 @@ for (const id of ids) {
   runtimeDecodedBytes += (runtimeMeta.width ?? 0) * (runtimeMeta.height ?? 0) * 4;
   assert(atlasMeta.width === animation.atlas.width && atlasMeta.height === animation.atlas.height && atlasMeta.hasAlpha, `${id}: dimensi atlas adaptif sinkron dan transparan`);
   assert(runtimeMeta.width === atlasMeta.width / 2 && runtimeMeta.height === atlasMeta.height / 2 && runtimeMeta.hasAlpha, `${id}: atlas runtime tepat 50% dan transparan`);
-  assert(animation.version === 8 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v8 sinkron`);
+  assert(animation.version === 9 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v9 sinkron`);
   assert(animation.quality.frameCount === 42 && animation.source.frames.length === 42, `${id}: 42 frame sumber terlacak satu per satu`);
-  for (const direction of ['south', 'west', 'north']) assert(animation.directions[direction].boost.length === 5, `${id}: boost ${direction} memakai lima frame halus`);
-  if (animation.directions.east.mirror !== 'west') assert(animation.directions.east.boost.length === 5, `${id}: boost east memakai lima frame halus`);
+  const expectedBoostFrames = id === 'raja' ? 3 : 5;
+  for (const direction of ['south', 'west', 'north']) assert(animation.directions[direction].boost.length === expectedBoostFrames, `${id}: boost ${direction} memakai ${expectedBoostFrames} frame`);
+  if (animation.directions.east.mirror !== 'west') assert(animation.directions.east.boost.length === expectedBoostFrames, `${id}: boost east memakai ${expectedBoostFrames} frame`);
 
   const { data: portrait, info } = await sharp(portraitPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let opaque = 0, edgeOpaque = 0, edgePixels = 0;
@@ -211,7 +228,8 @@ for (const id of ids) {
   assert(scaleMismatchFrames === 0, `${id}: skala sumber-ke-atlas seragam pada seluruh pose`);
 
   const hashes = spriteBaseline.characters[id];
-  assert(hashes?.source === await sha256(`sprite-sources/${id}.png`), `${id}: sumber cocok dengan golden baseline`);
+  const sourceName = manifest.characters.find(character => character.id === id)?.source ?? `${id}.png`;
+  assert(hashes?.source === await sha256(`sprite-sources/${sourceName}`), `${id}: sumber cocok dengan golden baseline`);
   assert(hashes?.atlas === await sha256(`public/characters/${id}/atlas.webp`), `${id}: atlas cocok dengan golden baseline tervalidasi`);
   assert(hashes?.runtime === await sha256(`public/characters/${id}/atlas-runtime.webp`), `${id}: atlas runtime cocok dengan golden baseline tervalidasi`);
   assert(hashes?.portrait === await sha256(`public/characters/${id}/portrait.webp`), `${id}: portrait cocok dengan golden baseline tervalidasi`);

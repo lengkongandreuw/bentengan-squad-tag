@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "atlas": {
     "minimumCell": 256,
     "padding": 8,
@@ -12,6 +12,7 @@
       "id": "robot",
       "name": "Robot",
       "role": "Guardian",
+      "source": "robot.png",
       "sourceColumns": 7,
       "sourceRows": 5
     },
@@ -19,6 +20,7 @@
       "id": "ciici",
       "name": "Ciici",
       "role": "Rescuer",
+      "source": "ciici.png",
       "sourceColumns": 7,
       "sourceRows": 5
     },
@@ -26,6 +28,7 @@
       "id": "kaka",
       "name": "Kaka",
       "role": "Runner",
+      "source": "kaka.png",
       "sourceColumns": 7,
       "sourceRows": 5
     },
@@ -33,6 +36,7 @@
       "id": "buto",
       "name": "Buto",
       "role": "Guardian",
+      "source": "buto.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -40,6 +44,7 @@
       "id": "jago",
       "name": "Jago",
       "role": "Chaser",
+      "source": "jago.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -47,13 +52,15 @@
       "id": "raja",
       "name": "Raja",
       "role": "All-rounder",
+      "source": "raja new sprites.png",
       "sourceColumns": 7,
-      "sourceRows": 5
+      "sourceRows": 6
     },
     {
       "id": "lala",
       "name": "Lala",
       "role": "Scout",
+      "source": "lala.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -61,6 +68,7 @@
       "id": "maria",
       "name": "Maria",
       "role": "Chaser",
+      "source": "maria.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -68,6 +76,7 @@
       "id": "kumis",
       "name": "Kumis",
       "role": "Guardian",
+      "source": "kumis.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -75,6 +84,7 @@
       "id": "boke",
       "name": "Boke",
       "role": "Disruptor",
+      "source": "boke.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -82,6 +92,7 @@
       "id": "tui",
       "name": "Tui",
       "role": "Runner",
+      "source": "tui.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -89,6 +100,7 @@
       "id": "lui",
       "name": "Lui",
       "role": "Scout",
+      "source": "lui.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -96,6 +108,7 @@
       "id": "bebe",
       "name": "Bebe",
       "role": "Rescuer",
+      "source": "bebe.png",
       "sourceColumns": 7,
       "sourceRows": 6
     },
@@ -103,6 +116,7 @@
       "id": "kodo",
       "name": "Kodo",
       "role": "Guardian",
+      "source": "kodo.png",
       "sourceColumns": 7,
       "sourceRows": 6
     }

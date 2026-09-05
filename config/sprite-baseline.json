@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "purpose": "Golden hashes diperbarui hanya setelah audit visual seluruh karakter lulus.",
   "characters": {
     "robot": {
@@ -7,98 +7,98 @@
       "atlas": "fb8da98f2875b389f93be4f23fab8b7b26b4d07fe90d5e17fa8ff7171cd94545",
       "runtime": "23f8732f947e090b186e93a2cd27926d985e5737d2e3e9be7dee731e8180cb6e",
       "portrait": "3a54f1b948c1680bb83cf93400c0cd41557656b68e99f8b66c5d965ee248c021",
-      "animation": "950b655204ffdac464f05e8213a577f4c09154817ea1d5237416baa14fb0fab5"
+      "animation": "af023dacb4bae70d79b4b7370a3ff960049f449b6dbb458c2a23aee4ea81324f"
     },
     "ciici": {
       "source": "fe50154d160a379ba3ba8a03eb6cbe5dae2e889ff49fb6404aeef45713f50d8c",
       "atlas": "28e2a4b47f5095a30037b77b0860da9c908008df042a4c8c9cb789c7d422016f",
       "runtime": "c05bf7ed4214ca43e40e4de3ed2b4b6c8812a7e1ca8b345516946fc79ed5cd20",
       "portrait": "8a4b6057e816b977e9d8acf85001bbc12a1182d0b45d47d21707cd511481c0c9",
-      "animation": "99ea5b720b12361bd6a0292449f4730db77c5e4e87d30daff5ffafcdb92b670b"
+      "animation": "6fd9d35466e4110e2b8e929f8b3a97b93f3552ee239d0047039d94a9326b6f32"
     },
     "kaka": {
       "source": "58e3956c60cd3609e69758e422f181c4a8227e087b6df53b3038d314085cd623",
       "atlas": "d1f47728f598ed3be398be0f90a9c4d107eefa1bcd11af1f74ffc3f33da38ac1",
       "runtime": "a92af699a070f6a67b42236b6e189356638f467b0ee5e203db461d0a07070953",
       "portrait": "50edbc25c77a56548739744509b2a0a2fbb6da5929d89cbafeb306f5f2c2015f",
-      "animation": "98a34b61663aa091d004b7c398de68c6ed65484b037d0d87568ea18f180bfa43"
+      "animation": "9f1cf7ff71a8bc57dd2c4449d7807b6b75ff87722198c7fba6c0b5665d8b9989"
     },
     "buto": {
       "source": "fded4e2e734448d29a7c7f3fa2c9d60d567e7fbf25ea9be5bd88159d3859e39d",
       "atlas": "e0de37187dbad83ef8b4f567e8de3e127f339918bebe55aa37db513195ab3a4c",
       "runtime": "a476cc9723bc5f2009c5816c90fd2eebc2c95caa99094aa5cdd5c87164fdcf99",
       "portrait": "fea5ad8af7849f0e8630d30503916315ebd4ab114e081e4c57db8f688582dfb2",
-      "animation": "c49e34839e03168ccd8391d36c8e884d2dc53118134b220b68faf41078994d90"
+      "animation": "8d1f9f740f76c05c886377d7acc77ee104ec642d4634cb9c323948d56e2ffaa5"
     },
     "jago": {
       "source": "3630acceddfc7f14fb52661c3b88030eb4e599e113f11f2cf0a1ab9d71b0e8f6",
       "atlas": "b8c818bd34c52924e0c7ebf65016c380e94a530da1c62c9699ec0a864f11d12e",
       "runtime": "9d5d835e92ffdd6dbd73d8e7ac8da925a6862a6a154d494dabc902cc1f5a5d10",
       "portrait": "8a1b1b9d4fe2f6adac004499f770eb82ddb0b1e78ce9aaa1c660ebc0c2fe90c1",
-      "animation": "71a055a3ca449dc2d4800194cb2e8f4c9671698bf48fed3797d994a7e8994be6"
+      "animation": "1ca654f2cceb12f64262d705436911eac709d2b25fabf43ccb63dbc59eb2e616"
     },
     "raja": {
-      "source": "24c4a1b43172c53f580fbd371531fb441b59bab9045d611292ac11230e82ec88",
-      "atlas": "3268d2c8870debfe1bb7087779da7733e249728aaea23753f2729227038a4a38",
-      "runtime": "12de35635a5ce24937df81c776e8c02da7de5423158bebf095e8ba88497cfd74",
-      "portrait": "a4935eb343390ce56b1af8e02946664ef0814ddad5f2898062cfbcc1be82d708",
-      "animation": "a7ae4b6fb306b35549baa458c9e4d98298fcac66b9c7ca9aa2526bea7e3f91f1"
+      "source": "703fa0d7abbcec7217c3dea3d54a4c7f18b374a613003244c3c8713b7dd932a3",
+      "atlas": "2d023712d308bf954774683dd3388cd0843508787141fa653c8d528e26bd3350",
+      "runtime": "c5b33286ce2e498910064c4817189242da29afae3e406e2223e032bd5f2d4f7d",
+      "portrait": "c0d99d7e06d15a22bfb07349cc4a7a018f7f3a1df08ce39ccffeb6c567d9b84c",
+      "animation": "9a9851e8da7652786a4758f0ad930dc7f1d8e6403cf87c8104f4879b82e6bd72"
     },
     "lala": {
       "source": "0691eac304d93e4550d9e5933891b799e842c864c80c191899764c60772e8a7c",
       "atlas": "64159ef661e3b147a8009ef8fbf7d2583053ffdbf3bcd6b30dca23cb3749cfcb",
       "runtime": "9e1152511b0e784a9e2c2bef6231b27950ecaf08f145639530f7f997b2807089",
       "portrait": "f12c6df2aae4c025991924bac51f7ae960e325f48422d625bd43a60b39b4d890",
-      "animation": "77dc0246d0e68b057b7a50f62bdf096a278a7019faf8b8deeccaf4f7884acee5"
+      "animation": "673364ca260463c737f50966ad1e30a5857c4750f5cc48f3cfb4aa080b218bca"
     },
     "maria": {
       "source": "0af3cfce75e6b4e059f5270a26b3ef31bbdf4a711c84a50200a875ededfe551e",
       "atlas": "59b4c63d6b37258efda422d917a77eb7ae256b6ca25dfc125ac34f8122b014fa",
       "runtime": "eabe0c48d65fe69bb4d6e7273ce81364f8f3cb8317d9c7a657a63141cf97a184",
       "portrait": "7ec88ee71aecc6fe018a9f1ae73c905ba7d158bebc03040a40dc3fc70b981121",
-      "animation": "66693e5cf9560dd023ea81aa1ad157733dfd833e29157661e86cf10dea63e9f5"
+      "animation": "3ff01e72722e113c7ce30a781666d73d2362342381746063c3f7cf7f7157af04"
     },
     "kumis": {
       "source": "5f84efb2508465486ba18c0c309e54f287c841ef7108359910a88b70bd14af93",
       "atlas": "5e0516fda1e972151eb1ccc3d4c228d2bcdb4fcc1c16ae3818ec3e60e226661c",
       "runtime": "211da04c1bc51c39d00c50fb45494d70375cde3d40787e3ce5fb75dd7843564d",
       "portrait": "f0236a2d31b81d40bd1c6f456457d93916248a949e94ef9ee465736c39d72d97",
-      "animation": "aa4339847da346f445aa82c8047d0eb4611f0f642aef12e7c07138d73eae494a"
+      "animation": "b43b90f3b4975b1f9583062b906509e24b6d1bb42746ea3267966edafb8b9ea8"
     },
     "boke": {
       "source": "d4060e22031fbd4fce38f3129568ef3262fd405f94f974121b6ed65bb86efb58",
       "atlas": "21c801307be9d1d02d4167e20869a7b7f2cc05a3d00de9fca76cc1a5617c7697",
       "runtime": "ccae27bcfe69a6bb181237c06fb69a526c53ed3da9af8e2c6c8553a6c66b5249",
       "portrait": "be687e35d427c4433d5f6e0546971b4d36ab699f46f06af604874a99e5532d86",
-      "animation": "6f8ec5ac992469e2b43ac6095e486f6f4a329c907195fb0e2dc198ab1d013ade"
+      "animation": "ad911b579c55e1216360a5e65df314257f81b1cb0fb529f208dc5c7f723193d4"
     },
     "tui": {
       "source": "ed5525e0fe7a63254e58c032f562fa91404b1485902a466829b8a7380b255b00",
       "atlas": "733e9df2d6fc7311440803e8ca163e1a39fcce73b67a718744a65d93c3cc8f71",
       "runtime": "9876b214e6c3933b2cbdef12ffffea2f1f2b1f4748daa69221cc9831dc827bf3",
       "portrait": "c90a05ecdd59c9cb5b4b334a11437e254f1f64afb3f6df336afa6826b77c8736",
-      "animation": "1cb6e692e5286f7fa4712792c31d240c1082e72d34afad3984f1a7ec030e5e4a"
+      "animation": "ac077c79b40b530b401bf7e91694489a184be4bcbaf16dde684c2ecb756e564b"
     },
     "lui": {
       "source": "729ae48b8e1569b5a8d936362e1dd185a43212233bc0dfc812f49a27ed4feaff",
       "atlas": "073a81d62d7a2488ca4e5f3c2403fece74b64e902182e5b3a4a7407fa456b760",
       "runtime": "c6d71afa6702097a440c2852e357079d78b6eb87e5f936375d0914f97372ca23",
       "portrait": "76fd0f2a41ebf1e1953941b21df6cef35aa4c04921987af53a43cfe026f9ee98",
-      "animation": "6736b6386c383b9fbcbf24a49ca09a8aae1c00894ebfc6d0b343e10c653feee3"
+      "animation": "ddd4c9921d3364ba1967945660375c993b1ba71f9c804b6f6d331e7cf67424b9"
     },
     "bebe": {
       "source": "7fead9f725860b1eb78eccc4eb41d79d2f01a6447e5e47d8d3662a4e120240a0",
       "atlas": "97b1d1d62c9529bcf0371b23e90dc9076c38c86a9869ee6c8fe3513ceda9601f",
       "runtime": "6ff5ce07fec9fe8c852ba7afa4705be5341eb12bde789f7206cff3af88b26761",
       "portrait": "1f860f96877bedfa4760fc9e89144859ac2bcb5427f26ade218ba1f5f4b985c3",
-      "animation": "f0cc05248f04f86c4d95ff4ceb7c516d168b078d317bf572612601ff2f0fbb35"
+      "animation": "c606fb95e159960f3631624338481ad23feb79541fa3881395b8d48c6a0e33e2"
     },
     "kodo": {
       "source": "4dacbf9777c5a21a171884c98b7ab0b18d9f6997458b7c7d2f4630f9d63f5579",
       "atlas": "d6deda3532b333afeb0c9bf52175250941df1e7819e05cb59d132a4cb897ecec",
       "runtime": "f5e22ff41d228a63cab3716f34a0daa731a796896aec81ef7e2e986b2eb99d37",
       "portrait": "30198c481eb06d1b4fc183f9e167973fa1e8d30b36cd0ee897888abfd3e990b8",
-      "animation": "98eff2c6acbe33b24491179e32fcb20bf275d20a5e1f5368d65b7352cfcf89f5"
+      "animation": "6b0cdab0fc593187d1471a3f5ad422b05c89eed191833b8dd169b86eba18209a"
     }
   }
 }

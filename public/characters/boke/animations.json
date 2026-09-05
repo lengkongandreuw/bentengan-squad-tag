@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "boke",
   "name": "Boke",
   "role": "Disruptor",
   "source": {
+    "file": "boke.png",
     "width": 1448,
     "height": 1086,
     "columns": 7,

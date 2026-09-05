@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "maria",
   "name": "Maria",
   "role": "Chaser",
   "source": {
+    "file": "maria.png",
     "width": 1448,
     "height": 1086,
     "columns": 7,

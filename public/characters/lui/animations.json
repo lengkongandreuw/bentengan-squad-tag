@@ -1,9 +1,10 @@
 {
-  "version": 8,
+  "version": 9,
   "id": "lui",
   "name": "Lui",
   "role": "Scout",
   "source": {
+    "file": "lui.png",
     "width": 1448,
     "height": 1086,
     "columns": 7,

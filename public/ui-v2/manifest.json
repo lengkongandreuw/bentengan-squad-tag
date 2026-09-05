@@ -1,6 +1,62 @@
 {
-  "version": 5,
+  "version": 6,
   "files": [
+    {
+      "file": "character-icons/bebe.webp",
+      "bytes": 12080
+    },
+    {
+      "file": "character-icons/boke.webp",
+      "bytes": 11880
+    },
+    {
+      "file": "character-icons/buto.webp",
+      "bytes": 10102
+    },
+    {
+      "file": "character-icons/ciici.webp",
+      "bytes": 10394
+    },
+    {
+      "file": "character-icons/jago.webp",
+      "bytes": 12632
+    },
+    {
+      "file": "character-icons/kaka.webp",
+      "bytes": 9508
+    },
+    {
+      "file": "character-icons/kodo.webp",
+      "bytes": 10714
+    },
+    {
+      "file": "character-icons/kumis.webp",
+      "bytes": 8726
+    },
+    {
+      "file": "character-icons/lala.webp",
+      "bytes": 9924
+    },
+    {
+      "file": "character-icons/lui.webp",
+      "bytes": 7382
+    },
+    {
+      "file": "character-icons/maria.webp",
+      "bytes": 8878
+    },
+    {
+      "file": "character-icons/raja.webp",
+      "bytes": 9430
+    },
+    {
+      "file": "character-icons/robot.webp",
+      "bytes": 9244
+    },
+    {
+      "file": "character-icons/tui.webp",
+      "bytes": 6114
+    },
     {
       "file": "controls/back.webp",
       "bytes": 13888
@@ -116,7 +172,19 @@
     {
       "file": "portraits/tui.webp",
       "bytes": 31948
+    },
+    {
+      "file": "skills/raja-titah-halilintar.webp",
+      "bytes": 52484
+    },
+    {
+      "file": "videos/team-green.mp4",
+      "bytes": 2626761
+    },
+    {
+      "file": "videos/team-red.mp4",
+      "bytes": 3651509
     }
   ],
-  "totalBytes": 1188834
+  "totalBytes": 7656596
 }
