@@ -1,6 +1,38 @@
 {
-  "version": 6,
+  "version": 7,
   "files": [
+    {
+      "file": "audio/defeat.mp3",
+      "bytes": 25389
+    },
+    {
+      "file": "audio/ingame-ambience.mp3",
+      "bytes": 361197
+    },
+    {
+      "file": "audio/ingame-music.mp3",
+      "bytes": 4484839
+    },
+    {
+      "file": "audio/opening-title.mp3",
+      "bytes": 3296494
+    },
+    {
+      "file": "audio/press-play.mp3",
+      "bytes": 108909
+    },
+    {
+      "file": "audio/ui-back.mp3",
+      "bytes": 28269
+    },
+    {
+      "file": "audio/ui-select.mp3",
+      "bytes": 49581
+    },
+    {
+      "file": "audio/victory.mp3",
+      "bytes": 73197
+    },
     {
       "file": "character-icons/bebe.webp",
       "bytes": 12080
@@ -186,5 +218,5 @@
       "bytes": 3651509
     }
   ],
-  "totalBytes": 7656596
+  "totalBytes": 16084471
 }

@@ -9,6 +9,7 @@ const uiRefresh = path.join(root, 'asset-inbox', '2026-09-01-ui-refresh-v3');
 const fieldCardSource = path.join(root, 'asset-inbox', '2026-09-02-field-cards-v1', 'field-cards.png');
 const pictures = path.join(root, 'Assets', 'pictures');
 const media = path.join(root, 'Assets', 'Video and GIFs');
+const audio = path.join(root, 'Assets', 'Audio');
 const output = path.join(root, 'public', 'ui-v2');
 const brandOutput = path.join(root, 'public', 'brand');
 
@@ -68,6 +69,7 @@ await fs.mkdir(path.join(output, 'fields'), { recursive: true });
 await fs.mkdir(path.join(output, 'character-icons'), { recursive: true });
 await fs.mkdir(path.join(output, 'skills'), { recursive: true });
 await fs.mkdir(path.join(output, 'videos'), { recursive: true });
+await fs.mkdir(path.join(output, 'audio'), { recursive: true });
 await fs.mkdir(brandOutput, { recursive: true });
 
 await encodeContained(
@@ -102,6 +104,20 @@ await sharp(path.join(pictures, 'raja ultimate skill banner view.png'))
 
 await fs.copyFile(path.join(media, 'TimMerah_loop_animation_char_selection.mp4'), path.join(output, 'videos', 'team-red.mp4'));
 await fs.copyFile(path.join(media, 'TimHijau_loop_animation_char_selection.mp4'), path.join(output, 'videos', 'team-green.mp4'));
+
+const audioTracks = {
+  'opening-title.mp3': 'opening_title_music.MP3',
+  'press-play.mp3': 'Music_WhenUserPressPlay.mp3',
+  'ingame-music.mp3': 'ingameMusic.mp3',
+  'ingame-ambience.mp3': 'ambienceingame1.mp3',
+  'victory.mp3': 'Winning_Music.mp3',
+  'defeat.mp3': 'Defeat_Music.mp3',
+  'ui-back.mp3': 'UI_back or Cancel.mp3',
+  'ui-select.mp3': 'UI_select or Next.mp3',
+};
+for (const [destination, input] of Object.entries(audioTracks)) {
+  await fs.copyFile(path.join(audio, input), path.join(output, 'audio', destination));
+}
 
 for (const [id, relative] of Object.entries(heroes)) {
   await encodeContained(await ensureSource(relative), path.join(output, 'heroes', `${id}.webp`), 620, 980, 80);
@@ -156,6 +172,6 @@ const walk = async directory => {
 };
 await walk(output);
 files.sort((a, b) => a.file.localeCompare(b.file));
-await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 6, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
+await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 7, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
 const logoBytes = (await fs.stat(path.join(brandOutput, 'benteng-tag-logo.webp'))).size;
-console.log(`UI runtime v6: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);
+console.log(`UI runtime v7: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);
