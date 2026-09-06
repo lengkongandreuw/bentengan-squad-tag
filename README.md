@@ -1,6 +1,6 @@
 # Bentengan Squad Tag
 
-Prototype game web 2.5D **Bentengan 5v5** dengan aturan prioritas tangkap berdasarkan urutan keluar benteng, penjara dan rescue, sprint terbatas, item refill bertingkat, tiga arena 2× lebih luas, serta empat belas karakter beranimasi dalam tim tetap Merah dan Hijau.
+Prototype game web 2.5D **Bentengan 5v5** dengan aturan prioritas tangkap berdasarkan urutan keluar benteng, penjara dan rescue, sprint terbatas, item refill bertingkat, empat arena, serta empat belas karakter beranimasi dalam tim tetap Merah dan Hijau. Map Kampung Merdeka memakai terrain kuadran simetris 1538×1096 dengan susunan objek non-simetris.
 
 ## Mainkan
 

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "sources": {
     "air mancur.png": "b42574ac6ae0f04c4b9476c8dbd921828f0715e624222e52e34c939883f13c81",
     "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
@@ -59,10 +59,22 @@
     "warung v2.png": "8157c9ab3585bce4d3a6b0468be7b59872433f73809d9e96f6a8b48442d3f8a1",
     "warung.png": "dfbcfda585a4fc2ef256e931e864ffaae0eb1a5641fc891b677046eb5169d11c"
   },
+  "mapSources": {
+    "1x1_map1.png": "6f6673599dc1c4bfa5572748839034fb3e5af97f0de97e4aa12db27ea794cdaf",
+    "1x2_map1.png": "e78b3944a96df45eaff07210a4f6496d6abe76633b2ee10275d554f5420d0e62",
+    "1x3_map1.png": "4d594fc1c89483b451fa6a0bd780326a0662e00156e8d3a176b5195bc172212a",
+    "2x1_map1.png": "1c28a0fafa957c0214fc1105d55d0ec8956e82913549cec93217bd99d3a4d935",
+    "2x2_map1.png": "ccb9bc3b5090dc0213f9555f10207dd711f403edb757df68d3edd251be520045",
+    "2x3_map1.png": "42fd8819bdd56c8198280165e9b6035e6dce4f03b6c687eb4e6be8ca204cf9d7",
+    "3x1 map1.png": "de9cf365f9f2398c5f81ad58272cbda34cc96a060a5239bf8a9d632a393cd553",
+    "3x2_map1.png": "75a82631de46a83513fe4081d36d6c7ab7dccbe7ccfc08546dc7d27c8d7740fb",
+    "3x3_map1.png": "34ccd87643dcfbfc172bf60e006cc75902a17842203b80238754d35456af0542"
+  },
   "runtime": {
     "animated.webp": "49abbb8cf6dfb77f85fbf8ba17bf30c7c290c636368f8b5d1435774de0a9cf78",
     "grounds.webp": "a3760b49f251a3001232b059acf77cab30ecda309dfe43539a169ea3f1021db6",
-    "manifest.json": "71c27b01ffdfce5546585f80edb0ab33f5d0587071cc8f88631899fd12f9b74c",
+    "kampung-map.webp": "629f456058dfaa5d7712409f7aeee460b69f4bdfe3bdd1474a9088539e4c4443",
+    "manifest.json": "a2ab9fdf684b38b82543be034bd5b420010a02e215571acf769a36f592dc11d9",
     "objects.webp": "1dd891176af01f59d8a56f16b578e6701cc1ea7037cb8fda7de9d350e3bbc428"
   }
 }

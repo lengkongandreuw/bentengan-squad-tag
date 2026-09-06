@@ -164,6 +164,7 @@ type FieldConfig = {
   difficulty: DifficultyId;
   aiIntensity: number;
   ground: GroundTileId;
+  background?: string;
   prisons: Record<Team, Prison>;
   paths: FieldPath[];
   obstacles: Obstacle[];
@@ -220,7 +221,12 @@ type Snapshot = {
   ultimateCasting: boolean;
 };
 
-const WORLD_SCALE = 2.5;
+const DESIGN_W = 1440;
+const DESIGN_H = 800;
+const W = 1538;
+const H = 1096;
+const WORLD_SCALE_X = W / DESIGN_W;
+const WORLD_SCALE_Y = H / DESIGN_H;
 const STATIC_MAP_SCALE = 0.5;
 const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
@@ -277,13 +283,12 @@ const DIFFICULTY_PROFILES = {
     boostDrain: number;
   }
 >;
-const world = (value: number) => Math.round(value * WORLD_SCALE);
-const W = world(1440);
-const H = world(800);
+const worldX = (value: number) => Math.round(value * WORLD_SCALE_X);
+const worldY = (value: number) => Math.round(value * WORLD_SCALE_Y);
 const BASE_RADIUS = 118;
 const BASES = {
-  blue: { x: world(112), y: world(410) },
-  red: { x: world(1328), y: world(390) },
+  blue: { x: 174, y: 520 },
+  red: { x: W - 174, y: 520 },
 };
 const DEFAULT_RAW_PRISONS: Record<Team, Prison> = {
   blue: { x: 244, y: 472, w: 254, h: 190 },
@@ -1864,6 +1869,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     difficulty: 'easy',
     aiIntensity: 1,
     ground: 'kampungGround',
+    background: 'kampung-map.webp',
     prisons: {
       blue: {
         x: 164,
@@ -1874,8 +1880,8 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
         overlayAsset: 'industrialPrisonBlueOverlay',
       },
       red: {
-        x: 906,
-        y: 42,
+        x: 1096,
+        y: 36,
         w: 310,
         h: 250,
         floorAsset: 'industrialPrisonRedFloor',
@@ -1885,37 +1891,28 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     paths: [
       {
         tile: 'kampungGround',
-        x: 286,
+        x: 356,
         y: 220,
-        w: 868,
+        w: 728,
         h: 358,
-        opacity: 0.5,
-        radius: 42,
-      },
-      {
-        tile: 'paving',
-        x: 654,
-        y: 30,
-        w: 132,
-        h: 740,
-        opacity: 0.42,
-        radius: 34,
+        opacity: 0.08,
+        radius: 30,
       },
     ],
     obstacles: [
-      guideObstacle('warung', 186, 54, 160, 54, 238, 198),
-      guideObstacle('hall', 1220, 54, 170, 54, 238, 198),
-      guideObstacle('guardPost', 1008, 624, 164, 54, 222, 205),
-      guideObstacle('coffeeStall', 590, 650, 150, 46, 214, 206),
+      guideObstacle('warung', 260, 128, 160, 54, 238, 198),
+      guideObstacle('hall', 920, 126, 170, 54, 238, 198),
+      guideObstacle('guardPost', 964, 686, 164, 54, 222, 205),
+      guideObstacle('coffeeStall', 610, 700, 150, 46, 214, 206),
       ...[
-        [350, 170],
-        [570, 170],
-        [790, 170],
-        [1010, 170],
-        [350, 600],
-        [570, 600],
-        [790, 600],
-        [1010, 600],
+        [486, 176],
+        [790, 176],
+        [360, 248],
+        [954, 248],
+        [360, 504],
+        [954, 504],
+        [486, 584],
+        [790, 584],
       ].map(([x, y], i) =>
         guideObstacle(
           i % 2 ? 'parkBarrier' : 'parkBench',
@@ -1929,14 +1926,14 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
         ),
       ),
       ...[
-        [350, 318],
-        [510, 318],
-        [830, 318],
-        [990, 318],
-        [350, 468],
-        [510, 468],
-        [830, 468],
-        [990, 468],
+        [500, 310],
+        [810, 310],
+        [500, 442],
+        [810, 442],
+        [314, 372],
+        [996, 372],
+        [624, 248],
+        [624, 510],
       ].map(([x, y], i) =>
         guideObstacle(
           i % 2 ? 'parkBarrier' : 'drain',
@@ -1949,21 +1946,23 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
           i % 3 === 1,
         ),
       ),
-      guideObstacle('crates', 594, 292, 62, 52, 84, 78),
-      guideObstacle('crates', 784, 442, 62, 52, 84, 78, true),
-      guideObstacle('parkTree', 244, 256, 70, 56, 124, 158),
-      guideObstacle('parkTree', 1126, 486, 70, 56, 124, 158, true),
-      guideObstacle('flowerBedSmall', 612, 404, 96, 38, 124, 86),
-      guideObstacle('flowerBedSmall', 738, 404, 96, 38, 124, 86, true),
-      guideObstacle('snackCart', 392, 684, 92, 44, 134, 152),
-      guideObstacle('foodCart', 930, 686, 92, 44, 138, 150, true),
+      guideObstacle('crates', 326, 322, 62, 52, 84, 78),
+      guideObstacle('crates', 1052, 440, 62, 52, 84, 78, true),
+      guideObstacle('parkTree', 462, 118, 70, 56, 124, 158),
+      guideObstacle('parkTree', 1120, 278, 70, 56, 124, 158, true),
+      guideObstacle('parkTree', 232, 652, 70, 56, 124, 158),
+      guideObstacle('parkTree', 1198, 654, 70, 56, 124, 158, true),
+      guideObstacle('flowerBedSmall', 622, 380, 96, 38, 124, 86),
+      guideObstacle('flowerBedSmall', 738, 380, 96, 38, 124, 86, true),
+      guideObstacle('snackCart', 440, 678, 92, 44, 134, 152),
+      guideObstacle('foodCart', 902, 678, 92, 44, 138, 150, true),
     ],
     decorations: [
-      { asset: 'bunting', x: 570, y: 34, w: 300, h: 120, opacity: 0.92 },
-      { asset: 'flowerFence', x: 22, y: 30, w: 300, h: 86 },
-      { asset: 'flowerFence', x: 1118, y: 30, w: 300, h: 86, flip: true },
-      { asset: 'flowerFence', x: 22, y: 704, w: 300, h: 86 },
-      { asset: 'flowerFence', x: 1118, y: 704, w: 300, h: 86, flip: true },
+      { asset: 'bunting', x: 570, y: 26, w: 300, h: 120, opacity: 0.92 },
+      { asset: 'plant', x: 142, y: 274, w: 70, h: 88 },
+      { asset: 'plant', x: 1226, y: 274, w: 70, h: 88, flip: true },
+      { asset: 'bush', x: 510, y: 660, w: 108, h: 70 },
+      { asset: 'bush', x: 820, y: 660, w: 108, h: 70, flip: true },
     ],
     animated: [
       { animation: 'flag', x: 620, y: 46, w: 62, h: 88 },
@@ -2300,43 +2299,43 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => ({
   prisons: {
     blue: {
       ...field.prisons.blue,
-      x: world(field.prisons.blue.x),
-      y: world(field.prisons.blue.y),
+      x: worldX(field.prisons.blue.x),
+      y: worldY(field.prisons.blue.y),
     },
     red: {
       ...field.prisons.red,
-      x: world(field.prisons.red.x),
-      y: world(field.prisons.red.y),
+      x: worldX(field.prisons.red.x),
+      y: worldY(field.prisons.red.y),
     },
   },
   paths: field.paths.map((path) => ({
     ...path,
-    x: world(path.x),
-    y: world(path.y),
-    w: world(path.w),
-    h: world(path.h),
-    radius: world(path.radius),
+    x: worldX(path.x),
+    y: worldY(path.y),
+    w: worldX(path.w),
+    h: worldY(path.h),
+    radius: Math.round(path.radius * Math.min(WORLD_SCALE_X, WORLD_SCALE_Y)),
   })),
   obstacles: field.obstacles.map((item) => ({
     ...item,
-    x: world(item.x),
-    y: world(item.y),
+    x: worldX(item.x),
+    y: worldY(item.y),
   })),
   decorations: field.decorations.map((item) => ({
     ...item,
-    x: world(item.x),
-    y: world(item.y),
+    x: worldX(item.x),
+    y: worldY(item.y),
   })),
   animated: field.animated.map((item) => ({
     ...item,
-    x: world(item.x),
-    y: world(item.y),
+    x: worldX(item.x),
+    y: worldY(item.y),
   })),
 }));
 const prisonClearance = 12;
 for (const field of FIELD_CONFIGS) {
   if (field.obstacles.length < 26)
-    throw new Error(`${field.id}: kepadatan arena 2× tidak mencukupi`);
+    throw new Error(`${field.id}: kepadatan arena tidak mencukupi`);
   for (const obstacle of field.obstacles) {
     if (
       obstacle.x < 24 ||
@@ -2800,6 +2799,9 @@ export function BentenganPrototype() {
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const fieldAnimatedAtlas = getFieldImage('animated.webp');
     const fieldGroundAtlas = getFieldImage('grounds.webp');
+    const fieldBackground = field.background
+      ? getFieldImage(field.background)
+      : null;
     const staticLayer = document.createElement('canvas');
     staticLayer.width = Math.round(W * STATIC_MAP_SCALE);
     staticLayer.height = Math.round(H * STATIC_MAP_SCALE);
@@ -2810,6 +2812,7 @@ export function BentenganPrototype() {
     };
     fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
     fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
+    fieldBackground?.addEventListener('load', invalidateStaticMap);
 
     const beep = (frequency: number, duration = 0.08) => {
       try {
@@ -2926,12 +2929,12 @@ export function BentenganPrototype() {
       const minimum = Math.min(...laneCounts);
       const lane = laneCounts.indexOf(minimum) as 0 | 1 | 2;
       const laneBounds = [
-        [world(92), world(292)],
-        [world(300), world(516)],
-        [world(524), world(712)],
+        [worldY(92), worldY(292)],
+        [worldY(300), worldY(516)],
+        [worldY(524), worldY(712)],
       ] as const;
       for (let tries = 0; tries < 30; tries++) {
-        const x = world(236) + Math.random() * (W - world(472)),
+        const x = worldX(236) + Math.random() * (W - worldX(472)),
           y =
             laneBounds[lane][0] +
             Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
@@ -3936,12 +3939,20 @@ export function BentenganPrototype() {
       target.clearRect(0, 0, W, H);
       target.imageSmoothingEnabled = true;
       target.imageSmoothingQuality = 'high';
-      const primaryPattern = target.createPattern(
-        groundTileCanvas(field.ground),
-        'repeat',
-      );
-      target.fillStyle = primaryPattern ?? '#7f815a';
-      target.fillRect(0, 0, W, H);
+      if (
+        fieldBackground?.complete &&
+        fieldBackground.naturalWidth &&
+        fieldBackground.naturalHeight
+      ) {
+        target.drawImage(fieldBackground, 0, 0, W, H);
+      } else {
+        const primaryPattern = target.createPattern(
+          groundTileCanvas(field.ground),
+          'repeat',
+        );
+        target.fillStyle = primaryPattern ?? '#7f815a';
+        target.fillRect(0, 0, W, H);
+      }
       target.fillStyle = 'rgba(19,27,21,.08)';
       target.fillRect(0, 0, W, H);
       field.paths.forEach((pathConfig) => {
@@ -3978,10 +3989,10 @@ export function BentenganPrototype() {
       target.strokeStyle = 'rgba(255,255,255,.13)';
       target.lineWidth = 2;
       target.setLineDash([16, 18]);
-      [world(296), world(506)].forEach((y) => {
+      [worldY(296), worldY(506)].forEach((y) => {
         target.beginPath();
-        target.moveTo(world(238), y);
-        target.lineTo(W - world(238), y);
+        target.moveTo(worldX(238), y);
+        target.lineTo(W - worldX(238), y);
         target.stroke();
       });
       target.setLineDash([]);
@@ -4057,23 +4068,25 @@ export function BentenganPrototype() {
       ].sort((a, b) => a.baseline - b.baseline);
       scenery.forEach((item) => item.draw());
 
-      target.fillStyle = 'rgba(20,31,23,.94)';
-      target.fillRect(0, 32, W, 34);
-      target.fillRect(0, H - 32, W, 32);
-      target.strokeStyle = 'rgba(255,241,205,.24)';
-      target.lineWidth = 2;
-      target.beginPath();
-      target.moveTo(0, 66);
-      target.lineTo(W, 66);
-      target.stroke();
-      target.font = '800 15px var(--font-heading)';
-      target.fillStyle = '#fff0cf';
-      target.textAlign = 'center';
-      target.fillText(
-        `${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`,
-        W / 2,
-        55,
-      );
+      if (!field.background) {
+        target.fillStyle = 'rgba(20,31,23,.94)';
+        target.fillRect(0, 32, W, 34);
+        target.fillRect(0, H - 32, W, 32);
+        target.strokeStyle = 'rgba(255,241,205,.24)';
+        target.lineWidth = 2;
+        target.beginPath();
+        target.moveTo(0, 66);
+        target.lineTo(W, 66);
+        target.stroke();
+        target.font = '800 15px var(--font-heading)';
+        target.fillStyle = '#fff0cf';
+        target.textAlign = 'center';
+        target.fillText(
+          `${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`,
+          W / 2,
+          55,
+        );
+      }
     };
     const drawMap = () => {
       if (staticLayerContext && staticMapDirty) {
@@ -4693,6 +4706,7 @@ export function BentenganPrototype() {
       window.clearTimeout(bannerTimeout);
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
       fieldGroundAtlas.removeEventListener('load', invalidateStaticMap);
+      fieldBackground?.removeEventListener('load', invalidateStaticMap);
     };
   }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId]);
 
@@ -5218,7 +5232,7 @@ export function BentenganPrototype() {
           <span className="brand-kicker">
             <i /> Playable rules prototype
             <br />
-            Field 2× · guarded
+            Field compact · guarded
           </span>
         </div>
         <div className="top-actions">

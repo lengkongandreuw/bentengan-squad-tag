@@ -4,6 +4,7 @@ import sharp from 'sharp';
 
 const root = process.cwd();
 const sourceDir = path.join(root, 'field-sources');
+const mapSourceDir = path.join(root, 'Assets', 'map');
 const outputDir = path.join(root, 'public', 'field');
 const generatedFile = path.join(root, 'lib', 'field-assets.generated.ts');
 const padding = 8;
@@ -123,6 +124,66 @@ const pack = (assets, atlasWidth) => {
 
 await mkdir(outputDir, { recursive: true });
 
+// Map 1 is authored as one top-left quadrant. The remaining quadrants are
+// deterministic mirrors so the outer flower fence joins without a center seam.
+const map1Columns = [
+  ['1x3_map1.png', '1x2_map1.png', '1x1_map1.png'],
+  ['2x3_map1.png', '2x2_map1.png', '2x1_map1.png'],
+  ['3x3_map1.png', '3x2_map1.png', '3x1 map1.png'],
+];
+const map1ColumnWidths = [55, 356, 358];
+const map1RowHeights = [69, 238, 241];
+const map1QuadrantWidth = map1ColumnWidths.reduce((sum, value) => sum + value, 0);
+const map1QuadrantHeight = map1RowHeights.reduce((sum, value) => sum + value, 0);
+const map1QuadrantParts = [];
+let map1Left = 0;
+for (let column = 0; column < map1Columns.length; column++) {
+  let map1Top = 0;
+  for (let row = 0; row < map1Columns[column].length; row++) {
+    map1QuadrantParts.push({
+      input: path.join(mapSourceDir, map1Columns[column][row]),
+      left: map1Left,
+      top: map1Top,
+    });
+    map1Top += map1RowHeights[row];
+  }
+  map1Left += map1ColumnWidths[column];
+}
+const map1Quadrant = await sharp({
+  create: {
+    width: map1QuadrantWidth,
+    height: map1QuadrantHeight,
+    channels: 4,
+    background: { r: 0, g: 0, b: 0, alpha: 1 },
+  },
+})
+  .composite(map1QuadrantParts)
+  .png()
+  .toBuffer();
+const map1TopRight = await sharp(map1Quadrant).flop().png().toBuffer();
+const map1BottomLeft = await sharp(map1Quadrant).flip().png().toBuffer();
+const map1BottomRight = await sharp(map1Quadrant).flip().flop().png().toBuffer();
+await sharp({
+  create: {
+    width: map1QuadrantWidth * 2,
+    height: map1QuadrantHeight * 2,
+    channels: 4,
+    background: { r: 0, g: 0, b: 0, alpha: 1 },
+  },
+})
+  .composite([
+    { input: map1Quadrant, left: 0, top: 0 },
+    { input: map1TopRight, left: map1QuadrantWidth, top: 0 },
+    { input: map1BottomLeft, left: 0, top: map1QuadrantHeight },
+    {
+      input: map1BottomRight,
+      left: map1QuadrantWidth,
+      top: map1QuadrantHeight,
+    },
+  ])
+  .webp({ quality: 86, effort: 6, smartSubsample: true })
+  .toFile(path.join(outputDir, 'kampung-map.webp'));
+
 const preparedObjects = [];
 for (const object of objects) {
   const sourcePath = path.join(sourceDir, object.file);
@@ -202,7 +263,14 @@ await sharp({ create: { width: tileWidth * groundColumns, height: tileHeight * g
   .toFile(path.join(outputDir, 'grounds.webp'));
 
 const manifest = {
-  version: 3,
+  version: 4,
+  maps: {
+    kampung: {
+      file: 'kampung-map.webp',
+      width: map1QuadrantWidth * 2,
+      height: map1QuadrantHeight * 2,
+    },
+  },
   objects: { file: 'objects.webp', width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed },
   animated: { file: 'animated.webp', width: animatedAtlasWidth, height: animatedPack.height, animations: animationManifest },
   grounds: { file: 'grounds.webp', width: tileWidth * groundColumns, height: tileHeight * groundRows, tiles: groundTiles },

@@ -80,32 +80,36 @@ assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage
 assert((prototypeSource.match(/Math\.min\(2, Math\.max\(1, window\.devicePixelRatio/g) ?? []).length >= 1 && workshopSource.includes('Math.min(2, Math.max(1, window.devicePixelRatio'), 'pixel ratio canvas dibatasi 2×');
 assert(!prototypeSource.includes('ctx.filter = \'drop-shadow'), 'filter bayangan per pemain dihapus dari render loop');
 
-assert(fieldManifest.version === 3 && Object.keys(fieldManifest.objects.assets).length === 64, 'manifest field v3 memuat 64 objek statis dan modular runtime');
+assert(fieldManifest.version === 4 && Object.keys(fieldManifest.objects.assets).length === 64, 'manifest field v4 memuat 64 objek statis dan terrain Map 1');
+assert(fieldManifest.maps?.kampung?.width === 1538 && fieldManifest.maps?.kampung?.height === 1096, 'sembilan potongan kuadran Map 1 dimirror menjadi terrain 1538×1096');
 assert(Object.keys(fieldManifest.animated.animations).join(',') === 'fountain,flag,vendor,boost25,boost40,boost75,boost100', 'tujuh animasi objek dan pickup terdaftar eksplisit');
 for (const [id, animation] of Object.entries(fieldManifest.animated.animations)) assert(animation.frames.length === 6, `${id}: enam frame animasi terpotong lengkap`);
 assert(Object.keys(fieldManifest.grounds.tiles).join(',') === 'grass,dirt,paving,concrete,kampungGround,parkGrass,parkPaving,canalGrass', 'delapan pola tanah lama dan baru dipotong tanpa label sumber');
 const fieldObjectsPath = path.join(root, 'public/field/objects.webp');
 const fieldAnimatedPath = path.join(root, 'public/field/animated.webp');
 const fieldGroundsPath = path.join(root, 'public/field/grounds.webp');
+const kampungMapPath = path.join(root, 'public/field/kampung-map.webp');
 const fieldObjects = await sharp(fieldObjectsPath).metadata();
 const fieldAnimated = await sharp(fieldAnimatedPath).metadata();
 const fieldGrounds = await sharp(fieldGroundsPath).metadata();
-const fieldRuntimeBytes = (await stat(fieldObjectsPath)).size + (await stat(fieldAnimatedPath)).size + (await stat(fieldGroundsPath)).size;
-const fieldDecodedBytes = (fieldObjects.width ?? 0) * (fieldObjects.height ?? 0) * 4 + (fieldAnimated.width ?? 0) * (fieldAnimated.height ?? 0) * 4 + (fieldGrounds.width ?? 0) * (fieldGrounds.height ?? 0) * 4;
+const kampungMap = await sharp(kampungMapPath).metadata();
+const fieldRuntimeBytes = (await stat(fieldObjectsPath)).size + (await stat(fieldAnimatedPath)).size + (await stat(fieldGroundsPath)).size + (await stat(kampungMapPath)).size;
+const fieldDecodedBytes = (fieldObjects.width ?? 0) * (fieldObjects.height ?? 0) * 4 + (fieldAnimated.width ?? 0) * (fieldAnimated.height ?? 0) * 4 + (fieldGrounds.width ?? 0) * (fieldGrounds.height ?? 0) * 4 + (kampungMap.width ?? 0) * (kampungMap.height ?? 0) * 4;
 assert(fieldObjects.width === 2048 && fieldObjects.height === 1664 && fieldObjects.hasAlpha, 'atlas objek statis v3 2048×1664 transparan dan terpotong rapat');
 assert(fieldAnimated.width === 1024 && fieldAnimated.height === 384 && fieldAnimated.hasAlpha, 'atlas animasi 1024×384 transparan dan hemat memori');
 assert(fieldGrounds.width === 1280 && fieldGrounds.height === 448 && !fieldGrounds.hasAlpha, 'atlas delapan pola tanah 1280×448 tanpa kanal alpha mubazir');
-assert(fieldRuntimeBytes <= 1250 * 1024, `tiga atlas field ${(fieldRuntimeBytes / 1024).toFixed(0)} KiB berada dalam budget 1.250 KiB`);
-assert(fieldDecodedBytes <= 18.5 * 1024 * 1024, `memori decode field ${(fieldDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 18,5 MiB`);
+assert(kampungMap.width === 1538 && kampungMap.height === 1096 && !kampungMap.hasAlpha, 'terrain Map 1 memiliki dimensi gameplay final tanpa kanal alpha');
+assert(fieldRuntimeBytes <= 1700 * 1024, `empat aset field ${(fieldRuntimeBytes / 1024).toFixed(0)} KiB berada dalam budget 1.700 KiB`);
+assert(fieldDecodedBytes <= 26 * 1024 * 1024, `memori decode field ${(fieldDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 26 MiB`);
 assert(prototypeSource.includes('const staticLayer = document.createElement(\'canvas\')') && prototypeSource.includes('if (staticLayerContext && staticMapDirty)'), 'field statis diraster sekali dan di-cache di luar render loop');
-assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSource.includes("getFieldImage('animated.webp')") && prototypeSource.includes("getFieldImage('grounds.webp')"), 'seluruh dekorasi memakai hanya tiga request atlas runtime');
+assert(prototypeSource.includes("getFieldImage('objects.webp')") && prototypeSource.includes("getFieldImage('animated.webp')") && prototypeSource.includes("getFieldImage('grounds.webp')") && prototypeSource.includes("background: 'kampung-map.webp'"), 'dekorasi memakai tiga atlas dan Map 1 memakai terrain komposit khusus');
 assert(prototypeSource.includes("ground: 'dirt'") && prototypeSource.includes("ground: 'concrete'") && prototypeSource.includes("ground: 'grass'") && prototypeSource.includes("id: 'kanal'"), 'empat stage memiliki identitas arena yang terdaftar');
-assert(prototypeSource.includes('const WORLD_SCALE = 2.5') && prototypeSource.includes('const W = world(1440)') && prototypeSource.includes('const H = world(800)'), 'semua arena memiliki luas 3600×2000, tepat 2× dimensi sebelumnya');
-assert(prototypeSource.includes('const STATIC_MAP_SCALE = 0.5') && prototypeSource.includes('staticLayer.width = Math.round(W * STATIC_MAP_SCALE)'), 'cache visual arena 2× diraster setengah resolusi agar hemat memori');
+assert(prototypeSource.includes('const W = 1538') && prototypeSource.includes('const H = 1096') && prototypeSource.includes('const WORLD_SCALE_X = W / DESIGN_W'), 'arena dipadatkan ke rasio terrain final 1538×1096');
+assert(prototypeSource.includes('const STATIC_MAP_SCALE = 0.5') && prototypeSource.includes('staticLayer.width = Math.round(W * STATIC_MAP_SCALE)'), 'cache visual arena diraster setengah resolusi agar hemat memori');
 assert(prototypeSource.includes('const NEAR_FIELD_DETAIL_RADIUS = 560') && prototypeSource.includes('drawNearbyFieldDetails(me, activeCamera)') && prototypeSource.includes("activeCamera === 'overview'"), 'objek dekat pemain digambar ulang tajam tanpa memperbesar cache atau mode overview');
 assert(prototypeSource.includes('const GUIDE_FIELD_CONFIGS: FieldConfig[]') && prototypeSource.includes("'parkCornerNW'") && prototypeSource.includes("'canalBridgeDiag'"), 'empat arena v3 memakai konfigurasi panduan dan objek modular baru');
 assert((prototypeSource.match(/guideObstacle\(/g) ?? []).length >= 55, 'konfigurasi panduan memiliki kepadatan halangan bermakna sebelum pola simetris diperluas');
-assert(prototypeSource.includes('kepadatan arena 2× tidak mencukupi') && prototypeSource.includes('keluar batas arena') && prototypeSource.includes('masuk zona penjara') && prototypeSource.includes('menutup akses benteng'), 'validator geometri mencegah arena kosong, objek keluar batas, dan penjara terhalang');
+assert(prototypeSource.includes('kepadatan arena tidak mencukupi') && prototypeSource.includes('keluar batas arena') && prototypeSource.includes('masuk zona penjara') && prototypeSource.includes('menutup akses benteng'), 'validator geometri mencegah arena kosong, objek keluar batas, dan penjara terhalang');
 const guideFieldSource = prototypeSource.match(/const GUIDE_FIELD_CONFIGS:[\s\S]*?const FIELD_CONFIGS:/)?.[0] ?? '';
 assert((guideFieldSource.match(/difficulty: 'easy'/g) ?? []).length === 1 && (guideFieldSource.match(/difficulty: 'normal'/g) ?? []).length === 1 && (guideFieldSource.match(/difficulty: 'hard'/g) ?? []).length === 2, 'tingkat kesulitan arena tersusun Easy, Normal, Hard, Hard');
 assert(prototypeSource.includes('DIFFICULTY_PROFILES[field.difficulty]') && prototypeSource.includes('aiProfile.prediction') && prototypeSource.includes('aiProfile.steerDistance') && prototypeSource.includes('aiProfile.rescueCutoff'), 'kesulitan mengubah prediksi target, navigasi, boost, dan keputusan rescue musuh');
@@ -150,6 +154,7 @@ assert(globalStyles.includes('align-items:start') && globalStyles.includes('.sta
 
 const sha256 = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
 for (const [filename, hash] of Object.entries(fieldBaseline.sources)) assert(hash === await sha256(`field-sources/${filename}`), `${filename}: sumber field cocok golden baseline`);
+for (const [filename, hash] of Object.entries(fieldBaseline.mapSources ?? {})) assert(hash === await sha256(`Assets/map/${filename}`), `${filename}: potongan Map 1 cocok golden baseline`);
 for (const [filename, hash] of Object.entries(fieldBaseline.runtime)) assert(hash === await sha256(`public/field/${filename}`), `${filename}: runtime field cocok golden baseline`);
 
 const logo = await sharp(path.join(root, 'asset-inbox/2026-09-01-ui-refresh-v3/brand/benteng-tag-logo.png')).metadata();
