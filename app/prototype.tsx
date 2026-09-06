@@ -1949,12 +1949,12 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
       guideObstacle('crates', 326, 322, 62, 52, 84, 78),
       guideObstacle('crates', 1052, 440, 62, 52, 84, 78, true),
       guideObstacle('parkTree', 462, 118, 70, 56, 124, 158),
-      guideObstacle('parkTree', 1120, 278, 70, 56, 124, 158, true),
-      guideObstacle('parkTree', 232, 652, 70, 56, 124, 158),
+      guideObstacle('parkTree', 1060, 310, 70, 56, 124, 158, true),
+      guideObstacle('parkTree', 70, 604, 70, 56, 124, 158),
       guideObstacle('parkTree', 1198, 654, 70, 56, 124, 158, true),
       guideObstacle('flowerBedSmall', 622, 380, 96, 38, 124, 86),
       guideObstacle('flowerBedSmall', 738, 380, 96, 38, 124, 86, true),
-      guideObstacle('snackCart', 440, 678, 92, 44, 134, 152),
+      guideObstacle('snackCart', 500, 678, 92, 44, 134, 152),
       guideObstacle('foodCart', 902, 678, 92, 44, 138, 150, true),
     ],
     decorations: [
@@ -2132,9 +2132,9 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
       ...[
         [328, 188],
         [510, 188],
-        [748, 188],
-        [930, 188],
-        [328, 584],
+        [710, 188],
+        [930, 240],
+        [500, 584],
         [510, 584],
         [748, 584],
         [930, 584],
@@ -2243,9 +2243,9 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
       ...[
         [354, 160],
         [566, 160],
-        [778, 160],
-        [990, 160],
-        [354, 610],
+        [735, 160],
+        [990, 230],
+        [500, 610],
         [566, 610],
         [778, 610],
         [990, 610],
@@ -2273,7 +2273,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
       guideObstacle('canalBarrier', 486, 106, 126, 30, 180, 102),
       guideObstacle('canalBarrier', 828, 664, 126, 30, 180, 102, true),
       guideObstacle('canalBarrierLong', 560, 544, 164, 34, 236, 104),
-      guideObstacle('canalBarrierLong', 716, 222, 164, 34, 236, 104, true),
+      guideObstacle('canalBarrierLong', 705, 222, 164, 34, 236, 104, true),
       guideObstacle('canalBarrierCorner', 526, 394, 82, 58, 148, 128),
       guideObstacle('canalBarrierCorner', 832, 346, 82, 58, 148, 128, true),
       guideObstacle('flowerBedSmall', 656, 290, 96, 38, 126, 86),
@@ -2333,9 +2333,10 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => ({
   })),
 }));
 const prisonClearance = 12;
+const arenaValidationErrors: string[] = [];
 for (const field of FIELD_CONFIGS) {
   if (field.obstacles.length < 26)
-    throw new Error(`${field.id}: kepadatan arena tidak mencukupi`);
+    arenaValidationErrors.push(`${field.id}: kepadatan arena tidak mencukupi`);
   for (const obstacle of field.obstacles) {
     if (
       obstacle.x < 24 ||
@@ -2343,8 +2344,8 @@ for (const field of FIELD_CONFIGS) {
       obstacle.x + obstacle.w > W - 24 ||
       obstacle.y + obstacle.h > H - 40
     )
-      throw new Error(
-        `${field.id}: obstacle ${obstacle.asset} keluar batas arena`,
+      arenaValidationErrors.push(
+        `${field.id}: obstacle ${obstacle.asset} (${obstacle.x},${obstacle.y}) keluar batas arena`,
       );
     for (const prison of Object.values(field.prisons)) {
       const overlapsPrison =
@@ -2353,8 +2354,8 @@ for (const field of FIELD_CONFIGS) {
         obstacle.y < prison.y + prison.h + prisonClearance &&
         obstacle.y + obstacle.h > prison.y - prisonClearance;
       if (overlapsPrison)
-        throw new Error(
-          `${field.id}: obstacle ${obstacle.asset} masuk zona penjara`,
+        arenaValidationErrors.push(
+          `${field.id}: obstacle ${obstacle.asset} (${obstacle.x},${obstacle.y}) masuk zona penjara`,
         );
     }
     for (const base of Object.values(BASES)) {
@@ -2367,12 +2368,14 @@ for (const field of FIELD_CONFIGS) {
         Math.min(obstacle.y + obstacle.h, base.y),
       );
       if (Math.hypot(base.x - nearestX, base.y - nearestY) < BASE_RADIUS + 28)
-        throw new Error(
-          `${field.id}: obstacle ${obstacle.asset} menutup akses benteng`,
+        arenaValidationErrors.push(
+          `${field.id}: obstacle ${obstacle.asset} (${obstacle.x},${obstacle.y}) menutup akses benteng`,
         );
     }
   }
 }
+if (arenaValidationErrors.length > 0)
+  throw new Error(arenaValidationErrors.join('\n'));
 const FIELD_BY_ID = Object.fromEntries(
   FIELD_CONFIGS.map((field) => [field.id, field]),
 ) as Record<FieldId, FieldConfig>;
