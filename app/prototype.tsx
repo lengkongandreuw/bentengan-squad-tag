@@ -121,6 +121,7 @@ type Obstacle = {
   visualH: number;
   flip?: boolean;
   hidden?: boolean;
+  underlay?: boolean;
 };
 type FieldDecoration = {
   asset: FieldAssetId;
@@ -130,6 +131,7 @@ type FieldDecoration = {
   h: number;
   flip?: boolean;
   opacity?: number;
+  underlay?: boolean;
 };
 type AnimatedDecoration = {
   animation: FieldAnimatedId;
@@ -170,7 +172,7 @@ type FieldConfig = {
   designHeight?: number;
   width?: number;
   height?: number;
-  scaleLayout?: boolean;
+  objectScale?: number;
   bases?: Record<Team, { x: number; y: number }>;
   prisons: Record<Team, Prison>;
   paths: FieldPath[];
@@ -234,6 +236,10 @@ const W = 1538;
 const H = 1096;
 const WORLD_SCALE_X = W / DESIGN_W;
 const WORLD_SCALE_Y = H / DESIGN_H;
+const MAP1_GUIDE_WIDTH = 1452;
+const MAP1_GUIDE_HEIGHT = 1088;
+const MAP1_WORLD_WIDTH = Math.round(W * 1.15);
+const MAP1_WORLD_HEIGHT = Math.round(H * 1.15);
 const MAP2_GUIDE_WIDTH = 1672;
 const MAP2_GUIDE_HEIGHT = 941;
 const MAP2_WORLD_WIDTH = Math.round(MAP2_GUIDE_WIDTH * 1.15);
@@ -1871,6 +1877,37 @@ const guideObstacle = (
   visualH,
   ...(flip ? { flip } : {}),
 });
+const MAP_OBJECT_SCALE = 0.9;
+const map2GroupObstacle = (
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): Obstacle => {
+  const group = { x: 280, y: 320, w: 1115, h: 335 };
+  const groupCenterX = group.x + group.w / 2;
+  const groupCenterY = group.y + group.h / 2;
+  const positionScaleX = MAP2_WORLD_WIDTH / MAP2_GUIDE_WIDTH;
+  const positionScaleY = MAP2_WORLD_HEIGHT / MAP2_GUIDE_HEIGHT;
+  const centerX =
+    groupCenterX +
+    ((x + w / 2 - groupCenterX) * MAP_OBJECT_SCALE) / positionScaleX;
+  const centerY =
+    groupCenterY +
+    ((y + h / 2 - groupCenterY) * MAP_OBJECT_SCALE) / positionScaleY;
+  return {
+    ...guideObstacle(
+      'map2Center',
+      centerX - w / 2,
+      centerY - h / 2,
+      w,
+      h,
+      1,
+      1,
+    ),
+    hidden: true,
+  };
+};
 
 const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   {
@@ -1881,104 +1918,96 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     aiIntensity: 1,
     ground: 'kampungGround',
     background: 'kampung-map.webp',
+    designWidth: MAP1_GUIDE_WIDTH,
+    designHeight: MAP1_GUIDE_HEIGHT,
+    width: MAP1_WORLD_WIDTH,
+    height: MAP1_WORLD_HEIGHT,
+    objectScale: 0.9,
+    bases: {
+      blue: { x: 166, y: 505 },
+      red: { x: 1286, y: 505 },
+    },
     prisons: {
       blue: {
-        x: 164,
-        y: 548,
-        w: 310,
-        h: 250,
+        x: 150,
+        y: 752,
+        w: 270,
+        h: 205,
         floorAsset: 'industrialPrisonBlueFloor',
         overlayAsset: 'industrialPrisonBlueOverlay',
       },
       red: {
-        x: 1096,
-        y: 36,
-        w: 310,
-        h: 250,
+        x: 1148,
+        y: 48,
+        w: 270,
+        h: 205,
         floorAsset: 'industrialPrisonRedFloor',
         overlayAsset: 'industrialPrisonRedOverlay',
       },
     },
-    paths: [
-      {
-        tile: 'kampungGround',
-        x: 356,
-        y: 220,
-        w: 728,
-        h: 358,
-        opacity: 0.08,
-        radius: 30,
-      },
-    ],
+    paths: [],
     obstacles: [
-      guideObstacle('warung', 260, 128, 160, 54, 238, 198),
-      guideObstacle('hall', 920, 126, 170, 54, 238, 198),
-      guideObstacle('guardPost', 964, 686, 164, 54, 222, 205),
-      guideObstacle('coffeeStall', 610, 700, 150, 46, 214, 206),
+      {
+        ...guideObstacle('warung', 238, 142, 170, 42, 205, 154),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('hall', 916, 152, 184, 46, 230, 174),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('guardPost', 964, 888, 188, 46, 230, 190),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('marketStallB', 654, 910, 168, 42, 214, 166),
+        underlay: true,
+      },
       ...[
-        [486, 176],
-        [790, 176],
-        [360, 248],
-        [954, 248],
-        [360, 504],
-        [954, 504],
-        [486, 584],
-        [790, 584],
+        [500, 228],
+        [878, 228],
+        [380, 308],
+        [582, 332],
+        [792, 332],
+        [1000, 308],
+        [500, 430],
+        [878, 430],
+        [664, 494],
+        [380, 568],
+        [500, 568],
+        [878, 568],
+        [1000, 568],
+        [500, 682],
+        [582, 682],
+        [792, 682],
+        [878, 682],
       ].map(([x, y], i) =>
         guideObstacle(
-          i % 2 ? 'parkBarrier' : 'parkBench',
+          i % 3 === 1 ? 'drain' : 'parkBarrier',
           x,
           y,
-          126,
-          28,
-          160,
-          76,
-          i % 3 === 0,
+          108,
+          20,
+          132,
+          54,
+          i % 4 === 0,
         ),
       ),
-      ...[
-        [500, 310],
-        [810, 310],
-        [500, 442],
-        [810, 442],
-        [314, 372],
-        [996, 372],
-        [624, 248],
-        [624, 510],
-      ].map(([x, y], i) =>
-        guideObstacle(
-          i % 2 ? 'parkBarrier' : 'drain',
-          x,
-          y,
-          118,
-          30,
-          154,
-          64,
-          i % 3 === 1,
-        ),
-      ),
-      guideObstacle('crates', 326, 322, 62, 52, 84, 78),
-      guideObstacle('crates', 1052, 440, 62, 52, 84, 78, true),
-      guideObstacle('parkTree', 462, 118, 70, 56, 124, 158),
-      guideObstacle('parkTree', 1060, 310, 70, 56, 124, 158, true),
-      guideObstacle('parkTree', 70, 604, 70, 56, 124, 158),
-      guideObstacle('parkTree', 1198, 654, 70, 56, 124, 158, true),
-      guideObstacle('flowerBedSmall', 622, 380, 96, 38, 124, 86),
-      guideObstacle('flowerBedSmall', 738, 380, 96, 38, 124, 86, true),
-      guideObstacle('snackCart', 500, 678, 92, 44, 134, 152),
-      guideObstacle('foodCart', 902, 678, 92, 44, 138, 150, true),
+      guideObstacle('parkTree', 484, 116, 46, 40, 105, 126),
+      guideObstacle('parkTree', 174, 290, 48, 42, 108, 130),
+      guideObstacle('parkTree', 1228, 290, 48, 42, 108, 130, true),
+      guideObstacle('parkTree', 74, 904, 46, 40, 105, 126),
+      guideObstacle('parkTree', 1330, 904, 46, 40, 105, 126, true),
+      { ...guideObstacle('snackCart', 76, 126, 62, 34, 98, 112), underlay: true },
+      { ...guideObstacle('foodCart', 490, 888, 66, 36, 102, 116), underlay: true },
+      { ...guideObstacle('snackCart', 930, 950, 62, 34, 98, 112, true), underlay: true },
     ],
     decorations: [
-      { asset: 'bunting', x: 570, y: 26, w: 300, h: 120, opacity: 0.92 },
-      { asset: 'plant', x: 142, y: 274, w: 70, h: 88 },
-      { asset: 'plant', x: 1226, y: 274, w: 70, h: 88, flip: true },
-      { asset: 'bush', x: 510, y: 660, w: 108, h: 70 },
-      { asset: 'bush', x: 820, y: 660, w: 108, h: 70, flip: true },
+      { asset: 'bunting', x: 590, y: 18, w: 280, h: 102, opacity: 0.92, underlay: true },
+      { asset: 'plant', x: 108, y: 964, w: 58, h: 72, underlay: true },
+      { asset: 'plant', x: 1282, y: 964, w: 58, h: 72, flip: true, underlay: true },
     ],
-    animated: [
-      { animation: 'flag', x: 620, y: 46, w: 62, h: 88 },
-      { animation: 'flag', x: 758, y: 46, w: 62, h: 88, flip: true },
-    ],
+    animated: [],
   },
   {
     id: 'pasar',
@@ -1992,7 +2021,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     designHeight: MAP2_GUIDE_HEIGHT,
     width: MAP2_WORLD_WIDTH,
     height: MAP2_WORLD_HEIGHT,
-    scaleLayout: true,
+    objectScale: MAP_OBJECT_SCALE,
     bases: {
       blue: { x: 170, y: 455 },
       red: { x: 1502, y: 455 },
@@ -2024,34 +2053,42 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
       guideObstacle('map2Trash', 554, 210, 34, 52, 52, 72),
       guideObstacle('map2Cart', 1050, 167, 84, 84, 105, 105),
       ...[
-        [298, 339, 126, 66],
-        [430, 339, 112, 66],
-        [571, 351, 104, 38],
-        [676, 352, 150, 92],
-        [826, 352, 146, 92],
-        [988, 351, 112, 38],
-        [1130, 340, 125, 66],
-        [1255, 340, 121, 66],
-        [300, 430, 154, 72],
-        [454, 430, 122, 72],
-        [576, 430, 102, 72],
-        [996, 430, 102, 72],
-        [1098, 430, 122, 72],
-        [1220, 430, 154, 72],
-        [300, 502, 126, 78],
-        [426, 502, 130, 78],
-        [1118, 502, 130, 78],
-        [1248, 502, 126, 78],
-        [298, 580, 128, 68],
-        [426, 580, 124, 68],
-        [576, 603, 111, 37],
-        [981, 600, 108, 41],
-        [1126, 580, 124, 68],
-        [1250, 580, 126, 68],
-      ].map(([x, y, w, h]) => ({
-        ...guideObstacle('map2Center', x, y, w, h, 1, 1),
-        hidden: true,
-      })),
+        [400, 339, 140, 50],
+        [570, 355, 100, 28],
+        [980, 355, 105, 28],
+        [1125, 339, 140, 50],
+        [300, 430, 160, 62],
+        [460, 430, 150, 62],
+        [610, 440, 85, 52],
+        [700, 382, 270, 150],
+        [980, 440, 85, 52],
+        [1065, 430, 150, 62],
+        [1215, 430, 160, 62],
+        [400, 565, 150, 60],
+        [575, 600, 110, 30],
+        [980, 600, 110, 30],
+        [1120, 565, 150, 60],
+      ].map(([x, y, w, h]) => map2GroupObstacle(x, y, w, h)),
+      {
+        ...guideObstacle('marketStallA', 250, 760, 180, 40, 230, 175),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('marketStallB', 752, 830, 176, 40, 220, 172),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('marketStallC', 1218, 760, 180, 40, 230, 175, true),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('snackCart', 548, 790, 66, 36, 104, 118),
+        underlay: true,
+      },
+      {
+        ...guideObstacle('foodCart', 1058, 790, 66, 36, 106, 118, true),
+        underlay: true,
+      },
     ],
     decorations: [
       { asset: 'map2Center', x: 280, y: 320, w: 1115, h: 335, opacity: 0.99 },
@@ -2276,10 +2313,17 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
   const scaleY = height / (field.designHeight ?? DESIGN_H);
   const mapX = (value: number) => Math.round(value * scaleX);
   const mapY = (value: number) => Math.round(value * scaleY);
-  const mapW = (value: number) =>
-    field.scaleLayout ? Math.round(value * scaleX) : value;
-  const mapH = (value: number) =>
-    field.scaleLayout ? Math.round(value * scaleY) : value;
+  const objectScale = field.objectScale ?? 1;
+  const mapW = (value: number) => Math.round(value * objectScale);
+  const mapH = (value: number) => Math.round(value * objectScale);
+  const mapObjectX = (x: number, w: number) =>
+    field.objectScale
+      ? Math.round((x + w / 2) * scaleX - mapW(w) / 2)
+      : mapX(x);
+  const mapObjectY = (y: number, h: number) =>
+    field.objectScale
+      ? Math.round((y + h / 2) * scaleY - mapH(h) / 2)
+      : mapY(y);
   return {
     ...field,
     width,
@@ -2293,15 +2337,15 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
     prisons: {
       blue: {
         ...field.prisons.blue,
-        x: mapX(field.prisons.blue.x),
-        y: mapY(field.prisons.blue.y),
+        x: mapObjectX(field.prisons.blue.x, field.prisons.blue.w),
+        y: mapObjectY(field.prisons.blue.y, field.prisons.blue.h),
         w: mapW(field.prisons.blue.w),
         h: mapH(field.prisons.blue.h),
       },
       red: {
         ...field.prisons.red,
-        x: mapX(field.prisons.red.x),
-        y: mapY(field.prisons.red.y),
+        x: mapObjectX(field.prisons.red.x, field.prisons.red.w),
+        y: mapObjectY(field.prisons.red.y, field.prisons.red.h),
         w: mapW(field.prisons.red.w),
         h: mapH(field.prisons.red.h),
       },
@@ -2316,8 +2360,8 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
     })),
     obstacles: field.obstacles.map((item) => ({
       ...item,
-      x: mapX(item.x),
-      y: mapY(item.y),
+      x: mapObjectX(item.x, item.w),
+      y: mapObjectY(item.y, item.h),
       w: mapW(item.w),
       h: mapH(item.h),
       visualW: mapW(item.visualW),
@@ -2325,15 +2369,15 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
     })),
     decorations: field.decorations.map((item) => ({
       ...item,
-      x: mapX(item.x),
-      y: mapY(item.y),
+      x: mapObjectX(item.x, item.w),
+      y: mapObjectY(item.y, item.h),
       w: mapW(item.w),
       h: mapH(item.h),
     })),
     animated: field.animated.map((item) => ({
       ...item,
-      x: mapX(item.x),
-      y: mapY(item.y),
+      x: mapObjectX(item.x, item.w),
+      y: mapObjectY(item.y, item.h),
       w: mapW(item.w),
       h: mapH(item.h),
     })),
@@ -2811,6 +2855,10 @@ export function BentenganPrototype() {
     const worldHeight = field.height ?? H;
     const bases = field.bases ?? BASES;
     const obstacles = field.obstacles;
+    const fieldObjectScale = field.objectScale ?? 1;
+    const fortWidth = Math.round(168 * fieldObjectScale);
+    const fortHeight = Math.round(188 * fieldObjectScale);
+    const fortAnchorY = Math.round(130 * fieldObjectScale);
     const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const fieldAnimatedAtlas = getFieldImage('animated.webp');
@@ -4013,6 +4061,49 @@ export function BentenganPrototype() {
       });
       target.setLineDash([]);
 
+      const drawSceneryLayer = (underlay: boolean) => {
+        const scenery = [
+          ...field.decorations
+            .filter((item) => Boolean(item.underlay) === underlay)
+            .map((item) => ({
+              baseline: item.y + item.h,
+              draw: () =>
+                drawFieldAsset(
+                  target,
+                  item.asset,
+                  item.x,
+                  item.y,
+                  item.w,
+                  item.h,
+                  item.flip,
+                  item.opacity,
+                ),
+            })),
+          ...obstacles
+            .filter(
+              (item) =>
+                !item.hidden && Boolean(item.underlay) === underlay,
+            )
+            .map((item) => ({
+              baseline: item.y + item.h,
+              draw: () =>
+                drawFieldAsset(
+                  target,
+                  item.asset,
+                  item.x + item.w / 2 - item.visualW / 2,
+                  item.y + item.h - item.visualH,
+                  item.visualW,
+                  item.visualH,
+                  item.flip,
+                ),
+            })),
+        ].sort((a, b) => a.baseline - b.baseline);
+        scenery.forEach((item) => item.draw());
+      };
+
+      // Border and perimeter art belongs below gameplay-critical structures.
+      drawSceneryLayer(true);
+
       (['blue', 'red'] as Team[]).forEach((team) => {
         const b = bases[team],
           color = TEAM_COLOR[team];
@@ -4030,10 +4121,10 @@ export function BentenganPrototype() {
         drawFieldAsset(
           target,
           fortAsset,
-          b.x - 84,
-          b.y - 130,
-          168,
-          188,
+          b.x - fortWidth / 2,
+          b.y - fortAnchorY,
+          fortWidth,
+          fortHeight,
           false,
           0.96,
         );
@@ -4053,36 +4144,7 @@ export function BentenganPrototype() {
         );
       });
 
-      const scenery = [
-        ...field.decorations.map((item) => ({
-          baseline: item.y + item.h,
-          draw: () =>
-            drawFieldAsset(
-              target,
-              item.asset,
-              item.x,
-              item.y,
-              item.w,
-              item.h,
-              item.flip,
-              item.opacity,
-            ),
-        })),
-        ...obstacles.filter((item) => !item.hidden).map((item) => ({
-          baseline: item.y + item.h,
-          draw: () =>
-            drawFieldAsset(
-              target,
-              item.asset,
-              item.x + item.w / 2 - item.visualW / 2,
-              item.y + item.h - item.visualH,
-              item.visualW,
-              item.visualH,
-              item.flip,
-            ),
-        })),
-      ].sort((a, b) => a.baseline - b.baseline);
-      scenery.forEach((item) => item.draw());
+      drawSceneryLayer(false);
 
       if (!field.background) {
         target.fillStyle = 'rgba(20,31,23,.94)';
@@ -4143,7 +4205,7 @@ export function BentenganPrototype() {
         return dx * dx + dy * dy <= radiusSquared;
       };
       field.decorations.forEach((item) => {
-        if (isNearby(item.x, item.y, item.w, item.h))
+        if (!item.underlay && isNearby(item.x, item.y, item.w, item.h))
           drawFieldAsset(
             ctx,
             item.asset,
@@ -4156,7 +4218,12 @@ export function BentenganPrototype() {
           );
       });
       obstacles.forEach((item) => {
-        if (item.hidden || !isNearby(item.x, item.y, item.w, item.h)) return;
+        if (
+          item.hidden ||
+          item.underlay ||
+          !isNearby(item.x, item.y, item.w, item.h)
+        )
+          return;
         drawFieldAsset(
           ctx,
           item.asset,
@@ -4169,14 +4236,21 @@ export function BentenganPrototype() {
       });
       (['blue', 'red'] as Team[]).forEach((team) => {
         const base = bases[team];
-        if (isNearby(base.x - 84, base.y - 130, 168, 188))
+        if (
+          isNearby(
+            base.x - fortWidth / 2,
+            base.y - fortAnchorY,
+            fortWidth,
+            fortHeight,
+          )
+        )
           drawFieldAsset(
             ctx,
             team === 'blue' ? 'fortRed' : 'fortGreen',
-            base.x - 84,
-            base.y - 130,
-            168,
-            188,
+            base.x - fortWidth / 2,
+            base.y - fortAnchorY,
+            fortWidth,
+            fortHeight,
             false,
             0.96,
           );

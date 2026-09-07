@@ -148,6 +148,8 @@ const map1ColumnWidths = [55, 356, 358];
 const map1RowHeights = [69, 238, 241];
 const map1QuadrantWidth = map1ColumnWidths.reduce((sum, value) => sum + value, 0);
 const map1QuadrantHeight = map1RowHeights.reduce((sum, value) => sum + value, 0);
+const map1WorldWidth = Math.round(map1QuadrantWidth * 2 * 1.15);
+const map1WorldHeight = Math.round(map1QuadrantHeight * 2 * 1.15);
 const map1QuadrantParts = [];
 let map1Left = 0;
 for (let column = 0; column < map1Columns.length; column++) {
@@ -176,7 +178,7 @@ const map1Quadrant = await sharp({
 const map1TopRight = await sharp(map1Quadrant).flop().png().toBuffer();
 const map1BottomLeft = await sharp(map1Quadrant).flip().png().toBuffer();
 const map1BottomRight = await sharp(map1Quadrant).flip().flop().png().toBuffer();
-await sharp({
+const map1Complete = await sharp({
   create: {
     width: map1QuadrantWidth * 2,
     height: map1QuadrantHeight * 2,
@@ -194,6 +196,10 @@ await sharp({
       top: map1QuadrantHeight,
     },
   ])
+  .png()
+  .toBuffer();
+await sharp(map1Complete)
+  .resize(map1WorldWidth, map1WorldHeight, { fit: 'fill' })
   .webp({ quality: 86, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'kampung-map.webp'));
 
@@ -341,8 +347,8 @@ const manifest = {
   maps: {
     kampung: {
       file: 'kampung-map.webp',
-      width: map1QuadrantWidth * 2,
-      height: map1QuadrantHeight * 2,
+      width: map1WorldWidth,
+      height: map1WorldHeight,
     },
     pasar: {
       file: 'pasar-map.webp',
