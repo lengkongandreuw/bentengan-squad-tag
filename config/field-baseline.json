@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "sources": {
     "air mancur.png": "b42574ac6ae0f04c4b9476c8dbd921828f0715e624222e52e34c939883f13c81",
     "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
@@ -86,7 +86,8 @@
     "grounds.webp": "a3760b49f251a3001232b059acf77cab30ecda309dfe43539a169ea3f1021db6",
     "kampung-map.webp": "b5c0373e3f71838c2ce737f708c2dcffede4101d8b75c399c9ac4f9964b59054",
     "pasar-map.webp": "15a81e503893c12594ad9adcce776a96388c0bd63da7200d8eb7568f1fdf2e39",
-    "manifest.json": "e4d97448f5586a80142e299b941d9aaf9aaf5c484f1385a5b23e31f745eef7f9",
+    "taman-map.webp": "ba1cc3179746e353aa609ed8b903d14ae8cc12137defbb7aa06db002b219f0bf",
+    "manifest.json": "66f4b084b019817b95bef788b72ed5b7628868d1370b3df05a276cbef8014275",
     "objects.webp": "72065b592a451a28a246c74e5381f5fe696c0b2521d73fbb1fce94856cdc0ae1"
   }
 }

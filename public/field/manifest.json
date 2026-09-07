@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "maps": {
     "kampung": {
       "file": "kampung-map.webp",
@@ -8,6 +8,11 @@
     },
     "pasar": {
       "file": "pasar-map.webp",
+      "width": 1923,
+      "height": 1082
+    },
+    "taman": {
+      "file": "taman-map.webp",
       "width": 1923,
       "height": 1082
     }
