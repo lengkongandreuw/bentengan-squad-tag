@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "sources": {
     "air mancur.png": "b42574ac6ae0f04c4b9476c8dbd921828f0715e624222e52e34c939883f13c81",
     "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
@@ -68,13 +68,25 @@
     "2x3_map1.png": "42fd8819bdd56c8198280165e9b6035e6dce4f03b6c687eb4e6be8ca204cf9d7",
     "3x1 map1.png": "de9cf365f9f2398c5f81ad58272cbda34cc96a060a5239bf8a9d632a393cd553",
     "3x2_map1.png": "75a82631de46a83513fe4081d36d6c7ab7dccbe7ccfc08546dc7d27c8d7740fb",
-    "3x3_map1.png": "34ccd87643dcfbfc172bf60e006cc75902a17842203b80238754d35456af0542"
+    "3x3_map1.png": "34ccd87643dcfbfc172bf60e006cc75902a17842203b80238754d35456af0542",
+    "map2/border-bottom-left.png": "b5b81a9a1a8930b7faf4674e594a5234ac3bf55a62987a3a54e27ddc7cbfd1c9",
+    "map2/border-bottom-right.png": "33b45c647b1c264259e6920d5f64f532aae6839318188132357fee150175b76b",
+    "map2/border-top-center.png": "47637104d03137e1a92e8e6ccd4c7d9aac995afe5cac667f38f0cd197a574691",
+    "map2/border-top-left.png": "a601e00e577d70408e3803b37913cebdd0d67e00655492f8054668f62eb52174",
+    "map2/border-top-right.png": "54145b125ba87de507c4d5b46b6f16edd3bd48425da16bb6aee8e58a13c4d0f2",
+    "map2/guide-pasar-senggol.png": "6e0b2c80815b9f8b94ebe3d7702627985b5c7ef4eba8e7e9c41b6c26220ed85c",
+    "map2/objects-layout.png": "f34dd674a12664acff41d11ae8ae0c538601839a85fd2f2c382d477de5785f60",
+    "map2/terrain-1x1.png": "b5ac2c110fc5dadc44a4e3c4f517a59c3dc2898c936cf1a3944ba25f00ba0ae1",
+    "map2/terrain-1x2.png": "29334074c34ef92df06a07fe43e476f8d11f1e60ea2fa2a89fe216963636d391",
+    "map2/terrain-2x1.png": "9dbe3f561ac517203fe9cbee79927c572055b27d600e98818dd5914c84cdb19b",
+    "map2/terrain-2x2.png": "804c1608fc856a90da0a389b3658484b402df5bfd5ddb90fb2a57df899f767fe"
   },
   "runtime": {
     "animated.webp": "49abbb8cf6dfb77f85fbf8ba17bf30c7c290c636368f8b5d1435774de0a9cf78",
     "grounds.webp": "a3760b49f251a3001232b059acf77cab30ecda309dfe43539a169ea3f1021db6",
     "kampung-map.webp": "629f456058dfaa5d7712409f7aeee460b69f4bdfe3bdd1474a9088539e4c4443",
-    "manifest.json": "a2ab9fdf684b38b82543be034bd5b420010a02e215571acf769a36f592dc11d9",
-    "objects.webp": "1dd891176af01f59d8a56f16b578e6701cc1ea7037cb8fda7de9d350e3bbc428"
+    "pasar-map.webp": "15a81e503893c12594ad9adcce776a96388c0bd63da7200d8eb7568f1fdf2e39",
+    "manifest.json": "c5720d1e54eb67d8c0fe31e5c0767559b29801b792abd5138a67b304280fc0a0",
+    "objects.webp": "72065b592a451a28a246c74e5381f5fe696c0b2521d73fbb1fce94856cdc0ae1"
   }
 }

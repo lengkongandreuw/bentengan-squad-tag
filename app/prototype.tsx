@@ -120,6 +120,7 @@ type Obstacle = {
   visualW: number;
   visualH: number;
   flip?: boolean;
+  hidden?: boolean;
 };
 type FieldDecoration = {
   asset: FieldAssetId;
@@ -165,6 +166,12 @@ type FieldConfig = {
   aiIntensity: number;
   ground: GroundTileId;
   background?: string;
+  designWidth?: number;
+  designHeight?: number;
+  width?: number;
+  height?: number;
+  scaleLayout?: boolean;
+  bases?: Record<Team, { x: number; y: number }>;
   prisons: Record<Team, Prison>;
   paths: FieldPath[];
   obstacles: Obstacle[];
@@ -227,6 +234,10 @@ const W = 1538;
 const H = 1096;
 const WORLD_SCALE_X = W / DESIGN_W;
 const WORLD_SCALE_Y = H / DESIGN_H;
+const MAP2_GUIDE_WIDTH = 1672;
+const MAP2_GUIDE_HEIGHT = 941;
+const MAP2_WORLD_WIDTH = Math.round(MAP2_GUIDE_WIDTH * 1.15);
+const MAP2_WORLD_HEIGHT = Math.round(MAP2_GUIDE_HEIGHT * 1.15);
 const STATIC_MAP_SCALE = 0.5;
 const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
@@ -1976,112 +1987,76 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     difficulty: 'normal',
     aiIntensity: 1,
     ground: 'kampungGround',
+    background: 'pasar-map.webp',
+    designWidth: MAP2_GUIDE_WIDTH,
+    designHeight: MAP2_GUIDE_HEIGHT,
+    width: MAP2_WORLD_WIDTH,
+    height: MAP2_WORLD_HEIGHT,
+    scaleLayout: true,
+    bases: {
+      blue: { x: 170, y: 455 },
+      red: { x: 1502, y: 455 },
+    },
     prisons: {
       blue: {
-        x: 248,
-        y: 42,
-        w: 310,
-        h: 250,
-        floorAsset: 'industrialPrisonBlueFloor',
-        overlayAsset: 'industrialPrisonBlueOverlay',
+        x: 205,
+        y: 100,
+        w: 305,
+        h: 220,
+        floorAsset: 'map2PrisonRedFloor',
+        overlayAsset: 'map2PrisonRedOverlay',
       },
       red: {
-        x: 882,
-        y: 42,
+        x: 1155,
+        y: 96,
         w: 310,
-        h: 250,
-        floorAsset: 'industrialPrisonRedFloor',
-        overlayAsset: 'industrialPrisonRedOverlay',
+        h: 225,
+        floorAsset: 'map2PrisonGreenFloor',
+        overlayAsset: 'map2PrisonGreenOverlay',
       },
     },
-    paths: [
-      {
-        tile: 'dirt',
-        x: 202,
-        y: 98,
-        w: 1036,
-        h: 604,
-        opacity: 0.7,
-        radius: 38,
-      },
-      {
-        tile: 'paving',
-        x: 236,
-        y: 314,
-        w: 968,
-        h: 170,
-        opacity: 0.48,
-        radius: 26,
-      },
-    ],
+    paths: [],
     obstacles: [
-      guideObstacle('warung', 208, 594, 168, 52, 238, 198),
-      guideObstacle('warung', 1062, 594, 168, 52, 238, 198, true),
-      guideObstacle('coffeeStall', 620, 636, 154, 48, 214, 206),
-      guideObstacle('marketStallA', 606, 276, 174, 44, 214, 164),
+      guideObstacle('map2BarrierRed', 640, 251, 159, 56, 186, 82),
+      guideObstacle('map2BarrierGreen', 875, 251, 147, 56, 180, 82),
+      guideObstacle('map2PlanterRed', 647, 665, 164, 78, 190, 105),
+      guideObstacle('map2PlanterGreen', 865, 672, 155, 71, 190, 101),
+      guideObstacle('map2Trash', 554, 210, 34, 52, 52, 72),
+      guideObstacle('map2Cart', 1050, 167, 84, 84, 105, 105),
       ...[
-        [286, 238],
-        [472, 238],
-        [794, 238],
-        [980, 238],
-        [286, 520],
-        [472, 520],
-        [794, 520],
-        [980, 520],
-      ].map(([x, y], i) =>
-        guideObstacle(
-          i % 2 ? 'marketStallB' : 'marketStallC',
-          x,
-          y,
-          128,
-          40,
-          184,
-          144,
-          i % 3 === 0,
-        ),
-      ),
-      ...[
-        [340, 340],
-        [520, 340],
-        [760, 340],
-        [940, 340],
-        [340, 454],
-        [520, 454],
-        [760, 454],
-        [940, 454],
-      ].map(([x, y], i) =>
-        guideObstacle(
-          i % 2 ? 'parkBarrier' : 'drain',
-          x,
-          y,
-          118,
-          28,
-          156,
-          62,
-          i % 3 === 1,
-        ),
-      ),
-      guideObstacle('canalStraightH', 470, 382, 148, 34, 200, 112),
-      guideObstacle('canalStraightH', 822, 382, 148, 34, 200, 112, true),
-      guideObstacle('canalBridgeH', 626, 374, 86, 40, 132, 102),
-      guideObstacle('canalBridgeH', 728, 374, 86, 40, 132, 102, true),
-      guideObstacle('snackCart', 430, 648, 92, 44, 134, 152),
-      guideObstacle('foodCart', 918, 648, 92, 44, 138, 150, true),
-      guideObstacle('crates', 568, 206, 62, 52, 86, 78),
-      guideObstacle('crates', 810, 206, 62, 52, 86, 78, true),
-      guideObstacle('trash', 638, 530, 42, 52, 54, 74),
-      guideObstacle('bucket', 760, 530, 42, 52, 54, 66),
+        [298, 339, 126, 66],
+        [430, 339, 112, 66],
+        [571, 351, 104, 38],
+        [676, 352, 150, 92],
+        [826, 352, 146, 92],
+        [988, 351, 112, 38],
+        [1130, 340, 125, 66],
+        [1255, 340, 121, 66],
+        [300, 430, 154, 72],
+        [454, 430, 122, 72],
+        [576, 430, 102, 72],
+        [996, 430, 102, 72],
+        [1098, 430, 122, 72],
+        [1220, 430, 154, 72],
+        [300, 502, 126, 78],
+        [426, 502, 130, 78],
+        [1118, 502, 130, 78],
+        [1248, 502, 126, 78],
+        [298, 580, 128, 68],
+        [426, 580, 124, 68],
+        [576, 603, 111, 37],
+        [981, 600, 108, 41],
+        [1126, 580, 124, 68],
+        [1250, 580, 126, 68],
+      ].map(([x, y, w, h]) => ({
+        ...guideObstacle('map2Center', x, y, w, h, 1, 1),
+        hidden: true,
+      })),
     ],
     decorations: [
-      { asset: 'bunting', x: 536, y: 622, w: 368, h: 124 },
-      { asset: 'lamp', x: 510, y: 136, w: 48, h: 98 },
-      { asset: 'lamp', x: 882, y: 136, w: 48, h: 98 },
-      { asset: 'plantFence', x: 536, y: 126, w: 368, h: 78 },
+      { asset: 'map2Center', x: 280, y: 320, w: 1115, h: 335, opacity: 0.99 },
     ],
-    animated: [
-      { animation: 'vendor', x: 674, y: 326, w: 92, h: 76 },
-      { animation: 'flag', x: 684, y: 590, w: 64, h: 90 },
-    ],
+    animated: [],
   },
   {
     id: 'taman',
@@ -2294,55 +2269,90 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   },
 ];
 
-const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => ({
-  ...field,
-  prisons: {
-    blue: {
-      ...field.prisons.blue,
-      x: worldX(field.prisons.blue.x),
-      y: worldY(field.prisons.blue.y),
+const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
+  const width = field.width ?? W;
+  const height = field.height ?? H;
+  const scaleX = width / (field.designWidth ?? DESIGN_W);
+  const scaleY = height / (field.designHeight ?? DESIGN_H);
+  const mapX = (value: number) => Math.round(value * scaleX);
+  const mapY = (value: number) => Math.round(value * scaleY);
+  const mapW = (value: number) =>
+    field.scaleLayout ? Math.round(value * scaleX) : value;
+  const mapH = (value: number) =>
+    field.scaleLayout ? Math.round(value * scaleY) : value;
+  return {
+    ...field,
+    width,
+    height,
+    bases: field.bases
+      ? {
+          blue: { x: mapX(field.bases.blue.x), y: mapY(field.bases.blue.y) },
+          red: { x: mapX(field.bases.red.x), y: mapY(field.bases.red.y) },
+        }
+      : BASES,
+    prisons: {
+      blue: {
+        ...field.prisons.blue,
+        x: mapX(field.prisons.blue.x),
+        y: mapY(field.prisons.blue.y),
+        w: mapW(field.prisons.blue.w),
+        h: mapH(field.prisons.blue.h),
+      },
+      red: {
+        ...field.prisons.red,
+        x: mapX(field.prisons.red.x),
+        y: mapY(field.prisons.red.y),
+        w: mapW(field.prisons.red.w),
+        h: mapH(field.prisons.red.h),
+      },
     },
-    red: {
-      ...field.prisons.red,
-      x: worldX(field.prisons.red.x),
-      y: worldY(field.prisons.red.y),
-    },
-  },
-  paths: field.paths.map((path) => ({
-    ...path,
-    x: worldX(path.x),
-    y: worldY(path.y),
-    w: worldX(path.w),
-    h: worldY(path.h),
-    radius: Math.round(path.radius * Math.min(WORLD_SCALE_X, WORLD_SCALE_Y)),
-  })),
-  obstacles: field.obstacles.map((item) => ({
-    ...item,
-    x: worldX(item.x),
-    y: worldY(item.y),
-  })),
-  decorations: field.decorations.map((item) => ({
-    ...item,
-    x: worldX(item.x),
-    y: worldY(item.y),
-  })),
-  animated: field.animated.map((item) => ({
-    ...item,
-    x: worldX(item.x),
-    y: worldY(item.y),
-  })),
-}));
+    paths: field.paths.map((path) => ({
+      ...path,
+      x: mapX(path.x),
+      y: mapY(path.y),
+      w: mapX(path.w),
+      h: mapY(path.h),
+      radius: Math.round(path.radius * Math.min(scaleX, scaleY)),
+    })),
+    obstacles: field.obstacles.map((item) => ({
+      ...item,
+      x: mapX(item.x),
+      y: mapY(item.y),
+      w: mapW(item.w),
+      h: mapH(item.h),
+      visualW: mapW(item.visualW),
+      visualH: mapH(item.visualH),
+    })),
+    decorations: field.decorations.map((item) => ({
+      ...item,
+      x: mapX(item.x),
+      y: mapY(item.y),
+      w: mapW(item.w),
+      h: mapH(item.h),
+    })),
+    animated: field.animated.map((item) => ({
+      ...item,
+      x: mapX(item.x),
+      y: mapY(item.y),
+      w: mapW(item.w),
+      h: mapH(item.h),
+    })),
+  };
+});
 const prisonClearance = 12;
 const arenaValidationErrors: string[] = [];
 for (const field of FIELD_CONFIGS) {
+  const fieldWidth = field.width ?? W;
+  const fieldHeight = field.height ?? H;
+  const fieldBases = field.bases ?? BASES;
   if (field.obstacles.length < 26)
     arenaValidationErrors.push(`${field.id}: kepadatan arena tidak mencukupi`);
   for (const obstacle of field.obstacles) {
     if (
       obstacle.x < 24 ||
       obstacle.y < 72 ||
-      obstacle.x + obstacle.w > W - 24 ||
-      obstacle.y + obstacle.h > H - 40
+      obstacle.x + obstacle.w > fieldWidth - 24 ||
+      obstacle.y + obstacle.h > fieldHeight - 40
     )
       arenaValidationErrors.push(
         `${field.id}: obstacle ${obstacle.asset} (${obstacle.x},${obstacle.y}) keluar batas arena`,
@@ -2358,7 +2368,7 @@ for (const field of FIELD_CONFIGS) {
           `${field.id}: obstacle ${obstacle.asset} (${obstacle.x},${obstacle.y}) masuk zona penjara`,
         );
     }
-    for (const base of Object.values(BASES)) {
+    for (const base of Object.values(fieldBases)) {
       const nearestX = Math.max(
         obstacle.x,
         Math.min(obstacle.x + obstacle.w, base.x),
@@ -2796,9 +2806,12 @@ export function BentenganPrototype() {
       ultimateBuffUntil = 0,
       ultimateImpactApplied = false;
     let bannerTimeout = 0;
-    const field = FIELD_BY_ID[selectedFieldId],
-      obstacles = field.obstacles,
-      aiProfile = DIFFICULTY_PROFILES[field.difficulty];
+    const field = FIELD_BY_ID[selectedFieldId];
+    const worldWidth = field.width ?? W;
+    const worldHeight = field.height ?? H;
+    const bases = field.bases ?? BASES;
+    const obstacles = field.obstacles;
+    const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const fieldAnimatedAtlas = getFieldImage('animated.webp');
     const fieldGroundAtlas = getFieldImage('grounds.webp');
@@ -2806,8 +2819,8 @@ export function BentenganPrototype() {
       ? getFieldImage(field.background)
       : null;
     const staticLayer = document.createElement('canvas');
-    staticLayer.width = Math.round(W * STATIC_MAP_SCALE);
-    staticLayer.height = Math.round(H * STATIC_MAP_SCALE);
+    staticLayer.width = Math.round(worldWidth * STATIC_MAP_SCALE);
+    staticLayer.height = Math.round(worldHeight * STATIC_MAP_SCALE);
     const staticLayerContext = staticLayer.getContext('2d');
     let staticMapDirty = true;
     const invalidateStaticMap = () => {
@@ -2843,7 +2856,7 @@ export function BentenganPrototype() {
       slot: number,
       controlled = false,
     ): Player => {
-      const b = BASES[team];
+      const b = bases[team];
       const character = CHARACTER_BY_ID[characterId];
       const offset =
         GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
@@ -2937,7 +2950,7 @@ export function BentenganPrototype() {
         [worldY(524), worldY(712)],
       ] as const;
       for (let tries = 0; tries < 30; tries++) {
-        const x = worldX(236) + Math.random() * (W - worldX(472)),
+        const x = worldX(236) + Math.random() * (worldWidth - worldX(472)),
           y =
             laneBounds[lane][0] +
             Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
@@ -3010,7 +3023,7 @@ export function BentenganPrototype() {
           ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
           : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
       beep(team === 'blue' ? 720 : 320, 0.25);
-      burst(W / 2, H / 2, TEAM_COLOR[team], 38);
+      burst(worldWidth / 2, worldHeight / 2, TEAM_COLOR[team], 38);
       log(announcement);
     };
     const fortOccupant = (baseTeam: Team, exceptId?: string) =>
@@ -3019,7 +3032,7 @@ export function BentenganPrototype() {
           p.id !== exceptId &&
           p.state === 'ACTIVE' &&
           p.team !== baseTeam &&
-          distance(p, BASES[baseTeam]) < BASE_RADIUS,
+          distance(p, bases[baseTeam]) < BASE_RADIUS,
       );
     const tieHash = (id: string) => {
       let value = (2166136261 ^ round) >>> 0;
@@ -3060,7 +3073,7 @@ export function BentenganPrototype() {
         p,
         obstacles,
         PLAYER_COLLISION_RADIUS,
-        { minX: 34, maxX: W - 34, minY: 58, maxY: H - 32 },
+        { minX: 34, maxX: worldWidth - 34, minY: 58, maxY: worldHeight - 32 },
       );
       p.x = recovered.x;
       p.y = recovered.y;
@@ -3070,14 +3083,14 @@ export function BentenganPrototype() {
       if (
         p.state === 'IN_BASE' &&
         p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance(p, BASES[p.team]) < BASE_RADIUS &&
-        distance({ x, y }, BASES[p.team]) >= BASE_RADIUS
+        distance(p, bases[p.team]) < BASE_RADIUS &&
+        distance({ x, y }, bases[p.team]) >= BASE_RADIUS
       )
         return true;
       for (const team of ['blue', 'red'] as Team[]) {
         const entering =
-          distance({ x, y }, BASES[team]) < BASE_RADIUS &&
-          distance(p, BASES[team]) >= BASE_RADIUS;
+          distance({ x, y }, bases[team]) < BASE_RADIUS &&
+          distance(p, bases[team]) >= BASE_RADIUS;
         if (entering && p.team !== team && fortOccupant(team, p.id))
           return true;
       }
@@ -3094,8 +3107,8 @@ export function BentenganPrototype() {
       const len = Math.hypot(dx, dy) || 1;
       p.vx = (dx / len) * speed;
       p.vy = (dy / len) * speed;
-      const nx = clamp(p.x + p.vx * dt, 34, W - 34),
-        ny = clamp(p.y + p.vy * dt, 58, H - 32);
+      const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
+        ny = clamp(p.y + p.vy * dt, 58, worldHeight - 32);
       if (!blocked(nx, p.y, p, now)) p.x = nx;
       if (!blocked(p.x, ny, p, now)) p.y = ny;
     };
@@ -3104,7 +3117,7 @@ export function BentenganPrototype() {
       if (
         p.state === 'IN_BASE' &&
         p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance({ x, y }, BASES[p.team]) >= BASE_RADIUS
+        distance({ x, y }, bases[p.team]) >= BASE_RADIUS
       )
         return false;
       return true;
@@ -3124,10 +3137,10 @@ export function BentenganPrototype() {
           const nx = d > 0.01 ? dx / d : tieHash(a.id) % 2 ? 1 : -1,
             ny = d > 0.01 ? dy / d : 0;
           const push = (minimum - d) * 0.52;
-          const ax = clamp(a.x - nx * push, 34, W - 34),
-            ay = clamp(a.y - ny * push, 58, H - 32);
-          const bx = clamp(b.x + nx * push, 34, W - 34),
-            by = clamp(b.y + ny * push, 58, H - 32);
+          const ax = clamp(a.x - nx * push, 34, worldWidth - 34),
+            ay = clamp(a.y - ny * push, 58, worldHeight - 32);
+          const bx = clamp(b.x + nx * push, 34, worldWidth - 34),
+            by = clamp(b.y + ny * push, 58, worldHeight - 32);
           if (spacingPositionAllowed(a, ax, ay)) {
             a.x = ax;
             a.y = ay;
@@ -3140,15 +3153,15 @@ export function BentenganPrototype() {
       visible.forEach((p) => recoverFromObstacle(p, now));
     };
     const baseVector = (p: Player) => ({
-      x: BASES[p.team].x - p.x,
-      y: BASES[p.team].y - p.y,
+      x: bases[p.team].x - p.x,
+      y: bases[p.team].y - p.y,
     });
     const aiVector = (p: Player, now: number) => {
       if (p.state === 'RETURNING') return baseVector(p);
       if (p.state === 'IN_BASE')
         return {
-          x: W / 2 - p.x,
-          y: H / 2 + Math.sin(now / 920 + p.aiSeed) * 230 - p.y,
+          x: worldWidth / 2 - p.x,
+          y: worldHeight / 2 + Math.sin(now / 920 + p.aiSeed) * 230 - p.y,
         };
       const held = players
         .filter((q) => q.team === p.team && q.state === 'PRISONER')
@@ -3194,7 +3207,7 @@ export function BentenganPrototype() {
         };
       if (p.boost < 18 || Math.sin(now / 4300 + p.aiSeed) > 0.86)
         return baseVector(p);
-      const enemy = BASES[other(p.team)];
+      const enemy = bases[other(p.team)];
       return {
         x: enemy.x - p.x,
         y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150,
@@ -3425,7 +3438,7 @@ export function BentenganPrototype() {
     ) => {
       if (p.state === 'PRISONER') return;
       const stats = CHARACTER_BY_ID[p.characterId],
-        insideOwn = distance(p, BASES[p.team]) < BASE_RADIUS,
+        insideOwn = distance(p, bases[p.team]) < BASE_RADIUS,
         maxBoost = stats.boost,
         chargeTime = stats.baseChargeTime;
       const contested = Boolean(fortOccupant(p.team));
@@ -3450,7 +3463,7 @@ export function BentenganPrototype() {
               (q) =>
                 q.team === p.team &&
                 q.state === 'IN_BASE' &&
-                distance(q, BASES[q.team]) < BASE_RADIUS,
+                distance(q, bases[q.team]) < BASE_RADIUS,
             )
             .sort(
               (a, b) =>
@@ -3473,7 +3486,7 @@ export function BentenganPrototype() {
             now >= p.exitDeadline
           ) {
             p.x =
-              BASES[p.team].x +
+              bases[p.team].x +
               (p.team === 'blue' ? BASE_RADIUS + 5 : -BASE_RADIUS - 5);
             exitCandidates.push(p);
             log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
@@ -3484,13 +3497,13 @@ export function BentenganPrototype() {
       }
       if (
         p.state === 'ACTIVE' &&
-        distance(p, BASES[other(p.team)]) < BASE_RADIUS
+        distance(p, bases[other(p.team)]) < BASE_RADIUS
       ) {
         const defending = players.some(
           (q) =>
             q.team !== p.team &&
             q.state === 'ACTIVE' &&
-            distance(q, BASES[other(p.team)]) < BASE_RADIUS,
+            distance(q, bases[other(p.team)]) < BASE_RADIUS,
         );
         p.fortCharge = defending ? 0 : p.fortCharge + dt;
         if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
@@ -3695,8 +3708,8 @@ export function BentenganPrototype() {
           me.parkourUntil = now + 320;
           me.boost = Math.max(0, me.boost - parkourCost);
           me.boostReadyAt = now + 20000;
-          me.x = clamp(me.x + dx * parkourDistance, 34, W - 34);
-          me.y = clamp(me.y + dy * parkourDistance, 58, H - 32);
+          me.x = clamp(me.x + dx * parkourDistance, 34, worldWidth - 34);
+          me.y = clamp(me.y + dy * parkourDistance, 58, worldHeight - 32);
           mission.parkour = true;
           burst(me.x, me.y, '#f4df9a', 9);
           beep(460);
@@ -3939,7 +3952,7 @@ export function BentenganPrototype() {
       return surface;
     };
     const drawStaticMap = (target: CanvasRenderingContext2D) => {
-      target.clearRect(0, 0, W, H);
+      target.clearRect(0, 0, worldWidth, worldHeight);
       target.imageSmoothingEnabled = true;
       target.imageSmoothingQuality = 'high';
       if (
@@ -3947,17 +3960,17 @@ export function BentenganPrototype() {
         fieldBackground.naturalWidth &&
         fieldBackground.naturalHeight
       ) {
-        target.drawImage(fieldBackground, 0, 0, W, H);
+        target.drawImage(fieldBackground, 0, 0, worldWidth, worldHeight);
       } else {
         const primaryPattern = target.createPattern(
           groundTileCanvas(field.ground),
           'repeat',
         );
         target.fillStyle = primaryPattern ?? '#7f815a';
-        target.fillRect(0, 0, W, H);
+        target.fillRect(0, 0, worldWidth, worldHeight);
       }
       target.fillStyle = 'rgba(19,27,21,.08)';
-      target.fillRect(0, 0, W, H);
+      target.fillRect(0, 0, worldWidth, worldHeight);
       field.paths.forEach((pathConfig) => {
         const pattern = target.createPattern(
           groundTileCanvas(pathConfig.tile),
@@ -3995,13 +4008,13 @@ export function BentenganPrototype() {
       [worldY(296), worldY(506)].forEach((y) => {
         target.beginPath();
         target.moveTo(worldX(238), y);
-        target.lineTo(W - worldX(238), y);
+        target.lineTo(worldWidth - worldX(238), y);
         target.stroke();
       });
       target.setLineDash([]);
 
       (['blue', 'red'] as Team[]).forEach((team) => {
-        const b = BASES[team],
+        const b = bases[team],
           color = TEAM_COLOR[team];
         target.fillStyle = `${color}20`;
         target.beginPath();
@@ -4055,7 +4068,7 @@ export function BentenganPrototype() {
               item.opacity,
             ),
         })),
-        ...obstacles.map((item) => ({
+        ...obstacles.filter((item) => !item.hidden).map((item) => ({
           baseline: item.y + item.h,
           draw: () =>
             drawFieldAsset(
@@ -4073,20 +4086,20 @@ export function BentenganPrototype() {
 
       if (!field.background) {
         target.fillStyle = 'rgba(20,31,23,.94)';
-        target.fillRect(0, 32, W, 34);
-        target.fillRect(0, H - 32, W, 32);
+        target.fillRect(0, 32, worldWidth, 34);
+        target.fillRect(0, worldHeight - 32, worldWidth, 32);
         target.strokeStyle = 'rgba(255,241,205,.24)';
         target.lineWidth = 2;
         target.beginPath();
         target.moveTo(0, 66);
-        target.lineTo(W, 66);
+        target.lineTo(worldWidth, 66);
         target.stroke();
         target.font = '800 15px var(--font-heading)';
         target.fillStyle = '#fff0cf';
         target.textAlign = 'center';
         target.fillText(
           `${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`,
-          W / 2,
+          worldWidth / 2,
           55,
         );
       }
@@ -4113,12 +4126,12 @@ export function BentenganPrototype() {
           staticLayer.height,
           0,
           0,
-          W,
-          H,
+          worldWidth,
+          worldHeight,
         );
       else {
         ctx.fillStyle = '#667556';
-        ctx.fillRect(0, 0, W, H);
+        ctx.fillRect(0, 0, worldWidth, worldHeight);
       }
     };
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
@@ -4143,7 +4156,7 @@ export function BentenganPrototype() {
           );
       });
       obstacles.forEach((item) => {
-        if (!isNearby(item.x, item.y, item.w, item.h)) return;
+        if (item.hidden || !isNearby(item.x, item.y, item.w, item.h)) return;
         drawFieldAsset(
           ctx,
           item.asset,
@@ -4155,7 +4168,7 @@ export function BentenganPrototype() {
         );
       });
       (['blue', 'red'] as Team[]).forEach((team) => {
-        const base = BASES[team];
+        const base = bases[team];
         if (isNearby(base.x - 84, base.y - 130, 168, 188))
           drawFieldAsset(
             ctx,
@@ -4211,7 +4224,7 @@ export function BentenganPrototype() {
       });
     };
     const drawBase = (team: Team) => {
-      const b = BASES[team],
+      const b = bases[team],
         color = TEAM_COLOR[team],
         occupant = fortOccupant(team);
       ctx.strokeStyle = occupant ? '#f5cf45' : color;
@@ -4535,15 +4548,19 @@ export function BentenganPrototype() {
       const activeCamera = cameraModeRef.current;
       const scale =
         mode !== 'playing' || activeCamera === 'overview'
-          ? Math.min(cw / W, ch / H)
+          ? Math.min(cw / worldWidth, ch / worldHeight)
           : activeCamera === 'tactical'
             ? Math.max(cw / 1220, ch / 720)
             : Math.max(cw / 980, ch / 620);
       const halfW = cw / (2 * scale),
         halfH = ch / (2 * scale);
       const followsPlayer = mode === 'playing' && activeCamera !== 'overview';
-      const camX = followsPlayer ? clamp(me.x, halfW, W - halfW) : W / 2;
-      const camY = followsPlayer ? clamp(me.y, halfH, H - halfH) : H / 2;
+      const camX = followsPlayer
+        ? clamp(me.x, halfW, worldWidth - halfW)
+        : worldWidth / 2;
+      const camY = followsPlayer
+        ? clamp(me.y, halfH, worldHeight - halfH)
+        : worldHeight / 2;
       ctx.save();
       ctx.translate(cw / 2, ch / 2);
       ctx.scale(scale, scale);
@@ -4593,8 +4610,8 @@ export function BentenganPrototype() {
           ctx.textAlign = 'center';
           ctx.fillText(label, x, y + 3);
         };
-        marker(BASES.blue, 'M', TEAM_COLOR.blue);
-        marker(BASES.red, 'H', TEAM_COLOR.red);
+        marker(bases.blue, 'M', TEAM_COLOR.blue);
+        marker(bases.red, 'H', TEAM_COLOR.red);
         const outerPrisoner = players
           .filter((p) => p.team === me.team && p.state === 'PRISONER')
           .sort((a, b) => b.prisonIndex - a.prisonIndex)[0];

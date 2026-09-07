@@ -5,6 +5,7 @@ import sharp from 'sharp';
 const root = process.cwd();
 const sourceDir = path.join(root, 'field-sources');
 const mapSourceDir = path.join(root, 'Assets', 'map');
+const map2SourceDir = path.join(mapSourceDir, 'map2');
 const outputDir = path.join(root, 'public', 'field');
 const generatedFile = path.join(root, 'lib', 'field-assets.generated.ts');
 const padding = 8;
@@ -75,6 +76,18 @@ const objects = [
   { id: 'parkPrisonBlueOverlay', file: 'v3-park-prison-blue.png', width: 310, height: 250, overlayBottom: .38 },
   { id: 'parkPrisonRedFloor', file: 'v3-park-prison-red.png', width: 310, height: 250 },
   { id: 'parkPrisonRedOverlay', file: 'v3-park-prison-red.png', width: 310, height: 250, overlayBottom: .38 },
+  // Map 2: cropped visual groups from the supplied 1672×941 placement sheet.
+  { id: 'map2Center', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 280, top: 320, width: 1115, height: 335 }, width: 1115, height: 335 },
+  { id: 'map2PrisonRedFloor', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 205, top: 100, width: 305, height: 220 }, width: 305, height: 220 },
+  { id: 'map2PrisonRedOverlay', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 205, top: 100, width: 305, height: 220 }, width: 305, height: 220, overlayBottom: .38 },
+  { id: 'map2PrisonGreenFloor', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 1155, top: 96, width: 310, height: 225 }, width: 310, height: 225 },
+  { id: 'map2PrisonGreenOverlay', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 1155, top: 96, width: 310, height: 225 }, width: 310, height: 225, overlayBottom: .38 },
+  { id: 'map2Trash', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 542, top: 198, width: 52, height: 72 }, width: 52, height: 72 },
+  { id: 'map2Cart', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 1038, top: 154, width: 105, height: 105 }, width: 105, height: 105 },
+  { id: 'map2BarrierRed', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 626, top: 240, width: 186, height: 82 }, width: 186, height: 82 },
+  { id: 'map2BarrierGreen', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 856, top: 240, width: 180, height: 82 }, width: 180, height: 82 },
+  { id: 'map2PlanterRed', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 636, top: 652, width: 190, height: 105 }, width: 190, height: 105 },
+  { id: 'map2PlanterGreen', source: path.join(map2SourceDir, 'objects-layout.png'), crop: { left: 850, top: 656, width: 190, height: 101 }, width: 190, height: 101 },
 ];
 
 const animations = [
@@ -184,9 +197,70 @@ await sharp({
   .webp({ quality: 86, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'kampung-map.webp'));
 
+// Map 2 uses four supplied tiles as one top-left quadrant. The terrain is
+// mirrored into four quadrants, then expanded by 15% while the five authored
+// market-border fragments stay aligned to the 1672×941 guide composition.
+const map2QuadrantWidth = 416 + 421;
+const map2QuadrantHeight = 231 + 238;
+const map2Quadrant = await sharp({
+  create: {
+    width: map2QuadrantWidth,
+    height: map2QuadrantHeight,
+    channels: 3,
+    background: '#a7794f',
+  },
+})
+  .composite([
+    { input: path.join(map2SourceDir, 'terrain-1x1.png'), left: 0, top: 0 },
+    { input: path.join(map2SourceDir, 'terrain-2x1.png'), left: 416, top: 0 },
+    { input: path.join(map2SourceDir, 'terrain-1x2.png'), left: 0, top: 231 },
+    { input: path.join(map2SourceDir, 'terrain-2x2.png'), left: 416, top: 231 },
+  ])
+  .png()
+  .toBuffer();
+const map2TopRight = await sharp(map2Quadrant).flop().png().toBuffer();
+const map2BottomLeft = await sharp(map2Quadrant).flip().png().toBuffer();
+const map2BottomRight = await sharp(map2Quadrant).flip().flop().png().toBuffer();
+const map2GuideWidth = 1672;
+const map2GuideHeight = 941;
+const map2WorldWidth = Math.round(map2GuideWidth * 1.15);
+const map2WorldHeight = Math.round(map2GuideHeight * 1.15);
+const map2Terrain = await sharp({
+  create: {
+    width: map2QuadrantWidth * 2,
+    height: map2QuadrantHeight * 2,
+    channels: 3,
+    background: '#a7794f',
+  },
+})
+  .composite([
+    { input: map2Quadrant, left: 0, top: 0 },
+    { input: map2TopRight, left: map2QuadrantWidth, top: 0 },
+    { input: map2BottomLeft, left: 0, top: map2QuadrantHeight },
+    { input: map2BottomRight, left: map2QuadrantWidth, top: map2QuadrantHeight },
+  ])
+  .resize(map2GuideWidth, map2GuideHeight, { fit: 'fill' })
+  .png()
+  .toBuffer();
+const map2GuideComposite = await sharp(map2Terrain)
+  .composite([
+    { input: path.join(map2SourceDir, 'border-top-left.png'), left: 0, top: 0 },
+    { input: path.join(map2SourceDir, 'border-top-center.png'), left: 691, top: 0 },
+    { input: path.join(map2SourceDir, 'border-top-right.png'), left: 971, top: 0 },
+    { input: path.join(map2SourceDir, 'border-bottom-left.png'), left: 0, top: 566 },
+    { input: path.join(map2SourceDir, 'border-bottom-right.png'), left: 836, top: 549 },
+  ])
+  .png()
+  .toBuffer();
+await sharp(map2GuideComposite)
+  .resize(map2WorldWidth, map2WorldHeight, { fit: 'fill' })
+  .removeAlpha()
+  .webp({ quality: 86, effort: 6, smartSubsample: true })
+  .toFile(path.join(outputDir, 'pasar-map.webp'));
+
 const preparedObjects = [];
 for (const object of objects) {
-  const sourcePath = path.join(sourceDir, object.file);
+  const sourcePath = object.source ?? path.join(sourceDir, object.file);
   const metadata = await sharp(sourcePath).metadata();
   const crop = object.crop ?? (object.grid ? gridCrop(metadata.width, metadata.height, object.grid) : undefined);
   const objectInput = crop ? await sharp(sourcePath).extract(crop).png().toBuffer() : sourcePath;
@@ -263,12 +337,17 @@ await sharp({ create: { width: tileWidth * groundColumns, height: tileHeight * g
   .toFile(path.join(outputDir, 'grounds.webp'));
 
 const manifest = {
-  version: 4,
+  version: 5,
   maps: {
     kampung: {
       file: 'kampung-map.webp',
       width: map1QuadrantWidth * 2,
       height: map1QuadrantHeight * 2,
+    },
+    pasar: {
+      file: 'pasar-map.webp',
+      width: map2WorldWidth,
+      height: map2WorldHeight,
     },
   },
   objects: { file: 'objects.webp', width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed },
