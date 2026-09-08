@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "sources": {
     "air mancur.png": "b42574ac6ae0f04c4b9476c8dbd921828f0715e624222e52e34c939883f13c81",
     "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
@@ -79,15 +79,17 @@
     "map2/terrain-1x1.png": "b5ac2c110fc5dadc44a4e3c4f517a59c3dc2898c936cf1a3944ba25f00ba0ae1",
     "map2/terrain-1x2.png": "29334074c34ef92df06a07fe43e476f8d11f1e60ea2fa2a89fe216963636d391",
     "map2/terrain-2x1.png": "9dbe3f561ac517203fe9cbee79927c572055b27d600e98818dd5914c84cdb19b",
-    "map2/terrain-2x2.png": "804c1608fc856a90da0a389b3658484b402df5bfd5ddb90fb2a57df899f767fe"
+    "map2/terrain-2x2.png": "804c1608fc856a90da0a389b3658484b402df5bfd5ddb90fb2a57df899f767fe",
+    "map3/objects-layout.png": "1ecec32189f1f03bad2591b27b3ac7cc88bae5ac7ff7c2197a2700dd475d8bb5",
+    "map3/terrain.png": "302e13409a5aaa1dd706e1c429f110000ac06973025234e17aee03293cbd2aa9"
   },
   "runtime": {
     "animated.webp": "49abbb8cf6dfb77f85fbf8ba17bf30c7c290c636368f8b5d1435774de0a9cf78",
     "grounds.webp": "a3760b49f251a3001232b059acf77cab30ecda309dfe43539a169ea3f1021db6",
     "kampung-map.webp": "b5c0373e3f71838c2ce737f708c2dcffede4101d8b75c399c9ac4f9964b59054",
     "pasar-map.webp": "15a81e503893c12594ad9adcce776a96388c0bd63da7200d8eb7568f1fdf2e39",
-    "taman-map.webp": "ba1cc3179746e353aa609ed8b903d14ae8cc12137defbb7aa06db002b219f0bf",
-    "manifest.json": "66f4b084b019817b95bef788b72ed5b7628868d1370b3df05a276cbef8014275",
+    "taman-map.webp": "a425d5bdfcc6695e6769cb336068a4381a11bb629d628d4667449b40da50dd36",
+    "manifest.json": "57341734c3b41c6c602247ed8c87916c2776467756707975ce4e19bd69d18c48",
     "objects.webp": "72065b592a451a28a246c74e5381f5fe696c0b2521d73fbb1fce94856cdc0ae1"
   }
 }

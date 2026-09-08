@@ -6,6 +6,7 @@ const root = process.cwd();
 const sourceDir = path.join(root, 'field-sources');
 const mapSourceDir = path.join(root, 'Assets', 'map');
 const map2SourceDir = path.join(mapSourceDir, 'map2');
+const map3SourceDir = path.join(mapSourceDir, 'map3');
 const outputDir = path.join(root, 'public', 'field');
 const generatedFile = path.join(root, 'lib', 'field-assets.generated.ts');
 const padding = 8;
@@ -264,41 +265,28 @@ await sharp(map2GuideComposite)
   .webp({ quality: 86, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'pasar-map.webp'));
 
-// Map 3 keeps the 1672x941 park composition from the supplied guide. Its
-// grass and paving are authored as one background so the four water-garden
-// corners, hedge margins, and entrances remain below every gameplay object.
+// Map 3 is authored as two aligned 1672x941 layers supplied by the user:
+// terrain below and the complete object placement above it. Keeping the
+// authored layout intact prevents the runtime from substituting old objects.
 const map3GuideWidth = 1672;
 const map3GuideHeight = 941;
 const map3WorldWidth = Math.round(map3GuideWidth * 1.15);
 const map3WorldHeight = Math.round(map3GuideHeight * 1.15);
-const map3Grass = await sharp(path.join(sourceDir, 'v3-ground-park-grass.png'))
-  .resize(map3GuideWidth, map3GuideHeight, { fit: 'cover' })
+const map3Terrain = await sharp(path.join(map3SourceDir, 'terrain.png'))
+  .resize(map3GuideWidth, map3GuideHeight, { fit: 'fill' })
   .png()
   .toBuffer();
-const map3Paving = await sharp(path.join(sourceDir, 'v3-ground-park-paving.png'))
-  .resize(map3GuideWidth, map3GuideHeight, { fit: 'cover' })
-  .ensureAlpha()
-  .composite([
-    {
-      input: Buffer.from(
-        `<svg width="${map3GuideWidth}" height="${map3GuideHeight}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="transparent"/><rect x="690" y="0" width="292" height="941" rx="34" fill="white" fill-opacity=".72"/><rect x="250" y="305" width="1172" height="300" rx="62" fill="white" fill-opacity=".72"/></svg>`,
-      ),
-      blend: 'dest-in',
-    },
-  ])
+const map3Objects = await sharp(path.join(map3SourceDir, 'objects-layout.png'))
+  .resize(map3GuideWidth, map3GuideHeight, { fit: 'fill' })
   .png()
   .toBuffer();
-const map3GuideComposite = await sharp(map3Grass)
-  .composite([
-    { input: map3Paving, left: 0, top: 0 },
-    { input: path.join(sourceDir, 'v3-park-corners.png'), left: 0, top: 0 },
-  ])
+const map3GuideComposite = await sharp(map3Terrain)
+  .composite([{ input: map3Objects, left: 0, top: 0 }])
   .png()
   .toBuffer();
 await sharp(map3GuideComposite)
   .resize(map3WorldWidth, map3WorldHeight, { fit: 'fill' })
-  .removeAlpha()
-  .webp({ quality: 86, effort: 6, smartSubsample: true })
+  .webp({ quality: 88, alphaQuality: 100, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'taman-map.webp'));
 
 const preparedObjects = [];
@@ -380,7 +368,7 @@ await sharp({ create: { width: tileWidth * groundColumns, height: tileHeight * g
   .toFile(path.join(outputDir, 'grounds.webp'));
 
 const manifest = {
-  version: 6,
+  version: 7,
   maps: {
     kampung: {
       file: 'kampung-map.webp',

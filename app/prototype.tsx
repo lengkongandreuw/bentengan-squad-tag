@@ -173,6 +173,7 @@ type FieldConfig = {
   width?: number;
   height?: number;
   objectScale?: number;
+  structuresInBackground?: boolean;
   bases?: Record<Team, { x: number; y: number }>;
   prisons: Record<Team, Prison>;
   paths: FieldPath[];
@@ -1881,6 +1882,16 @@ const guideObstacle = (
   visualH,
   ...(flip ? { flip } : {}),
 });
+const guideCollider = (
+  asset: FieldAssetId,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): Obstacle => ({
+  ...guideObstacle(asset, x, y, w, h, 1, 1),
+  hidden: true,
+});
 const MAP_OBJECT_SCALE = 0.9;
 const map2GroupObstacle = (
   x: number,
@@ -2111,68 +2122,79 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     designHeight: MAP3_GUIDE_HEIGHT,
     width: MAP3_WORLD_WIDTH,
     height: MAP3_WORLD_HEIGHT,
-    objectScale: MAP_OBJECT_SCALE,
+    objectScale: 1,
+    structuresInBackground: true,
     bases: {
-      blue: { x: 166, y: 452 },
-      red: { x: 1506, y: 452 },
+      blue: { x: 150, y: 452 },
+      red: { x: 1518, y: 452 },
     },
     prisons: {
       blue: {
-        x: 302,
-        y: 674,
-        w: 300,
-        h: 216,
+        x: 399,
+        y: 645,
+        w: 206,
+        h: 186,
         floorAsset: 'parkPrisonBlueFloor',
         overlayAsset: 'parkPrisonBlueOverlay',
       },
       red: {
-        x: 1070,
-        y: 72,
-        w: 300,
-        h: 216,
+        x: 1046,
+        y: 93,
+        w: 195,
+        h: 159,
         floorAsset: 'parkPrisonRedFloor',
         overlayAsset: 'parkPrisonRedOverlay',
       },
     },
     paths: [],
     obstacles: [
-      // Four short hurdles reproduce the guide's open central play rectangle.
-      guideObstacle('parkBarrier', 590, 350, 120, 24, 164, 62),
-      guideObstacle('parkBarrier', 962, 350, 120, 24, 164, 62, true),
-      guideObstacle('parkBarrier', 590, 520, 120, 24, 164, 62),
-      guideObstacle('parkBarrier', 962, 520, 120, 24, 164, 62, true),
-      // The animated fountain remains solid without duplicating its artwork.
-      {
-        ...guideObstacle('flowerBedSmall', 789, 405, 94, 72, 1, 1),
-        hidden: true,
-      },
-      guideObstacle('parkLamp', 322, 420, 34, 44, 50, 106),
-      guideObstacle('parkLamp', 1316, 420, 34, 44, 50, 106, true),
-      // Perimeter furniture follows the guide while preserving wide run lanes.
-      guideObstacle('parkFlowerFenceLong', 530, 88, 240, 38, 278, 94),
-      guideObstacle('parkPlanterLong', 535, 244, 230, 38, 270, 88),
-      guideObstacle('parkPlanterLong', 820, 244, 230, 38, 270, 88, true),
-      guideObstacle('parkFlowerFenceLong', 1220, 312, 220, 38, 260, 92, true),
-      guideObstacle('parkFlowerFence', 332, 300, 170, 38, 210, 100),
-      guideObstacle('parkFlowerFenceLong', 320, 590, 220, 38, 260, 92),
-      guideObstacle('parkPlanterLong', 610, 674, 230, 38, 270, 88),
-      guideObstacle('parkPlanterLong', 900, 674, 230, 38, 270, 88, true),
-      guideObstacle('parkFlowerFenceLong', 1240, 630, 220, 38, 260, 92, true),
-      guideObstacle('parkTree', 354, 116, 58, 48, 122, 150),
-      guideObstacle('parkTree', 1430, 90, 58, 48, 122, 150, true),
-      guideObstacle('parkTree', 104, 758, 58, 48, 122, 150),
-      guideObstacle('parkTree', 1174, 704, 58, 48, 122, 150, true),
-      guideObstacle('parkLamp', 510, 112, 32, 42, 48, 104),
-      guideObstacle('parkLamp', 800, 88, 32, 42, 48, 104),
-      guideObstacle('parkLamp', 1000, 112, 32, 42, 48, 104, true),
-      guideObstacle('parkLamp', 620, 780, 32, 42, 48, 104),
-      guideObstacle('parkLamp', 840, 784, 32, 42, 48, 104),
-      guideObstacle('parkLamp', 1040, 724, 32, 42, 48, 104, true),
-      guideObstacle('parkLamp', 1450, 724, 32, 42, 48, 104, true),
-      guideObstacle('parkLamp', 1450, 210, 32, 42, 48, 104, true),
+      // Perimeter collision follows the authored water/hedge margin while
+      // leaving the north and south entrances open.
+      guideCollider('parkCornerNW', 24, 72, 250, 60),
+      guideCollider('parkCornerNE', 1398, 72, 250, 60),
+      guideCollider('parkCornerNW', 24, 190, 80, 130),
+      guideCollider('parkCornerSW', 24, 620, 90, 130),
+      guideCollider('parkCornerNE', 1568, 190, 80, 130),
+      guideCollider('parkCornerSE', 1558, 620, 90, 130),
+      guideCollider('parkCornerSW', 24, 780, 210, 80),
+      guideCollider('parkCornerSE', 1438, 780, 210, 80),
+
+      // Four authored parkour barriers and the central fountain footprint.
+      guideCollider('parkBarrier', 602, 368, 76, 16),
+      guideCollider('parkBarrier', 992, 368, 76, 16),
+      guideCollider('parkBarrier', 594, 520, 80, 18),
+      guideCollider('parkBarrier', 998, 520, 78, 18),
+      guideCollider('flowerBedSmall', 792, 405, 90, 34),
+
+      // Trees, flower beds and benches use only their solid lower footprint.
+      guideCollider('parkTree', 398, 190, 76, 28),
+      guideCollider('parkFlowerFenceLong', 594, 142, 164, 30),
+      guideCollider('parkFlowerFence', 320, 304, 140, 28),
+      guideCollider('parkPlanterLong', 642, 265, 112, 26),
+      guideCollider('gardenMedium', 885, 248, 94, 24),
+      guideCollider('parkTree', 1294, 108, 74, 26),
+      guideCollider('parkFlowerFence', 1208, 307, 142, 26),
+      guideCollider('parkFlowerFence', 318, 592, 140, 26),
+      guideCollider('gardenMedium', 662, 642, 112, 28),
+      guideCollider('parkPlanterLong', 916, 633, 116, 28),
+      guideCollider('parkFlowerFenceLong', 1215, 624, 142, 28),
+      guideCollider('parkTree', 1172, 752, 92, 28),
+      guideCollider('parkFlowerFenceLong', 894, 798, 164, 28),
+
+      // Lamps, bollards and bins remain small tactical blockers.
+      guideCollider('parkLamp', 506, 110, 16, 14),
+      guideCollider('parkLamp', 950, 140, 18, 14),
+      guideCollider('parkLamp', 1008, 214, 14, 14),
+      guideCollider('parkLamp', 1264, 244, 15, 14),
+      guideCollider('parkLamp', 326, 452, 34, 16),
+      guideCollider('parkLamp', 1312, 452, 34, 16),
+      guideCollider('parkLamp', 364, 674, 14, 14),
+      guideCollider('parkLamp', 631, 715, 14, 14),
+      guideCollider('parkLamp', 695, 818, 28, 14),
+      guideCollider('parkLamp', 1143, 840, 14, 14),
     ],
     decorations: [],
-    animated: [{ animation: 'fountain', x: 790, y: 391, w: 92, h: 90 }],
+    animated: [],
   },
   {
     id: 'kanal',
@@ -2834,9 +2856,12 @@ export function BentenganPrototype() {
     const fieldBackground = field.background
       ? getFieldImage(field.background)
       : null;
+    const staticMapScale = field.structuresInBackground
+      ? 0.75
+      : STATIC_MAP_SCALE;
     const staticLayer = document.createElement('canvas');
-    staticLayer.width = Math.round(worldWidth * STATIC_MAP_SCALE);
-    staticLayer.height = Math.round(worldHeight * STATIC_MAP_SCALE);
+    staticLayer.width = Math.round(worldWidth * staticMapScale);
+    staticLayer.height = Math.round(worldHeight * staticMapScale);
     const staticLayerContext = staticLayer.getContext('2d');
     let staticMapDirty = true;
     const invalidateStaticMap = () => {
@@ -4086,31 +4111,33 @@ export function BentenganPrototype() {
         target.stroke();
         const fortAsset: FieldAssetId =
           team === 'blue' ? 'fortRed' : 'fortGreen';
-        drawFieldAsset(
-          target,
-          fortAsset,
-          b.x - fortWidth / 2,
-          b.y - fortAnchorY,
-          fortWidth,
-          fortHeight,
-          false,
-          0.96,
-        );
+        if (!field.structuresInBackground)
+          drawFieldAsset(
+            target,
+            fortAsset,
+            b.x - fortWidth / 2,
+            b.y - fortAnchorY,
+            fortWidth,
+            fortHeight,
+            false,
+            0.96,
+          );
       });
 
-      (['blue', 'red'] as Team[]).forEach((team) => {
-        const prison = field.prisons[team];
-        drawFieldAsset(
-          target,
-          prison.floorAsset ?? 'prisonFloor',
-          prison.x,
-          prison.y,
-          prison.w,
-          prison.h,
-          prison.flip ?? team === 'red',
-          0.96,
-        );
-      });
+      if (!field.structuresInBackground)
+        (['blue', 'red'] as Team[]).forEach((team) => {
+          const prison = field.prisons[team];
+          drawFieldAsset(
+            target,
+            prison.floorAsset ?? 'prisonFloor',
+            prison.x,
+            prison.y,
+            prison.w,
+            prison.h,
+            prison.flip ?? team === 'red',
+            0.96,
+          );
+        });
 
       drawSceneryLayer(false);
 
@@ -4137,10 +4164,10 @@ export function BentenganPrototype() {
     const drawMap = () => {
       if (staticLayerContext && staticMapDirty) {
         staticLayerContext.setTransform(
-          STATIC_MAP_SCALE,
+          staticMapScale,
           0,
           0,
-          STATIC_MAP_SCALE,
+          staticMapScale,
           0,
           0,
         );
@@ -4205,6 +4232,7 @@ export function BentenganPrototype() {
       (['blue', 'red'] as Team[]).forEach((team) => {
         const base = bases[team];
         if (
+          !field.structuresInBackground &&
           isNearby(
             base.x - fortWidth / 2,
             base.y - fortAnchorY,
@@ -4223,7 +4251,10 @@ export function BentenganPrototype() {
             0.96,
           );
         const prison = field.prisons[team];
-        if (isNearby(prison.x, prison.y, prison.w, prison.h))
+        if (
+          !field.structuresInBackground &&
+          isNearby(prison.x, prison.y, prison.w, prison.h)
+        )
           drawFieldAsset(
             ctx,
             prison.floorAsset ?? 'prisonFloor',
@@ -4251,6 +4282,7 @@ export function BentenganPrototype() {
         ),
       );
     const drawPrisonOverlays = (now: number) => {
+      if (field.structuresInBackground) return;
       (['blue', 'red'] as Team[]).forEach((team) => {
         const prison = field.prisons[team];
         drawFieldAsset(
