@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "files": [
     {
       "file": "audio/defeat.mp3",
@@ -206,6 +206,10 @@
       "bytes": 31948
     },
     {
+      "file": "skills/kaka-perisai-hijau.webp",
+      "bytes": 98934
+    },
+    {
       "file": "skills/raja-titah-halilintar.webp",
       "bytes": 52484
     },
@@ -218,5 +222,5 @@
       "bytes": 3651509
     }
   ],
-  "totalBytes": 16084471
+  "totalBytes": 16183405
 }

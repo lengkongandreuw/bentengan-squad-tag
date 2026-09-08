@@ -102,6 +102,12 @@ await sharp(path.join(pictures, 'raja ultimate skill banner view.png'))
   .webp({ quality: 86, alphaQuality: 96, effort: 6 })
   .toFile(path.join(output, 'skills', 'raja-titah-halilintar.webp'));
 
+await sharp(path.join(pictures, 'kaka ultimate skill banner view.png'))
+  .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .resize({ width: 512, height: 420, fit: 'inside', withoutEnlargement: true })
+  .webp({ quality: 88, alphaQuality: 98, effort: 6 })
+  .toFile(path.join(output, 'skills', 'kaka-perisai-hijau.webp'));
+
 await fs.copyFile(path.join(media, 'TimMerah_loop_animation_char_selection.mp4'), path.join(output, 'videos', 'team-red.mp4'));
 await fs.copyFile(path.join(media, 'TimHijau_loop_animation_char_selection.mp4'), path.join(output, 'videos', 'team-green.mp4'));
 
@@ -172,6 +178,6 @@ const walk = async directory => {
 };
 await walk(output);
 files.sort((a, b) => a.file.localeCompare(b.file));
-await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 7, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
+await fs.writeFile(path.join(output, 'manifest.json'), `${JSON.stringify({ version: 8, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, null, 2)}\n`);
 const logoBytes = (await fs.stat(path.join(brandOutput, 'benteng-tag-logo.webp'))).size;
-console.log(`UI runtime v7: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);
+console.log(`UI runtime v8: ${files.length} files, ${(files.reduce((sum, file) => sum + file.bytes, 0) / 1024).toFixed(1)} KiB + logo ${(logoBytes / 1024).toFixed(1)} KiB`);

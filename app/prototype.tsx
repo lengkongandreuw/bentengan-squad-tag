@@ -36,6 +36,8 @@ import {
   characterRuntimeAsset,
   characterSelectionVideo,
   characterUsesDedicatedEast,
+  kakaUltimateBannerAsset,
+  kakaUltimateSpriteAsset,
   publicAsset,
   rajaUltimateBannerAsset,
   uiAudioAsset,
@@ -105,6 +107,7 @@ type Player = {
   captures: number;
   aiSeed: number;
   rescueShieldUntil: number;
+  ultimateShieldUntil: number;
   capturedIds: string[];
   action?: PlayerAction;
   actionUntil: number;
@@ -258,9 +261,12 @@ const RAJA_ULTIMATE_RECHARGE_SECONDS = 45;
 const RAJA_ULTIMATE_TAG_BONUS = 20;
 const RAJA_ULTIMATE_RESCUE_BONUS = 30;
 const RAJA_ULTIMATE_CAST_MS = 3200;
-const RAJA_ULTIMATE_IMPACT_MS = 2450;
 const RAJA_ULTIMATE_BUFF_MS = 5000;
 const RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4;
+const KAKA_ULTIMATE_CAST_MS = 3600;
+const KAKA_ULTIMATE_FRAME_COUNT = 9;
+const KAKA_ULTIMATE_SHIELD_MS = 5000;
+const ULTIMATE_CHARACTER_IDS = new Set<CharacterId>(['raja', 'kaka']);
 const DIFFICULTY_PROFILES = {
   easy: {
     enemySpeed: 0.94,
@@ -2475,7 +2481,7 @@ const formatTime = (seconds: number) => {
 };
 const statPercent = (value: number, min: number, max: number) =>
   `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
-const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=7`);
+const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=8`);
 
 const CharacterPreview = ({
   id,
@@ -2512,6 +2518,7 @@ const CharacterPreview = ({
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
 const fieldImages = new Map<string, HTMLImageElement>();
 let sprintDustImage: HTMLImageElement | null = null;
+let kakaUltimateImage: HTMLImageElement | null = null;
 const spriteFrame = (
   width: number,
   height: number,
@@ -2541,6 +2548,14 @@ const getSprintDustImage = () => {
   sprintDustImage.decoding = 'async';
   sprintDustImage.src = publicAsset('vfx/sprint-dust.webp?v=7');
   return sprintDustImage;
+};
+
+const getKakaUltimateImage = () => {
+  if (kakaUltimateImage) return kakaUltimateImage;
+  kakaUltimateImage = new Image();
+  kakaUltimateImage.decoding = 'async';
+  kakaUltimateImage.src = kakaUltimateSpriteAsset();
+  return kakaUltimateImage;
 };
 
 const getFieldImage = (asset: string) => {
@@ -2654,10 +2669,14 @@ export function BentenganPrototype() {
   }, [cameraMode]);
 
   useEffect(() => {
-    if (selectedId !== 'raja') return;
+    if (!ULTIMATE_CHARACTER_IDS.has(selectedId)) return;
     const banner = new Image();
     banner.decoding = 'async';
-    banner.src = rajaUltimateBannerAsset();
+    banner.src =
+      selectedId === 'raja'
+        ? rajaUltimateBannerAsset()
+        : kakaUltimateBannerAsset();
+    if (selectedId === 'kaka') getKakaUltimateImage();
   }, [selectedId]);
 
   useEffect(() => {
@@ -2838,6 +2857,7 @@ export function BentenganPrototype() {
     let ultimateMeter = 0,
       ultimateImpactAt = 0,
       ultimateBuffUntil = 0,
+      ultimateShieldUntil = 0,
       ultimateImpactApplied = false;
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
@@ -2925,6 +2945,7 @@ export function BentenganPrototype() {
         prisonIndex: 0,
         captures: 0,
         rescueShieldUntil: 0,
+        ultimateShieldUntil: 0,
         capturedIds: [],
         actionUntil: 0,
         lastX: b.x + offset.x * direction,
@@ -2958,8 +2979,9 @@ export function BentenganPrototype() {
     const log = (text: string) => {
       logs = [text, ...logs].slice(0, 5);
     };
-    const chargeRajaUltimate = (actor: Player, amount: number) => {
-      if (!actor.controlled || actor.characterId !== 'raja') return;
+    const chargeUltimate = (actor: Player, amount: number) => {
+      if (!actor.controlled || !ULTIMATE_CHARACTER_IDS.has(actor.characterId))
+        return;
       ultimateMeter = clamp(ultimateMeter + amount, 0, 100);
     };
     const burst = (x: number, y: number, color: string, count = 12) => {
@@ -3032,6 +3054,7 @@ export function BentenganPrototype() {
       roundWinner = undefined;
       ultimateImpactAt = 0;
       ultimateBuffUntil = 0;
+      ultimateShieldUntil = 0;
       ultimateImpactApplied = false;
       setUltimateBannerVisible(false);
       teamCombos = {
@@ -3326,6 +3349,7 @@ export function BentenganPrototype() {
       }
     };
     const capture = (winner: Player, loser: Player, now: number) => {
+      if (now < loser.ultimateShieldUntil) return;
       const targetable =
         loser.state === 'ACTIVE' ||
         (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
@@ -3355,7 +3379,7 @@ export function BentenganPrototype() {
         `${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`,
       );
       registerTeamAction(winner, 'TAG', loser.x, loser.y, now);
-      chargeRajaUltimate(winner, RAJA_ULTIMATE_TAG_BONUS);
+      chargeUltimate(winner, RAJA_ULTIMATE_TAG_BONUS);
       if (winner.controlled) mission.tag = true;
       layoutPrisons();
       if (suddenDeath) winRound(winner.team, 'SUDDEN DEATH TAG');
@@ -3378,11 +3402,13 @@ export function BentenganPrototype() {
           )
             continue;
           const aTargetable =
-            a.state === 'ACTIVE' ||
-            (a.state === 'RETURNING' && now >= a.rescueShieldUntil);
+            now >= a.ultimateShieldUntil &&
+            (a.state === 'ACTIVE' ||
+              (a.state === 'RETURNING' && now >= a.rescueShieldUntil));
           const bTargetable =
-            b.state === 'ACTIVE' ||
-            (b.state === 'RETURNING' && now >= b.rescueShieldUntil);
+            now >= b.ultimateShieldUntil &&
+            (b.state === 'ACTIVE' ||
+              (b.state === 'RETURNING' && now >= b.rescueShieldUntil));
           if (
             a.state === 'ACTIVE' &&
             bTargetable &&
@@ -3439,7 +3465,7 @@ export function BentenganPrototype() {
             beep(620, 0.16);
             log(`${rescuer.name} membebaskan ${held.length} rekan.`);
             registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
-            chargeRajaUltimate(rescuer, RAJA_ULTIMATE_RESCUE_BONUS);
+            chargeUltimate(rescuer, RAJA_ULTIMATE_RESCUE_BONUS);
             if (rescuer.controlled) mission.rescue = true;
           }
         });
@@ -3639,7 +3665,7 @@ export function BentenganPrototype() {
       const me = players[0];
       let dx = 0,
         dy = 0;
-      if (me.characterId === 'raja')
+      if (ULTIMATE_CHARACTER_IDS.has(me.characterId))
         ultimateMeter = clamp(
           ultimateMeter + (dt * 100) / RAJA_ULTIMATE_RECHARGE_SECONDS,
           0,
@@ -3648,32 +3674,42 @@ export function BentenganPrototype() {
       if (keys.current.has('capslock')) {
         keys.current.delete('capslock');
         const actionAvailable =
-          me.characterId === 'raja' &&
+          ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
           ultimateMeter >= 100 &&
           me.state === 'ACTIVE' &&
           now >= me.parkourUntil &&
           (!me.action || now >= me.actionUntil);
         if (actionAvailable) {
+          const castDuration =
+            me.characterId === 'kaka'
+              ? KAKA_ULTIMATE_CAST_MS
+              : RAJA_ULTIMATE_CAST_MS;
           ultimateMeter = 0;
-          ultimateImpactAt = now + RAJA_ULTIMATE_IMPACT_MS;
+          ultimateImpactAt = now + castDuration;
           ultimateImpactApplied = false;
           me.action = 'ultimate';
-          me.actionUntil = now + RAJA_ULTIMATE_CAST_MS;
+          me.actionUntil = ultimateImpactAt;
           me.vx = 0;
           me.vy = 0;
+          boostBurstUntil = 0;
           setUltimateBannerVisible(true);
           window.clearTimeout(bannerTimeout);
           bannerTimeout = window.setTimeout(
             () => setUltimateBannerVisible(false),
-            740,
+            me.characterId === 'kaka' ? 1050 : 820,
           );
-          burst(me.x, me.y, '#ef233c', 14);
-          beep(180, 0.2);
-          log('RAJA memanggil TITAH HALILINTAR.');
+          const isKaka = me.characterId === 'kaka';
+          burst(me.x, me.y, isKaka ? '#35f477' : '#ef233c', 14);
+          beep(isKaka ? 360 : 180, 0.2);
+          log(
+            isKaka
+              ? 'KAKA membangkitkan PERISAI HIJAU.'
+              : 'RAJA memanggil TITAH HALILINTAR.',
+          );
         }
       }
       const ultimateCasting =
-        me.characterId === 'raja' &&
+        ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
         me.action === 'ultimate' &&
         now < me.actionUntil;
       if (
@@ -3682,13 +3718,29 @@ export function BentenganPrototype() {
         now >= ultimateImpactAt
       ) {
         ultimateImpactApplied = true;
-        ultimateBuffUntil = now + RAJA_ULTIMATE_BUFF_MS;
-        burst(me.x, me.y, '#ef233c', 28);
-        burst(me.x, me.y, '#b54a32', 18);
-        beep(118, 0.32);
-        log(
-          'TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +40% selama 5 detik.',
-        );
+        ultimateImpactAt = 0;
+        if (me.characterId === 'kaka') {
+          ultimateShieldUntil = now + KAKA_ULTIMATE_SHIELD_MS;
+          players
+            .filter((player) => player.team === me.team)
+            .forEach((player) => {
+              player.ultimateShieldUntil = ultimateShieldUntil;
+            });
+          burst(me.x, me.y, '#35f477', 34);
+          burst(me.x, me.y, '#baffc9', 18);
+          beep(540, 0.32);
+          log(
+            'PERISAI HIJAU · seluruh rekan kebal TAG selama 5 detik.',
+          );
+        } else {
+          ultimateBuffUntil = now + RAJA_ULTIMATE_BUFF_MS;
+          burst(me.x, me.y, '#ef233c', 28);
+          burst(me.x, me.y, '#b54a32', 18);
+          beep(118, 0.32);
+          log(
+            'TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +40% selama 5 detik.',
+          );
+        }
       }
       const rajaUltimateMultiplier = (player: Player) =>
         player.team === me.team &&
@@ -3700,6 +3752,17 @@ export function BentenganPrototype() {
         teamCombos[me.team],
         now,
       );
+      if (ultimateCasting) {
+        players.forEach((player) => {
+          player.vx = 0;
+          player.vy = 0;
+          player.lastX = player.x;
+          player.lastY = player.y;
+        });
+        boostLatch = keys.current.has(' ');
+        parkourLatch = keys.current.has('shift');
+        return;
+      }
       if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
@@ -3757,10 +3820,7 @@ export function BentenganPrototype() {
         }
       }
       parkourLatch = parkourKey;
-      if (ultimateCasting) {
-        me.vx = 0;
-        me.vy = 0;
-      } else if (me.state === 'RETURNING') {
+      if (me.state === 'RETURNING') {
         const vector = baseVector(me);
         move(
           me,
@@ -4364,6 +4424,10 @@ export function BentenganPrototype() {
       const dust = getSprintDustImage();
       const direction = directionFromVelocity(p.vx, p.vy);
       const sprinting = speed > stats.speed * 1.16;
+      const kakaUltimateActive =
+        p.characterId === 'kaka' &&
+        p.action === 'ultimate' &&
+        now < p.actionUntil;
       const dedicatedEast =
         p.characterId === 'raja'
           ? animation.dedicatedEast
@@ -4386,7 +4450,9 @@ export function BentenganPrototype() {
         columns = animation.prisoner.columns;
         mirror = false;
       } else if (p.action && now < p.actionUntil) {
-        if (p.action === 'ultimate' && animation.ultimate) {
+        if (kakaUltimateActive) {
+          mirror = false;
+        } else if (p.action === 'ultimate' && animation.ultimate) {
           row = animation.ultimate.row;
           columns = animation.ultimate.columns;
           const elapsed = clamp(
@@ -4421,13 +4487,38 @@ export function BentenganPrototype() {
       } else if (speed > 8)
         columns = sprinting ? animation.boostColumns : animation.runColumns;
       const frameDuration = sprinting ? 62 : columns.length > 1 ? 92 : 180;
-      const frame = spriteFrame(
+      let renderImage = image;
+      let frame = spriteFrame(
         image.naturalWidth || 896,
         image.naturalHeight || 816,
         oneShotColumn ??
           columns[Math.floor(now / frameDuration) % columns.length],
         row,
       );
+      if (kakaUltimateActive) {
+        renderImage = getKakaUltimateImage();
+        const stripWidth = renderImage.naturalWidth || 4608;
+        const stripHeight = renderImage.naturalHeight || 424;
+        const cellWidth = stripWidth / KAKA_ULTIMATE_FRAME_COUNT;
+        const elapsed = clamp(
+          now - (p.actionUntil - KAKA_ULTIMATE_CAST_MS),
+          0,
+          KAKA_ULTIMATE_CAST_MS - 1,
+        );
+        const frameIndex = Math.min(
+          KAKA_ULTIMATE_FRAME_COUNT - 1,
+          Math.floor(
+            elapsed /
+              (KAKA_ULTIMATE_CAST_MS / KAKA_ULTIMATE_FRAME_COUNT),
+          ),
+        );
+        frame = {
+          x: Math.round(frameIndex * cellWidth),
+          y: 0,
+          width: Math.round(cellWidth),
+          height: stripHeight,
+        };
+      }
 
       if (p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
         const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
@@ -4477,6 +4568,23 @@ export function BentenganPrototype() {
         ctx.restore();
       }
 
+      if (now < p.ultimateShieldUntil) {
+        const pulse = 31 + Math.sin(now / 90 + p.aiSeed) * 3;
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = '#39f57a';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 7 + bob, pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.92;
+        ctx.strokeStyle = '#63ff93';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 7 + bob, pulse, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       if (sprinting && dust.complete && dust.naturalWidth) {
         const dustColumn = Math.floor(now / 78) % 4;
         ctx.save();
@@ -4511,9 +4619,13 @@ export function BentenganPrototype() {
         ctx.stroke();
       }
 
-      if (image.complete && image.naturalWidth) {
-        const height = (74 * stats.visualScale * frame.height) / 136,
-          width = (height * frame.width) / frame.height;
+      if (renderImage.complete && renderImage.naturalWidth) {
+        const height = kakaUltimateActive
+            ? 238 * stats.visualScale * (frame.height / frame.width)
+            : (74 * stats.visualScale * frame.height) / 136,
+          width = kakaUltimateActive
+            ? 238 * stats.visualScale
+            : (height * frame.width) / frame.height;
         ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
@@ -4522,7 +4634,7 @@ export function BentenganPrototype() {
           ctx.scale(-1, 1);
         }
         ctx.drawImage(
-          image,
+          renderImage,
           frame.x,
           frame.y,
           frame.width,
@@ -4541,6 +4653,24 @@ export function BentenganPrototype() {
         ctx.arc(p.x, p.y - 2 + bob, 14, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+      }
+      if (now < p.ultimateShieldUntil) {
+        const shieldX = p.x - 24;
+        const shieldY = p.y - 49 + bob;
+        ctx.save();
+        ctx.fillStyle = 'rgba(10,54,25,.9)';
+        ctx.strokeStyle = '#86ffab';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(shieldX, shieldY - 9);
+        ctx.lineTo(shieldX + 8, shieldY - 5);
+        ctx.lineTo(shieldX + 7, shieldY + 4);
+        ctx.quadraticCurveTo(shieldX, shieldY + 12, shieldX - 7, shieldY + 4);
+        ctx.lineTo(shieldX - 8, shieldY - 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
       }
       if (p.controlled) {
         ctx.fillStyle = '#fff4d1';
@@ -4780,13 +4910,24 @@ export function BentenganPrototype() {
               ? teamComboSeconds(playerCombo, now)
               : 0,
           comboCallout: now < comboCalloutUntil ? comboCallout : '',
-          ultimateMeter: me.characterId === 'raja' ? ultimateMeter : 0,
+          ultimateMeter: ULTIMATE_CHARACTER_IDS.has(me.characterId)
+            ? ultimateMeter
+            : 0,
           ultimateBuffRemaining:
-            now < ultimateBuffUntil
-              ? Math.ceil((ultimateBuffUntil - now) / 1000)
+            now <
+            (me.characterId === 'kaka'
+              ? ultimateShieldUntil
+              : ultimateBuffUntil)
+              ? Math.ceil(
+                  ((me.characterId === 'kaka'
+                    ? ultimateShieldUntil
+                    : ultimateBuffUntil) -
+                    now) /
+                    1000,
+                )
               : 0,
           ultimateCasting:
-            me.characterId === 'raja' &&
+            ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
             me.action === 'ultimate' &&
             now < me.actionUntil,
         });
@@ -5690,12 +5831,15 @@ export function BentenganPrototype() {
                   <span style={{ width: `${snapshot.boost}%` }} />
                 </div>
               </div>
-              {selectedId === 'raja' && (
+              {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                 <div
-                  className={`ultimate-meter-hud ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                  aria-label={`Meter Ultimate Raja ${Math.floor(snapshot.ultimateMeter)} persen`}
+                  className={`ultimate-meter-hud ${selectedId === 'kaka' ? 'kaka-shield' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
+                  aria-label={`Meter Ultimate ${selected.name} ${Math.floor(snapshot.ultimateMeter)} persen`}
                 >
-                  <span><Zap size={14} /> TITAH HALILINTAR</span>
+                  <span>
+                    {selectedId === 'kaka' ? <Shield size={14} /> : <Zap size={14} />}
+                    {selectedId === 'kaka' ? ' PERISAI HIJAU' : ' TITAH HALILINTAR'}
+                  </span>
                   <b>{Math.floor(snapshot.ultimateMeter)}%</b>
                   <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
                   <small>{snapshot.ultimateMeter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30'}</small>
@@ -5724,16 +5868,16 @@ export function BentenganPrototype() {
                   <b>4</b>
                   <small>RESCUE</small>
                 </span>
-                {selectedId === 'raja' ? (
+                {ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
                   <button
-                    className={`ultimate-action ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
+                    className={`ultimate-action ${selectedId === 'kaka' ? 'kaka-ultimate' : ''} ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
                     onClick={() => tapKey('capslock')}
                     disabled={
                       snapshot.ultimateMeter < 100 || snapshot.ultimateCasting
                     }
-                    aria-label={`Titah Halilintar ${Math.floor(snapshot.ultimateMeter)} persen`}
+                    aria-label={`${selectedId === 'kaka' ? 'Perisai Hijau' : 'Titah Halilintar'} ${Math.floor(snapshot.ultimateMeter)} persen`}
                   >
-                    <Zap size={18} />
+                    {selectedId === 'kaka' ? <Shield size={18} /> : <Zap size={18} />}
                     <b>CAPS</b>
                     <small>
                       {snapshot.ultimateCasting
@@ -5756,14 +5900,15 @@ export function BentenganPrototype() {
                 </span>
               </div>
               {snapshot.ultimateBuffRemaining > 0 && (
-                <div className="ultimate-buff-indicator">
-                  <Zap size={13} /> TITAH +40% ·{' '}
+                <div className={`ultimate-buff-indicator ${selectedId === 'kaka' ? 'kaka-shield-indicator' : ''}`}>
+                  {selectedId === 'kaka' ? <Shield size={13} /> : <Zap size={13} />}
+                  {selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · '}
                   {snapshot.ultimateBuffRemaining}s
                 </div>
               )}
               <div className="control-ribbon">
                 <b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR{' '}
-                {selectedId === 'raja' && (
+                {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                   <>
                     <b>CAPS LOCK</b> ULTIMATE{' '}
                   </>
@@ -5796,10 +5941,10 @@ export function BentenganPrototype() {
                   <button aria-label="Parkour" {...touchControl('shift')}>
                     PARKOUR
                   </button>
-                  {selectedId === 'raja' && (
+                  {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                     <button
-                      className="touch-ultimate"
-                      aria-label="Titah Halilintar"
+                      className={`touch-ultimate ${selectedId === 'kaka' ? 'kaka-ultimate' : ''}`}
+                      aria-label={selectedId === 'kaka' ? 'Perisai Hijau' : 'Titah Halilintar'}
                       disabled={
                         snapshot.ultimateMeter < 100 || snapshot.ultimateCasting
                       }
@@ -5833,15 +5978,23 @@ export function BentenganPrototype() {
               )}
             </>
           )}
-          {ultimateBannerVisible && selectedId === 'raja' && (
+          {ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
             <div
-              className="ultimate-banner"
+              className={`ultimate-banner ${selectedId === 'kaka' ? 'kaka-banner' : ''}`}
               role="status"
-              aria-label="Raja mengaktifkan Titah Halilintar"
+              aria-label={
+                selectedId === 'kaka'
+                  ? 'Kaka mengaktifkan Perisai Hijau'
+                  : 'Raja mengaktifkan Titah Halilintar'
+              }
             >
               <img
-                src={rajaUltimateBannerAsset()}
-                alt="TITAH HALILINTAR"
+                src={
+                  selectedId === 'kaka'
+                    ? kakaUltimateBannerAsset()
+                    : rajaUltimateBannerAsset()
+                }
+                alt={selectedId === 'kaka' ? 'ULTIMATE SKILL KAKA' : 'TITAH HALILINTAR'}
                 decoding="async"
               />
             </div>

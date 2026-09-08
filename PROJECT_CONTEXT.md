@@ -29,8 +29,18 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 - Sprint: `Space`, durasi dasar 1,4 detik.
 - Parkour: `Shift` ketika berada di dekat rintangan.
 - Ultimate Raja: `Caps Lock` setelah meter mencapai 100%.
+- Ultimate Kaka: `Caps Lock` setelah meter mencapai 100%.
 - Jeda: `P`.
 - Meter ultimate Raja terisi otomatis dan mendapat bonus dari tag serta rescue.
+- Meter ultimate Kaka mengikuti pengisian Raja: otomatis 45 detik, tag +20, dan rescue +30.
+
+## Ultimate karakter
+
+- Raja dan Kaka menghentikan gerakan seluruh karakter selama animasi ultimate satu kali berlangsung; timer pertandingan tetap berjalan.
+- Efek ultimate baru diterapkan setelah animasi selesai dan gerakan permainan kembali normal.
+- Raja memberi seluruh rekan ACTIVE bonus kecepatan +40% selama 5 detik.
+- Kaka memberi seluruh anggota timnya, termasuk dirinya sendiri, perisai hijau yang mencegah tag selama 5 detik.
+- Sprite Ultimate Kaka disimpan terpisah dari atlas gerak utamanya di `sprite-sources/kaka ultimate sprites.png`.
 
 ## Aturan visual dan gameplay arena
 

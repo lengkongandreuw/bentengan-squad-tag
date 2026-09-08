@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "source": "kaka ultimate sprites.png",
+  "frames": 9,
+  "cell": {
+    "width": 512,
+    "height": 424
+  },
+  "castDurationMs": 3600,
+  "playback": "one-shot"
+}

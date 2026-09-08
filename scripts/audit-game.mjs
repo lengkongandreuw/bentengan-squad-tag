@@ -39,18 +39,19 @@ assert(manifest.version === 9 && manifest.characters.length === 14, 'manifest sp
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('(column * width) / 7') && !prototypeSource.includes('(column * width) / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
 assert(charactersSource.includes('?v=9') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v9');
-assert(uiManifest.version === 7 && uiManifest.files.length === 54, 'paket UI v7 memuat 14 ikon, full-body, banner Raja, video tim, dan delapan track audio');
+assert(uiManifest.version === 8 && uiManifest.files.length === 55, 'paket UI v8 memuat 14 ikon, full-body, banner Raja dan Kaka, video tim, serta delapan track audio');
 const uiImageBytes = uiManifest.files.filter(entry => !entry.file.startsWith('videos/') && !entry.file.startsWith('audio/')).reduce((sum, entry) => sum + entry.bytes, 0);
 const uiVideoBytes = uiManifest.files.filter(entry => entry.file.startsWith('videos/')).reduce((sum, entry) => sum + entry.bytes, 0);
 const uiAudioBytes = uiManifest.files.filter(entry => entry.file.startsWith('audio/')).reduce((sum, entry) => sum + entry.bytes, 0);
-assert(uiImageBytes <= 1700 * 1024, `gambar UI v7 ${(uiImageBytes / 1024).toFixed(0)} KiB berada dalam budget 1.700 KiB`);
+assert(uiImageBytes <= 2200 * 1024, `gambar UI v8 ${(uiImageBytes / 1024).toFixed(0)} KiB berada dalam budget 2.200 KiB`);
 assert(uiVideoBytes <= 6500 * 1024, `dua video seleksi tim ${(uiVideoBytes / 1024 / 1024).toFixed(2)} MiB berada dalam budget 6,5 MiB`);
 assert(uiAudioBytes <= 8500 * 1024, `delapan track audio ${(uiAudioBytes / 1024 / 1024).toFixed(2)} MiB berada dalam budget 8,5 MiB`);
 for (const id of ids) assert(uiManifest.files.some(entry => entry.file === `character-icons/${id}.webp`), `${id}: ikon preview karakter khusus tersedia`);
 assert(prototypeSource.includes("type MenuStep = 'splash' | 'team' | 'character' | 'field'") && prototypeSource.includes("key === 'escape'") && prototypeSource.includes('cycleCharacter'), 'alur layar baru dan navigasi keyboard terpasang');
-assert(prototypeSource.includes("ui-v2/${file}?v=7") && !prototypeSource.includes('asset-inbox/') && !prototypeSource.includes('Assets/pictures/'), 'runtime memakai paket UI v7 tanpa merujuk PNG sumber');
+assert(prototypeSource.includes("ui-v2/${file}?v=8") && !prototypeSource.includes('asset-inbox/') && !prototypeSource.includes('Assets/pictures/'), 'runtime memakai paket UI v8 tanpa merujuk PNG sumber');
 assert(charactersSource.includes('CHARACTER_PREVIEW_ICONS') && charactersSource.includes('characterPreviewIcon') && charactersSource.includes('characterFullBodyPortrait') && prototypeSource.includes('variant="full"'), 'seleksi karakter memakai full-body; UI ringkas tetap memakai ikon khusus');
 assert(uiManifest.files.some(entry => entry.file === 'skills/raja-titah-halilintar.webp') && prototypeSource.includes('rajaUltimateBannerAsset()'), 'banner Titah Halilintar terpisah dari ikon Raja');
+assert(uiManifest.files.some(entry => entry.file === 'skills/kaka-perisai-hijau.webp') && prototypeSource.includes('kakaUltimateBannerAsset()'), 'banner Perisai Hijau terpisah dari ikon dan sprite Kaka');
 assert(uiManifest.files.some(entry => entry.file === 'videos/team-red.mp4') && uiManifest.files.some(entry => entry.file === 'videos/team-green.mp4') && /<video\s+className="roster-video"/.test(prototypeSource), 'seleksi karakter memakai tepat satu video tim aktif');
 for (const id of ['kampung', 'pasar', 'taman', 'kanal']) assert(uiManifest.files.some(entry => entry.file === `fields/${id}.webp`), `${id}: kartu preview field WebP tersedia`);
 
@@ -157,6 +158,13 @@ assert(prototypeSource.includes('playUiTone(235') && prototypeSource.includes("'
 assert(prototypeSource.includes('RAJA_ULTIMATE_RECHARGE_SECONDS = 45') && prototypeSource.includes('RAJA_ULTIMATE_TAG_BONUS = 20') && prototypeSource.includes('RAJA_ULTIMATE_RESCUE_BONUS = 30'), 'meter Ultimate Raja mengisi pasif 45 detik dengan bonus tag +20 dan rescue +30');
 assert(prototypeSource.includes('RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4') && prototypeSource.includes('RAJA_ULTIMATE_BUFF_MS = 5000') && prototypeSource.includes("me.state === 'ACTIVE'") && prototypeSource.includes("player.state === 'ACTIVE'"), 'Titah Halilintar memberi modifier +40% selama 5 detik hanya kepada anggota ACTIVE');
 assert(prototypeSource.includes("keys.current.has('capslock')") && prototypeSource.includes('RAJA_ULTIMATE_CAST_MS = 3200') && prototypeSource.includes('oneShotColumn') && prototypeSource.includes('ultimate-meter-hud'), 'Caps Lock memicu Ultimate sekali-putar 3,2 detik dengan meter HUD yang jelas');
+const kakaUltimateManifest = await readJson('public/characters/kaka/ultimate.json');
+const kakaUltimatePath = path.join(root, 'public/characters/kaka/ultimate-runtime.webp');
+const kakaUltimate = await sharp(kakaUltimatePath).metadata();
+assert(kakaUltimateManifest.frames === 9 && kakaUltimateManifest.castDurationMs === 3600 && kakaUltimateManifest.playback === 'one-shot', 'Ultimate Kaka memakai sembilan frame terpisah dalam satu putaran 3,6 detik');
+assert(kakaUltimate.width === 4608 && kakaUltimate.height === 424 && kakaUltimate.hasAlpha && (await stat(kakaUltimatePath)).size <= 900 * 1024, 'strip Ultimate Kaka transparan, tajam, dan berada dalam budget 900 KiB');
+assert(prototypeSource.includes("new Set<CharacterId>(['raja', 'kaka'])") && prototypeSource.includes('KAKA_ULTIMATE_SHIELD_MS = 5000') && prototypeSource.includes('now < loser.ultimateShieldUntil'), 'Kaka berbagi meter Ultimate Raja dan memberi seluruh tim kekebalan tag selama 5 detik');
+assert(prototypeSource.includes('players.forEach((player) => {') && prototypeSource.includes('player.vx = 0;') && prototypeSource.includes('player.lastX = player.x;') && prototypeSource.includes('ultimateImpactAt = now + castDuration'), 'Ultimate Raja dan Kaka membekukan gerakan tim selama cast lalu menerapkan efek setelah animasi');
 for (const file of ['opening-title.mp3', 'press-play.mp3', 'ingame-music.mp3', 'ingame-ambience.mp3', 'victory.mp3', 'defeat.mp3', 'ui-back.mp3', 'ui-select.mp3']) assert(uiManifest.files.some(entry => entry.file === `audio/${file}`), `${file}: track audio runtime tersedia`);
 assert(prototypeSource.includes("mode === 'playing' ? 'ingame-music.mp3' : 'opening-title.mp3'") && prototypeSource.includes("'ingame-ambience.mp3'") && prototypeSource.includes('audioUnlocked'), 'musik menu dan pertandingan dimulai setelah interaksi pengguna');
 assert(!prototypeSource.includes('sprite-sources/raja new sprites.png'), 'PNG sumber Raja tidak pernah dirujuk runtime');
