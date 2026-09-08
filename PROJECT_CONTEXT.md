@@ -106,6 +106,7 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 - Output runtime arena: `public/field/`.
 - Manifest TypeScript hasil generator: `lib/field-assets.generated.ts` — jangan diedit manual.
 - Baseline arena: `config/field-baseline.json`.
+- Build GitHub Pages memakai entry stabil `assets/app.js` dan mempertahankan alias bundle deployment lama. Ini mencegah HTML yang masih tersimpan dalam cache GitHub Pages selama 10 menit menunjuk JavaScript yang sudah terhapus dan menghasilkan layar hitam.
 - Sumber sprite karakter: `sprite-sources/`.
 - Generator sprite: `scripts/build-sprites.mjs`, `scripts/build-vfx.mjs`, dan `scripts/build-web-assets.mjs`.
 

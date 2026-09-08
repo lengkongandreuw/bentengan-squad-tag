@@ -19,6 +19,7 @@ const charactersSource = await readFile(path.join(root, 'lib/characters.ts'), 'u
 const prototypeSource = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
 const globalStyles = await readFile(path.join(root, 'app/globals.css'), 'utf8');
 const workshopSource = await readFile(path.join(root, 'components/character-workshop.tsx'), 'utf8');
+const githubViteSource = await readFile(path.join(root, 'vite.github.config.ts'), 'utf8');
 const motion = await import('../lib/sprite-motion.js');
 const characterAnimations = await import('../lib/character-animation.js');
 const { fieldCycleDecision } = await import('../lib/field-cycle.js');
@@ -136,6 +137,7 @@ const fieldOrder = ['kampung', 'pasar', 'taman', 'kanal'];
 assert(fieldCycleDecision('kampung', 2, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('kampung', 2, fieldOrder).wins === 2, 'field bertahan sebelum tiga kemenangan pertandingan');
 assert(fieldCycleDecision('kampung', 3, fieldOrder).fieldId === 'pasar' && fieldCycleDecision('taman', 3, fieldOrder).fieldId === 'kanal' && fieldCycleDecision('kanal', 3, fieldOrder).fieldId === 'kampung', 'empat field berpindah dan berputar otomatis tepat setiap tiga kemenangan');
 assert(prototypeSource.includes('const quit = () =>') && prototypeSource.includes('setMode(\'menu\')') && prototypeSource.includes('<LogOut size={17} /> Keluar ke menu'), 'menu jeda dapat mengembalikan pemain ke menu awal');
+assert(githubViteSource.includes("entryFileNames: 'assets/app.js'") && githubViteSource.includes('github-pages-cache-compatibility') && githubViteSource.includes('index-CcIgRf6v.js'), 'GitHub Pages memakai entry stabil dan alias bundle lama agar cache HTML tidak menghasilkan layar hitam');
 const crossingA = { lastX: 0, lastY: 0, x: 100, y: 0 };
 const crossingB = { lastX: 100, lastY: 0, x: 0, y: 0 };
 const parallelB = { lastX: 0, lastY: 40, x: 100, y: 40 };
