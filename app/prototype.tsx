@@ -2286,9 +2286,9 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
 
       // Objek taktis sisi luar dan pepohonan rendah.
       guideCollider('canalBarrier', 206, 244, 126, 34),
-      guideCollider('canalBarrier', 1367, 553, 126, 34),
+      guideCollider('canalBarrier', 1367, 590, 126, 34),
       guideCollider('canalBarrier', 258, 684, 116, 34),
-      guideCollider('canalBarrier', 1325, 207, 116, 34),
+      guideCollider('canalBarrier', 1325, 188, 116, 34),
       guideCollider('flowerBedSmall', 448, 639, 105, 32),
       guideCollider('flowerBedSmall', 1146, 214, 105, 32),
     ],
