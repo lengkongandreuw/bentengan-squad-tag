@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "maps": {
     "kampung": {
       "file": "kampung-map.webp",
@@ -15,6 +15,16 @@
       "file": "taman-map.webp",
       "width": 1923,
       "height": 1082
+    },
+    "kanal": {
+      "file": "kanal-map.webp",
+      "width": 1699,
+      "height": 926,
+      "waterMask": {
+        "file": "kanal-water-mask.png",
+        "width": 850,
+        "height": 463
+      }
     }
   },
   "objects": {

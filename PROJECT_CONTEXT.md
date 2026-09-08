@@ -91,8 +91,12 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 
 - ID: `kanal`.
 - Kesulitan: hard.
-- Arena kanal menggunakan kanal modular, jembatan, barrier, vegetasi tepi, dan jalur parkour silang.
-- Belum mengikuti pipeline background komposit yang sama seperti Map 1–3. Jika direvisi, perlakukan sebagai task tersendiri.
+- Sumber panduan final: `Assets/map/map4/guide-final.png` pada ukuran asli 1699×926.
+- Sumber terrain/sungai: `Assets/map/map4/terrain.png`; sumber margin, objek/penjara, dan barrier tengah tersimpan bersama di `Assets/map/map4/`.
+- Background runtime `public/field/kanal-map.webp` mempertahankan susunan panduan asli tanpa pembesaran 15% atau pengecilan objek.
+- Collider tersembunyi mengikuti footprint pagar margin, planter, barrier tengah, dan objek padat; visual tersebut tidak digambar ulang di atas background.
+- `public/field/kanal-water-mask.png` dibangun dari terrain. Pemain maupun bot yang masuk sungai di luar jembatan kembali ke bentengnya dan menampilkan `OOOPSS... HATI-HATI` selama 1,5 detik.
+- Jembatan merupakan area aman. Parkour dari tepi sungai juga dapat menyeberang karena pemeriksaan jatuh dinonaktifkan selama animasi parkour.
 
 ## Pipeline aset
 

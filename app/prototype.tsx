@@ -108,6 +108,8 @@ type Player = {
   aiSeed: number;
   rescueShieldUntil: number;
   ultimateShieldUntil: number;
+  fallSafeUntil: number;
+  fallNoticeUntil: number;
   capturedIds: string[];
   action?: PlayerAction;
   actionUntil: number;
@@ -177,6 +179,9 @@ type FieldConfig = {
   height?: number;
   objectScale?: number;
   structuresInBackground?: boolean;
+  waterMask?: string;
+  waterMaskWidth?: number;
+  waterMaskHeight?: number;
   bases?: Record<Team, { x: number; y: number }>;
   prisons: Record<Team, Prison>;
   paths: FieldPath[];
@@ -2205,100 +2210,90 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'kanal',
     name: 'Alun Kanal Nusantara',
-    kicker: 'Kanal cincin · parkour silang',
+    kicker: 'Kanal cincin · jembatan dan parkour',
     difficulty: 'hard',
     aiIntensity: 1.03,
     ground: 'canalGrass',
+    background: 'kanal-map.webp',
+    waterMask: 'kanal-water-mask.png',
+    waterMaskWidth: 850,
+    waterMaskHeight: 463,
+    designWidth: 1699,
+    designHeight: 926,
+    width: 1699,
+    height: 926,
+    objectScale: 1,
+    structuresInBackground: true,
+    bases: {
+      blue: { x: 180, y: 446 },
+      red: { x: 1518, y: 446 },
+    },
     prisons: {
       blue: {
-        x: 164,
-        y: 548,
-        w: 310,
-        h: 250,
+        x: 177,
+        y: 535,
+        w: 153,
+        h: 132,
         floorAsset: 'industrialPrisonBlueFloor',
         overlayAsset: 'industrialPrisonBlueOverlay',
       },
       red: {
-        x: 874,
-        y: 34,
-        w: 310,
-        h: 250,
+        x: 1328,
+        y: 244,
+        w: 150,
+        h: 130,
         floorAsset: 'industrialPrisonRedFloor',
         overlayAsset: 'industrialPrisonRedOverlay',
       },
     },
-    paths: [
-      {
-        tile: 'parkPaving',
-        x: 198,
-        y: 292,
-        w: 1044,
-        h: 216,
-        opacity: 0.52,
-        radius: 96,
-      },
-      {
-        tile: 'dirt',
-        x: 414,
-        y: 148,
-        w: 612,
-        h: 504,
-        opacity: 0.46,
-        radius: 182,
-      },
-    ],
+    paths: [],
     obstacles: [
-      ...[
-        [354, 160],
-        [566, 160],
-        [735, 160],
-        [990, 230],
-        [500, 610],
-        [566, 610],
-        [778, 610],
-        [990, 610],
-      ].map(([x, y], i) =>
-        guideObstacle('canalStraightH', x, y, 132, 34, 198, 112, i % 2 === 1),
-      ),
-      ...[
-        [382, 272],
-        [382, 438],
-        [1000, 272],
-        [1000, 438],
-      ].map(([x, y], i) =>
-        guideObstacle('canalStraightV', x, y, 42, 118, 92, 176, i > 1),
-      ),
-      guideObstacle('canalT', 520, 264, 92, 66, 166, 140),
-      guideObstacle('canalT', 828, 264, 92, 66, 166, 140, true),
-      guideObstacle('canalT', 520, 470, 92, 66, 166, 140, true),
-      guideObstacle('canalT', 828, 470, 92, 66, 166, 140),
-      guideObstacle('canalBridgeH', 444, 346, 92, 42, 142, 108),
-      guideObstacle('canalBridgeH', 904, 412, 92, 42, 142, 108, true),
-      guideObstacle('canalBridgeV', 630, 218, 44, 96, 98, 160),
-      guideObstacle('canalBridgeV', 766, 486, 44, 96, 98, 160, true),
-      guideObstacle('canalBridgeDiag', 570, 338, 86, 54, 142, 124),
-      guideObstacle('canalBridgeDiag', 784, 408, 86, 54, 142, 124, true),
-      guideObstacle('canalBarrier', 486, 106, 126, 30, 180, 102),
-      guideObstacle('canalBarrier', 828, 664, 126, 30, 180, 102, true),
-      guideObstacle('canalBarrierLong', 560, 544, 164, 34, 236, 104),
-      guideObstacle('canalBarrierLong', 705, 222, 164, 34, 236, 104, true),
-      guideObstacle('canalBarrierCorner', 526, 394, 82, 58, 148, 128),
-      guideObstacle('canalBarrierCorner', 832, 346, 82, 58, 148, 128, true),
-      guideObstacle('flowerBedSmall', 656, 290, 96, 38, 126, 86),
-      guideObstacle('flowerBedSmall', 688, 472, 96, 38, 126, 86, true),
-      guideObstacle('parkTree', 244, 248, 70, 56, 122, 156),
-      guideObstacle('parkTree', 1126, 498, 70, 56, 122, 156, true),
+      // Margin/pagar mengikuti footprint padat pada panduan final. Gambar
+      // margin sendiri sudah berada di background sehingga tidak menutup
+      // benteng atau penjara dengan lapisan visual tambahan.
+      guideCollider('jungleNW', 24, 72, 570, 50),
+      guideCollider('jungleNE', 1105, 72, 570, 50),
+      guideCollider('jungleNW', 594, 72, 210, 45),
+      guideCollider('jungleNE', 895, 72, 210, 45),
+      guideCollider('jungleNW', 24, 122, 460, 38),
+      guideCollider('jungleNE', 1215, 122, 460, 38),
+      guideCollider('jungleSW', 24, 820, 570, 66),
+      guideCollider('jungleSE', 1105, 820, 570, 66),
+      guideCollider('jungleSW', 594, 840, 210, 46),
+      guideCollider('jungleSE', 895, 840, 210, 46),
+      guideCollider('jungleSW', 24, 770, 300, 50),
+      guideCollider('jungleSE', 1375, 770, 300, 50),
+      guideCollider('jungleNW', 24, 160, 54, 170),
+      guideCollider('jungleSW', 24, 610, 54, 160),
+      guideCollider('jungleNE', 1621, 160, 54, 170),
+      guideCollider('jungleSE', 1621, 610, 54, 160),
+
+      // Barrier pusat: collider hanya menutupi pot/struktur padat dan
+      // menyisakan jalur lari serta semua jembatan tetap terbuka.
+      guideCollider('canalBarrierLong', 442, 183, 150, 38),
+      guideCollider('canalBarrier', 796, 184, 107, 40),
+      guideCollider('canalBarrierLong', 1107, 183, 150, 38),
+      guideCollider('flowerBedSmall', 690, 282, 91, 54),
+      guideCollider('flowerBedSmall', 918, 282, 91, 54),
+      guideCollider('canalBarrierLong', 594, 408, 150, 54),
+      guideCollider('canalBarrier', 812, 404, 75, 70),
+      guideCollider('canalBarrierLong', 955, 408, 150, 54),
+      guideCollider('flowerBedSmall', 690, 535, 91, 54),
+      guideCollider('flowerBedSmall', 918, 535, 91, 54),
+      guideCollider('canalBarrierLong', 442, 662, 150, 40),
+      guideCollider('canalBarrier', 796, 660, 107, 42),
+      guideCollider('canalBarrierLong', 1107, 662, 150, 40),
+
+      // Objek taktis sisi luar dan pepohonan rendah.
+      guideCollider('canalBarrier', 206, 244, 126, 34),
+      guideCollider('canalBarrier', 1367, 553, 126, 34),
+      guideCollider('canalBarrier', 258, 684, 116, 34),
+      guideCollider('canalBarrier', 1325, 207, 116, 34),
+      guideCollider('flowerBedSmall', 448, 639, 105, 32),
+      guideCollider('flowerBedSmall', 1146, 214, 105, 32),
     ],
-    decorations: [
-      { asset: 'jungleNW', x: 18, y: 30, w: 330, h: 330 },
-      { asset: 'jungleNE', x: 1092, y: 30, w: 330, h: 330 },
-      { asset: 'jungleSW', x: 18, y: 452, w: 330, h: 330 },
-      { asset: 'jungleSE', x: 1092, y: 452, w: 330, h: 330 },
-    ],
-    animated: [
-      { animation: 'fountain', x: 674, y: 354, w: 92, h: 90 },
-      { animation: 'flag', x: 676, y: 84, w: 64, h: 90 },
-    ],
+    decorations: [],
+    animated: [],
   },
 ];
 
@@ -2876,6 +2871,44 @@ export function BentenganPrototype() {
     const fieldBackground = field.background
       ? getFieldImage(field.background)
       : null;
+    const fieldWaterMask = field.waterMask
+      ? getFieldImage(field.waterMask)
+      : null;
+    const waterMaskCanvas = document.createElement('canvas');
+    waterMaskCanvas.width = field.waterMaskWidth ?? 1;
+    waterMaskCanvas.height = field.waterMaskHeight ?? 1;
+    const waterMaskContext = waterMaskCanvas.getContext('2d', {
+      willReadFrequently: true,
+    });
+    let waterMaskPixels: Uint8ClampedArray | null = null;
+    const cacheWaterMask = () => {
+      if (
+        !fieldWaterMask ||
+        !waterMaskContext ||
+        !fieldWaterMask.naturalWidth ||
+        !fieldWaterMask.naturalHeight
+      )
+        return;
+      waterMaskContext.clearRect(
+        0,
+        0,
+        waterMaskCanvas.width,
+        waterMaskCanvas.height,
+      );
+      waterMaskContext.drawImage(
+        fieldWaterMask,
+        0,
+        0,
+        waterMaskCanvas.width,
+        waterMaskCanvas.height,
+      );
+      waterMaskPixels = waterMaskContext.getImageData(
+        0,
+        0,
+        waterMaskCanvas.width,
+        waterMaskCanvas.height,
+      ).data;
+    };
     const staticMapScale = field.structuresInBackground
       ? 0.75
       : STATIC_MAP_SCALE;
@@ -2890,6 +2923,8 @@ export function BentenganPrototype() {
     fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
     fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
     fieldBackground?.addEventListener('load', invalidateStaticMap);
+    fieldWaterMask?.addEventListener('load', cacheWaterMask);
+    if (fieldWaterMask?.complete) cacheWaterMask();
 
     const beep = (frequency: number, duration = 0.08) => {
       try {
@@ -2946,6 +2981,8 @@ export function BentenganPrototype() {
         captures: 0,
         rescueShieldUntil: 0,
         ultimateShieldUntil: 0,
+        fallSafeUntil: 0,
+        fallNoticeUntil: 0,
         capturedIds: [],
         actionUntil: 0,
         lastX: b.x + offset.x * direction,
@@ -3126,6 +3163,32 @@ export function BentenganPrototype() {
       obstacles.some((o) =>
         pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS),
       );
+    const isWaterAt = (x: number, y: number) => {
+      if (!waterMaskPixels) return false;
+      const maskX = clamp(
+        Math.round((x / worldWidth) * (waterMaskCanvas.width - 1)),
+        0,
+        waterMaskCanvas.width - 1,
+      );
+      const maskY = clamp(
+        Math.round((y / worldHeight) * (waterMaskCanvas.height - 1)),
+        0,
+        waterMaskCanvas.height - 1,
+      );
+      return waterMaskPixels[(maskY * waterMaskCanvas.width + maskX) * 4] > 127;
+    };
+    const isNearWater = (x: number, y: number) =>
+      field.waterMask
+        ? [
+            [0, 0],
+            [-30, 0],
+            [30, 0],
+            [0, -30],
+            [0, 30],
+          ].some(([offsetX, offsetY]) =>
+            isWaterAt(x + offsetX, y + offsetY),
+          )
+        : false;
     const recoverFromObstacle = (p: Player, now: number) => {
       if (
         p.state === 'PRISONER' ||
@@ -3220,6 +3283,45 @@ export function BentenganPrototype() {
       x: bases[p.team].x - p.x,
       y: bases[p.team].y - p.y,
     });
+    const resetFallenPlayer = (p: Player, now: number) => {
+      const base = bases[p.team];
+      const side = p.team === 'blue' ? 1 : -1;
+      const lane = (tieHash(p.id) % 5) - 2;
+      p.x = base.x + side * 24;
+      p.y = base.y + lane * 17;
+      p.lastX = p.x;
+      p.lastY = p.y;
+      p.vx = 0;
+      p.vy = 0;
+      p.state = 'IN_BASE';
+      p.exitOrder = 0;
+      p.baseCharge = 0;
+      p.exitDeadline = 0;
+      p.fortCharge = 0;
+      p.parkourUntil = 0;
+      p.action = undefined;
+      p.actionUntil = 0;
+      p.fallSafeUntil = now + 1800;
+      p.fallNoticeUntil = now + 1500;
+      burst(p.x, p.y, '#60e6ff', 14);
+      if (p.controlled) {
+        beep(210, 0.16);
+        log('OOOPSS... HATI-HATI · kembali ke benteng.');
+      }
+    };
+    const riverFallCheck = (now: number) => {
+      if (!field.waterMask || !waterMaskPixels) return;
+      players.forEach((p) => {
+        if (
+          p.state === 'PRISONER' ||
+          now < p.parkourUntil ||
+          now < p.fallSafeUntil ||
+          !isWaterAt(p.x, p.y)
+        )
+          return;
+        resetFallenPlayer(p, now);
+      });
+    };
     const aiVector = (p: Player, now: number) => {
       if (p.state === 'RETURNING') return baseVector(p);
       if (p.state === 'IN_BASE')
@@ -3284,6 +3386,19 @@ export function BentenganPrototype() {
           .filter((p) => p.state === 'PRISONER' && p.prisonOwner === owner)
           .forEach((p, i) => {
             p.prisonIndex = i;
+            if (field.id === 'kanal') {
+              const column = i % 3;
+              const row = Math.floor(i / 3);
+              const leftToRight = prison.x + 34 + column * ((prison.w - 68) / 2);
+              p.x =
+                owner === 'blue'
+                  ? leftToRight
+                  : prison.x + prison.w - (leftToRight - prison.x);
+              p.y = prison.y + 76 + row * 30;
+              p.lastX = p.x;
+              p.lastY = p.y;
+              return;
+            }
             p.x =
               owner === 'blue'
                 ? prison.x + 62 + i * 31
@@ -3800,13 +3915,14 @@ export function BentenganPrototype() {
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       ) {
-        const near = obstacles.some(
-          (o) =>
-            me.x + 44 > o.x &&
-            me.x - 44 < o.x + o.w &&
-            me.y + 44 > o.y &&
-            me.y - 44 < o.y + o.h,
-        );
+        const near =
+          obstacles.some(
+            (o) =>
+              me.x + 44 > o.x &&
+              me.x - 44 < o.x + o.w &&
+              me.y + 44 > o.y &&
+              me.y - 44 < o.y + o.h,
+          ) || isNearWater(me.x, me.y);
         if (near) {
           const parkourDistance = 54 * selected.agility;
           me.parkourUntil = now + 320;
@@ -3901,6 +4017,7 @@ export function BentenganPrototype() {
         );
       });
       resolvePlayerSpacing(now);
+      riverFallCheck(now);
       const exitCandidates: Player[] = [];
       players.forEach((p) => baseCheck(p, dt, now, exitCandidates));
       Array.from(new Map(exitCandidates.map((p) => [p.id, p])).values())
@@ -4713,6 +4830,20 @@ export function BentenganPrototype() {
           p.y - 55,
         );
       }
+      if (now < p.fallNoticeUntil) {
+        const noticeY = p.y - 78 + bob;
+        ctx.font = '900 10px Arial';
+        const noticeWidth = ctx.measureText('OOOPSS... HATI-HATI').width + 18;
+        ctx.fillStyle = 'rgba(18,25,20,.94)';
+        rounded(p.x - noticeWidth / 2, noticeY - 15, noticeWidth, 21, 7);
+        ctx.fill();
+        ctx.strokeStyle = '#f5cf45';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#fff4d1';
+        ctx.textAlign = 'center';
+        ctx.fillText('OOOPSS... HATI-HATI', p.x, noticeY);
+      }
       if (p.state === 'IN_BASE' && p.baseCharge < stats.baseChargeTime) {
         ctx.fillStyle = '#9b9d91';
         ctx.fillRect(p.x - 18, p.y + 40, 36, 4);
@@ -4942,6 +5073,7 @@ export function BentenganPrototype() {
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
       fieldGroundAtlas.removeEventListener('load', invalidateStaticMap);
       fieldBackground?.removeEventListener('load', invalidateStaticMap);
+      fieldWaterMask?.removeEventListener('load', cacheWaterMask);
     };
   }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId]);
 

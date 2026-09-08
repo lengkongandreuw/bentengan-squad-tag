@@ -7,6 +7,7 @@ const sourceDir = path.join(root, 'field-sources');
 const mapSourceDir = path.join(root, 'Assets', 'map');
 const map2SourceDir = path.join(mapSourceDir, 'map2');
 const map3SourceDir = path.join(mapSourceDir, 'map3');
+const map4SourceDir = path.join(mapSourceDir, 'map4');
 const outputDir = path.join(root, 'public', 'field');
 const generatedFile = path.join(root, 'lib', 'field-assets.generated.ts');
 const padding = 8;
@@ -289,6 +290,51 @@ await sharp(map3GuideComposite)
   .webp({ quality: 88, alphaQuality: 100, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'taman-map.webp'));
 
+// Map 4 uses the final authored guide at its original 1699x926 size. The
+// separate source layers stay in Assets/map/map4 for collider authoring and
+// future revisions; the runtime background remains a single clean image.
+const map4GuideWidth = 1699;
+const map4GuideHeight = 926;
+const map4WaterMaskWidth = 850;
+const map4WaterMaskHeight = 463;
+await sharp(path.join(map4SourceDir, 'guide-final.png'))
+  .resize(map4GuideWidth, map4GuideHeight, { fit: 'fill' })
+  .removeAlpha()
+  .webp({ quality: 88, effort: 6, smartSubsample: true })
+  .toFile(path.join(outputDir, 'kanal-map.webp'));
+
+// Build a compact gameplay mask directly from the clean terrain. Blue/cyan
+// river pixels become white; bridges and walkable paving remain black.
+const map4TerrainRaw = await sharp(path.join(map4SourceDir, 'terrain.png'))
+  .resize(map4WaterMaskWidth, map4WaterMaskHeight, { fit: 'fill' })
+  .removeAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true });
+const map4WaterMask = Buffer.alloc(map4WaterMaskWidth * map4WaterMaskHeight);
+for (let pixel = 0; pixel < map4WaterMask.length; pixel++) {
+  const offset = pixel * map4TerrainRaw.info.channels;
+  const red = map4TerrainRaw.data[offset];
+  const green = map4TerrainRaw.data[offset + 1];
+  const blue = map4TerrainRaw.data[offset + 2];
+  const water =
+    blue >= 34 &&
+    blue > red * 1.12 &&
+    green > red * 1.28 &&
+    blue > green * 0.94;
+  map4WaterMask[pixel] = water ? 255 : 0;
+}
+await sharp(map4WaterMask, {
+  raw: {
+    width: map4WaterMaskWidth,
+    height: map4WaterMaskHeight,
+    channels: 1,
+  },
+})
+  .dilate(3)
+  .erode(3)
+  .png({ palette: true, colours: 2, effort: 10 })
+  .toFile(path.join(outputDir, 'kanal-water-mask.png'));
+
 const preparedObjects = [];
 for (const object of objects) {
   const sourcePath = object.source ?? path.join(sourceDir, object.file);
@@ -368,7 +414,7 @@ await sharp({ create: { width: tileWidth * groundColumns, height: tileHeight * g
   .toFile(path.join(outputDir, 'grounds.webp'));
 
 const manifest = {
-  version: 7,
+  version: 8,
   maps: {
     kampung: {
       file: 'kampung-map.webp',
@@ -384,6 +430,16 @@ const manifest = {
       file: 'taman-map.webp',
       width: map3WorldWidth,
       height: map3WorldHeight,
+    },
+    kanal: {
+      file: 'kanal-map.webp',
+      width: map4GuideWidth,
+      height: map4GuideHeight,
+      waterMask: {
+        file: 'kanal-water-mask.png',
+        width: map4WaterMaskWidth,
+        height: map4WaterMaskHeight,
+      },
     },
   },
   objects: { file: 'objects.webp', width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed },

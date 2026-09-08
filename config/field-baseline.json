@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "sources": {
     "air mancur.png": "b42574ac6ae0f04c4b9476c8dbd921828f0715e624222e52e34c939883f13c81",
     "balai.png": "cc59a223396ff3a580e75af3b98eaa666a2587ec93571518a4235dd19e426a35",
@@ -81,7 +81,12 @@
     "map2/terrain-2x1.png": "9dbe3f561ac517203fe9cbee79927c572055b27d600e98818dd5914c84cdb19b",
     "map2/terrain-2x2.png": "804c1608fc856a90da0a389b3658484b402df5bfd5ddb90fb2a57df899f767fe",
     "map3/objects-layout.png": "1ecec32189f1f03bad2591b27b3ac7cc88bae5ac7ff7c2197a2700dd475d8bb5",
-    "map3/terrain.png": "302e13409a5aaa1dd706e1c429f110000ac06973025234e17aee03293cbd2aa9"
+    "map3/terrain.png": "302e13409a5aaa1dd706e1c429f110000ac06973025234e17aee03293cbd2aa9",
+    "map4/border-margin.png": "daa0d04750eeaa2b25195dead7f6a3eead53376cfc32c7cfcd99bbbeb97ef4cb",
+    "map4/center-barriers.png": "a4cbbb42f9501b3e901ac013759b5a73081d999c18a156fbce94f7db1954430b",
+    "map4/guide-final.png": "f8bf8f58781b45276e9ed1dfc110327d81af060c6cdea4fc0da0aa2fd70b2ecf",
+    "map4/objects-colliders.png": "b7493d582f1e28c33ed8a94de666d097e347d8a3d7e5f687bb60b494a69e9c4f",
+    "map4/terrain.png": "134fd8cebba13685413016c6092a4798722110fa08671e36ea00745b33532841"
   },
   "runtime": {
     "animated.webp": "49abbb8cf6dfb77f85fbf8ba17bf30c7c290c636368f8b5d1435774de0a9cf78",
@@ -89,7 +94,9 @@
     "kampung-map.webp": "b5c0373e3f71838c2ce737f708c2dcffede4101d8b75c399c9ac4f9964b59054",
     "pasar-map.webp": "15a81e503893c12594ad9adcce776a96388c0bd63da7200d8eb7568f1fdf2e39",
     "taman-map.webp": "a425d5bdfcc6695e6769cb336068a4381a11bb629d628d4667449b40da50dd36",
-    "manifest.json": "57341734c3b41c6c602247ed8c87916c2776467756707975ce4e19bd69d18c48",
+    "kanal-map.webp": "9809f1c9ea2ceafacef72dbec3783707da8e27d4a9665ce8e0469890d6be64d5",
+    "kanal-water-mask.png": "3f8095bc279b70728e83bbc96a4029b93cd5f7b15b34b40dd74a4bd7b77d3dae",
+    "manifest.json": "182372d624b445c5f6aa73ef41738448406c595474fc9f92780f773e9934a9c2",
     "objects.webp": "72065b592a451a28a246c74e5381f5fe696c0b2521d73fbb1fce94856cdc0ae1"
   }
 }
