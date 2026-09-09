@@ -7,11 +7,22 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 Urutan sumber kebenaran:
 
 1. Instruksi eksplisit pada task yang sedang aktif.
-2. Dokumen ini.
-3. Kode dan konfigurasi yang ada di repository.
-4. Riwayat percakapan lama hanya jika pengguna secara khusus memintanya.
+2. `CHECKPOINT.md` untuk progres task yang belum selesai.
+3. Dokumen ini untuk keputusan proyek yang masih berlaku.
+4. Kode, konfigurasi, dan riwayat Git di repository.
+5. Riwayat percakapan lama hanya jika pengguna secara khusus memintanya.
 
 Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengabaikan** keputusan sebelumnya harus diprioritaskan dan kemudian diringkas kembali ke dokumen ini.
+
+Pada awal task implementasi, baca `memori.md`, `TASK_TEMPLATE.md`, dan
+`CHECKPOINT.md`. Jika checkpoint berstatus `ACTIVE`, lanjutkan dari bagian
+`Next action`; jangan mengulang tahap yang sudah tercatat selesai dan lulus.
+
+Setelah setiap tahap penting, perbarui `CHECKPOINT.md` sebelum melanjutkan.
+Checkpoint minimal harus menyimpan tujuan aktif, pekerjaan selesai, file yang
+diubah, hasil validasi, masalah tersisa, dan tindakan berikutnya. Jika proses
+berhenti karena limit, error eksternal, atau interupsi, checkpoint harus cukup
+lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Ringkasan proyek
 
@@ -25,10 +36,11 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 
 ## Status rilis dan pekerjaan aktif
 
-- Branch publik `main` memuat perbaikan layar hitam akibat validasi collider Map 4.
-- Revisi Map 4 terbaru memperbesar dunia arena 15% menjadi 1954×1065, mempertahankan ukuran karakter serta komposisi grafis, dan harus ikut dalam rilis GitHub berikutnya.
+- Branch publik `main` sudah memuat revisi gameplay mobile dan navigasi hazard melalui commit implementasi `7e2a9c1`.
+- Tidak ada implementasi fitur yang tertunda saat dokumen ini diperbarui; `CHECKPOINT.md` berstatus `IDLE` dan siap diisi oleh task berikutnya.
+- Map 4 memperbesar dunia arena 15% menjadi 1954×1065 dengan ukuran karakter dan komposisi grafis tetap.
 - Lebar efektif dua jembatan Map 4 setelah pembesaran adalah sekitar 75,9 px dan 92 px; keduanya melewati kebutuhan minimum 64 px untuk dua karakter berdampingan.
-- Revisi tersebut sudah lulus `fields:build`, audit gameplay, pemeriksaan TypeScript, dan `build:pages`.
+- Rilis terakhir sudah lulus pemeriksaan TypeScript, audit gameplay lengkap, `build:pages`, uji runtime lokal, serta workflow GitHub Pages.
 
 ## Kontrol gameplay final
 
