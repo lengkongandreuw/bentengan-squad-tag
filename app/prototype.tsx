@@ -257,6 +257,11 @@ const MAP3_GUIDE_WIDTH = 1672;
 const MAP3_GUIDE_HEIGHT = 941;
 const MAP3_WORLD_WIDTH = Math.round(MAP3_GUIDE_WIDTH * 1.15);
 const MAP3_WORLD_HEIGHT = Math.round(MAP3_GUIDE_HEIGHT * 1.15);
+const MAP4_GUIDE_WIDTH = 1699;
+const MAP4_GUIDE_HEIGHT = 926;
+const MAP4_WORLD_SCALE = 1.15;
+const MAP4_WORLD_WIDTH = Math.round(MAP4_GUIDE_WIDTH * MAP4_WORLD_SCALE);
+const MAP4_WORLD_HEIGHT = Math.round(MAP4_GUIDE_HEIGHT * MAP4_WORLD_SCALE);
 const STATIC_MAP_SCALE = 0.5;
 const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
@@ -2218,11 +2223,11 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     waterMask: 'kanal-water-mask.png',
     waterMaskWidth: 850,
     waterMaskHeight: 463,
-    designWidth: 1699,
-    designHeight: 926,
-    width: 1699,
-    height: 926,
-    objectScale: 1,
+    designWidth: MAP4_GUIDE_WIDTH,
+    designHeight: MAP4_GUIDE_HEIGHT,
+    width: MAP4_WORLD_WIDTH,
+    height: MAP4_WORLD_HEIGHT,
+    objectScale: MAP4_WORLD_SCALE,
     structuresInBackground: true,
     bases: {
       blue: { x: 180, y: 446 },

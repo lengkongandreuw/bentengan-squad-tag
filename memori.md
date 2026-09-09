@@ -1,4 +1,4 @@
-# Bentengan Squad Tag — Konteks Kanonik
+# Bentengan Squad Tag — Memori Proyek
 
 Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokumen ini pada task baru agar tidak perlu membaca riwayat percakapan lama.
 
@@ -22,6 +22,13 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 - Empat belas karakter dibagi tetap menjadi Tim Merah dan Tim Hijau.
 - Entry gameplay utama dan konfigurasi arena: `app/prototype.tsx`.
 - Aturan tim dan spawn: `config/game-rules.json`.
+
+## Status rilis dan pekerjaan aktif
+
+- Branch publik `main` memuat perbaikan layar hitam akibat validasi collider Map 4.
+- Revisi Map 4 terbaru memperbesar dunia arena 15% menjadi 1954×1065, mempertahankan ukuran karakter serta komposisi grafis, dan harus ikut dalam rilis GitHub berikutnya.
+- Lebar efektif dua jembatan Map 4 setelah pembesaran adalah sekitar 75,9 px dan 92 px; keduanya melewati kebutuhan minimum 64 px untuk dua karakter berdampingan.
+- Revisi tersebut sudah lulus `fields:build`, audit gameplay, pemeriksaan TypeScript, dan `build:pages`.
 
 ## Kontrol gameplay final
 
@@ -93,10 +100,10 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 - Kesulitan: hard.
 - Sumber panduan final: `Assets/map/map4/guide-final.png` pada ukuran asli 1699×926.
 - Sumber terrain/sungai: `Assets/map/map4/terrain.png`; sumber margin, objek/penjara, dan barrier tengah tersimpan bersama di `Assets/map/map4/`.
-- Background runtime `public/field/kanal-map.webp` mempertahankan susunan panduan asli tanpa pembesaran 15% atau pengecilan objek.
+- Background runtime `public/field/kanal-map.webp` mempertahankan susunan panduan asli, sementara dunia Map 4 dirender 15% lebih besar secara proporsional agar arena lebih luas dibanding karakter tanpa mengubah komposisi grafis.
 - Collider tersembunyi mengikuti footprint pagar margin, planter, barrier tengah, dan objek padat; visual tersebut tidak digambar ulang di atas background.
 - `public/field/kanal-water-mask.png` dibangun dari terrain. Pemain maupun bot yang masuk sungai di luar jembatan kembali ke bentengnya dan menampilkan `OOOPSS... HATI-HATI` selama 1,5 detik.
-- Jembatan merupakan area aman. Parkour dari tepi sungai juga dapat menyeberang karena pemeriksaan jatuh dinonaktifkan selama animasi parkour.
+- Jembatan merupakan area aman dengan lebar efektif yang cukup untuk dua karakter menyeberang berdampingan. Parkour dari tepi sungai juga dapat menyeberang karena pemeriksaan jatuh dinonaktifkan selama animasi parkour.
 
 ## Pipeline aset
 
@@ -146,7 +153,8 @@ Baseline hanya boleh diperbarui setelah perubahan aset memang disengaja dan suda
 - GitHub Actions menjalankan `.github/workflows/pages.yml` pada push ke `main`.
 - URL publik: <https://lengkongandreuw.github.io/bentengan-squad-tag/>.
 - Konfigurasi Sites tersimpan di `.openai/hosting.json`, tetapi publikasi ke Sites adalah tujuan terpisah dari GitHub Pages.
-- Jangan melakukan push atau publikasi ke layanan eksternal kecuali task aktif memberi izin eksplisit.
+- Setiap implementasi yang selesai dan lolos pemeriksaan harus langsung di-commit, di-push ke remote `github` branch `main`, dan ditunggu sampai workflow GitHub Pages selesai.
+- Jangan publish hanya jika task aktif secara eksplisit mengatakan `jangan publish`, atau jika task hanya meminta diskusi/inspeksi tanpa perubahan implementasi.
 
 ## Batas perubahan default
 

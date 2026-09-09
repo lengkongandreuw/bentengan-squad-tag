@@ -86,7 +86,7 @@ assert(fieldManifest.version === 8 && Object.keys(fieldManifest.objects.assets).
 assert(fieldManifest.maps?.kampung?.width === 1769 && fieldManifest.maps?.kampung?.height === 1260, 'sembilan potongan kuadran Map 1 dimirror dan diperluas 15% menjadi terrain 1769×1260');
 assert(fieldManifest.maps?.pasar?.width === 1923 && fieldManifest.maps?.pasar?.height === 1082, 'empat potongan kuadran Map 2 dimirror dan diperluas 15% menjadi terrain 1923×1082');
 assert(fieldManifest.maps?.taman?.width === 1923 && fieldManifest.maps?.taman?.height === 1082, 'terrain dan margin Map 3 mengikuti panduan lalu diperluas 15% menjadi 1923×1082');
-assert(fieldManifest.maps?.kanal?.width === 1699 && fieldManifest.maps?.kanal?.height === 926 && fieldManifest.maps?.kanal?.waterMask?.width === 850 && fieldManifest.maps?.kanal?.waterMask?.height === 463, 'Map 4 memakai ukuran panduan asli 1699×926 dan mask air setengah resolusi');
+assert(fieldManifest.maps?.kanal?.width === 1699 && fieldManifest.maps?.kanal?.height === 926 && fieldManifest.maps?.kanal?.waterMask?.width === 850 && fieldManifest.maps?.kanal?.waterMask?.height === 463, 'aset Map 4 mempertahankan panduan asli 1699×926 dan mask air setengah resolusi');
 assert(Object.keys(fieldManifest.animated.animations).join(',') === 'fountain,flag,vendor,boost25,boost40,boost75,boost100', 'tujuh animasi objek dan pickup terdaftar eksplisit');
 for (const [id, animation] of Object.entries(fieldManifest.animated.animations)) assert(animation.frames.length === 6, `${id}: enam frame animasi terpotong lengkap`);
 assert(Object.keys(fieldManifest.grounds.tiles).join(',') === 'grass,dirt,paving,concrete,kampungGround,parkGrass,parkPaving,canalGrass', 'delapan pola tanah lama dan baru dipotong tanpa label sumber');
@@ -106,6 +106,7 @@ const pasarMap = await sharp(pasarMapPath).metadata();
 const tamanMap = await sharp(tamanMapPath).metadata();
 const kanalMap = await sharp(kanalMapPath).metadata();
 const kanalWaterMask = await sharp(kanalWaterMaskPath).metadata();
+const kanalWaterMaskRaw = await sharp(kanalWaterMaskPath).raw().toBuffer({ resolveWithObject: true });
 const fieldRuntimeBytes = (await stat(fieldObjectsPath)).size + (await stat(fieldAnimatedPath)).size + (await stat(fieldGroundsPath)).size + (await stat(kampungMapPath)).size + (await stat(pasarMapPath)).size + (await stat(tamanMapPath)).size + (await stat(kanalMapPath)).size + (await stat(kanalWaterMaskPath)).size;
 const fieldDecodedBytes = (fieldObjects.width ?? 0) * (fieldObjects.height ?? 0) * 4 + (fieldAnimated.width ?? 0) * (fieldAnimated.height ?? 0) * 4 + (fieldGrounds.width ?? 0) * (fieldGrounds.height ?? 0) * 4 + (kampungMap.width ?? 0) * (kampungMap.height ?? 0) * 4 + (pasarMap.width ?? 0) * (pasarMap.height ?? 0) * 4 + (tamanMap.width ?? 0) * (tamanMap.height ?? 0) * 4 + (kanalMap.width ?? 0) * (kanalMap.height ?? 0) * 4 + (kanalWaterMask.width ?? 0) * (kanalWaterMask.height ?? 0) * 4;
 assert(fieldObjects.width === 2048 && fieldObjects.height === 2176 && fieldObjects.hasAlpha, 'atlas objek statis v8 2048×2176 transparan dan terpotong rapat');
@@ -116,6 +117,19 @@ assert(pasarMap.width === 1923 && pasarMap.height === 1082 && !pasarMap.hasAlpha
 assert(tamanMap.width === 1923 && tamanMap.height === 1082 && tamanMap.hasAlpha, 'terrain dan seluruh objek Map 3 berukuran 15% lebih luas dengan margin transparan');
 assert(kanalMap.width === 1699 && kanalMap.height === 926 && !kanalMap.hasAlpha, 'background Map 4 mengikuti panduan asli dan tidak menyimpan alpha mubazir');
 assert(kanalWaterMask.width === 850 && kanalWaterMask.height === 463 && !kanalWaterMask.hasAlpha, 'mask sungai Map 4 ringkas, tanpa alpha, dan mempertahankan celah jembatan');
+const bridgeClearSpan = (x, y) => {
+  const { data, info } = kanalWaterMaskRaw;
+  const isWater = row => data[(row * info.width + x) * info.channels] > 127;
+  let top = y;
+  let bottom = y;
+  while (top > 0 && !isWater(top - 1)) top--;
+  while (bottom < info.height - 1 && !isWater(bottom + 1)) bottom++;
+  return bottom - top + 1;
+};
+const map4WorldHeight = Math.round(926 * 1.15);
+const twoPlayerBridgeWidth = 2 * 13 + 30 + 8;
+const bridgeWorldWidths = [250, 600].map(x => bridgeClearSpan(x, 231) * map4WorldHeight / kanalWaterMaskRaw.info.height);
+assert(bridgeWorldWidths.every(width => width >= twoPlayerBridgeWidth), 'dua jembatan Map 4 menyediakan ruang bagi dua karakter untuk menyeberang berdampingan');
 assert(fieldRuntimeBytes <= 3500 * 1024, `delapan aset field ${(fieldRuntimeBytes / 1024).toFixed(0)} KiB berada dalam budget 3.500 KiB`);
 assert(fieldDecodedBytes <= 56 * 1024 * 1024, `memori decode field ${(fieldDecodedBytes / 1024 / 1024).toFixed(1)} MiB berada dalam budget 56 MiB`);
 assert(prototypeSource.includes('const staticLayer = document.createElement(\'canvas\')') && prototypeSource.includes('if (staticLayerContext && staticMapDirty)'), 'field statis diraster sekali dan di-cache di luar render loop');
@@ -127,6 +141,7 @@ assert((prototypeSource.match(/objectScale: (?:0\.9|MAP_OBJECT_SCALE)/g) ?? []).
 assert(prototypeSource.includes('drawSceneryLayer(true)') && prototypeSource.includes('drawSceneryLayer(false)') && prototypeSource.includes('Boolean(item.underlay) === underlay'), 'objek margin diraster di lapisan bawah sebelum benteng dan penjara');
 assert(prototypeSource.includes('const NEAR_FIELD_DETAIL_RADIUS = 560') && prototypeSource.includes('drawNearbyFieldDetails(me, activeCamera)') && prototypeSource.includes("activeCamera === 'overview'"), 'objek dekat pemain digambar ulang tajam tanpa memperbesar cache atau mode overview');
 assert(prototypeSource.includes('const GUIDE_FIELD_CONFIGS: FieldConfig[]') && prototypeSource.includes("background: 'kanal-map.webp'") && prototypeSource.includes("waterMask: 'kanal-water-mask.png'"), 'Map 4 memakai panduan final, collider tersembunyi, dan mask sungai khusus');
+assert(prototypeSource.includes('const MAP4_WORLD_SCALE = 1.15') && prototypeSource.includes('width: MAP4_WORLD_WIDTH') && prototypeSource.includes('height: MAP4_WORLD_HEIGHT') && prototypeSource.includes('objectScale: MAP4_WORLD_SCALE'), 'dunia Map 4 diperbesar 15% secara proporsional tanpa memperbesar karakter');
 assert(prototypeSource.includes('riverFallCheck(now)') && prototypeSource.includes('now < p.parkourUntil') && prototypeSource.includes("'OOOPSS... HATI-HATI'"), 'pemain dan bot yang jatuh di sungai kembali ke benteng, sementara parkour aman dan peringatan tampil');
 assert((prototypeSource.match(/guide(?:Obstacle|Collider)\(/g) ?? []).length >= 80, 'konfigurasi panduan memiliki kepadatan halangan dan collider bermakna sebelum skala arena diterapkan');
 assert(prototypeSource.includes('kepadatan arena tidak mencukupi') && prototypeSource.includes('keluar batas arena') && prototypeSource.includes('masuk zona penjara') && prototypeSource.includes('menutup akses benteng'), 'validator geometri mencegah arena kosong, objek keluar batas, dan penjara terhalang');

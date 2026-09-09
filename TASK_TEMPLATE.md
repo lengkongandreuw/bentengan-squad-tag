@@ -3,7 +3,7 @@
 Salin blok di bawah ini ke task baru dan hapus bagian yang tidak diperlukan.
 
 ```text
-Baca PROJECT_CONTEXT.md dan gunakan sebagai konteks proyek. Jangan membaca atau
+Baca memori.md dan gunakan sebagai konteks proyek. Jangan membaca atau
 mengandalkan percakapan task lama kecuali saya secara khusus memintanya.
 
 MODE
@@ -39,7 +39,8 @@ ANGGARAN VERIFIKASI
 - Hentikan ketika kriteria selesai sudah terbukti.
 
 PUBLIKASI
-[Jangan publish / commit lokal saja / push ke GitHub dan tunggu GitHub Pages]
+[Default: push ke GitHub branch main dan tunggu GitHub Pages. Tulis `jangan publish`
+jika task ini harus tetap lokal.]
 
 OUTPUT AKHIR
 Laporkan file yang berubah, pemeriksaan yang dijalankan, hasilnya, URL publik jika
@@ -49,7 +50,7 @@ dipublish, dan masalah yang masih tersisa. Jawab ringkas.
 ## Contoh singkat untuk revisi map
 
 ```text
-Baca PROJECT_CONTEXT.md. Implementasikan revisi Map 3 Taman Kota berdasarkan
+Baca memori.md. Implementasikan revisi Map 3 Taman Kota berdasarkan
 Assets/map/map3/guide-final.png. Instruksi ini menggantikan desain Map 3 lama.
 
 Pertahankan Map 1, Map 2, Map 4, karakter, audio, UI, dan gameplay. Margin berada
@@ -60,4 +61,3 @@ Validasi hanya dengan fields:build, audit, dan build:pages. Jangan menjalankan
 sprites:build. Setelah semua pemeriksaan lolos, push ke remote github branch main
 dan tunggu GitHub Pages selesai.
 ```
-
