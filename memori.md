@@ -40,6 +40,7 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 - Jeda: `P`.
 - Meter ultimate Raja terisi otomatis dan mendapat bonus dari tag serta rescue.
 - Meter ultimate Kaka mengikuti pengisian Raja: otomatis 45 detik, tag +20, dan rescue +30.
+- Tombol musik tersedia di menu, HUD pertandingan, dan layar jeda. Opsi ini hanya mematikan musik latar, mempertahankan ambience serta seluruh sound effect, dan tersimpan di browser untuk kunjungan berikutnya.
 
 ## Ultimate karakter
 

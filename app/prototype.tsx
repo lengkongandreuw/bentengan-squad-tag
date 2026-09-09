@@ -22,6 +22,7 @@ import {
   Shield,
   Users,
   Volume2,
+  VolumeX,
   Wrench,
   X,
   Zap,
@@ -276,6 +277,7 @@ const RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4;
 const KAKA_ULTIMATE_CAST_MS = 3600;
 const KAKA_ULTIMATE_FRAME_COUNT = 9;
 const KAKA_ULTIMATE_SHIELD_MS = 5000;
+const MUSIC_MUTED_STORAGE_KEY = 'bentengan:music-muted';
 const ULTIMATE_CHARACTER_IDS = new Set<CharacterId>(['raja', 'kaka']);
 const DIFFICULTY_PROFILES = {
   easy: {
@@ -2588,6 +2590,7 @@ export function BentenganPrototype() {
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
   const [ultimateBannerVisible, setUltimateBannerVisible] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [musicMuted, setMusicMuted] = useState(false);
   const selected = CHARACTER_BY_ID[selectedId];
   const availableCharacters = useMemo(
     () =>
@@ -2623,6 +2626,28 @@ export function BentenganPrototype() {
     }
   };
 
+  const toggleBackgroundMusic = () => {
+    setMusicMuted((muted) => {
+      const next = !muted;
+      try {
+        window.localStorage.setItem(MUSIC_MUTED_STORAGE_KEY, next ? '1' : '0');
+      } catch {
+        /* Preferensi audio tetap opsional jika storage browser diblokir. */
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    try {
+      setMusicMuted(
+        window.localStorage.getItem(MUSIC_MUTED_STORAGE_KEY) === '1',
+      );
+    } catch {
+      /* Gunakan musik aktif sebagai default jika storage tidak tersedia. */
+    }
+  }, []);
+
   useEffect(() => {
     const unlock = () => setAudioUnlocked(true);
     document.addEventListener('pointerdown', unlock, { once: true });
@@ -2634,7 +2659,7 @@ export function BentenganPrototype() {
   }, []);
 
   useEffect(() => {
-    if (!audioUnlocked) return;
+    if (!audioUnlocked || musicMuted) return;
     const music = new Audio(
       uiAudioAsset(
         mode === 'playing' ? 'ingame-music.mp3' : 'opening-title.mp3',
@@ -2642,25 +2667,24 @@ export function BentenganPrototype() {
     );
     music.loop = true;
     music.volume = mode === 'playing' ? 0.34 : 0.42;
-    const ambience =
-      mode === 'playing'
-        ? new Audio(uiAudioAsset('ingame-ambience.mp3'))
-        : null;
-    if (ambience) {
-      ambience.loop = true;
-      ambience.volume = 0.22;
-    }
     void music.play().catch(() => undefined);
-    if (ambience) void ambience.play().catch(() => undefined);
     return () => {
       music.pause();
       music.removeAttribute('src');
       music.load();
-      if (ambience) {
-        ambience.pause();
-        ambience.removeAttribute('src');
-        ambience.load();
-      }
+    };
+  }, [audioUnlocked, mode, musicMuted]);
+
+  useEffect(() => {
+    if (!audioUnlocked || mode !== 'playing') return;
+    const ambience = new Audio(uiAudioAsset('ingame-ambience.mp3'));
+    ambience.loop = true;
+    ambience.volume = 0.22;
+    void ambience.play().catch(() => undefined);
+    return () => {
+      ambience.pause();
+      ambience.removeAttribute('src');
+      ambience.load();
     };
   }, [audioUnlocked, mode]);
 
@@ -5534,6 +5558,15 @@ export function BentenganPrototype() {
         )}
         <div className={`pregame-actions step-${menuStep}`}>
           <button
+            className={`music-toggle ${musicMuted ? 'muted' : ''}`}
+            onClick={toggleBackgroundMusic}
+            aria-pressed={musicMuted}
+            aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+          >
+            {musicMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            <span>{musicMuted ? 'MUSIK MATI' : 'MUSIK AKTIF'}</span>
+          </button>
+          <button
             className="rules-button graffiti-primary"
             onClick={() => setRulesOpen(true)}
           >
@@ -5608,6 +5641,15 @@ export function BentenganPrototype() {
           </span>
         </div>
         <div className="top-actions">
+          <button
+            className={`icon-button ${musicMuted ? 'muted' : ''}`}
+            onClick={toggleBackgroundMusic}
+            aria-pressed={musicMuted}
+            aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+            title={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+          >
+            {musicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
           <button
             className="icon-button hud-menu-button"
             onClick={() => setMissionOpen((value) => !value)}
@@ -6104,6 +6146,13 @@ export function BentenganPrototype() {
                     <button onClick={() => keys.current.add('p')}>
                       <Play size={17} fill="currentColor" /> Lanjutkan
                     </button>
+                    <button
+                      onClick={toggleBackgroundMusic}
+                      aria-pressed={musicMuted}
+                    >
+                      {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+                      {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+                    </button>
                     <button onClick={() => setRun((value) => value + 1)}>
                       <RotateCcw size={17} /> Mulai ulang
                     </button>
@@ -6256,8 +6305,10 @@ export function BentenganPrototype() {
             </div>
           )}
           <div className="audio-note">
-            <Volume2 size={13} /> Musik menu dan pertandingan aktif setelah klik
-            atau tekan tombol pertama.
+            {musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+            {musicMuted
+              ? 'Musik latar mati. Suara arena dan efek tetap aktif.'
+              : 'Musik menu dan pertandingan aktif setelah interaksi pertama.'}
           </div>
         </aside>
       </section>
