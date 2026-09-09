@@ -267,7 +267,9 @@ const STATIC_MAP_SCALE = 0.5;
 const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
 const BASE_REENTRY_COOLDOWN_MS = 1500;
-const AI_ALLY_SPEED_MULTIPLIER = 0.92;
+const AI_SPEED_MULTIPLIER = 1;
+const AI_BOOST_THRESHOLD = -0.15;
+const AI_BOOST_DRAIN_MULTIPLIER = 0.66;
 const RAJA_ULTIMATE_RECHARGE_SECONDS = 45;
 const RAJA_ULTIMATE_TAG_BONUS = 20;
 const RAJA_ULTIMATE_RESCUE_BONUS = 30;
@@ -281,34 +283,34 @@ const MUSIC_MUTED_STORAGE_KEY = 'bentengan:music-muted';
 const ULTIMATE_CHARACTER_IDS = new Set<CharacterId>(['raja', 'kaka']);
 const DIFFICULTY_PROFILES = {
   easy: {
-    enemySpeed: 0.94,
+    enemySpeed: 1,
     steerDistance: 70,
-    boostThreshold: 0.22,
+    boostThreshold: AI_BOOST_THRESHOLD,
     prediction: 0.08,
-    playerBias: 45,
+    playerBias: 0,
     threatRadius: 145,
     rescueCutoff: 0.9,
-    boostDrain: 0.72,
+    boostDrain: AI_BOOST_DRAIN_MULTIPLIER,
   },
   normal: {
     enemySpeed: 1,
     steerDistance: 86,
-    boostThreshold: -0.16,
+    boostThreshold: AI_BOOST_THRESHOLD,
     prediction: 0.18,
-    playerBias: 95,
+    playerBias: 0,
     threatRadius: 165,
     rescueCutoff: 1.55,
-    boostDrain: 0.6,
+    boostDrain: AI_BOOST_DRAIN_MULTIPLIER,
   },
   hard: {
-    enemySpeed: 1.04,
+    enemySpeed: 1,
     steerDistance: 100,
-    boostThreshold: -0.48,
+    boostThreshold: AI_BOOST_THRESHOLD,
     prediction: 0.28,
-    playerBias: 150,
+    playerBias: 0,
     threatRadius: 185,
     rescueCutoff: 2.2,
-    boostDrain: 0.5,
+    boostDrain: AI_BOOST_DRAIN_MULTIPLIER,
   },
 } satisfies Record<
   DifficultyId,
@@ -3312,6 +3314,91 @@ export function BentenganPrototype() {
       x: bases[p.team].x - p.x,
       y: bases[p.team].y - p.y,
     });
+    const directionIsTraversable = (
+      p: Player,
+      direction: { x: number; y: number },
+      distanceToProbe: number,
+      now: number,
+    ) => {
+      const magnitude = Math.hypot(direction.x, direction.y);
+      if (magnitude < 0.01) return true;
+      const unitX = direction.x / magnitude;
+      const unitY = direction.y / magnitude;
+      const samples = Math.max(5, Math.ceil(distanceToProbe / 14));
+      for (let step = 1; step <= samples; step += 1) {
+        const distanceAlong = (distanceToProbe * step) / samples;
+        const x = p.x + unitX * distanceAlong;
+        const y = p.y + unitY * distanceAlong;
+        if (blocked(x, y, p, now) || isWaterAt(x, y)) return false;
+      }
+      return true;
+    };
+    const navigateAroundHazards = (
+      p: Player,
+      desired: { x: number; y: number },
+      now: number,
+      probeDistance: number,
+      turnBias: number,
+    ) => {
+      const magnitude = Math.hypot(desired.x, desired.y);
+      if (magnitude < 0.01) return desired;
+      const distanceToProbe = Math.min(probeDistance, Math.max(48, magnitude));
+      if (directionIsTraversable(p, desired, distanceToProbe, now))
+        return desired;
+      const baseAngle = Math.atan2(desired.y, desired.x);
+      const side = turnBias >= 0 ? 1 : -1;
+      for (const offset of [0.38, -0.38, 0.7, -0.7, 1.02, -1.02, 1.42, -1.42]) {
+        const angle = baseAngle + offset * side;
+        const candidate = {
+          x: Math.cos(angle) * magnitude,
+          y: Math.sin(angle) * magnitude,
+        };
+        if (directionIsTraversable(p, candidate, distanceToProbe, now))
+          return candidate;
+      }
+      const fallback = steerAroundRects(
+        p,
+        desired,
+        obstacles,
+        PLAYER_COLLISION_RADIUS,
+        probeDistance,
+        turnBias,
+      );
+      return directionIsTraversable(p, fallback, distanceToProbe, now)
+        ? fallback
+        : { x: 0, y: 0 };
+    };
+    const findParkourLanding = (
+      p: Player,
+      direction: { x: number; y: number },
+      nominalDistance: number,
+      now: number,
+    ) => {
+      const magnitude = Math.hypot(direction.x, direction.y);
+      if (magnitude < 0.01) return null;
+      const unitX = direction.x / magnitude;
+      const unitY = direction.y / magnitude;
+      const maximumDistance = Math.max(nominalDistance, 132);
+      let crossedWater = false;
+      for (let distanceAlong = 10; distanceAlong <= maximumDistance; distanceAlong += 6) {
+        const x = clamp(p.x + unitX * distanceAlong, 34, worldWidth - 34);
+        const y = clamp(p.y + unitY * distanceAlong, 58, worldHeight - 32);
+        const water = isWaterAt(x, y);
+        crossedWater ||= water;
+        if (
+          crossedWater &&
+          !water &&
+          distanceAlong >= nominalDistance * 0.72 &&
+          !blocked(x, y, p, now)
+        )
+          return { x, y, crossedWater: true };
+      }
+      const x = clamp(p.x + unitX * nominalDistance, 34, worldWidth - 34);
+      const y = clamp(p.y + unitY * nominalDistance, 58, worldHeight - 32);
+      if (!crossedWater && !blocked(x, y, p, now))
+        return { x, y, crossedWater: false };
+      return null;
+    };
     const resetFallenPlayer = (p: Player, now: number) => {
       const base = bases[p.team];
       const side = p.team === 'blue' ? 1 : -1;
@@ -3954,19 +4041,34 @@ export function BentenganPrototype() {
           ) || isNearWater(me.x, me.y);
         if (near) {
           const parkourDistance = 54 * selected.agility;
-          me.parkourUntil = now + 320;
-          me.boost = Math.max(0, me.boost - parkourCost);
-          me.boostReadyAt = now + 20000;
-          me.x = clamp(me.x + dx * parkourDistance, 34, worldWidth - 34);
-          me.y = clamp(me.y + dy * parkourDistance, 58, worldHeight - 32);
-          mission.parkour = true;
-          burst(me.x, me.y, '#f4df9a', 9);
-          beep(460);
+          const landing = findParkourLanding(
+            me,
+            { x: dx, y: dy },
+            parkourDistance,
+            now,
+          );
+          if (landing) {
+            me.parkourUntil = now + 360;
+            me.fallSafeUntil = now + (landing.crossedWater ? 620 : 430);
+            me.boost = Math.max(0, me.boost - parkourCost);
+            me.boostReadyAt = now + 20000;
+            me.x = landing.x;
+            me.y = landing.y;
+            mission.parkour = true;
+            burst(me.x, me.y, landing.crossedWater ? '#65e9ff' : '#f4df9a', 9);
+            beep(460);
+          }
         }
       }
       parkourLatch = parkourKey;
       if (me.state === 'RETURNING') {
-        const vector = baseVector(me);
+        const vector = navigateAroundHazards(
+          me,
+          baseVector(me),
+          now,
+          104,
+          Math.sin(me.aiSeed + now / 1700),
+        );
         move(
           me,
           vector.x,
@@ -4000,20 +4102,18 @@ export function BentenganPrototype() {
         const stats = CHARACTER_BY_ID[p.characterId];
         const enemyOfPlayer = p.team !== me.team;
         const desired = aiVector(p, now);
-        const vector = steerAroundRects(
+        const vector = navigateAroundHazards(
           p,
           desired,
-          obstacles,
-          PLAYER_COLLISION_RADIUS,
+          now,
           enemyOfPlayer ? aiProfile.steerDistance : 78,
           Math.sin(p.aiSeed + now / 1700),
         );
-        const far =
-          Math.hypot(vector.x, vector.y) > (enemyOfPlayer ? 120 : 165);
-        const boostThreshold = enemyOfPlayer ? aiProfile.boostThreshold : -0.15;
+        const far = Math.hypot(vector.x, vector.y) > 145;
+        const boostThreshold = AI_BOOST_THRESHOLD;
         const boostAi =
           p.state === 'ACTIVE' &&
-          p.boost > (enemyOfPlayer ? 7 : 12) &&
+          p.boost > 10 &&
           far &&
           Math.sin(now / 950 + p.aiSeed) > boostThreshold;
         if (boostAi) {
@@ -4021,7 +4121,7 @@ export function BentenganPrototype() {
             0,
             p.boost -
               stats.boostDrain *
-                (enemyOfPlayer ? aiProfile.boostDrain : 0.66) *
+                AI_BOOST_DRAIN_MULTIPLIER *
                 dt,
           );
           p.boostReadyAt = now + 20000;
@@ -4037,9 +4137,7 @@ export function BentenganPrototype() {
           stats.speed *
             comboMultiplier *
             rajaUltimateMultiplier(p) *
-            (enemyOfPlayer
-              ? aiProfile.enemySpeed * field.aiIntensity
-              : AI_ALLY_SPEED_MULTIPLIER) *
+            AI_SPEED_MULTIPLIER *
             (boostAi ? stats.boostMultiplier : 1),
           dt,
           now,
@@ -5110,6 +5208,10 @@ export function BentenganPrototype() {
     () => Object.values(snapshot.mission).filter(Boolean).length,
     [snapshot.mission],
   );
+  const playerMechanicsLocked =
+    snapshot.state === 'PRISONER' ||
+    snapshot.ultimateCasting ||
+    snapshot.paused;
   const start = () => {
     if (!selectedFaction) return;
     playAudioCue('press-play.mp3', 0.64);
@@ -5405,6 +5507,16 @@ export function BentenganPrototype() {
                       eager={selectedId === character.id}
                       variant="full"
                     />
+                    {ULTIMATE_CHARACTER_IDS.has(character.id) && (
+                      <strong className="ultimate-roster-badge">
+                        {character.id === 'kaka' ? (
+                          <Shield size={12} />
+                        ) : (
+                          <Zap size={12} />
+                        )}
+                        ULTIMATE
+                      </strong>
+                    )}
                     <span>{character.name}</span>
                   </button>
                 ))}
@@ -5595,8 +5707,8 @@ export function BentenganPrototype() {
               <h2 id="rules-title">Cara merebut kemenangan</h2>
               <ol>
                 <li>
-                  <b>Keluar dari benteng.</b> Urutan keluar menentukan siapa
-                  yang boleh menangkap siapa.
+                  <b>Isi kesiapan di benteng sendiri.</b> Setelah siap, keluar
+                  dalam 5 detik. Kembali ke benteng untuk memperbarui urutan.
                 </li>
                 <li>
                   <b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara
@@ -5604,20 +5716,34 @@ export function BentenganPrototype() {
                 </li>
                 <li>
                   <b>Sentuh rekan terluar di penjara</b> untuk membebaskan
-                  seluruh rantai.
+                  seluruh rantai. Pemain bebas pulang otomatis dengan perisai
+                  singkat dan memilih jalan aman dari collider serta sungai.
                 </li>
                 <li>
                   <b>Rangkai combo aksi tim.</b> Tag atau rescue dari rekan
                   berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.
                 </li>
                 <li>
-                  <b>Serbu benteng lawan.</b> Isi meter benteng tanpa tertangkap
-                  untuk menang.
+                  <b>Menangkan ronde.</b> Tahan seluruh lawan selama 2 detik
+                  atau isi benteng lawan selama 1,5 detik. Pertandingan dimenangi
+                  tim pertama yang merebut 2 ronde.
+                </li>
+                <li>
+                  <b>Waktu normal 4 menit.</b> Skor seri berlanjut ke sudden
+                  death. Arena berganti setelah 3 kemenangan pertandingan.
+                </li>
+                <li>
+                  <b>Map Kanal:</b> seberangi sungai lewat jembatan atau parkour.
+                  Jatuh ke air mengembalikan pemain ke benteng.
+                </li>
+                <li>
+                  <b>Ultimate Raja dan Kaka.</b> Raja mempercepat rekan aktif;
+                  Kaka membuat seluruh tim kebal tag selama 5 detik.
                 </li>
               </ol>
               <p>
-                WASD gerak · Space sprint · Shift parkour · Caps Lock Ultimate
-                Raja · P jeda
+                Desktop: WASD gerak · Space sprint · Shift parkour · Caps Lock
+                Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.
               </p>
             </div>
           </div>
@@ -5689,6 +5815,27 @@ export function BentenganPrototype() {
               </b>
               <span>{snapshot.red}</span>
             </div>
+          </div>
+          <div className="arena-intel" aria-label="Status aturan pertandingan">
+            <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
+              <Flag size={12} />
+              {snapshot.baseGrace > 0
+                ? `KELUAR ${snapshot.baseGrace}s`
+                : 'BASE AMAN'}
+            </span>
+            <span
+              className={
+                snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
+              }
+            >
+              <Lock size={12} /> {snapshot.fortLock.toUpperCase()}
+            </span>
+            <span>
+              <BatteryCharging size={12} /> REFILL {snapshot.pickupCount}
+            </span>
+            <span>
+              <RotateCcw size={12} /> ROTASI {snapshot.fieldWins}/3
+            </span>
           </div>
           {false && (
             <div className="start-panel character-select">
@@ -5914,6 +6061,15 @@ export function BentenganPrototype() {
                 <strong>{snapshot.state.replace('_', ' ')}</strong>
                 <em>PRIORITAS #{snapshot.order || '—'}</em>
               </div>
+              {snapshot.state === 'PRISONER' && !snapshot.paused && (
+                <div className="prisoner-notice" role="status">
+                  <Lock size={22} />
+                  <span>
+                    <b>MENUNGGU DIBEBASKAN</b>
+                    <small>Lain kali hati-hati!</small>
+                  </span>
+                </div>
+              )}
               <button
                 className="active-objective"
                 onClick={() => setMissionOpen(true)}
@@ -6024,27 +6180,31 @@ export function BentenganPrototype() {
                   <small>{snapshot.ultimateMeter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30'}</small>
                 </div>
               )}
-              <div className="action-dock" aria-label="Aksi pemain">
+              <div
+                className={`action-dock ${playerMechanicsLocked ? 'mechanics-inactive' : ''}`}
+                aria-label="Aksi pemain"
+                aria-disabled={playerMechanicsLocked}
+              >
                 <span className="ready-action">
                   <Zap size={19} />
-                  <b>1</b>
+                  <b>SPACE</b>
                   <small>SPRINT</small>
                 </span>
                 <span>
                   <Gauge size={19} />
-                  <b>2</b>
+                  <b>SHIFT</b>
                   <small>PARKOUR</small>
                 </span>
                 <span
                   className={snapshot.comboSurgeRemaining ? 'combo-ready' : ''}
                 >
                   <Users size={19} />
-                  <b>3</b>
+                  <b>AUTO</b>
                   <small>COMBO</small>
                 </span>
                 <span>
                   <Shield size={19} />
-                  <b>4</b>
+                  <b>AUTO</b>
                   <small>RESCUE</small>
                 </span>
                 {ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
@@ -6052,7 +6212,7 @@ export function BentenganPrototype() {
                     className={`ultimate-action ${selectedId === 'kaka' ? 'kaka-ultimate' : ''} ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
                     onClick={() => tapKey('capslock')}
                     disabled={
-                      snapshot.ultimateMeter < 100 || snapshot.ultimateCasting
+                      snapshot.ultimateMeter < 100 || playerMechanicsLocked
                     }
                     aria-label={`${selectedId === 'kaka' ? 'Perisai Hijau' : 'Titah Halilintar'} ${Math.floor(snapshot.ultimateMeter)} persen`}
                   >
@@ -6075,7 +6235,7 @@ export function BentenganPrototype() {
                 )}
                 <span className="locked">
                   <Lock size={16} />
-                  <b>6</b>
+                  <b>—</b>
                 </span>
               </div>
               {snapshot.ultimateBuffRemaining > 0 && (
@@ -6096,16 +6256,32 @@ export function BentenganPrototype() {
               </div>
               <div className="mobile-controls" aria-label="Kontrol sentuh">
                 <div className="touch-dpad">
-                  <button aria-label="Gerak atas" {...touchControl('w')}>
+                  <button
+                    aria-label="Gerak atas"
+                    disabled={playerMechanicsLocked}
+                    {...touchControl('w')}
+                  >
                     ▲
                   </button>
-                  <button aria-label="Gerak kiri" {...touchControl('a')}>
+                  <button
+                    aria-label="Gerak kiri"
+                    disabled={playerMechanicsLocked}
+                    {...touchControl('a')}
+                  >
                     ◀
                   </button>
-                  <button aria-label="Gerak kanan" {...touchControl('d')}>
+                  <button
+                    aria-label="Gerak kanan"
+                    disabled={playerMechanicsLocked}
+                    {...touchControl('d')}
+                  >
                     ▶
                   </button>
-                  <button aria-label="Gerak bawah" {...touchControl('s')}>
+                  <button
+                    aria-label="Gerak bawah"
+                    disabled={playerMechanicsLocked}
+                    {...touchControl('s')}
+                  >
                     ▼
                   </button>
                 </div>
@@ -6113,11 +6289,16 @@ export function BentenganPrototype() {
                   <button
                     className="touch-boost"
                     aria-label="Sprint"
+                    disabled={playerMechanicsLocked}
                     {...touchControl(' ')}
                   >
                     SPRINT
                   </button>
-                  <button aria-label="Parkour" {...touchControl('shift')}>
+                  <button
+                    aria-label="Parkour"
+                    disabled={playerMechanicsLocked}
+                    {...touchControl('shift')}
+                  >
                     PARKOUR
                   </button>
                   {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
@@ -6125,7 +6306,7 @@ export function BentenganPrototype() {
                       className={`touch-ultimate ${selectedId === 'kaka' ? 'kaka-ultimate' : ''}`}
                       aria-label={selectedId === 'kaka' ? 'Perisai Hijau' : 'Titah Halilintar'}
                       disabled={
-                        snapshot.ultimateMeter < 100 || snapshot.ultimateCasting
+                        snapshot.ultimateMeter < 100 || playerMechanicsLocked
                       }
                       {...touchControl('capslock')}
                     >
@@ -6204,6 +6385,21 @@ export function BentenganPrototype() {
           <div className="mission-progress">
             <span style={{ width: `${missionCount * (100 / 6)}%` }} />
           </div>
+          <div className="computed-status">
+            <span>
+              Keluar base{' '}
+              <b>{snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—'}</b>
+            </span>
+            <span>
+              Status benteng <b>{snapshot.fortLock}</b>
+            </span>
+            <span>
+              Refill aktif <b>{snapshot.pickupCount}</b>
+            </span>
+            <span>
+              Rotasi arena <b>{snapshot.fieldWins}/3</b>
+            </span>
+          </div>
           <ul className="mission-list">
             <li className={snapshot.mission.refresh ? 'done' : ''}>
               {snapshot.mission.refresh ? (
@@ -6233,7 +6429,10 @@ export function BentenganPrototype() {
               <Gauge size={18} />
               <div>
                 <b>Parkour kontekstual</b>
-                <span>Tekan Shift di dekat rintangan.</span>
+                <span>
+                  Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel,
+                  gunakan tombol PARKOUR di sisi kanan.
+                </span>
               </div>
             </li>
             <li className={snapshot.mission.tag ? 'done' : ''}>

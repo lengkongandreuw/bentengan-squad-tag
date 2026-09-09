@@ -104,7 +104,19 @@ Instruksi baru yang menyatakan **menggantikan**, **membatalkan**, atau **mengaba
 - Background runtime `public/field/kanal-map.webp` mempertahankan susunan panduan asli, sementara dunia Map 4 dirender 15% lebih besar secara proporsional agar arena lebih luas dibanding karakter tanpa mengubah komposisi grafis.
 - Collider tersembunyi mengikuti footprint pagar margin, planter, barrier tengah, dan objek padat; visual tersebut tidak digambar ulang di atas background.
 - `public/field/kanal-water-mask.png` dibangun dari terrain. Pemain maupun bot yang masuk sungai di luar jembatan kembali ke bentengnya dan menampilkan `OOOPSS... HATI-HATI` selama 1,5 detik.
-- Jembatan merupakan area aman dengan lebar efektif yang cukup untuk dua karakter menyeberang berdampingan. Parkour dari tepi sungai juga dapat menyeberang karena pemeriksaan jatuh dinonaktifkan selama animasi parkour.
+- Jembatan merupakan area aman dengan lebar efektif yang cukup untuk dua karakter menyeberang berdampingan. Parkour dari tepi sungai mencari titik pendaratan darat secara adaptif sampai 132 unit dan hanya memindahkan pemain jika titik tersebut aman.
+
+## Kondisi gameplay dan UI terbaru
+
+- Tampilan ponsel portrait otomatis diputar menjadi landscape melalui layout responsif. Tampilan landscape fisik juga memakai kontrol sentuh yang sama.
+- Layar pilih tim ponsel memiliki dua area klik yang eksplisit dan sama besar; Tim Hijau tidak lagi mewarisi inset yang membuat tingginya nol.
+- D-pad berada di kiri dengan target sentuh minimum 48×52 px. Sprint menjadi tombol utama di kanan, didampingi Parkour dan Ultimate.
+- Ketika pemain berada di penjara, semua tombol mekanik (gerak, sprint, parkour, Ultimate) nonaktif. Menu, mute musik, restart, dan keluar tetap dapat dipakai. Peringatan berbunyi `MENUNGGU DIBEBASKAN · Lain kali hati-hati!`.
+- AI kawan dan lawan memakai pengali kecepatan, konsumsi boost, dan bias target pemain yang setara. Tingkat kesulitan hanya membedakan kecerdasan prediksi, jarak membaca jalur, ancaman, dan keputusan rescue.
+- Navigasi bot dan perjalanan pulang otomatis setelah dibebaskan menilai collider dan water mask sepanjang jalur. Jika arah langsung tertutup, karakter mencoba beberapa sudut alternatif dan tidak menerobos sungai.
+- Seleksi karakter menampilkan badge `ULTIMATE` untuk Raja dan Kaka.
+- HUD menampilkan countdown keluar base, status kunci benteng, jumlah refill aktif, dan progres rotasi arena. Nilai yang sama tersedia di panel misi.
+- Aturan permainan menjelaskan prioritas keluar, rescue, syarat kemenangan ronde/match, sudden death, rotasi arena, sungai Map 4, Ultimate Raja/Kaka, serta mapping kontrol desktop dan ponsel.
 
 ## Pipeline aset
 
