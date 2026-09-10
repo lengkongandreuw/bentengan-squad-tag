@@ -5,17 +5,16 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-10
 - Branch: `main`
-- Commit implementasi terakhir: `7e2a9c1`
+- Commit implementasi terakhir: `0041749`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
 
-Mengganti seluruh animasi gameplay karakter Jago dengan sembilan kelompok aset
-baru (idle, lari tiga arah, parkour tiga arah, penjara, menang, dan kalah), tanpa
-mengubah karakter atau fitur lain, lalu memublikasikannya ke GitHub Pages.
+Tidak ada. Penggantian seluruh animasi gameplay Jago sudah selesai dan siap
+menjadi dasar revisi karakter berikutnya.
 
 ## Sudah selesai
 
@@ -63,8 +62,9 @@ Tidak ada blocker aktif.
 
 ## Next action
 
-Commit implementasi yang sudah lulus, perbarui memori dengan hash commit, push ke
-`github/main`, lalu tunggu workflow GitHub Pages selesai.
+Saat permintaan sprite karakter berikutnya diterima, pertahankan generator dan
+pemetaan Jago, ubah hanya karakter yang disebutkan, lalu gunakan pipeline serta
+anggaran verifikasi sprite yang sama.
 
 ## Format checkpoint ketika task aktif
 
