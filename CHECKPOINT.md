@@ -5,18 +5,25 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-09
+- State: `ACTIVE`
+- Diperbarui: 2026-09-10
 - Branch: `main`
 - Commit implementasi terakhir: `7e2a9c1`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
 
-Tidak ada. Menunggu permintaan implementasi berikutnya.
+Mengganti seluruh animasi gameplay karakter Jago dengan sembilan kelompok aset
+baru (idle, lari tiga arah, parkour tiga arah, penjara, menang, dan kalah), tanpa
+mengubah karakter atau fitur lain, lalu memublikasikannya ke GitHub Pages.
 
 ## Sudah selesai
 
+- Sembilan kelompok PNG Jago sudah disalin ke `sprite-sources/jago-parts/`.
+- Generator deterministik `build-jago-source.mjs` menyusun sumber atlas 7×6.
+- Runtime Jago memakai arah lari depan/samping/belakang, parkour tiga arah,
+  serta pose khusus penjara, menang, dan kalah; arah kanan memirror arah kiri.
+- Atlas hasil komposit sudah diperiksa di atas latar terang dan semua 42 sel utuh.
 - Pemilihan Tim Merah dan Tim Hijau pada ponsel diperbaiki.
 - Tampilan ponsel portrait otomatis memakai layout landscape.
 - D-pad dan susunan tombol aksi mobile diperbesar serta dirapikan.
@@ -38,9 +45,13 @@ Tidak ada. Menunggu permintaan implementasi berikutnya.
 
 ## Validasi terakhir
 
+- `node scripts/build-jago-source.mjs`: lulus.
+- `node scripts/build-sprites.mjs jago`: lulus, 42 frame, sel 256×256.
+- `npm run sprites:build`: lulus untuk 14 karakter; Jago 42 frame, sel 256×256.
+- `npm run sprites:baseline`: hanya lima hash golden Jago yang berubah.
 - `npx tsc --noEmit`: lulus.
-- `npm run audit`: lulus, 14 karakter, 588 frame, dan 57 sumber field.
-- `npm run build:pages`: lulus.
+- `npm run audit`: lulus, termasuk pemetaan parkour tiga arah dan pose khusus Jago.
+- `npm run build:pages`: lulus, bundle produksi GitHub Pages terbentuk.
 - Uji runtime lokal: halaman tampil, Tim Hijau dapat dipilih, dan seleksi
   karakter terbuka.
 - GitHub Pages workflow: sukses.
@@ -48,20 +59,12 @@ Tidak ada. Menunggu permintaan implementasi berikutnya.
 
 ## Masalah atau blocker tersisa
 
-Tidak ada blocker aktif. Item audit yang sebelumnya diminta untuk dibiarkan
-belum menjadi bagian dari scope sampai ada instruksi baru.
+Tidak ada blocker aktif.
 
 ## Next action
 
-Saat permintaan baru diterima:
-
-1. Baca `memori.md`, `TASK_TEMPLATE.md`, dan dokumen ini.
-2. Ubah State menjadi `ACTIVE` dan tulis satu tujuan konkret.
-3. Periksa `git status` dan commit terakhir sebelum mengedit.
-4. Lanjutkan hanya dari `Next action`; jangan mengulang validasi yang sudah lulus
-   kecuali perubahan baru menyentuh bagian tersebut.
-5. Setelah implementasi selesai, jalankan pemeriksaan terkecil yang relevan,
-   perbarui checkpoint, commit, push ke `github/main`, dan tunggu GitHub Pages.
+Commit implementasi yang sudah lulus, perbarui memori dengan hash commit, push ke
+`github/main`, lalu tunggu workflow GitHub Pages selesai.
 
 ## Format checkpoint ketika task aktif
 

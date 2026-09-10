@@ -140,7 +140,21 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 - Baseline arena: `config/field-baseline.json`.
 - Build GitHub Pages memakai entry stabil `assets/app.js` dan mempertahankan alias bundle deployment lama. Ini mencegah HTML yang masih tersimpan dalam cache GitHub Pages selama 10 menit menunjuk JavaScript yang sudah terhapus dan menghasilkan layar hitam.
 - Sumber sprite karakter: `sprite-sources/`.
+- Jago memakai sembilan sumber terpisah di `sprite-sources/jago-parts/` yang
+  disusun deterministik oleh `scripts/build-jago-source.mjs` menjadi atlas 7×6;
+  jangan menggantinya dengan sheet Jago lama atau mengubah karakter lain saat
+  merevisi Jago.
 - Generator sprite: `scripts/build-sprites.mjs`, `scripts/build-vfx.mjs`, dan `scripts/build-web-assets.mjs`.
+
+## Status sprite Jago
+
+- Jago Tim Merah memakai koleksi visual baru untuk idle, lari depan, lari
+  samping bercermin kiri/kanan, lari belakang, serta parkour depan/samping/belakang.
+- Pose tertangkap di penjara, menang, dan kalah memakai frame khusus dari sumber
+  pengguna, bukan frame gerak generik.
+- Aksi tag dan rescue tetap tersedia memakai frame Jago baru agar mekanik lama
+  tidak berubah.
+- Cache runtime Jago memakai revisi aset 10; karakter lain tetap pada revisi 9.
 
 ## Anggaran verifikasi
 

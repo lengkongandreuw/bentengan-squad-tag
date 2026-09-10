@@ -62,7 +62,7 @@ export const characterSelectionVideo = (faction: 'red' | 'green') => `${publicBa
 export const uiAudioAsset = (file: string) => `${publicBase}ui-v2/audio/${file}?v=8`;
 
 export const characterAsset = (id: CharacterId, file: 'atlas.webp' | 'atlas-runtime.webp' | 'portrait.webp' | 'animations.json') =>
-  `${publicBase}characters/${id}/${file}?v=9`;
+  `${publicBase}characters/${id}/${file}?v=${id === 'jago' ? 10 : 9}`;
 
 export const characterRuntimeAsset = (id: CharacterId) => characterAsset(id, 'atlas-runtime.webp');
 export const kakaUltimateSpriteAsset = () => `${publicBase}characters/kaka/ultimate-runtime.webp?v=1`;

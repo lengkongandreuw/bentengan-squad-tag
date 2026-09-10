@@ -39,7 +39,7 @@ assert(ids.length === 14 && ids.every(id => teamIds.includes(id)), 'definisi kar
 assert(manifest.version === 9 && manifest.characters.length === 14, 'manifest sprite v9 memuat 14 karakter');
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(prototypeSource.includes('(column * width) / 7') && !prototypeSource.includes('(column * width) / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
-assert(charactersSource.includes('?v=9') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay menunjuk atlas runtime sprite v9');
+assert(charactersSource.includes("id === 'jago' ? 10 : 9") && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay memuat revisi Jago tanpa mengusik atlas karakter lain');
 assert(uiManifest.version === 8 && uiManifest.files.length === 55, 'paket UI v8 memuat 14 ikon, full-body, banner Raja dan Kaka, video tim, serta delapan track audio');
 const uiImageBytes = uiManifest.files.filter(entry => !entry.file.startsWith('videos/') && !entry.file.startsWith('audio/')).reduce((sum, entry) => sum + entry.bytes, 0);
 const uiVideoBytes = uiManifest.files.filter(entry => entry.file.startsWith('videos/')).reduce((sum, entry) => sum + entry.bytes, 0);
@@ -71,11 +71,14 @@ assert(motion.BOOST_COLUMNS === motion.RUN_COLUMNS && motion.BOOST_COLUMNS.join(
 assert(motion.shouldMirrorSprite('east', false) && !motion.shouldMirrorSprite('west', false) && !motion.shouldMirrorSprite('east', true), 'mirror sprite hanya aktif untuk timur tanpa row khusus');
 assert(motion.sprintEffectRotation('east') === 0 && motion.sprintEffectRotation('west') === Math.PI && motion.sprintEffectRotation('north') === -Math.PI / 2 && motion.sprintEffectRotation('south') === Math.PI / 2, 'jejak sprint diputar searah empat arah gerak');
 const rajaAnimation = characterAnimations.characterAnimationMapping('raja');
+const jagoAnimation = characterAnimations.characterAnimationMapping('jago');
 const defaultAnimation = characterAnimations.characterAnimationMapping('robot');
 assert(rajaAnimation.directionRows.south === 0 && rajaAnimation.directionRows.west === 1 && rajaAnimation.directionRows.east === 1 && rajaAnimation.directionRows.north === 2 && !rajaAnimation.dedicatedEast, 'override arah Raja memakai baris depan, sisi bercermin, dan belakang');
-assert(/p\.characterId === 'raja'\s*\? direction === 'west'/.test(prototypeSource) && /mirror = direction === 'west'/.test(prototypeSource), 'Raja menghadap kanan tanpa mirror dan kiri dengan mirror saat berlari serta parkour');
+assert(/p\.characterId === 'raja'\s*\? direction === 'west'/.test(prototypeSource) && prototypeSource.includes(': shouldMirrorSprite(direction, dedicatedEast)'), 'Raja mempertahankan orientasi parkour khusus sementara Jago mengikuti mirror arah normal');
 assert(rajaAnimation.runColumns.join(',') === '1,2,3' && rajaAnimation.boostColumns.join(',') === '4,5,6' && rajaAnimation.ultimate.columns.join(',') === '0,1,2,3', 'override Raja memisahkan lari, boost, dan empat fase Ultimate');
-assert(defaultAnimation === characterAnimations.DEFAULT_ANIMATION_MAPPING, 'karakter selain Raja tetap memakai mapping animasi default');
+assert(jagoAnimation.directionRows.east === jagoAnimation.directionRows.west && !jagoAnimation.dedicatedEast && jagoAnimation.parkourByDirection.south.row === 3 && jagoAnimation.parkourByDirection.west.row === 4 && jagoAnimation.parkourByDirection.north.row === 5, 'override Jago memetakan lari sisi bercermin dan parkour tiga arah');
+assert(jagoAnimation.prisoner.row === 3 && jagoAnimation.prisoner.columns[0] === 4 && jagoAnimation.victory.columns[0] === 5 && jagoAnimation.defeat.columns[0] === 6, 'pose penjara, menang, dan kalah Jago memakai slot aksi khusus');
+assert(defaultAnimation === characterAnimations.DEFAULT_ANIMATION_MAPPING, 'karakter tanpa override tetap memakai mapping animasi default');
 assert(prototypeSource.includes('ctx.rotate(sprintEffectRotation(direction))') && !prototypeSource.includes('if (p.vx > 0)'), 'renderer VFX memakai rotasi arah, bukan flip kanan yang terbalik');
 assert(workshopSource.includes('animation === \'boost\'') && workshopSource.includes('BOOST_COLUMNS'), 'workshop mempratinjau boost directional yang sama dengan arena');
 assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage') && prototypeSource.includes("image.decoding = 'async'") && prototypeSource.includes("if (mode === 'playing') {"), 'atlas dimuat lazy hanya saat pertandingan dan decode gambar tidak memblokir layar awal');
@@ -239,9 +242,13 @@ for (const id of ids) {
   assert(runtimeMeta.width === atlasMeta.width / 2 && runtimeMeta.height === atlasMeta.height / 2 && runtimeMeta.hasAlpha, `${id}: atlas runtime tepat 50% dan transparan`);
   assert(animation.version === 9 && animation.source.columns === 7 && animation.atlas.columns === 7 && animation.source.segmentation === 'row-separated-alpha-components', `${id}: metadata segmentasi v9 sinkron`);
   assert(animation.quality.frameCount === 42 && animation.source.frames.length === 42, `${id}: 42 frame sumber terlacak satu per satu`);
-  const expectedBoostFrames = id === 'raja' ? 3 : 5;
-  for (const direction of ['south', 'west', 'north']) assert(animation.directions[direction].boost.length === expectedBoostFrames, `${id}: boost ${direction} memakai ${expectedBoostFrames} frame`);
-  if (animation.directions.east.mirror !== 'west') assert(animation.directions.east.boost.length === expectedBoostFrames, `${id}: boost east memakai ${expectedBoostFrames} frame`);
+  const expectedBoostFrames = id === 'raja'
+    ? { south: 3, west: 3, north: 3 }
+    : id === 'jago'
+      ? { south: 4, west: 6, north: 6 }
+      : { south: 5, west: 5, north: 5 };
+  for (const direction of ['south', 'west', 'north']) assert(animation.directions[direction].boost.length === expectedBoostFrames[direction], `${id}: boost ${direction} memakai ${expectedBoostFrames[direction]} frame`);
+  if (animation.directions.east.mirror !== 'west') assert(animation.directions.east.boost.length === expectedBoostFrames.west, `${id}: boost east memakai ${expectedBoostFrames.west} frame`);
 
   const { data: portrait, info } = await sharp(portraitPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let opaque = 0, edgeOpaque = 0, edgePixels = 0;

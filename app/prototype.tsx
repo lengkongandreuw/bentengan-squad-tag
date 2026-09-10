@@ -4720,16 +4720,19 @@ export function BentenganPrototype() {
           columns = action.columns;
         }
         mirror = false;
-      } else if (
-        p.characterId === 'raja' &&
-        now < p.parkourUntil &&
-        animation.parkour
-      ) {
-        row = animation.parkour.row;
-        columns = animation.parkour.columns;
-        mirror = direction === 'west';
-      } else if (speed > 8)
-        columns = sprinting ? animation.boostColumns : animation.runColumns;
+      } else if (now < p.parkourUntil && animation.parkour) {
+        const parkour = animation.parkourByDirection?.[direction] ?? animation.parkour;
+        row = parkour.row;
+        columns = parkour.columns;
+        mirror = p.characterId === 'raja'
+          ? direction === 'west'
+          : shouldMirrorSprite(direction, dedicatedEast);
+      } else if (speed > 8) {
+        const directionalColumns = sprinting
+          ? animation.boostColumnsByDirection?.[direction]
+          : animation.runColumnsByDirection?.[direction];
+        columns = directionalColumns ?? (sprinting ? animation.boostColumns : animation.runColumns);
+      }
       const frameDuration = sprinting ? 62 : columns.length > 1 ? 92 : 180;
       let renderImage = image;
       let frame = spriteFrame(

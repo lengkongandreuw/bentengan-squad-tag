@@ -267,6 +267,11 @@ for (const character of buildCharacters) {
       west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3]), boost: frames(atlasWidth, atlasHeight, 1, [4, 5, 6]) },
       east: { mirror: 'west' },
       north: { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3]), boost: frames(atlasWidth, atlasHeight, 2, [4, 5, 6]) },
+    } : character.id === 'jago' ? {
+      south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4]), boost: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4]) },
+      west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5, 6]), boost: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5, 6]) },
+      east: { mirror: 'west' },
+      north: { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5, 6]), boost: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5, 6]) },
     } : {
       south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]) },
       west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5]) },
@@ -281,6 +286,18 @@ for (const character of buildCharacters) {
       victory: frames(atlasWidth, atlasHeight, 4, [3, 4, 6]),
       defeat: frames(atlasWidth, atlasHeight, 4, [5]),
       ultimate: { name: 'TITAH HALILINTAR', frames: frames(atlasWidth, atlasHeight, 5, [0, 1, 2, 3]) },
+    } : character.id === 'jago' ? {
+      tag: frames(atlasWidth, atlasHeight, 4, [4, 5, 6]),
+      rescue: frames(atlasWidth, atlasHeight, 5, [4, 5, 6]),
+      prisoner: frames(atlasWidth, atlasHeight, 3, [4]),
+      victory: frames(atlasWidth, atlasHeight, 3, [5]),
+      defeat: frames(atlasWidth, atlasHeight, 3, [6]),
+      parkour: {
+        south: frames(atlasWidth, atlasHeight, 3, [0, 1, 2, 3]),
+        west: frames(atlasWidth, atlasHeight, 4, [0, 1, 2, 3]),
+        east: { mirror: 'west' },
+        north: frames(atlasWidth, atlasHeight, 5, [0, 1, 2, 3]),
+      },
     } : {
       tag: frames(atlasWidth, atlasHeight, 4, [0, 1, 2, 3]),
       rescue: frames(atlasWidth, atlasHeight, 4, [3, 4, 5, 6]),
