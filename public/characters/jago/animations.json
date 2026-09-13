@@ -738,6 +738,9 @@
       ]
     },
     "west": {
+      "mirror": "east"
+    },
+    "east": {
       "idle": [
         {
           "x": 0,
@@ -822,9 +825,6 @@
           "height": 256
         }
       ]
-    },
-    "east": {
-      "mirror": "west"
     },
     "north": {
       "idle": [
@@ -1005,7 +1005,10 @@
           "height": 256
         }
       ],
-      "west": [
+      "west": {
+        "mirror": "east"
+      },
+      "east": [
         {
           "x": 0,
           "y": 1024,
@@ -1031,9 +1034,6 @@
           "height": 256
         }
       ],
-      "east": {
-        "mirror": "west"
-      },
       "north": [
         {
           "x": 0,

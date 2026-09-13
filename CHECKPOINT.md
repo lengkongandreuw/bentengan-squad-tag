@@ -5,23 +5,25 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-10
+- State: `ACTIVE`
+- Diperbarui: 2026-09-13
 - Branch: `main`
 - Commit implementasi terakhir: `0041749`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
 
-Tidak ada. Penggantian seluruh animasi gameplay Jago sudah selesai dan siap
-menjadi dasar revisi karakter berikutnya.
+Memperbaiki orientasi animasi samping Jago: frame sumber menghadap kanan dipakai
+langsung untuk gerak kanan dan dimirror hanya ketika Jago bergerak ke kiri.
 
 ## Sudah selesai
 
 - Sembilan kelompok PNG Jago sudah disalin ke `sprite-sources/jago-parts/`.
 - Generator deterministik `build-jago-source.mjs` menyusun sumber atlas 7×6.
 - Runtime Jago memakai arah lari depan/samping/belakang, parkour tiga arah,
-  serta pose khusus penjara, menang, dan kalah; arah kanan memirror arah kiri.
+  serta pose khusus penjara, menang, dan kalah.
+- Orientasi samping dikoreksi: kanan memakai frame asli; kiri memakai mirror,
+  berlaku untuk lari, sprint, dan parkour samping.
 - Atlas hasil komposit sudah diperiksa di atas latar terang dan semua 42 sel utuh.
 - Pemilihan Tim Merah dan Tim Hijau pada ponsel diperbaiki.
 - Tampilan ponsel portrait otomatis memakai layout landscape.
@@ -49,7 +51,8 @@ menjadi dasar revisi karakter berikutnya.
 - `npm run sprites:build`: lulus untuk 14 karakter; Jago 42 frame, sel 256×256.
 - `npm run sprites:baseline`: hanya lima hash golden Jago yang berubah.
 - `npx tsc --noEmit`: lulus.
-- `npm run audit`: lulus, termasuk pemetaan parkour tiga arah dan pose khusus Jago.
+- `npm run audit`: lulus, termasuk frame kanan asli, mirror kiri, parkour tiga
+  arah, dan pose khusus Jago.
 - `npm run build:pages`: lulus, bundle produksi GitHub Pages terbentuk.
 - Uji runtime lokal: halaman tampil, Tim Hijau dapat dipilih, dan seleksi
   karakter terbuka.
@@ -62,9 +65,8 @@ Tidak ada blocker aktif.
 
 ## Next action
 
-Saat permintaan sprite karakter berikutnya diterima, pertahankan generator dan
-pemetaan Jago, ubah hanya karakter yang disebutkan, lalu gunakan pipeline serta
-anggaran verifikasi sprite yang sama.
+Commit koreksi orientasi yang sudah lulus, push ke `github/main`, lalu tunggu
+workflow GitHub Pages selesai.
 
 ## Format checkpoint ketika task aktif
 

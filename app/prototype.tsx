@@ -4679,7 +4679,7 @@ export function BentenganPrototype() {
       let row = animation.directionRows[direction] ?? directionalRow(direction),
         columns: readonly number[] = [0];
       let mirror =
-        p.characterId === 'raja'
+        p.characterId === 'raja' || p.characterId === 'jago'
           ? direction === 'west'
           : shouldMirrorSprite(direction, dedicatedEast);
       let oneShotColumn: number | undefined;
@@ -4724,7 +4724,7 @@ export function BentenganPrototype() {
         const parkour = animation.parkourByDirection?.[direction] ?? animation.parkour;
         row = parkour.row;
         columns = parkour.columns;
-        mirror = p.characterId === 'raja'
+        mirror = p.characterId === 'raja' || p.characterId === 'jago'
           ? direction === 'west'
           : shouldMirrorSprite(direction, dedicatedEast);
       } else if (speed > 8) {

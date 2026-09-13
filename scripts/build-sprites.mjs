@@ -269,8 +269,8 @@ for (const character of buildCharacters) {
       north: { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3]), boost: frames(atlasWidth, atlasHeight, 2, [4, 5, 6]) },
     } : character.id === 'jago' ? {
       south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4]), boost: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4]) },
-      west: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5, 6]), boost: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5, 6]) },
-      east: { mirror: 'west' },
+      west: { mirror: 'east' },
+      east: { idle: frames(atlasWidth, atlasHeight, 1, [0]), run: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5, 6]), boost: frames(atlasWidth, atlasHeight, 1, [1, 2, 3, 4, 5, 6]) },
       north: { idle: frames(atlasWidth, atlasHeight, 2, [0]), run: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5, 6]), boost: frames(atlasWidth, atlasHeight, 2, [1, 2, 3, 4, 5, 6]) },
     } : {
       south: { idle: frames(atlasWidth, atlasHeight, 0, [0]), run: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]), boost: frames(atlasWidth, atlasHeight, 0, [1, 2, 3, 4, 5]) },
@@ -294,8 +294,8 @@ for (const character of buildCharacters) {
       defeat: frames(atlasWidth, atlasHeight, 3, [6]),
       parkour: {
         south: frames(atlasWidth, atlasHeight, 3, [0, 1, 2, 3]),
-        west: frames(atlasWidth, atlasHeight, 4, [0, 1, 2, 3]),
-        east: { mirror: 'west' },
+        west: { mirror: 'east' },
+        east: frames(atlasWidth, atlasHeight, 4, [0, 1, 2, 3]),
         north: frames(atlasWidth, atlasHeight, 5, [0, 1, 2, 3]),
       },
     } : {

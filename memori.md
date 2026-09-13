@@ -149,7 +149,9 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 ## Status sprite Jago
 
 - Jago Tim Merah memakai koleksi visual baru untuk idle, lari depan, lari
-  samping bercermin kiri/kanan, lari belakang, serta parkour depan/samping/belakang.
+  samping, lari belakang, serta parkour depan/samping/belakang. Strip samping
+  sumber menghadap kanan: gerak kanan memakai frame asli dan gerak kiri memakai
+  frame yang dimirror.
 - Pose tertangkap di penjara, menang, dan kalah memakai frame khusus dari sumber
   pengguna, bukan frame gerak generik.
 - Aksi tag dan rescue tetap tersedia memakai frame Jago baru agar mekanik lama
