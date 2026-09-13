@@ -5,16 +5,16 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-13
 - Branch: `main`
-- Commit implementasi terakhir: `0041749`
+- Commit implementasi terakhir: `3ba81d3`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
 
-Memperbaiki orientasi animasi samping Jago: frame sumber menghadap kanan dipakai
-langsung untuk gerak kanan dan dimirror hanya ketika Jago bergerak ke kiri.
+Tidak ada. Orientasi animasi samping Jago sudah dikoreksi: frame sumber dipakai
+langsung untuk gerak kanan dan dimirror hanya ketika bergerak ke kiri.
 
 ## Sudah selesai
 
@@ -65,8 +65,8 @@ Tidak ada blocker aktif.
 
 ## Next action
 
-Commit koreksi orientasi yang sudah lulus, push ke `github/main`, lalu tunggu
-workflow GitHub Pages selesai.
+Saat permintaan sprite karakter berikutnya diterima, pertahankan aturan orientasi
+Jago dan ubah hanya karakter yang disebutkan.
 
 ## Format checkpoint ketika task aktif
 

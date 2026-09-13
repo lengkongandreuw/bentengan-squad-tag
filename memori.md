@@ -36,7 +36,8 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Status rilis dan pekerjaan aktif
 
-- Branch publik `main` sudah memuat penggantian lengkap animasi Jago melalui commit implementasi `0041749`.
+- Branch publik `main` sudah memuat penggantian lengkap animasi Jago dan koreksi
+  orientasi samping melalui commit implementasi `3ba81d3`.
 - Tidak ada implementasi fitur yang tertunda saat dokumen ini diperbarui; `CHECKPOINT.md` berstatus `IDLE` dan siap diisi oleh task berikutnya.
 - Map 4 memperbesar dunia arena 15% menjadi 1954×1065 dengan ukuran karakter dan komposisi grafis tetap.
 - Lebar efektif dua jembatan Map 4 setelah pembesaran adalah sekitar 75,9 px dan 92 px; keduanya melewati kebutuhan minimum 64 px untuk dua karakter berdampingan.
