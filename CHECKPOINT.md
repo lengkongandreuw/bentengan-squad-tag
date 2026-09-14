@@ -5,16 +5,21 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-13
+- State: `ACTIVE`
+- Diperbarui: 2026-09-14
 - Branch: `main`
 - Commit implementasi terakhir: `3ba81d3`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
 
-Tidak ada. Orientasi animasi samping Jago sudah dikoreksi: frame sumber dipakai
-langsung untuk gerak kanan dan dimirror hanya ketika bergerak ke kiri.
+Proporsi visual 14 karakter mengikuti perbandingan roster pengguna, Kaka = 1.
+Skala seragam untuk kedua sumbu; collider, atribut gameplay, dan atlas tetap.
+Implementasi visualScale dan posisi HUD kepala selesai.
+TypeScript, audit, build:pages, serta diff --check lulus. Perbandingan otomatis
+membuktikan seluruh atribut selain visualScale identik dengan HEAD sebelumnya.
+Build memberi warning npm/CSS nonfatal. Uji visual interaktif belum dilakukan.
+File task ini: lib/characters.ts, app/prototype.tsx, memori.md, CHECKPOINT.md.
 
 ## Sudah selesai
 
@@ -61,12 +66,11 @@ langsung untuk gerak kanan dan dimirror hanya ketika bergerak ke kiri.
 
 ## Masalah atau blocker tersisa
 
-Tidak ada blocker aktif.
+Pemeriksaan awal gh auth status melaporkan token tidak valid; push perlu dicoba.
 
 ## Next action
 
-Saat permintaan sprite karakter berikutnya diterima, pertahankan aturan orientasi
-Jago dan ubah hanya karakter yang disebutkan.
+Commit/push perubahan proporsi, lalu cek deployment Pages. Jangan mengulang build.
 
 ## Format checkpoint ketika task aktif
 

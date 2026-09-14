@@ -4665,6 +4665,8 @@ export function BentenganPrototype() {
         image = getSpriteImage(p.characterId),
         speed = Math.hypot(p.vx, p.vy);
       const animation = characterAnimationMapping(p.characterId);
+      // Visual-only roster proportions; keep physics and the foot anchor unchanged.
+      const headOffset = 74 * (stats.visualScale - 1);
       const dust = getSprintDustImage();
       const direction = directionFromVelocity(p.vx, p.vy);
       const sprinting = speed > stats.speed * 1.16;
@@ -4903,7 +4905,7 @@ export function BentenganPrototype() {
       }
       if (now < p.ultimateShieldUntil) {
         const shieldX = p.x - 24;
-        const shieldY = p.y - 49 + bob;
+        const shieldY = p.y - 49 - headOffset + bob;
         ctx.save();
         ctx.fillStyle = 'rgba(10,54,25,.9)';
         ctx.strokeStyle = '#86ffab';
@@ -4922,9 +4924,9 @@ export function BentenganPrototype() {
       if (p.controlled) {
         ctx.fillStyle = '#fff4d1';
         ctx.beginPath();
-        ctx.moveTo(p.x, p.y - 58 + bob);
-        ctx.lineTo(p.x - 7, p.y - 69 + bob);
-        ctx.lineTo(p.x + 7, p.y - 69 + bob);
+        ctx.moveTo(p.x, p.y - 58 - headOffset + bob);
+        ctx.lineTo(p.x - 7, p.y - 69 - headOffset + bob);
+        ctx.lineTo(p.x + 7, p.y - 69 - headOffset + bob);
         ctx.fill();
       }
       const label = p.controlled ? `★ ${p.name}` : p.name;
@@ -4942,14 +4944,14 @@ export function BentenganPrototype() {
       if (p.state === 'ACTIVE') {
         ctx.fillStyle = '#141a15';
         ctx.beginPath();
-        ctx.arc(p.x + 23, p.y - 35 + bob, 10, 0, Math.PI * 2);
+        ctx.arc(p.x + 23, p.y - 35 - headOffset + bob, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = outline;
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.font = '800 9px Arial';
-        ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 + bob);
+        ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 - headOffset + bob);
       }
       if (p.state === 'RETURNING') {
         ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45';
@@ -4957,11 +4959,11 @@ export function BentenganPrototype() {
         ctx.fillText(
           now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI',
           p.x,
-          p.y - 55,
+          p.y - 55 - headOffset,
         );
       }
       if (now < p.fallNoticeUntil) {
-        const noticeY = p.y - 78 + bob;
+        const noticeY = p.y - 78 - headOffset + bob;
         ctx.font = '900 10px Arial';
         const noticeWidth = ctx.measureText('OOOPSS... HATI-HATI').width + 18;
         ctx.fillStyle = 'rgba(18,25,20,.94)';

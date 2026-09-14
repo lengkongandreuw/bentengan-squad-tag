@@ -38,7 +38,7 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 - Branch publik `main` sudah memuat penggantian lengkap animasi Jago dan koreksi
   orientasi samping melalui commit implementasi `3ba81d3`.
-- Tidak ada implementasi fitur yang tertunda saat dokumen ini diperbarui; `CHECKPOINT.md` berstatus `IDLE` dan siap diisi oleh task berikutnya.
+- Proporsi visual roster diperbarui 2026-09-14; status publikasi terbaru ada di CHECKPOINT.md.
 - Map 4 memperbesar dunia arena 15% menjadi 1954×1065 dengan ukuran karakter dan komposisi grafis tetap.
 - Lebar efektif dua jembatan Map 4 setelah pembesaran adalah sekitar 75,9 px dan 92 px; keduanya melewati kebutuhan minimum 64 px untuk dua karakter berdampingan.
 - Rilis terakhir sudah lulus pemeriksaan TypeScript, audit gameplay lengkap, `build:pages`, uji runtime lokal, serta workflow GitHub Pages.
@@ -148,6 +148,19 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 - Generator sprite: `scripts/build-sprites.mjs`, `scripts/build-vfx.mjs`, dan `scripts/build-web-assets.mjs`.
 
 ## Status sprite Jago
+
+### Proporsi roster (2026-09-14)
+
+- Skala visual memakai Kaka = 1: Raja .86, Tui .94, Kumis 1.30, Jago 1.20,
+  Robot 1.04, Lala 1.16, Bebe .96, Ciici .95, Maria .99, Buto .90,
+  Boke 1.05, Kodo 1.17, Lui .93.
+- Angka mengikuti perkiraan dua referensi roster pengguna dengan asumsi skala
+  kedua gambar sama. Rasio asli sprite dipertahankan, bukan diregangkan.
+- Skala berlaku seragam pada seluruh frame; pijakan kaki dan mirror Jago tetap.
+- Penanda kepala menyesuaikan tinggi. Collider, tag/rescue, gerak, AI, parkour,
+  sungai, dan skill tidak berubah. Atlas tidak dibangun ulang.
+
+### Animasi Jago
 
 - Jago Tim Merah memakai koleksi visual baru untuk idle, lari depan, lari
   samping, lari belakang, serta parkour depan/samping/belakang. Strip samping
