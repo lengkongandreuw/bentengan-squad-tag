@@ -5,10 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-14
 - Branch: `main`
-- Commit implementasi terakhir: `3b02cc5`
+- Commit implementasi terakhir: `d82f7cf`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
@@ -18,7 +18,8 @@ di app/prototype.tsx, app/globals.css, lib/asset-ready.ts. Gambar decode sebelum
 ditampilkan, video menunggu loadeddata, progres, retry/cancel, batching 4 aset.
 TypeScript, audit, build:pages, dan diff --check lulus. Uji helper decode sukses,
 gambar kosong, timeout, dan retry lulus. Uji browser interaktif belum dilakukan.
-Audio tetap opsional, video menunggu frame awal. Publish belum dilakukan.
+Audio tetap opsional, video menunggu frame awal. Commit d82f7cf sudah dipublish;
+GitHub Pages sukses pada run 34796256954.
 
 Proporsi visual 14 karakter mengikuti perbandingan roster pengguna, Kaka = 1.
 Skala seragam untuk kedua sumbu; collider, atribut gameplay, dan atlas tetap.
@@ -78,7 +79,8 @@ GitHub Pages untuk 3b02cc5 sukses: workflow run 34793092437.
 
 ## Next action
 
-Validasi loading/error/retry lalu commit, push, dan tunggu GitHub Pages.
+Task loading selesai. Tunggu umpan balik pengguna; uji browser interaktif masih
+belum dilakukan, jangan mengklaim sudah diuji langsung pada ponsel.
 
 ## Format checkpoint ketika task aktif
 
