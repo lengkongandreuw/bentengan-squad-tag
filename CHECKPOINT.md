@@ -5,13 +5,20 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
+- State: `ACTIVE`
 - Diperbarui: 2026-09-14
 - Branch: `main`
 - Commit implementasi terakhir: `3b02cc5`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Task terbaru: loading sebelum seleksi karakter dan pertandingan. Implementasi
+di app/prototype.tsx, app/globals.css, lib/asset-ready.ts. Gambar decode sebelum
+ditampilkan, video menunggu loadeddata, progres, retry/cancel, batching 4 aset.
+TypeScript, audit, build:pages, dan diff --check lulus. Uji helper decode sukses,
+gambar kosong, timeout, dan retry lulus. Uji browser interaktif belum dilakukan.
+Audio tetap opsional, video menunggu frame awal. Publish belum dilakukan.
 
 Proporsi visual 14 karakter mengikuti perbandingan roster pengguna, Kaka = 1.
 Skala seragam untuk kedua sumbu; collider, atribut gameplay, dan atlas tetap.
@@ -71,8 +78,7 @@ GitHub Pages untuk 3b02cc5 sukses: workflow run 34793092437.
 
 ## Next action
 
-Task selesai. Tunggu masukan visual pengguna; jangan mengubah collider untuk
-menyamakan siluet besar tanpa permintaan gameplay terpisah.
+Validasi loading/error/retry lalu commit, push, dan tunggu GitHub Pages.
 
 ## Format checkpoint ketika task aktif
 

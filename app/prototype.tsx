@@ -28,6 +28,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
+import { imageReady, videoReady } from '../lib/asset-ready';
 import {
   CHARACTER_BY_ID,
   CharacterId,
@@ -2520,6 +2521,16 @@ const CharacterPreview = ({
 );
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
+const presentationImages = new Map<string, HTMLImageElement>();
+const getPresentationImage = (url: string) => {
+  let image = presentationImages.get(url);
+  if (!image) {
+    image = new Image();
+    image.src = url;
+    presentationImages.set(url, image);
+  }
+  return image;
+};
 const fieldImages = new Map<string, HTMLImageElement>();
 let sprintDustImage: HTMLImageElement | null = null;
 let kakaUltimateImage: HTMLImageElement | null = null;
@@ -2593,6 +2604,75 @@ export function BentenganPrototype() {
   const [ultimateBannerVisible, setUltimateBannerVisible] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
+  const [readyFaction, setReadyFaction] = useState<Faction | null>(null);
+  const [gameLoading, setGameLoading] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [loadError, setLoadError] = useState('');
+  const selectionLoading = mode === 'menu' && menuStep === 'character' &&
+    !!selectedFaction && readyFaction !== selectedFaction;
+  const assetsLoading = selectionLoading || gameLoading;
+
+  useEffect(() => {
+    if (!assetsLoading) return;
+    let cancelled = false;
+    setLoadProgress(0);
+    setLoadError('');
+    keys.current.clear();
+    const prepare = async () => {
+      const images: HTMLImageElement[] = [];
+      const urls = [uiAsset('controls/primary.webp'), uiAsset('controls/primary-hover.webp'),
+        uiAsset('controls/back.webp')];
+      if (gameLoading) {
+        for (const id of Object.keys(CHARACTER_BY_ID) as CharacterId[]) {
+          images.push(getSpriteImage(id));
+          urls.push(characterPreviewIcon(id));
+        }
+        images.push(getSprintDustImage(), getKakaUltimateImage());
+        for (const asset of ['objects.webp', 'animated.webp', 'grounds.webp']) images.push(getFieldImage(asset));
+        // Preload the rotation too, so later rounds cannot expose an unloaded map.
+        for (const field of FIELD_CONFIGS) {
+          if (field.background) images.push(getFieldImage(field.background));
+          if (field.waterMask) images.push(getFieldImage(field.waterMask));
+        }
+        urls.push(rajaUltimateBannerAsset(), kakaUltimateBannerAsset());
+      } else if (selectedFaction) {
+        for (const id of FIXED_ROSTERS[selectedFaction]) {
+          urls.push(characterFullBodyPortrait(id), characterPreviewIcon(id));
+        }
+        for (const faction of ['red', 'green']) {
+          urls.push(uiAsset(`controls/team-${faction}-active.webp`), uiAsset(`controls/team-${faction}-normal.webp`));
+        }
+        for (const field of FIELD_CONFIGS) urls.push(uiAsset(`fields/${field.id}.webp`));
+      }
+      images.push(...[...new Set(urls)].map(getPresentationImage));
+      const tasks = [...new Set(images)].map(image => () => imageReady(image));
+      if (!gameLoading && selectedFaction) tasks.push(() => videoReady(characterSelectionVideo(selectedFaction)));
+      tasks.push(() => document.fonts.ready.then(() => undefined));
+      let done = 0;
+      // A bounded batch avoids flooding mobile connections with atlas requests.
+      let next = 0;
+      await Promise.all(Array.from({ length: Math.min(4, tasks.length) }, async () => {
+        while (!cancelled && next < tasks.length) {
+          const task = tasks[next++];
+          await task();
+          if (!cancelled) setLoadProgress(Math.round(++done / tasks.length * 100));
+        }
+      }));
+      if (cancelled) return;
+      keys.current.clear();
+      if (gameLoading) {
+        setGameLoading(false);
+        setMode('playing');
+        setRun(v => v + 1);
+      } else setReadyFaction(selectedFaction);
+    };
+    void prepare().catch(error => {
+      if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Aset gagal dimuat.');
+      cancelled = true;
+    });
+    return () => { cancelled = true; };
+  }, [assetsLoading, gameLoading, selectedFaction, loadAttempt]);
   const selected = CHARACTER_BY_ID[selectedId];
   const availableCharacters = useMemo(
     () =>
@@ -5218,13 +5298,13 @@ export function BentenganPrototype() {
     snapshot.ultimateCasting ||
     snapshot.paused;
   const start = () => {
-    if (!selectedFaction) return;
+    if (!selectedFaction || assetsLoading) return;
     playAudioCue('press-play.mp3', 0.64);
     completedMatchesRef.current = 0;
     setSnapshot(initialSnapshot);
     setMissionOpen(false);
-    setMode('playing');
-    setRun((v) => v + 1);
+    setMode('menu');
+    setGameLoading(true);
   };
   const quit = () => {
     keys.current.clear();
@@ -5254,7 +5334,7 @@ export function BentenganPrototype() {
   };
 
   useEffect(() => {
-    if (mode !== 'menu' || view !== 'game') return;
+    if (mode !== 'menu' || view !== 'game' || assetsLoading) return;
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if (rulesOpen) {
@@ -5317,6 +5397,7 @@ export function BentenganPrototype() {
     return () => window.removeEventListener('keydown', navigate);
   }, [
     hoveredFaction,
+    assetsLoading,
     menuStep,
     mode,
     rulesOpen,
@@ -5345,6 +5426,22 @@ export function BentenganPrototype() {
       onLostPointerCapture: release,
     };
   };
+  if (assetsLoading) return (
+    <main className="pregame-shell asset-loading-screen">
+      <section className="asset-loading-card" aria-busy={!loadError} aria-live="polite">
+        <h1>{gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER'}</h1>
+        <p>{loadError || 'Memuat aset… Tunggu sebentar.'}</p>
+        <progress max={100} value={loadProgress} aria-label="Progres pemuatan aset" />
+        <p>{loadProgress}%</p>
+        {loadError && <button onClick={() => setLoadAttempt(v => v + 1)}>COBA LAGI</button>}
+        <button onClick={() => {
+          setGameLoading(false);
+          setMenuStep('team');
+          setLoadError('');
+        }}>KEMBALI KE PILIH TIM</button>
+      </section>
+    </main>
+  );
   if (view === 'workshop')
     return (
       <main className="game-shell">

@@ -121,6 +121,13 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Kondisi gameplay dan UI terbaru
 
+- Loading seleksi karakter menunggu decode portrait/ikon, kontrol, thumbnail
+  arena, font, dan frame awal video tim; ganti tim memeriksa aset tim baru.
+- Loading pertandingan menunggu atlas karakter, VFX, banner, atlas field,
+  background arena rotasi dan water mask sebelum countdown. Audio tetap opsional.
+- Batch 4 aset; timeout gambar/video 30 detik; progres, Coba Lagi, dan Kembali
+  ke Pilih Tim. Aset gagal tidak dianggap siap.
+
 - Tampilan ponsel portrait otomatis diputar menjadi landscape melalui layout responsif. Tampilan landscape fisik juga memakai kontrol sentuh yang sama.
 - Layar pilih tim ponsel memiliki dua area klik yang eksplisit dan sama besar; Tim Hijau tidak lagi mewarisi inset yang membuat tingginya nol.
 - D-pad berada di kiri dengan target sentuh minimum 48×52 px. Sprint menjadi tombol utama di kanan, didampingi Parkour dan Ultimate.

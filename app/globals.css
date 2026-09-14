@@ -196,3 +196,10 @@ button { font:inherit; }
   .prisoner-notice{top:47%;padding:10px 13px}.prisoner-notice b{font-size:13px}.prisoner-notice small{font-size:9px}
   .mission-panel{top:50px;right:5px;bottom:5px;width:min(410px,calc(100% - 10px));padding:21px 17px}
 }
+/* Asset gates use no external artwork, so loading remains visible offline. */
+.asset-loading-screen { display: grid; place-items: center; background: #101911; color: #fff4d1; }
+.asset-loading-card { width: min(88%, 560px); text-align: center; padding: 24px; }
+.asset-loading-card h1 { font-size: clamp(20px, 4vw, 32px); }
+.asset-loading-card p { margin: 14px 0; }
+.asset-loading-card progress { width: 100%; height: 20px; accent-color: #f5cf45; }
+.asset-loading-card button { margin: 6px; padding: 12px 18px; min-height: 48px; border: 1px solid #f5cf45; border-radius: 8px; cursor: pointer; }
