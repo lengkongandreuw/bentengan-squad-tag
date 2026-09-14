@@ -5,10 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-14
 - Branch: `main`
-- Commit implementasi terakhir: `3ba81d3`
+- Commit implementasi terakhir: `3b02cc5`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
@@ -66,11 +66,13 @@ File task ini: lib/characters.ts, app/prototype.tsx, memori.md, CHECKPOINT.md.
 
 ## Masalah atau blocker tersisa
 
-Pemeriksaan awal gh auth status melaporkan token tidak valid; push perlu dicoba.
+Tidak ada blocker. Push berhasil melalui akses jaringan yang disetujui.
+GitHub Pages untuk 3b02cc5 sukses: workflow run 34793092437.
 
 ## Next action
 
-Commit/push perubahan proporsi, lalu cek deployment Pages. Jangan mengulang build.
+Task selesai. Tunggu masukan visual pengguna; jangan mengubah collider untuk
+menyamakan siluet besar tanpa permintaan gameplay terpisah.
 
 ## Format checkpoint ketika task aktif
 
