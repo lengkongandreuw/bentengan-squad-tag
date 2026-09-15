@@ -160,7 +160,13 @@ button { font:inherit; }
 .prisoner-notice{position:absolute;z-index:24;top:38%;left:50%;display:flex;align-items:center;gap:11px;padding:14px 18px;color:#fff5d0;background:rgba(82,14,16,.94);border:2px solid #ff5961;border-radius:12px;transform:translate(-50%,-50%);box-shadow:0 12px 38px rgba(0,0,0,.5)}.prisoner-notice span{display:grid;gap:2px}.prisoner-notice b{font:900 16px var(--font-heading);letter-spacing:.04em}.prisoner-notice small{font-size:11px}.action-dock.mechanics-inactive{opacity:.38;filter:grayscale(1);pointer-events:none}.mobile-controls button:disabled{opacity:.3;filter:grayscale(1);pointer-events:none}
 .computed-status{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:9px 0 12px}.computed-status span{display:flex;justify-content:space-between;gap:7px;padding:7px 8px;color:#9fa8a0;background:#141b16;border:1px solid #303a32;border-radius:7px;font-size:9px}.computed-status b{color:#dfffc7}
 .action-dock b{min-width:26px;font-size:6px;letter-spacing:-.02em}.action-dock .ultimate-action b{min-width:29px}
+.playing-shell .control-ribbon{left:50%;right:auto;bottom:82px;z-index:9;display:flex;align-items:center;justify-content:center;gap:6px;max-width:min(680px,calc(100vw - 560px));padding:7px 10px;transform:translateX(-50%);white-space:normal;line-height:1.35;text-align:center;background:rgba(8,13,10,.88);border:1px solid rgba(255,255,255,.13);box-shadow:0 8px 22px rgba(0,0,0,.3)}.ultimate-meter-hud{bottom:126px}
 .rules-dialog{max-height:min(88svh,820px);overflow:auto}.rules-dialog ol{gap:11px;font-size:14px;line-height:1.5}.rules-dialog p{font-size:12px;line-height:1.45}.rules-dialog b{color:#fff}
+
+@media(max-width:1180px){
+  .playing-shell .control-ribbon{display:none}
+  .ultimate-meter-hud{bottom:78px}
+}
 
 @media(max-width:620px){
   .team-pick{inset:0 0 50% 0}
