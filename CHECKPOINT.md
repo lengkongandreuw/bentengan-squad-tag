@@ -5,10 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-15
 - Branch: `main`
-- Commit implementasi terakhir: `00e1537`
+- Commit implementasi terakhir: `0183c0a`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
@@ -18,7 +18,8 @@ penyimpanan browser dan update langsung; musik normal diredam saat preview.
 File: lib/audio-settings.ts, components/audio-settings.tsx, lib/gameplay-audio.ts,
 app/prototype.tsx, app/globals.css, memori.md. TypeScript/audit/build/diff-check
 lulus; uji clamp/default/persistence/event/mute lulus. Uji dengar belum dilakukan.
-Next action task terbaru: commit/push lalu cek Pages. Migrasi repo tetap HOLD.
+Publikasi 0183c0a berhasil; GitHub Pages run 34960714832 sukses.
+Next action task terbaru: tunggu feedback audio pengguna. Migrasi repo tetap HOLD.
 
 Task audio gameplay terbaru: sembilan efek prosedural selesai di
 lib/gameplay-audio.ts dan app/prototype.tsx. TypeScript, audit, build:pages,
