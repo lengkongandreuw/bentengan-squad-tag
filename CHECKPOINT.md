@@ -5,10 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-15
 - Branch: `main`
-- Commit implementasi terakhir: `d82f7cf`
+- Commit implementasi terakhir: `726c552`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
@@ -18,7 +18,10 @@ Carousel, lima portrait skuad, background map, video landing/loading, dan poster
 tim selesai. Generator arena-ui, TypeScript, build:pages, diff --check lulus.
 Uji browser mencapai loading Tim Merah (29%); visual carousel/mobile belum
 diverifikasi karena akses browser terhenti. Jangan mengklaim visual QA selesai.
-Next action task terbaru: commit/push lalu cek GitHub Pages.
+Publikasi selesai: 726c552, GitHub Pages run 34932815982 sukses.
+Gambar hijauload1.jpg terbaru dari ab886b9 ikut digabung dan WebP diregenerasi.
+Next action task terbaru: tunggu feedback pengguna; visual carousel/mobile
+belum terverifikasi, bukan blocker publikasi yang diminta langsung pengguna.
 
 Task terbaru: loading sebelum seleksi karakter dan pertandingan. Implementasi
 di app/prototype.tsx, app/globals.css, lib/asset-ready.ts. Gambar decode sebelum
