@@ -28,6 +28,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
+import { GameplayAudio } from '../lib/gameplay-audio';
 import { ArenaBackdrop, arenaImage } from '../components/arena-backdrop';
 import { imageReady, videoReady } from '../lib/asset-ready';
 import {
@@ -3049,6 +3050,14 @@ export function BentenganPrototype() {
     fieldWaterMask?.addEventListener('load', cacheWaterMask);
     if (fieldWaterMask?.complete) cacheWaterMask();
 
+    const gameplayAudio = new GameplayAudio();
+    gameplayAudio.unlock();
+    window.addEventListener('pointerdown', gameplayAudio.unlock);
+    window.addEventListener('keydown', gameplayAudio.unlock);
+    let lastFootstep = 0;
+    let wasDashing = false;
+    let wasInEnemyFort = false;
+    let previousSoundPosition: { x: number; y: number } | null = null;
     const beep = (frequency: number, duration = 0.08) => {
       try {
         audio ??= new AudioContext();
@@ -3230,6 +3239,7 @@ export function BentenganPrototype() {
     };
     const winRound = (team: Team, reason: string) => {
       if (phase !== 'PLAYING') return;
+      if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
       score[team]++;
       roundWinner = team;
       phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
@@ -3697,7 +3707,9 @@ export function BentenganPrototype() {
       loser.fortCharge = 0;
       loser.rescueShieldUntil = 0;
       burst(loser.x, loser.y, TEAM_COLOR[winner.team]);
-      beep(winner.controlled ? 820 : 250);
+      if (loser.controlled) gameplayAudio.play('caught');
+      else if (winner.controlled) gameplayAudio.play('tag');
+      else if (distance(players[0], loser) < 300) gameplayAudio.play('tag', .22);
       log(
         `${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`,
       );
@@ -3785,7 +3797,9 @@ export function BentenganPrototype() {
             rescuer.action = 'rescue';
             rescuer.actionUntil = now + 460;
             burst(held[0].x, held[0].y, '#b9ee3d', 26);
-            beep(620, 0.16);
+            if (held.some(p => p.controlled)) gameplayAudio.play('rescued');
+            else if (rescuer.controlled) gameplayAudio.play('rescue');
+            else if (distance(players[0], rescuer) < 300) gameplayAudio.play('rescue', .25);
             log(`${rescuer.name} membebaskan ${held.length} rekan.`);
             registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
             chargeUltimate(rescuer, RAJA_ULTIMATE_RESCUE_BONUS);
@@ -4237,6 +4251,21 @@ export function BentenganPrototype() {
       });
       resolvePlayerSpacing(now);
       riverFallCheck(now);
+      // Only actual grounded movement produces footsteps (not pressing into a wall).
+      const travelled = previousSoundPosition ? distance(me, previousSoundPosition) : 0;
+      previousSoundPosition = { x: me.x, y: me.y };
+      const grounded = now >= me.parkourUntil && me.state !== 'PRISONER';
+      const movingForSound = grounded && travelled > .15 && travelled < 35;
+      if (movingForSound && now - lastFootstep > (boosting ? 170 : 270)) {
+        gameplayAudio.play('step', boosting ? .8 : .6);
+        lastFootstep = now;
+      }
+      if (boosting && !wasDashing && movingForSound) gameplayAudio.play('dash');
+      wasDashing = Boolean(boosting && movingForSound);
+      if (me.state === 'PRISONER') gameplayAudio.play('prison');
+      const inEnemyFort = me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < BASE_RADIUS;
+      if (inEnemyFort && !wasInEnemyFort) gameplayAudio.play('fort-enter');
+      wasInEnemyFort = inEnemyFort;
       const exitCandidates: Player[] = [];
       players.forEach((p) => baseCheck(p, dt, now, exitCandidates));
       Array.from(new Map(exitCandidates.map((p) => [p.id, p])).values())
@@ -5292,6 +5321,9 @@ export function BentenganPrototype() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      window.removeEventListener('pointerdown', gameplayAudio.unlock);
+      window.removeEventListener('keydown', gameplayAudio.unlock);
+      gameplayAudio.close();
       audio?.close();
       window.clearTimeout(bannerTimeout);
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);

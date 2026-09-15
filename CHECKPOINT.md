@@ -5,13 +5,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
+- State: `ACTIVE`
 - Diperbarui: 2026-09-15
 - Branch: `main`
 - Commit implementasi terakhir: `726c552`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Task audio gameplay terbaru: sembilan efek prosedural selesai di
+lib/gameplay-audio.ts dan app/prototype.tsx. TypeScript, audit, build:pages,
+diff --check lulus. Belum ada uji dengar langsung di browser/perangkat.
+Next action: commit dan push, cek deployment Pages. Gameplay/mute musik tetap.
 
 Publikasi UI arena sesuai instruksi pengguna "publikasikan sekarang".
 Carousel, lima portrait skuad, background map, video landing/loading, dan poster

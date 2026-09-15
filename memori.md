@@ -45,6 +45,13 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Kontrol gameplay final
 
+- Efek gameplay prosedural (Web Audio) di lib/gameplay-audio.ts: langkah, dash,
+  tag, tertangkap, suasana penjara, membebaskan, dibebaskan, masuk benteng lawan,
+  dan benteng direbut. Tidak memerlukan file/audio pihak ketiga.
+- Efek terpisah dari mute musik; langkah mengikuti perpindahan nyata, dash saat
+  mulai, penjara berjeda 3,5 detik. Efek bot sekitar lebih pelan; resource audio
+  ditutup ketika pertandingan dibongkar. Kebijakan autoplay browser tetap berlaku.
+
 - Gerak: `WASD` atau tombol panah.
 - Sprint: `Space`, durasi dasar 1,4 detik.
 - Parkour: `Shift` ketika berada di dekat rintangan.
