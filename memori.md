@@ -45,6 +45,15 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Kontrol gameplay final
 
+- Pengaturan AUDIO tersedia di menu dan HUD ingame: slider Musik/SFX 0–100%,
+  default musik 16%, SFX 85%. Tersimpan pada benteng-audio-levels-v1 di browser.
+- Volume berubah langsung tanpa restart pertandingan atau musik. SFX mencakup
+  efek interaksi, beep/UI, cue kemenangan/kalah, serta ambience (lebih pelan).
+- Preview musik ingame 5 detik meredam musik normal sementara; preview sembilan
+  efek dapat dipilih. Preview berhenti ketika panel ditutup atau pindah layar.
+- Rencana pemisahan repo privat/publik DITAHAN atas instruksi pengguna; jangan
+  mengubah visibilitas, remote, atau riwayat tanpa instruksi baru.
+
 - Efek gameplay prosedural (Web Audio) di lib/gameplay-audio.ts: langkah, dash,
   tag, tertangkap, suasana penjara, membebaskan, dibebaskan, masuk benteng lawan,
   dan benteng direbut. Tidak memerlukan file/audio pihak ketiga.

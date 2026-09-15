@@ -260,3 +260,13 @@ button { font:inherit; }
   .asset-loading-card p { margin:6px 0; }
 }
 @media(prefers-reduced-motion:reduce) { .arena-backdrop>img { animation:none; } .step-field .field-card { transition:none; } }
+.audio-settings { position:relative; z-index:100; color:#fff4d1; font:600 13px Arial,sans-serif; }
+.audio-settings summary { cursor:pointer; padding:10px; min-height:38px; border:1px solid #72876b; border-radius:8px; background:#16211c; white-space:nowrap; }
+.audio-settings-panel { position:absolute; right:0; top:calc(100% + 8px); width:290px; max-width:85vw; padding:16px; display:grid; gap:10px; background:#111d17fa; border:1px solid #8cad77; border-radius:12px; box-shadow:0 8px 30px #0009; max-height:70cqh; overflow:auto; text-align:left; }
+.pregame-actions:not(.step-field) .audio-settings-panel { top:auto; bottom:calc(100% + 8px); }
+.audio-settings-panel label { display:block; }
+.audio-settings-panel output { float:right; color:#d6f04b; }
+.audio-settings-panel input { display:block; width:100%; height:30px; accent-color:#d6f04b; }
+.audio-settings-panel button,.audio-settings-panel select { min-height:36px; padding:7px; border:1px solid #66845d; background:#24382b; color:#fff; border-radius:6px; width:100%; }
+.audio-settings-panel small { font-size:11px; line-height:1.4; color:#bdcbb8; }
+.playing-shell .game-topbar { z-index:120; }

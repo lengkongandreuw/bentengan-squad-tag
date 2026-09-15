@@ -5,13 +5,20 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
+- State: `ACTIVE`
 - Diperbarui: 2026-09-15
 - Branch: `main`
 - Commit implementasi terakhir: `00e1537`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Task terbaru: mixer volume Musik/SFX dan preview ingame selesai. Default .16/.85,
+penyimpanan browser dan update langsung; musik normal diredam saat preview.
+File: lib/audio-settings.ts, components/audio-settings.tsx, lib/gameplay-audio.ts,
+app/prototype.tsx, app/globals.css, memori.md. TypeScript/audit/build/diff-check
+lulus; uji clamp/default/persistence/event/mute lulus. Uji dengar belum dilakukan.
+Next action task terbaru: commit/push lalu cek Pages. Migrasi repo tetap HOLD.
 
 Task audio gameplay terbaru: sembilan efek prosedural selesai di
 lib/gameplay-audio.ts dan app/prototype.tsx. TypeScript, audit, build:pages,

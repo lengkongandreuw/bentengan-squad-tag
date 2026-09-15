@@ -1,3 +1,4 @@
+import { audioLevels, AUDIO_SETTINGS_EVENT } from './audio-settings';
 export type GameplaySound = 'step' | 'dash' | 'tag' | 'caught' | 'prison' |
   'rescued' | 'rescue' | 'fort-enter' | 'fort-captured';
 
@@ -8,7 +9,10 @@ export class GameplayAudio {
   private noise: AudioBuffer | null = null;
   private last = new Map<GameplaySound, number>();
   private closed = false;
-  unlock = () => {
+  private updateVolume = () => {
+    if (this.output && this.context) this.output.gain.setTargetAtTime(audioLevels().sfx, this.context.currentTime, .02);
+  };
+  unlock = async () => {
     if (this.closed) return;
     try {
       if (!this.context) {
@@ -17,14 +21,15 @@ export class GameplayAudio {
         compressor.threshold.value = -18;
         compressor.ratio.value = 5;
         this.output = this.context.createGain();
-        this.output.gain.value = .45;
+        this.output.gain.value = audioLevels().sfx;
+        window.addEventListener(AUDIO_SETTINGS_EVENT, this.updateVolume);
         this.output.connect(compressor);
         compressor.connect(this.context.destination);
         this.noise = this.context.createBuffer(1, this.context.sampleRate, this.context.sampleRate);
         const samples = this.noise.getChannelData(0);
         for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
       }
-      if (this.context.state === 'suspended') void this.context.resume().catch(() => undefined);
+      if (this.context.state === 'suspended') await this.context.resume().catch(() => undefined);
     } catch { /* Audio is optional on unsupported browsers. */ }
   };
 
@@ -81,6 +86,7 @@ export class GameplayAudio {
   }
 
   close() {
+    window.removeEventListener(AUDIO_SETTINGS_EVENT, this.updateVolume);
     this.closed = true;
     if (this.context) void this.context.close().catch(() => undefined);
     this.context = null;

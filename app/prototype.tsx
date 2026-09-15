@@ -28,6 +28,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
+import { AudioSettings } from '../components/audio-settings';
+import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
 import { ArenaBackdrop, arenaImage } from '../components/arena-backdrop';
 import { imageReady, videoReady } from '../lib/asset-ready';
@@ -2714,7 +2716,7 @@ export function BentenganPrototype() {
   const playAudioCue = (file: string, volume = 0.55) => {
     try {
       const cue = new Audio(uiAudioAsset(file));
-      cue.volume = volume;
+      cue.volume = volume * audioLevels().sfx;
       void cue.play().catch(() => undefined);
     } catch {
       /* Audio tetap opsional pada browser yang memblokir media. */
@@ -2761,10 +2763,17 @@ export function BentenganPrototype() {
       ),
     );
     music.loop = true;
-    music.volume = mode === 'playing' ? 0.34 : 0.42;
+    let previewing = false;
+    const updateVolume = () => { music.volume = previewing ? 0 : audioLevels().music; };
+    const preview = (event: Event) => { previewing = Boolean((event as CustomEvent).detail); updateVolume(); };
+    updateVolume();
+    window.addEventListener(AUDIO_SETTINGS_EVENT, updateVolume);
+    window.addEventListener(MUSIC_PREVIEW_EVENT, preview);
     void music.play().catch(() => undefined);
     return () => {
       music.pause();
+      window.removeEventListener(AUDIO_SETTINGS_EVENT, updateVolume);
+      window.removeEventListener(MUSIC_PREVIEW_EVENT, preview);
       music.removeAttribute('src');
       music.load();
     };
@@ -2774,10 +2783,13 @@ export function BentenganPrototype() {
     if (!audioUnlocked || mode !== 'playing') return;
     const ambience = new Audio(uiAudioAsset('ingame-ambience.mp3'));
     ambience.loop = true;
-    ambience.volume = 0.22;
+    const updateVolume = () => { ambience.volume = .12 * audioLevels().sfx; };
+    updateVolume();
+    window.addEventListener(AUDIO_SETTINGS_EVENT, updateVolume);
     void ambience.play().catch(() => undefined);
     return () => {
       ambience.pause();
+      window.removeEventListener(AUDIO_SETTINGS_EVENT, updateVolume);
       ambience.removeAttribute('src');
       ambience.load();
     };
@@ -2808,6 +2820,7 @@ export function BentenganPrototype() {
       gainValue: number,
       type: OscillatorType = 'sine',
     ) => {
+      if (audioLevels().sfx === 0) return;
       try {
         uiAudio ??= new AudioContext();
         if (uiAudio.state !== 'running') void uiAudio.resume();
@@ -2815,7 +2828,7 @@ export function BentenganPrototype() {
         const gain = uiAudio.createGain();
         oscillator.type = type;
         oscillator.frequency.setValueAtTime(frequency, uiAudio.currentTime);
-        gain.gain.setValueAtTime(gainValue, uiAudio.currentTime);
+        gain.gain.setValueAtTime(Math.max(.0001, gainValue * audioLevels().sfx), uiAudio.currentTime);
         gain.gain.exponentialRampToValueAtTime(
           0.0001,
           uiAudio.currentTime + duration,
@@ -2831,7 +2844,7 @@ export function BentenganPrototype() {
     const playUiSample = (target: HTMLElement) => {
       const file = target.matches('.graffiti-back,.rules-close') ? 'ui-back.mp3' : 'ui-select.mp3';
       const sample = new Audio(uiAudioAsset(file));
-      sample.volume = 0.48;
+      sample.volume = 0.48 * audioLevels().sfx;
       void sample.play().catch(() => undefined);
     };
     const interactive = (target: EventTarget | null) =>
@@ -3059,12 +3072,13 @@ export function BentenganPrototype() {
     let wasInEnemyFort = false;
     let previousSoundPosition: { x: number; y: number } | null = null;
     const beep = (frequency: number, duration = 0.08) => {
+      if (audioLevels().sfx === 0) return;
       try {
         audio ??= new AudioContext();
         const oscillator = audio.createOscillator();
         const gain = audio.createGain();
         oscillator.frequency.value = frequency;
-        gain.gain.value = 0.035;
+        gain.gain.value = Math.max(.0001, 0.05 * audioLevels().sfx);
         oscillator.connect(gain);
         gain.connect(audio.destination);
         oscillator.start();
@@ -5820,6 +5834,7 @@ export function BentenganPrototype() {
           </button>
         )}
         <div className={`pregame-actions step-${menuStep}`}>
+          <AudioSettings onOpen={() => keys.current.clear()} />
           <button
             className={`music-toggle ${musicMuted ? 'muted' : ''}`}
             onClick={toggleBackgroundMusic}
@@ -5918,6 +5933,7 @@ export function BentenganPrototype() {
           </span>
         </div>
         <div className="top-actions">
+          <AudioSettings onOpen={() => keys.current.clear()} />
           <button
             className={`icon-button ${musicMuted ? 'muted' : ''}`}
             onClick={toggleBackgroundMusic}
