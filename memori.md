@@ -121,6 +121,16 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Kondisi gameplay dan UI terbaru
 
+- UI arena 2026-09-15 mengikuti referensi carousel: kartu aktif besar di tengah,
+  panah kiri/kanan, lima portrait skuad sendiri, Back dan Mulai Match.
+- PNG arena menjadi background pilihan map; MP4 sesuai map menjadi latar loading
+  pertandingan. Landing memakai video arena acak bergantian; poster WebP menjadi
+  cadangan. Loading seleksi karakter memakai gambar sesuai warna tim.
+- Generator khusus: `node scripts/build-arena-ui.mjs`; output `public/arena-ui/`.
+  Sumber tetap di `Assets/Video and GIFs/`. Gameplay tidak berubah.
+- TypeScript dan build produksi UI ini lulus. Uji browser mencapai loading Tim
+  Merah; pemeriksaan visual carousel/mobile belum selesai karena batas akses.
+
 - Loading seleksi karakter menunggu decode portrait/ikon, kontrol, thumbnail
   arena, font, dan frame awal video tim; ganti tim memeriksa aset tim baru.
 - Loading pertandingan menunggu atlas karakter, VFX, banner, atlas field,

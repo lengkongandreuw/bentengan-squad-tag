@@ -203,3 +203,60 @@ button { font:inherit; }
 .asset-loading-card p { margin: 14px 0; }
 .asset-loading-card progress { width: 100%; height: 20px; accent-color: #f5cf45; }
 .asset-loading-card button { margin: 6px; padding: 12px 18px; min-height: 48px; border: 1px solid #f5cf45; border-radius: 8px; cursor: pointer; }
+
+/* Arena reference layout. Container units also follow the rotated mobile shell. */
+.pregame-shell { container-type: size; }
+.arena-backdrop { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; background:#19271e; }
+.arena-backdrop>img,.arena-backdrop>video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.arena-backdrop>img { animation:arena-reveal .35s ease; }
+.arena-backdrop-shade { position:absolute; inset:0; background:linear-gradient(0deg,rgba(0,0,0,.75),rgba(0,0,0,.28) 55%,rgba(0,0,0,.52)); }
+@keyframes arena-reveal { from { opacity:.4 } to { opacity:1 } }
+.step-splash .splash-hero { display:none; }
+.splash-screen,.field-select-screen { z-index:1; }
+.asset-loading-card { position:relative; z-index:1; align-self:end; margin-bottom:4%; border:1px solid #ffffff36; border-radius:16px; background:#07110ddb; backdrop-filter:blur(10px); padding:18px 24px; }
+.asset-loading-card button { background:#18271f; color:#fff4d1; }
+.step-field .field-select-screen { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:0; padding:8cqh 3cqw 0; overflow:hidden; }
+.step-field .field-select-screen>header { width:52%; height:25cqh; flex-shrink:0; }
+.step-field .field-select-screen h1 { max-width:650px; margin:0 auto 8px; font-size:clamp(32px,8cqh,88px); line-height:.94; text-wrap:balance; }
+.step-field .field-select-screen header>span { color:#89f538; font-size:clamp(9px,1.3cqh,14px); }
+.step-field .field-select-screen header p { display:block; color:#e3e3df; font-size:clamp(9px,1.3cqh,13px); margin:8px auto; max-width:500px; }
+.arena-carousel { position:relative; width:100%; height:39cqh; flex-shrink:0; }
+.step-field .field-card-row { display:block; position:relative; width:100%; max-width:none; height:100%; margin:0; }
+.step-field .field-card { position:absolute; left:50%; top:0; width:27cqw; max-width:350px; height:100%; min-height:0; padding:clamp(10px,2cqh,22px); clip-path:none; border-radius:16px; border:2px solid #7bbc454a; transform:translateX(calc(-50% + var(--arena-offset) * 88%)) scale(.78); filter:brightness(.6); z-index:1; transition:transform .3s ease,filter .3s ease; }
+.step-field .field-card.selected { transform:translateX(-50%) scale(1); filter:brightness(1); z-index:3; border-color:#f5cf45; box-shadow:0 0 30px #f5cf4522; }
+.step-field .field-card strong { font-size:clamp(18px,3.7cqh,38px); line-height:1; }
+.step-field .field-card span { font-size:clamp(10px,1.4cqh,14px); }
+.step-field .field-card i { color:#8cec41; font-size:clamp(9px,1.2cqh,12px); margin-top:12px; }
+.step-field .field-card small { font-size:clamp(22px,4cqh,42px); }
+.arena-nav { position:absolute; z-index:5; top:30%; width:56px; height:40%; border:0; background:transparent; color:white; font:bold clamp(60px,12cqh,130px)/.7 Arial; cursor:pointer; text-shadow:0 2px 12px #000; }
+.arena-nav.previous { right:calc(50% + min(13.5cqw,175px)); }
+.arena-nav.next { left:calc(50% + min(13.5cqw,175px)); }
+.step-field .match-lineup { height:10cqh; margin:2cqh 0 0; }
+.step-field .match-lineup>div { gap:12px; }
+.step-field .match-lineup figure { width:7cqw; max-width:90px; height:9cqh; margin:0; background:linear-gradient(0deg,var(--team-accent) 55%,transparent 55%); border:3px solid #111; transform:none; }
+.step-field .match-lineup figure.controlled { border-bottom-color:#f5cf45; }
+.step-field .match-lineup figcaption { font-size:clamp(8px,1.1cqh,11px); }
+.step-field .field-select-screen>.graffiti-primary { width:32cqw; max-width:410px; height:10cqh; min-height:48px; margin-top:3cqh; }
+.step-field>.graffiti-back { top:auto; bottom:3cqh; left:calc(50% - 29cqw); width:10cqw; height:11cqh; }
+.step-field .pregame-actions { top:2cqh; right:2cqw; bottom:auto; }
+.step-field .rules-button { width:18cqw; height:7cqh; min-height:44px; }
+.step-field .workshop-link { display:none; }
+.step-field .music-toggle span { display:none; }
+@media(max-height:550px),(orientation:portrait) and (max-width:620px) {
+  .step-field .field-select-screen { padding-top:6cqh; }
+  .step-field .field-select-screen>header { height:24cqh; }
+  .step-field .field-select-screen header p { font-size:9px; margin:3px auto; }
+  .step-field .field-select-screen h1 { font-size:8cqh; }
+  .step-field .field-card { width:29cqw; padding:10px; }
+  .step-field .field-card em { top:7px; left:8px; padding:3px 5px; }
+  .step-field .field-card i { margin-top:5px; }
+  .step-field .field-card strong { font-size:5cqh; }
+  .step-field .field-card span { font-size:9px; }
+  .step-field .match-lineup { margin-top:3cqh; }
+  .step-field .match-lineup figcaption { display:none; }
+  .step-field .field-select-screen>.graffiti-primary { margin-top:2cqh; height:12cqh; }
+  .asset-loading-card { padding:10px 16px; margin-bottom:2%; }
+  .asset-loading-card h1 { font-size:20px; }
+  .asset-loading-card p { margin:6px 0; }
+}
+@media(prefers-reduced-motion:reduce) { .arena-backdrop>img { animation:none; } .step-field .field-card { transition:none; } }

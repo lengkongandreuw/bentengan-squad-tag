@@ -5,13 +5,20 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-14
+- State: `ACTIVE`
+- Diperbarui: 2026-09-15
 - Branch: `main`
 - Commit implementasi terakhir: `d82f7cf`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Publikasi UI arena sesuai instruksi pengguna "publikasikan sekarang".
+Carousel, lima portrait skuad, background map, video landing/loading, dan poster
+tim selesai. Generator arena-ui, TypeScript, build:pages, diff --check lulus.
+Uji browser mencapai loading Tim Merah (29%); visual carousel/mobile belum
+diverifikasi karena akses browser terhenti. Jangan mengklaim visual QA selesai.
+Next action task terbaru: commit/push lalu cek GitHub Pages.
 
 Task terbaru: loading sebelum seleksi karakter dan pertandingan. Implementasi
 di app/prototype.tsx, app/globals.css, lib/asset-ready.ts. Gambar decode sebelum

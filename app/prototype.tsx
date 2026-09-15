@@ -28,6 +28,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
+import { ArenaBackdrop, arenaImage } from '../components/arena-backdrop';
 import { imageReady, videoReady } from '../lib/asset-ready';
 import {
   CHARACTER_BY_ID,
@@ -2604,6 +2605,16 @@ export function BentenganPrototype() {
   const [ultimateBannerVisible, setUltimateBannerVisible] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
+  const [landingArena, setLandingArena] = useState<FieldId>('kampung');
+  useEffect(() => {
+    setLandingArena(FIELD_CONFIGS[Math.floor(Math.random() * FIELD_CONFIGS.length)].id);
+    // Warm the small loading posters while the user navigates the menus.
+    for (const team of ['red', 'green']) getPresentationImage(arenaImage(`${team}-loading`));
+  }, []);
+  const nextLandingArena = () => setLandingArena(current => {
+    const choices = FIELD_CONFIGS.filter(field => field.id !== current);
+    return choices[Math.floor(Math.random() * choices.length)].id;
+  });
   const [readyFaction, setReadyFaction] = useState<Faction | null>(null);
   const [gameLoading, setGameLoading] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -2623,6 +2634,7 @@ export function BentenganPrototype() {
       const images: HTMLImageElement[] = [];
       const urls = [uiAsset('controls/primary.webp'), uiAsset('controls/primary-hover.webp'),
         uiAsset('controls/back.webp')];
+      for (const field of FIELD_CONFIGS) urls.push(arenaImage(field.id));
       if (gameLoading) {
         for (const id of Object.keys(CHARACTER_BY_ID) as CharacterId[]) {
           images.push(getSpriteImage(id));
@@ -5428,6 +5440,7 @@ export function BentenganPrototype() {
   };
   if (assetsLoading) return (
     <main className="pregame-shell asset-loading-screen">
+      <ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />
       <section className="asset-loading-card" aria-busy={!loadError} aria-live="polite">
         <h1>{gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER'}</h1>
         <p>{loadError || 'Memuat aset… Tunggu sebentar.'}</p>
@@ -5461,6 +5474,8 @@ export function BentenganPrototype() {
         }
       >
         <div className="ink-noise" />
+        {menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />}
+        {menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />}
         {menuStep === 'splash' && (
           <section className="splash-screen" aria-labelledby="game-title">
             <img
@@ -5699,13 +5714,19 @@ export function BentenganPrototype() {
                 terjadi setelah tiga kemenangan.
               </p>
             </header>
-            <div className="field-card-row">
+            <div className="arena-carousel">
+            <button className="arena-nav previous" aria-label="Arena sebelumnya" onClick={() => {
+              const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
+              setSelectedFieldId(FIELD_CONFIGS[(index + FIELD_CONFIGS.length - 1) % FIELD_CONFIGS.length].id);
+            }}>‹</button>
+            <div className="field-card-row" aria-label="Pilihan arena">
               {FIELD_CONFIGS.map((field, index) => (
                 <button
                   key={field.id}
                   className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''}`}
                   onClick={() => setSelectedFieldId(field.id)}
                   aria-pressed={selectedFieldId === field.id}
+                  style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + 5) % 4) - 1 } as React.CSSProperties}
                 >
                   <img
                     className="field-card-preview"
@@ -5725,6 +5746,11 @@ export function BentenganPrototype() {
                 </button>
               ))}
             </div>
+            <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => {
+              const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
+              setSelectedFieldId(FIELD_CONFIGS[(index + 1) % FIELD_CONFIGS.length].id);
+            }}>›</button>
+            </div>
             <div className="match-lineup">
               <div>
                 {squad.map((id, index) => (
@@ -5737,15 +5763,6 @@ export function BentenganPrototype() {
                     <figcaption>
                       {index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}
                     </figcaption>
-                  </figure>
-                ))}
-              </div>
-              <b>VS</b>
-              <div>
-                {opponentSquad.map((id) => (
-                  <figure key={id}>
-                    <CharacterPreview id={id} alt={CHARACTER_BY_ID[id].name} />
-                    <figcaption>{CHARACTER_BY_ID[id].name}</figcaption>
                   </figure>
                 ))}
               </div>
