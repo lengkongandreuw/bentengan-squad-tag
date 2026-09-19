@@ -213,6 +213,38 @@ type Mission = {
   rescue: boolean;
   combo: boolean;
 };
+type PlayerStats = {
+  tags: number;
+  prisons: number;
+  rescues: number;
+};
+type StatsBoard = {
+  visible: boolean;
+  final: boolean;
+  round: number;
+  winner?: Team;
+  reason: string;
+  countdown: number;
+  duration: number;
+  mapName: string;
+  format: string;
+  mvpId: string;
+  mvpName: string;
+  score: Record<Team, number>;
+  teams: Record<
+    Team,
+    Array<
+      PlayerStats & {
+        id: string;
+        name: string;
+        characterId: CharacterId;
+        controlled?: boolean;
+        contribution: number;
+        mvp: boolean;
+      }
+    >
+  >;
+};
 type Snapshot = {
   blue: number;
   red: number;
@@ -245,6 +277,7 @@ type Snapshot = {
   ultimateMeter: number;
   ultimateBuffRemaining: number;
   ultimateCasting: boolean;
+  statsBoard: StatsBoard;
 };
 
 const DESIGN_W = 1440;
@@ -2479,6 +2512,20 @@ const initialSnapshot: Snapshot = {
   ultimateMeter: 0,
   ultimateBuffRemaining: 0,
   ultimateCasting: false,
+  statsBoard: {
+    visible: false,
+    final: false,
+    round: 1,
+    reason: '',
+    countdown: 0,
+    duration: 0,
+    mapName: '',
+    format: 'Best of 3',
+    mvpId: '',
+    mvpName: '',
+    score: { blue: 0, red: 0 },
+    teams: { blue: [], red: [] },
+  },
 };
 
 const other = (team: Team): Team => (team === 'blue' ? 'red' : 'blue');
@@ -2606,6 +2653,8 @@ export function BentenganPrototype() {
   const keys = useRef<Set<string>>(new Set());
   const cameraModeRef = useRef<CameraMode>('follow');
   const completedMatchesRef = useRef(0);
+  const leaderboardOpenRef = useRef(false);
+  const postRoundActionRef = useRef<'next-round' | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
   const [selectedId, setSelectedId] = useState<CharacterId>('raja');
   const [selectedFieldId, setSelectedFieldId] = useState<FieldId>('kampung');
@@ -2618,6 +2667,7 @@ export function BentenganPrototype() {
   const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [ultimateBannerVisible, setUltimateBannerVisible] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
@@ -2814,6 +2864,10 @@ export function BentenganPrototype() {
   }, [cameraMode]);
 
   useEffect(() => {
+    leaderboardOpenRef.current = leaderboardOpen;
+  }, [leaderboardOpen]);
+
+  useEffect(() => {
     if (!ULTIMATE_CHARACTER_IDS.has(selectedId)) return;
     const banner = new Image();
     banner.decoding = 'async';
@@ -2914,6 +2968,11 @@ export function BentenganPrototype() {
     const down = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if (mode === 'playing') {
+        if (key === 'tab') {
+          event.preventDefault();
+          setLeaderboardOpen(true);
+          return;
+        }
         if (
           [
             'arrowup',
@@ -2929,8 +2988,14 @@ export function BentenganPrototype() {
         keys.current.add(key);
       }
     };
-    const up = (event: KeyboardEvent) =>
-      keys.current.delete(event.key.toLowerCase());
+    const up = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (key === 'tab') {
+        setLeaderboardOpen(false);
+        return;
+      }
+      keys.current.delete(key);
+    };
     const releaseAll = () => keys.current.clear();
     const visibility = () => {
       if (document.hidden) releaseAll();
@@ -2958,13 +3023,15 @@ export function BentenganPrototype() {
     let phase: 'COUNTDOWN' | 'PLAYING' | 'ROUND_OVER' | 'MATCH_OVER' =
       'COUNTDOWN';
     let phaseUntil = performance.now() + 3000,
+      matchStartedAt = performance.now(),
       timer = 240,
       round = 1,
       exitCounter = 0;
     let score = { blue: 0, red: 0 },
       paused = false,
       announcement = mode === 'playing' ? 'BERSIAP!' : '',
-      roundWinner: Team | undefined;
+      roundWinner: Team | undefined,
+      roundEndReason = '';
     let fieldRotationPending = false;
     let logs = [
       '5v5 · pemain yang keluar terakhir memiliki prioritas tangkap tertinggi.',
@@ -3173,6 +3240,79 @@ export function BentenganPrototype() {
       ];
     };
     let players = makePlayers();
+    const emptyStats = (): PlayerStats => ({ tags: 0, prisons: 0, rescues: 0 });
+    const makeStatsStore = () =>
+      Object.fromEntries(players.map((player) => [player.id, emptyStats()])) as Record<
+        string,
+        PlayerStats
+      >;
+    let roundStats = makeStatsStore();
+    let matchStats = makeStatsStore();
+    const ensureStats = (
+      store: Record<string, PlayerStats>,
+      player: Player,
+    ) => (store[player.id] ??= emptyStats());
+    const addStat = (player: Player, key: keyof PlayerStats, amount = 1) => {
+      ensureStats(roundStats, player)[key] += amount;
+      ensureStats(matchStats, player)[key] += amount;
+    };
+    const contributionScore = (stats: PlayerStats) =>
+      stats.tags * 100 + stats.rescues * 120 - stats.prisons * 40;
+    const boardRows = (
+      store: Record<string, PlayerStats>,
+      team: Team,
+      mvpId: string,
+    ) =>
+      players
+        .filter((player) => player.team === team)
+        .map((player) => ({
+          id: player.id,
+          name: player.name,
+          characterId: player.characterId,
+          controlled: player.controlled,
+          ...ensureStats(store, player),
+          contribution: contributionScore(ensureStats(store, player)),
+          mvp: player.id === mvpId,
+        }));
+    const buildStatsBoard = (now: number): StatsBoard => {
+      const automatic = phase === 'ROUND_OVER' || phase === 'MATCH_OVER';
+      const final = phase === 'MATCH_OVER';
+      const store = final || leaderboardOpenRef.current ? matchStats : roundStats;
+      const rankedPlayers = players
+        .map((player) => ({
+          player,
+          contribution: contributionScore(ensureStats(store, player)),
+        }))
+        .sort(
+          (a, b) =>
+            b.contribution - a.contribution ||
+            ensureStats(store, b.player).tags - ensureStats(store, a.player).tags ||
+            ensureStats(store, b.player).rescues - ensureStats(store, a.player).rescues ||
+            a.player.name.localeCompare(b.player.name),
+        );
+      const mvp = rankedPlayers[0];
+      return {
+        visible: automatic,
+        final,
+        round,
+        winner: roundWinner,
+        reason: roundEndReason,
+        countdown:
+          phase === 'ROUND_OVER'
+            ? Math.max(0, Math.ceil((phaseUntil - now) / 1000))
+            : 0,
+        duration: Math.max(0, (now - matchStartedAt) / 1000),
+        mapName: field.name,
+        format: 'Best of 3',
+        mvpId: mvp?.player.id ?? '',
+        mvpName: mvp?.player.name ?? '',
+        score: { ...score },
+        teams: {
+          blue: boardRows(store, 'blue', mvp?.player.id ?? ''),
+          red: boardRows(store, 'red', mvp?.player.id ?? ''),
+        },
+      };
+    };
     const log = (text: string) => {
       logs = [text, ...logs].slice(0, 5);
     };
@@ -3243,12 +3383,15 @@ export function BentenganPrototype() {
     seedRefills();
     const resetRound = () => {
       players = makePlayers();
+      roundStats = makeStatsStore();
+      players.forEach((player) => ensureStats(matchStats, player));
       seedRefills();
       timer = 240;
       exitCounter = 0;
       totalCapture = { blue: 0, red: 0 };
       suddenDeath = false;
       roundWinner = undefined;
+      roundEndReason = '';
       ultimateImpactAt = 0;
       ultimateBuffUntil = 0;
       ultimateShieldUntil = 0;
@@ -3270,6 +3413,7 @@ export function BentenganPrototype() {
       if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
       score[team]++;
       roundWinner = team;
+      roundEndReason = reason;
       phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
       if (phase === 'MATCH_OVER') {
         completedMatchesRef.current++;
@@ -3279,7 +3423,7 @@ export function BentenganPrototype() {
           0.68,
         );
       }
-      phaseUntil = performance.now() + (phase === 'MATCH_OVER' ? 7000 : 3800);
+      phaseUntil = performance.now() + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 3000);
       announcement =
         phase === 'MATCH_OVER'
           ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
@@ -3726,6 +3870,8 @@ export function BentenganPrototype() {
       winner.tagCooldown =
         now + CHARACTER_BY_ID[winner.characterId].tagCooldownMs;
       winner.captures++;
+      addStat(winner, 'tags');
+      addStat(loser, 'prisons');
       if (!winner.capturedIds.includes(loser.id))
         winner.capturedIds.push(loser.id);
       winner.action = 'tag';
@@ -3825,6 +3971,7 @@ export function BentenganPrototype() {
             });
             rescuer.action = 'rescue';
             rescuer.actionUntil = now + 460;
+            addStat(rescuer, 'rescues');
             burst(held[0].x, held[0].y, '#b9ee3d', 26);
             if (held.some(p => p.controlled)) gameplayAudio.play('rescued');
             else if (rescuer.controlled) gameplayAudio.play('rescue');
@@ -3960,6 +4107,8 @@ export function BentenganPrototype() {
         announcement = `${Math.max(1, Math.ceil((phaseUntil - now) / 1000))}`;
         if (now >= phaseUntil) {
           phase = 'PLAYING';
+          if (round === 1 && score.blue === 0 && score.red === 0)
+            matchStartedAt = now;
           announcement = 'MULAI!';
           setTimeout(() => {
             if (phase === 'PLAYING') announcement = '';
@@ -3967,27 +4116,16 @@ export function BentenganPrototype() {
         }
         return;
       }
-      if (phase === 'ROUND_OVER' && now >= phaseUntil) {
+      if (
+        phase === 'ROUND_OVER' &&
+        (now >= phaseUntil || postRoundActionRef.current === 'next-round')
+      ) {
+        postRoundActionRef.current = null;
         round++;
         resetRound();
         return;
       }
       if (phase === 'MATCH_OVER') {
-        if (now >= phaseUntil) {
-          if (fieldRotationPending) {
-            const decision = fieldCycleDecision(
-              selectedFieldId,
-              completedMatchesRef.current,
-              FIELD_CONFIGS.map((item) => item.id),
-            );
-            completedMatchesRef.current = decision.wins;
-            setSelectedFieldId(decision.fieldId);
-          } else {
-            score = { blue: 0, red: 0 };
-            round = 1;
-            resetRound();
-          }
-        }
         return;
       }
       if (!suddenDeath) timer -= dt;
@@ -5356,6 +5494,7 @@ export function BentenganPrototype() {
             ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
             me.action === 'ultimate' &&
             now < me.actionUntil,
+          statsBoard: buildStatsBoard(now),
         });
       }
       raf = requestAnimationFrame(loop);
@@ -5394,6 +5533,8 @@ export function BentenganPrototype() {
   };
   const quit = () => {
     keys.current.clear();
+    setLeaderboardOpen(false);
+    postRoundActionRef.current = null;
     completedMatchesRef.current = 0;
     setSnapshot(initialSnapshot);
     setMode('menu');
@@ -5404,6 +5545,49 @@ export function BentenganPrototype() {
     setSelectedId('raja');
     setSelectedFieldId('kampung');
     setCameraMode('follow');
+    setRun((v) => v + 1);
+  };
+  const applyPendingFieldRotation = () => {
+    if (completedMatchesRef.current < 3) return;
+    const decision = fieldCycleDecision(
+      selectedFieldId,
+      completedMatchesRef.current,
+      FIELD_CONFIGS.map((item) => item.id),
+    );
+    completedMatchesRef.current = decision.wins;
+    setSelectedFieldId(decision.fieldId);
+  };
+  const rematch = () => {
+    keys.current.clear();
+    postRoundActionRef.current = null;
+    setLeaderboardOpen(false);
+    applyPendingFieldRotation();
+    setSnapshot(initialSnapshot);
+    setMissionOpen(false);
+    setRun((v) => v + 1);
+  };
+  const backToCharacterSelect = () => {
+    keys.current.clear();
+    postRoundActionRef.current = null;
+    setLeaderboardOpen(false);
+    applyPendingFieldRotation();
+    setSnapshot(initialSnapshot);
+    setMode('menu');
+    setMenuStep(selectedFaction ? 'character' : 'team');
+    setRulesOpen(false);
+    setMissionOpen(false);
+    setRun((v) => v + 1);
+  };
+  const backToFieldSelect = () => {
+    keys.current.clear();
+    postRoundActionRef.current = null;
+    setLeaderboardOpen(false);
+    applyPendingFieldRotation();
+    setSnapshot(initialSnapshot);
+    setMode('menu');
+    setMenuStep(selectedFaction ? 'field' : 'team');
+    setRulesOpen(false);
+    setMissionOpen(false);
     setRun((v) => v + 1);
   };
   const cycleCharacter = (direction: -1 | 1) => {
@@ -5511,6 +5695,14 @@ export function BentenganPrototype() {
       onPointerLeave: release,
       onLostPointerCapture: release,
     };
+  };
+  const statsBoard = snapshot.statsBoard;
+  const showStatsBoard =
+    mode === 'playing' && (leaderboardOpen || statsBoard.visible);
+  const closeLeaderboard = () => setLeaderboardOpen(false);
+  const requestNextRound = () => {
+    postRoundActionRef.current = 'next-round';
+    setLeaderboardOpen(false);
   };
   if (assetsLoading) return (
     <main className="pregame-shell asset-loading-screen">
@@ -5993,7 +6185,19 @@ export function BentenganPrototype() {
             ref={canvasRef}
             aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`}
           />
-          <div className="stage-hud">
+          <div
+            className="stage-hud"
+            role="button"
+            tabIndex={0}
+            aria-label="Buka leaderboard statistik match"
+            onClick={() => setLeaderboardOpen((value) => !value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setLeaderboardOpen((value) => !value);
+              }
+            }}
+          >
             <div className="hud-red">
               <span>{snapshot.blue}</span>
               <b>
@@ -6011,6 +6215,142 @@ export function BentenganPrototype() {
               <span>{snapshot.red}</span>
             </div>
           </div>
+          {showStatsBoard && (
+            <section
+              className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
+              role="dialog"
+              aria-modal={statsBoard.visible}
+              aria-labelledby="round-stats-title"
+            >
+              <div className="round-stats-panel">
+                <header className="round-stats-head">
+                  <div>
+                    <span>
+                      {statsBoard.final
+                        ? 'MATCH SELESAI'
+                        : leaderboardOpen && !statsBoard.visible
+                          ? 'MATCH LEADERBOARD'
+                          : `REKAP RONDE ${statsBoard.round}`}
+                    </span>
+                    <h2 id="round-stats-title">
+                      {statsBoard.winner
+                        ? `${teamName(statsBoard.winner).toUpperCase()} UNGGUL`
+                        : 'STATISTIK PEMAIN'}
+                    </h2>
+                    <p>
+                      {statsBoard.final
+                        ? 'Pilih aksi berikutnya untuk lanjut.'
+                        : statsBoard.visible
+                          ? `Lanjut otomatis ${statsBoard.countdown}s`
+                          : 'Tekan Tab atau klik skor untuk melihat statistik match.'}
+                    </p>
+                  </div>
+                  <div className="round-match-meta" aria-label="Info match">
+                    <span>
+                      <Gauge size={14} />
+                      <small>DURASI</small>
+                      <b>{formatTime(statsBoard.duration)}</b>
+                    </span>
+                    <span>
+                      <Flag size={14} />
+                      <small>FORMAT</small>
+                      <b>{statsBoard.format.toUpperCase()}</b>
+                    </span>
+                    <span>
+                      <MapIcon size={14} />
+                      <small>MAP</small>
+                      <b>{statsBoard.mapName.toUpperCase()}</b>
+                    </span>
+                  </div>
+                  {!statsBoard.visible && (
+                    <button
+                      className="round-stats-close"
+                      onClick={closeLeaderboard}
+                      aria-label="Tutup leaderboard"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </header>
+                <div className="round-scoreline" aria-label="Skor match">
+                  <span>
+                    TIM MERAH <b>{statsBoard.score.blue}</b>
+                  </span>
+                  <i>BEST OF 3</i>
+                  <span>
+                    <b>{statsBoard.score.red}</b> HIJAU
+                  </span>
+                </div>
+                <div className="round-stats-grid">
+                  {(['blue', 'red'] as Team[]).map((team) => (
+                    <article key={team} className={`round-team-card ${team}`}>
+                      <h3>{teamName(team).toUpperCase()}</h3>
+                      {statsBoard.teams[team].map((player) => (
+                        <div
+                          key={player.id}
+                          className={`round-stat-row ${player.controlled ? 'controlled' : ''} ${player.mvp ? 'mvp' : ''}`}
+                        >
+                          <CharacterPreview id={player.characterId} alt="" />
+                          <b>{player.controlled ? 'KAMU' : player.name}</b>
+                          <span title="Tag musuh">
+                            <Zap size={13} /> {player.tags}
+                          </span>
+                          <span title="Masuk penjara">
+                            <Lock size={13} /> {player.prisons}
+                          </span>
+                          <span title="Rescue teman">
+                            <Shield size={13} /> {player.rescues}
+                          </span>
+                          <strong title="Contribution score">
+                            {player.contribution}
+                          </strong>
+                        </div>
+                      ))}
+                    </article>
+                  ))}
+                </div>
+                {statsBoard.mvpName && (
+                  <aside className="round-mvp-card">
+                    <b>MVP</b>
+                    <span>
+                      {statsBoard.mvpName} · Kontribusi tertinggi di match ini
+                    </span>
+                  </aside>
+                )}
+                <footer className="round-stats-actions">
+                  {statsBoard.final ? (
+                    <>
+                      <button className="primary" onClick={rematch}>
+                        <RotateCcw size={16} /> REMATCH
+                      </button>
+                      <button onClick={backToCharacterSelect}>
+                        <Users size={16} /> PILIH KARAKTER
+                      </button>
+                      <button onClick={backToFieldSelect}>
+                        <MapIcon size={16} /> GANTI MAP
+                      </button>
+                      <button className="danger" onClick={quit}>
+                        <LogOut size={16} /> KELUAR
+                      </button>
+                    </>
+                  ) : statsBoard.visible ? (
+                    <>
+                      <button className="primary" onClick={requestNextRound}>
+                        <Play size={16} fill="currentColor" /> RONDE BERIKUTNYA
+                      </button>
+                      <button className="danger" onClick={quit}>
+                        <LogOut size={16} /> KELUAR
+                      </button>
+                    </>
+                  ) : (
+                    <button className="primary" onClick={closeLeaderboard}>
+                      <Check size={16} /> TUTUP
+                    </button>
+                  )}
+                </footer>
+              </div>
+            </section>
+          )}
           <div className="arena-intel" aria-label="Status aturan pertandingan">
             <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
               <Flag size={12} />
