@@ -5,13 +5,28 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-15
+- State: `ACTIVE`
+- Diperbarui: 2026-09-20
 - Branch: `main`
 - Commit implementasi terakhir: `0183c0a`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Task aktif: implementasi + publish series Maria/Boke. Sumber di folder
+sprite-sources/maria dan boke sudah disinkronkan hingga 2f541bc; perubahan CSS
+pengguna tetap dipertahankan. Atlas tambahan series-runtime.webp (8×11 sel160)
+dan metadata series.json dibangun oleh scripts/build-series-sprites.mjs.
+Renderer memilih delapan arah, idle, tag sesuai target, prison/win/lose;
+parkour/rescue tetap atlas lama. Loading menunggu kedua atlas baru.
+49 pose Maria dan 50 Boke sudah diperiksa visual; dua frame diagonal Maria
+yang terpotong di tepi sumber dihindari. TSC lulus. Tidak mengubah fisika/statistik.
+Validasi: test-series-sprites, audit gameplay, TypeScript dan build:pages lulus;
+peringatan CSS/npm nonfatal. Maria terlihat pada pertandingan browser lokal.
+Belum menguji manual seluruh pose Boke/mobile. Tidak mengklaim semua pose telah
+diuji dalam pertandingan; pemetaan seluruh pose diuji otomatis.
+Next action: gabungkan github/main ab94bdb (statistik ronde/leaderboard dan aset
+upload pengguna), validasi ulang build gabungan, push dan tunggu Pages.
 
 Task terbaru: mixer volume Musik/SFX dan preview ingame selesai. Default .16/.85,
 penyimpanan browser dan update langsung; musik normal diredam saat preview.

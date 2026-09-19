@@ -49,6 +49,7 @@ import {
   uiAudioAsset,
 } from '../lib/characters';
 import { characterAnimationMapping } from '../lib/character-animation.js';
+import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
 import {
   FIELD_ANIMATED_ATLAS,
   FIELD_ASSET_VERSION,
@@ -89,6 +90,7 @@ type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type DifficultyId = 'easy' | 'normal' | 'hard';
 type Player = {
+  visualTagVector?: { x: number; y: number };
   id: string;
   name: string;
   team: Team;
@@ -2525,6 +2527,17 @@ const CharacterPreview = ({
 );
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
+const seriesImages = new Map<CharacterId, HTMLImageElement>();
+const getSeriesImage = (id: CharacterId) => {
+  let image = seriesImages.get(id);
+  if (!image) {
+    image = new Image();
+    image.decoding = 'async';
+    image.src = publicAsset(`characters/${id}/series-runtime.webp?v=1`);
+    seriesImages.set(id, image);
+  }
+  return image;
+};
 const presentationImages = new Map<string, HTMLImageElement>();
 const getPresentationImage = (url: string) => {
   let image = presentationImages.get(url);
@@ -2641,6 +2654,7 @@ export function BentenganPrototype() {
       if (gameLoading) {
         for (const id of Object.keys(CHARACTER_BY_ID) as CharacterId[]) {
           images.push(getSpriteImage(id));
+          if (hasSpriteSeries(id)) images.push(getSeriesImage(id));
           urls.push(characterPreviewIcon(id));
         }
         images.push(getSprintDustImage(), getKakaUltimateImage());
@@ -3715,6 +3729,7 @@ export function BentenganPrototype() {
       if (!winner.capturedIds.includes(loser.id))
         winner.capturedIds.push(loser.id);
       winner.action = 'tag';
+      winner.visualTagVector = { x: loser.x - winner.x, y: loser.y - winner.y };
       winner.actionUntil = now + 420;
       loser.state = 'PRISONER';
       loser.prisonOwner = winner.team;
@@ -4903,6 +4918,19 @@ export function BentenganPrototype() {
           height: stripHeight,
         };
       }
+      const series = seriesFrame(p.characterId, {
+        vx: p.vx, vy: p.vy, now, sprinting, state: p.state,
+        result: phase === 'ROUND_OVER' || phase === 'MATCH_OVER'
+          ? roundWinner === p.team ? 'win' : 'lose' : null,
+        action: now < p.actionUntil ? p.action : null,
+        parkour: now < p.parkourUntil,
+        tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
+      });
+      if (series) {
+        renderImage = getSeriesImage(p.characterId);
+        frame = series;
+        mirror = series.mirror;
+      }
 
       if (p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
         const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
@@ -5006,7 +5034,7 @@ export function BentenganPrototype() {
       if (renderImage.complete && renderImage.naturalWidth) {
         const height = kakaUltimateActive
             ? 238 * stats.visualScale * (frame.height / frame.width)
-            : (74 * stats.visualScale * frame.height) / 136,
+            : (74 * stats.visualScale * frame.height) / 136 * (series ? 116 / 136 : 1),
           width = kakaUltimateActive
             ? 238 * stats.visualScale
             : (height * frame.width) / frame.height;

@@ -166,6 +166,16 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Pipeline aset
 
+- Maria/Boke memakai atlas tambahan `public/characters/{id}/series-runtime.webp`
+  dan `series.json`, dibuat lewat `npm run sprites:series` dari folder sumber
+  masing-masing. 49 pose Maria, 50 Boke; delapan arah lari/sprint, idle, tag,
+  penjara, menang/kalah. Renderer: `lib/series-animation.js`.
+- Tag mengikuti posisi target saat tangkapan; Maria tag kiri memakai mirror.
+  Dua pose diagonal Maria yang terpotong pada sumber tidak digunakan. Parkour
+  dan rescue tetap memakai atlas lama sampai ada aset khusus penggantinya.
+- Skala roster dan collider tidak berubah. Loading pertandingan menunggu atlas
+  tambahan. Audit mencakup arah/state, mirror, dan gutter setiap frame series.
+
 - Sumber objek dan terrain umum: `field-sources/`.
 - Sumber khusus map: `Assets/map/`.
 - Generator arena: `scripts/build-field-assets.mjs`.
