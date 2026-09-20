@@ -55,7 +55,7 @@ export const CHARACTER_PREVIEW_ICONS = Object.freeze(Object.fromEntries(
 ) as Record<CharacterId, string>);
 
 export const characterPreviewIcon = (id: CharacterId) => CHARACTER_PREVIEW_ICONS[id];
-export const characterFullBodyPortrait = (id: CharacterId) => `${publicBase}ui-v2/portraits/${id}.webp?v=8`;
+export const characterFullBodyPortrait = (id: CharacterId) => `${publicBase}ui-v2/portraits/${id}.webp?v=${id === 'boke' || id === 'kodo' ? 9 : 8}`;
 export const rajaUltimateBannerAsset = () => `${publicBase}ui-v2/skills/raja-titah-halilintar.webp?v=8`;
 export const kakaUltimateBannerAsset = () => `${publicBase}ui-v2/skills/kaka-perisai-hijau.webp?v=8`;
 export const characterSelectionVideo = (faction: 'red' | 'green') => `${publicBase}ui-v2/videos/team-${faction}.mp4?v=8`;

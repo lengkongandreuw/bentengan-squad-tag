@@ -5,13 +5,20 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
+- State: `ACTIVE`
 - Diperbarui: 2026-09-20
 - Branch: `main`
 - Commit implementasi terakhir: `0070dc1` (gabungan publik `9f26b9c`)
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Task terbaru: preview Boke/Kodo dan potongan logo Tim Merah. Implementasi selesai:
+sumber upload disimpan, generator targeted build-preview-refresh.mjs, portrait
+baru, skala preview Boke 1.05/Kodo 1.17, logo normal/aktif dipisah pada y466.
+Gameplay tidak diubah. TypeScript, build:pages dan diff-check lulus; empat aset
+output diperiksa visual. Belum uji interaktif seleksi/mobile. Next action: push
+ke github main dan verifikasi GitHub Pages, kemudian tandai checkpoint selesai.
 
 Task selesai: implementasi + publish series Maria/Boke. Sumber di folder
 sprite-sources/maria dan boke sudah disinkronkan hingga 2f541bc; perubahan CSS

@@ -2539,7 +2539,7 @@ const formatTime = (seconds: number) => {
 };
 const statPercent = (value: number, min: number, max: number) =>
   `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
-const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=8`);
+const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
 
 const CharacterPreview = ({
   id,
@@ -2556,6 +2556,7 @@ const CharacterPreview = ({
 }) => (
   <img
     className={className}
+    data-character={id}
     src={
       variant === 'full'
         ? characterFullBodyPortrait(id)

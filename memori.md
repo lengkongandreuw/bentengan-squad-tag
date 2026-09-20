@@ -166,6 +166,14 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Pipeline aset
 
+- Preview seleksi Boke/Kodo memakai upload 2026-09-20 di
+  `asset-inbox/2026-09-20-preview-refresh/`. Preview saja diperbesar 1.05/1.17,
+  mengikuti proporsi roster; sprite dan ukuran gameplay tidak diubah.
+- `scripts/build-preview-refresh.mjs` dijalankan sesudah generator UI utama
+  lewat `npm run ui:build`. Memperbarui dua portrait dan logo Tim Merah dengan
+  batas state y=466 (bukan separuh sheet yang memotong mahkota state aktif).
+  Cache portrait Boke/Kodo dan kontrol Tim Merah memakai v9.
+
 - Maria/Boke memakai atlas tambahan `public/characters/{id}/series-runtime.webp`
   dan `series.json`, dibuat lewat `npm run sprites:series` dari folder sumber
   masing-masing. 49 pose Maria, 50 Boke; delapan arah lari/sprint, idle, tag,
