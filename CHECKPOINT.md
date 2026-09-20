@@ -5,13 +5,19 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
+- State: `ACTIVE`
 - Diperbarui: 2026-09-20
 - Branch: `main`
 - Commit implementasi terakhir: `c5fb210`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+Task terbaru: ABOUT DEVELOPER di landing dengan latar upload dan kredit lengkap.
+Selesai: komponen developer-credits, CSS responsif, generator background WebP,
+menu pembuka, keyboard guard, reduced motion, Back/Jeda/Lanjut/Ulangi.
+TSC dan build:pages lulus; browser memverifikasi tampilan, scroll sampai selesai,
+Ulangi, Jeda, Back dan pemulihan fokus. Next action: publish GitHub dan cek Pages.
 
 Task terbaru: preview Boke/Kodo dan potongan logo Tim Merah. Implementasi selesai:
 sumber upload disimpan, generator targeted build-preview-refresh.mjs, portrait

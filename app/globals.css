@@ -91,6 +91,26 @@ button { font:inherit; }
 @media(max-width:360px){.brand-lockup{min-width:132px}.game-logo{width:132px}.game-topbar{gap:4px}.top-actions{gap:3px}.tool-button,.quit-button,.icon-button{width:32px;height:32px}.character-hud{max-width:136px}.character-hud small{display:none}}
 
 /* UI v2 · lightweight cinematic pre-game flow */
+.developer-credits{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#080b0a;color:#fff;overflow:hidden}
+.developer-credits::backdrop{background:#080b0a}
+.developer-credits[open]{display:grid;place-items:center}
+.credits-stage{position:relative;width:min(100vw,177.68dvh);aspect-ratio:1672/941;container-type:inline-size}
+.credits-background{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.credits-toolbar{position:absolute;z-index:2;top:3%;right:3%;left:3%;display:flex;align-items:center;gap:8px}
+.credits-toolbar h2{margin:0 auto 0 0;padding:9px;background:#111d;color:#fff;font:800 clamp(10px,1.3cqw,21px)/1.2 var(--font-heading)}
+.credits-toolbar button{min-height:44px;padding:8px 14px;border:1px solid #aaa8;border-radius:6px;background:#111e;color:#fff;font:800 clamp(10px,1cqw,16px)/1.2 var(--font-heading);cursor:pointer}
+.credits-toolbar button:hover,.credits-toolbar button:focus-visible{border-color:#f0d767;color:#f0d767}
+.credits-toolbar button:disabled{opacity:.5;cursor:default}
+.credits-window{position:absolute;top:24%;left:47%;width:35%;height:65%;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;color:#302219;text-align:center;mask-image:linear-gradient(transparent,#000 8% 92%,transparent)}
+.credits-window::-webkit-scrollbar{display:none}
+.credits-window:focus-visible{outline:2px solid #6c3021;outline-offset:4px}
+.credits-spacer{height:100%}.credits-tail{height:75%}
+.credits-copy{padding:12px 4px;font:600 clamp(12px,1.6cqw,27px)/1.65 var(--font-body),sans-serif}
+.credits-copy section{margin:2.3em 0}.credits-copy h3{margin:0 0 .7em;color:#8b2421;font-weight:900;font-size:1.14em}
+.credits-copy p{margin:.18em 0}.credits-copy .credits-product{font-size:.85em;line-height:1.7}
+.credits-copy .credits-ending{margin:3em 0 1em;font-size:1.4em;text-transform:uppercase}
+.credits-window.reduced-motion .credits-spacer{display:none}
+@media(max-width:650px){.credits-toolbar{gap:4px}.credits-toolbar button{padding:5px 8px}.credits-toolbar h2{display:none}.credits-toolbar button:first-child{margin-right:auto}.credits-copy{font-size:12px}}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .pregame-shell{--team-accent:#ef3138;position:relative;isolation:isolate;width:100%;height:100svh;min-height:620px;overflow:hidden;color:#fff;background:#020202;font-family:var(--font-heading),sans-serif}
 .pregame-shell.faction-green,.faction-green{--team-accent:#54ef39}.ink-noise{position:absolute;z-index:-1;inset:0;pointer-events:none;opacity:.28;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.08),transparent 35%),linear-gradient(115deg,transparent 35%,rgba(255,255,255,.025) 36%,transparent 38%);background-size:auto,34px 34px}

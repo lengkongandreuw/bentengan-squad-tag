@@ -137,6 +137,12 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Kondisi gameplay dan UI terbaru
 
+- Landing memiliki menu ABOUT DEVELOPER. Komponen DeveloperCredits memakai
+  dialog modal native, latar upload pengguna dan kredit sesuai teks final.
+  Scroll otomatis 18px/detik, Back/Escape, Jeda/Lanjut dan Ulangi. Scroll manual
+  menjeda animasi; reduced-motion mulai dalam keadaan diam. Fokus kembali ke
+  tombol pembuka. Generator latar scripts/build-credits.mjs ikut ui:build.
+
 - UI arena 2026-09-15 mengikuti referensi carousel: kartu aktif besar di tengah,
   panah kiri/kanan, lima portrait skuad sendiri, Back dan Mulai Match.
 - PNG arena menjadi background pilihan map; MP4 sesuai map menjadi latar loading

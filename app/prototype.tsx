@@ -49,6 +49,7 @@ import {
   uiAudioAsset,
 } from '../lib/characters';
 import { characterAnimationMapping } from '../lib/character-animation.js';
+import { DeveloperCredits } from '../components/developer-credits';
 import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
 import {
   FIELD_ANIMATED_ATLAS,
@@ -2664,6 +2665,7 @@ export function BentenganPrototype() {
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');
   const [hoveredFaction, setHoveredFaction] = useState<Faction | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
   const [missionOpen, setMissionOpen] = useState(false);
   const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
@@ -5608,6 +5610,7 @@ export function BentenganPrototype() {
     if (mode !== 'menu' || view !== 'game' || assetsLoading) return;
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+      if (creditsOpen) return;
       if (rulesOpen) {
         if (key === 'escape') setRulesOpen(false);
         return;
@@ -5672,6 +5675,7 @@ export function BentenganPrototype() {
     menuStep,
     mode,
     rulesOpen,
+    creditsOpen,
     selectedFaction,
     selectedFieldId,
     selectedId,
@@ -6055,6 +6059,7 @@ export function BentenganPrototype() {
           </button>
         )}
         <div className={`pregame-actions step-${menuStep}`}>
+          {menuStep === 'splash' && <button className="music-toggle" onKeyDown={event => event.stopPropagation()} onClick={() => setCreditsOpen(true)}>ABOUT DEVELOPER</button>}
           <AudioSettings onOpen={() => keys.current.clear()} />
           <button
             className={`music-toggle ${musicMuted ? 'muted' : ''}`}
@@ -6075,6 +6080,7 @@ export function BentenganPrototype() {
             <Wrench size={14} /> Workshop
           </button>
         </div>
+        {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && (
           <div
             className="rules-overlay"

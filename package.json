@@ -9,7 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "build:pages": "vite build --config vite.github.config.ts",
-    "ui:build": "node scripts/build-ui-assets.mjs && node scripts/build-preview-refresh.mjs",
+    "ui:build": "node scripts/build-ui-assets.mjs && node scripts/build-preview-refresh.mjs && node scripts/build-credits.mjs",
     "fields:build": "node scripts/build-field-assets.mjs",
     "fields:baseline": "node scripts/update-field-baseline.mjs",
     "sprites:build": "node scripts/build-jago-source.mjs && node scripts/build-sprites.mjs && node scripts/build-series-sprites.mjs && node scripts/build-kaka-ultimate.mjs && node scripts/build-vfx.mjs && node scripts/build-web-assets.mjs",
