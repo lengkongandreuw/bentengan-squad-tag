@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
   BatteryCharging,
+  BellRing,
   Check,
   Flag,
   Gauge,
@@ -219,7 +220,7 @@ type PlayerStats = {
   prisons: number;
   rescues: number;
 };
-type MatchEventKind = 'tag' | 'rescue';
+type MatchEventKind = 'tag' | 'rescue' | 'rescue-request';
 type MatchEvent = {
   id: number;
   kind: MatchEventKind;
@@ -235,6 +236,12 @@ type RoundResultAnnouncement = {
   visible: boolean;
   winner?: Team;
   final: boolean;
+};
+type RescueRequest = {
+  requesterId: string;
+  team: Team;
+  expiresAt: number;
+  assignedRescuerId?: string;
 };
 type StatsBoard = {
   visible: boolean;
@@ -296,6 +303,9 @@ type Snapshot = {
   ultimateBuffRemaining: number;
   ultimateCasting: boolean;
   matchEvents: MatchEvent[];
+  rescueRequestActive: boolean;
+  rescueRequestRemaining: number;
+  rescueRequestCooldown: number;
   roundResult: RoundResultAnnouncement;
   statsBoard: StatsBoard;
 };
@@ -2533,6 +2543,9 @@ const initialSnapshot: Snapshot = {
   ultimateBuffRemaining: 0,
   ultimateCasting: false,
   matchEvents: [],
+  rescueRequestActive: false,
+  rescueRequestRemaining: 0,
+  rescueRequestCooldown: 0,
   roundResult: { visible: false, final: false },
   statsBoard: {
     visible: false,
@@ -2565,6 +2578,7 @@ const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=${file.startsWith
 const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = {
   tag: '/arena-ui/match-events/notification-victory.png',
   rescue: '/arena-ui/match-events/notification-featured.png',
+  'rescue-request': '/arena-ui/match-events/notification-victory.png',
 };
 const ROUND_RESULT_ASSET: Record<Team, string> = {
   blue: '/arena-ui/match-events/merah-menang.png',
@@ -3088,6 +3102,8 @@ export function BentenganPrototype() {
       comboCalloutUntil = 0;
     let matchEvents: MatchEvent[] = [];
     let matchEventId = 0;
+    let rescueRequest: RescueRequest | null = null;
+    let rescueRequestCooldownUntil = 0;
     let resultWinner: Team | undefined;
     let resultAnnouncementUntil = 0;
     let particles: Array<{
@@ -3296,24 +3312,17 @@ export function BentenganPrototype() {
       event: Omit<MatchEvent, 'id' | 'priority' | 'expiresAt'>,
       now: number,
     ) => {
-      const priority =
-        event.kind === 'tag' ? 1 : event.kind === 'rescue' ? 2 : 3;
+      const priority = event.kind === 'rescue' ? 2 : 1;
       const duration =
         event.kind === 'tag'
           ? 2100
           : event.kind === 'rescue'
             ? 2500
-            : 3200;
+            : 1800;
       matchEvents = matchEvents.filter((item) => item.expiresAt > now);
-      if (matchEvents.length >= 2) {
-        const lowestPriority = Math.min(
-          ...matchEvents.map((item) => item.priority),
-        );
-        if (priority <= lowestPriority) return;
-        const replacement = matchEvents.findIndex(
-          (item) => item.priority === lowestPriority,
-        );
-        matchEvents.splice(replacement, 1);
+      if (matchEvents.length > 0) {
+        if (priority < matchEvents[0].priority) return;
+        matchEvents = [];
       }
       matchEvents.push({
         ...event,
@@ -3324,6 +3333,42 @@ export function BentenganPrototype() {
       matchEvents.sort(
         (a, b) => b.priority - a.priority || b.id - a.id,
       );
+    };
+    const requestRescue = (now: number) => {
+      const requester = players[0];
+      if (
+        requester.state !== 'PRISONER' ||
+        rescueRequest ||
+        now < rescueRequestCooldownUntil
+      )
+        return;
+      const assignedRescuer = players
+        .filter(
+          (player) =>
+            !player.controlled &&
+            player.team === requester.team &&
+            player.state === 'ACTIVE' &&
+            distance(player, bases[other(player.team)]) > BASE_RADIUS * 1.25,
+        )
+        .sort((a, b) => distance(a, requester) - distance(b, requester))[0];
+      rescueRequest = {
+        requesterId: requester.id,
+        team: requester.team,
+        expiresAt: now + 6000,
+        assignedRescuerId: assignedRescuer?.id,
+      };
+      rescueRequestCooldownUntil = now + 10000;
+      addMatchEvent(
+        {
+          kind: 'rescue-request',
+          actorName: requester.name,
+          actorTeam: requester.team,
+        },
+        now,
+      );
+      burst(requester.x, requester.y - 26, '#f5cf45', 18);
+      gameplayAudio.play('rescue', 0.38);
+      log(`${requester.name} meminta bantuan rescue.`);
     };
     const contributionScore = (stats: PlayerStats) =>
       stats.tags * 100 + stats.rescues * 120 - stats.prisons * 40;
@@ -3454,6 +3499,8 @@ export function BentenganPrototype() {
       players = makePlayers();
       roundStats = makeStatsStore();
       matchEvents = [];
+      rescueRequest = null;
+      rescueRequestCooldownUntil = 0;
       players.forEach((player) => ensureStats(matchStats, player));
       seedRefills();
       timer = 240;
@@ -3795,6 +3842,15 @@ export function BentenganPrototype() {
           x: worldWidth / 2 - p.x,
           y: worldHeight / 2 + Math.sin(now / 920 + p.aiSeed) * 230 - p.y,
         };
+      const requester = rescueRequest
+        ? players.find((player) => player.id === rescueRequest?.requesterId)
+        : undefined;
+      if (
+        requester &&
+        requester.state === 'PRISONER' &&
+        rescueRequest?.assignedRescuerId === p.id
+      )
+        return { x: requester.x - p.x, y: requester.y - p.y };
       const held = players
         .filter((q) => q.team === p.team && q.state === 'PRISONER')
         .sort((a, b) => b.prisonIndex - a.prisonIndex);
@@ -4058,6 +4114,11 @@ export function BentenganPrototype() {
             rescuer.action = 'rescue';
             rescuer.actionUntil = now + 460;
             addStat(rescuer, 'rescues');
+            if (
+              rescueRequest &&
+              held.some((player) => player.id === rescueRequest?.requesterId)
+            )
+              rescueRequest = null;
             addMatchEvent(
               {
                 kind: 'rescue',
@@ -4224,6 +4285,17 @@ export function BentenganPrototype() {
       }
       if (phase === 'MATCH_OVER') {
         return;
+      }
+      if (
+        rescueRequest &&
+        (now >= rescueRequest.expiresAt ||
+          players.find((player) => player.id === rescueRequest?.requesterId)
+            ?.state !== 'PRISONER')
+      )
+        rescueRequest = null;
+      if (keys.current.has('r')) {
+        keys.current.delete('r');
+        requestRescue(now);
       }
       if (!suddenDeath) timer -= dt;
       if (!suddenDeath && timer <= 0) {
@@ -5320,11 +5392,39 @@ export function BentenganPrototype() {
         ctx.restore();
       }
       if (p.controlled) {
+        const hasUltimate = ULTIMATE_CHARACTER_IDS.has(p.characterId);
+        const hudWidth = 54;
+        const hudX = p.x - hudWidth / 2;
+        const hudY = p.y - 83 - headOffset + bob;
+        const stamina = Math.max(0, Math.min(1, p.boost / stats.boost));
+        const ultimate = Math.max(0, Math.min(1, ultimateMeter / 100));
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(7,12,9,.9)';
+        rounded(hudX - 3, hudY - 3, hudWidth + 6, hasUltimate ? 18 : 11, 4);
+        ctx.fill();
+        ctx.fillStyle = '#1b251d';
+        rounded(hudX, hudY, hudWidth, 5, 2);
+        ctx.fill();
+        ctx.fillStyle = stamina > .3 ? '#f3ead4' : '#f5cf45';
+        rounded(hudX, hudY, hudWidth * stamina, 5, 2);
+        ctx.fill();
+        if (hasUltimate) {
+          const ultimateY = hudY + 8;
+          ctx.fillStyle = p.characterId === 'kaka' ? '#082414' : '#2b2208';
+          rounded(hudX, ultimateY, hudWidth, 4, 2);
+          ctx.fill();
+          ctx.fillStyle = p.characterId === 'kaka' ? '#47e97c' : '#f5cf45';
+          rounded(hudX, ultimateY, hudWidth * ultimate, 4, 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
         ctx.fillStyle = '#fff4d1';
         ctx.beginPath();
-        ctx.moveTo(p.x, p.y - 58 - headOffset + bob);
-        ctx.lineTo(p.x - 7, p.y - 69 - headOffset + bob);
-        ctx.lineTo(p.x + 7, p.y - 69 - headOffset + bob);
+        ctx.moveTo(p.x, p.y - 51 - headOffset + bob);
+        ctx.lineTo(p.x - 7, p.y - 62 - headOffset + bob);
+        ctx.lineTo(p.x + 7, p.y - 62 - headOffset + bob);
         ctx.fill();
       }
       const label = p.controlled ? `★ ${p.name}` : p.name;
@@ -5442,6 +5542,25 @@ export function BentenganPrototype() {
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now));
         drawPrisonOverlays(now);
+        const rescueRequester = rescueRequest
+          ? players.find((player) => player.id === rescueRequest?.requesterId)
+          : undefined;
+        if (rescueRequester?.state === 'PRISONER') {
+          const pulse = 18 + Math.sin(now / 120) * 4;
+          ctx.save();
+          ctx.strokeStyle = '#f5cf45';
+          ctx.fillStyle = '#15180f';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(rescueRequester.x, rescueRequester.y - 42, pulse, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#fff5be';
+          ctx.font = '900 20px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('!', rescueRequester.x, rescueRequester.y - 35);
+          ctx.restore();
+        }
         particles.forEach((p) => {
           ctx.globalAlpha = Math.max(0, p.life / 0.65);
           ctx.fillStyle = p.color;
@@ -5481,6 +5600,11 @@ export function BentenganPrototype() {
           .filter((p) => p.team === me.team && p.state === 'PRISONER')
           .sort((a, b) => b.prisonIndex - a.prisonIndex)[0];
         if (outerPrisoner) marker(outerPrisoner, 'P', '#b9ee3d');
+        const activeRequest = rescueRequest
+          ? players.find((player) => player.id === rescueRequest?.requesterId)
+          : undefined;
+        if (activeRequest?.state === 'PRISONER')
+          marker(activeRequest, '!', '#f5cf45');
       }
       if (phase !== 'PLAYING') {
         ctx.fillStyle = 'rgba(12,17,13,.52)';
@@ -5592,6 +5716,16 @@ export function BentenganPrototype() {
             me.action === 'ultimate' &&
             now < me.actionUntil,
           matchEvents: matchEvents.filter((event) => event.expiresAt > now),
+          rescueRequestActive:
+            rescueRequest?.requesterId === me.id && now < rescueRequest.expiresAt,
+          rescueRequestRemaining:
+            rescueRequest?.requesterId === me.id
+              ? Math.max(0, Math.ceil((rescueRequest.expiresAt - now) / 1000))
+              : 0,
+          rescueRequestCooldown: Math.max(
+            0,
+            Math.ceil((rescueRequestCooldownUntil - now) / 1000),
+          ),
           roundResult: {
             visible: Boolean(resultWinner) && now < resultAnnouncementUntil,
             winner: resultWinner,
@@ -6344,6 +6478,12 @@ export function BentenganPrototype() {
                         menyelamatkan tim
                       </>
                     )}
+                    {event.kind === 'rescue-request' && (
+                      <>
+                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
+                        meminta rescue!
+                      </>
+                    )}
                   </p>
                 </div>
               ))}
@@ -6747,13 +6887,34 @@ export function BentenganPrototype() {
                   <Lock size={22} />
                   <span>
                     <b>MENUNGGU DIBEBASKAN</b>
-                    <small>Lain kali hati-hati!</small>
+                    <small>
+                      {snapshot.rescueRequestActive
+                        ? `Sinyal aktif ${snapshot.rescueRequestRemaining}s`
+                        : snapshot.rescueRequestCooldown
+                          ? `Sinyal siap ${snapshot.rescueRequestCooldown}s`
+                          : 'Kirim sinyal ke rekan tim.'}
+                    </small>
                   </span>
+                  <button
+                    className="rescue-request-button"
+                    onClick={() => tapKey('r')}
+                    disabled={snapshot.rescueRequestCooldown > 0}
+                    aria-label="Minta rescue"
+                  >
+                    <BellRing size={16} />
+                    {snapshot.rescueRequestActive
+                      ? 'BANTUAN DIKIRIM'
+                      : snapshot.rescueRequestCooldown
+                        ? `${snapshot.rescueRequestCooldown}s`
+                        : 'MINTA RESCUE'}
+                  </button>
                 </div>
               )}
               <button
                 className="active-objective"
                 onClick={() => setMissionOpen(true)}
+                aria-label={`Tujuan aktif: ${missionCount} dari 6`}
+                data-progress={missionCount}
               >
                 <Flag size={20} />
                 <span>
@@ -6766,7 +6927,7 @@ export function BentenganPrototype() {
                 </span>
                 <i>›</i>
               </button>
-              <div className={`character-hud ${selectedFaction}`}>
+              <div className={`character-hud ${selectedFaction} ${snapshot.state === 'PRISONER' ? 'prisoner' : ''}`}>
                 <CharacterPreview id={selected.id} eager />
                 <span>
                   <b>{selected.name}</b>
@@ -6774,10 +6935,24 @@ export function BentenganPrototype() {
                     {selectedFaction ? factionName(selectedFaction) : ''} ·{' '}
                     {selected.passiveName}
                   </small>
+                  <em>{snapshot.state.replace('_', ' ')}</em>
                 </span>
+                {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+                  <div
+                    className={`character-ultimate ${selectedId === 'kaka' ? 'kaka' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
+                    aria-label={`Charge ultimate ${Math.floor(snapshot.ultimateMeter)} persen`}
+                  >
+                    <span>
+                      {selectedId === 'kaka' ? <Shield size={12} /> : <Zap size={12} />}
+                      {selectedId === 'kaka' ? 'PERISAI' : 'TITAH'}
+                    </span>
+                    <b>{Math.floor(snapshot.ultimateMeter)}%</b>
+                    <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
+                  </div>
+                )}
               </div>
               <div
-                className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}
+                className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''} ${snapshot.comboLevel || snapshot.comboSurgeRemaining ? '' : 'context-hidden'}`}
                 aria-label="Status combo aksi tim"
               >
                 <Users size={17} />
@@ -6847,7 +7022,7 @@ export function BentenganPrototype() {
                   <span style={{ width: `${snapshot.boost}%` }} />
                 </div>
               </div>
-              {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+              {snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                 <div
                   className={`ultimate-meter-hud ${selectedId === 'kaka' ? 'kaka-shield' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
                   aria-label={`Meter Ultimate ${selected.name} ${Math.floor(snapshot.ultimateMeter)} persen`}
@@ -6862,10 +7037,31 @@ export function BentenganPrototype() {
                 </div>
               )}
               <div
-                className={`action-dock ${playerMechanicsLocked ? 'mechanics-inactive' : ''}`}
+                className={`action-dock ${playerMechanicsLocked ? 'mechanics-inactive' : ''} ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}
                 aria-label="Aksi pemain"
                 aria-disabled={playerMechanicsLocked}
               >
+                <div className="arena-intel dock-status" aria-label="Status aturan pertandingan">
+                  <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
+                    <Flag size={12} />
+                    {snapshot.baseGrace > 0
+                      ? `KELUAR ${snapshot.baseGrace}s`
+                      : 'BASE AMAN'}
+                  </span>
+                  <span
+                    className={
+                      snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
+                    }
+                  >
+                    <Lock size={12} /> {snapshot.fortLock.toUpperCase()}
+                  </span>
+                  <span>
+                    <BatteryCharging size={12} /> REFILL {snapshot.pickupCount}
+                  </span>
+                  <span>
+                    <RotateCcw size={12} /> ROTASI {snapshot.fieldWins}/3
+                  </span>
+                </div>
                 <span className="ready-action">
                   <Zap size={19} />
                   <b>SPACE</b>
@@ -6919,14 +7115,14 @@ export function BentenganPrototype() {
                   <b>—</b>
                 </span>
               </div>
-              {snapshot.ultimateBuffRemaining > 0 && (
+              {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
                 <div className={`ultimate-buff-indicator ${selectedId === 'kaka' ? 'kaka-shield-indicator' : ''}`}>
                   {selectedId === 'kaka' ? <Shield size={13} /> : <Zap size={13} />}
                   {selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · '}
                   {snapshot.ultimateBuffRemaining}s
                 </div>
               )}
-              <div className="control-ribbon">
+              <div className={`control-ribbon ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}>
                 <b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR{' '}
                 {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                   <>
@@ -6935,7 +7131,7 @@ export function BentenganPrototype() {
                 )}
                 <b>P</b> JEDA
               </div>
-              <div className="mobile-controls" aria-label="Kontrol sentuh">
+              <div className={`mobile-controls ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`} aria-label="Kontrol sentuh">
                 <div className="touch-dpad">
                   <button
                     aria-label="Gerak atas"
