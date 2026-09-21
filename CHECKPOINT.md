@@ -37,6 +37,10 @@ Audit sebelum merge lulus lengkap; setelah merge hanya baseline sumber Lala
 gagal karena commit upstream ff31445 mengubah sprite-sources/lala.png tanpa
 rebuild atlas/baseline. Jangan ubah baseline atau sprite untuk menutupi ini.
 Test-kampung3d lulus setelah merge. Autentikasi GitHub terverifikasi valid.
+Pengujian build produksi: mobile landscape/portrait dan Kampung asli tanpa
+console error; WebGL dinonaktifkan menampilkan pesan jelas dan Back berfungsi.
+Push pertama ditolak karena commit upstream baru 7295482 (path/preload event).
+Sudah merge tanpa membuang perubahan; helper URL tidak dipanggil dua kali.
 Next action: push github main, tunggu Pages dan catat run. Belum publish.
 Detail art masih low-poly eksperimental; performa perangkat fisik belum diuji.
 

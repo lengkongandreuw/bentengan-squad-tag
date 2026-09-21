@@ -6528,7 +6528,7 @@ export function BentenganPrototype() {
                   key={event.id}
                   className={`match-event-toast ${event.kind}`}
                 >
-                  <img src={publicAsset(MATCH_EVENT_FRAME[event.kind])} alt="" />
+                  <img src={MATCH_EVENT_FRAME[event.kind]} alt="" />
                   <p>
                     {event.kind === 'tag' && (
                       <>
@@ -6561,7 +6561,7 @@ export function BentenganPrototype() {
               aria-label={`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'match' : 'ronde'}`}
             >
               <img
-                src={publicAsset(ROUND_RESULT_ASSET[snapshot.roundResult.winner])}
+                src={ROUND_RESULT_ASSET[snapshot.roundResult.winner]}
                 alt={`${teamName(snapshot.roundResult.winner)} menang`}
               />
             </section>
