@@ -6,7 +6,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 ## Status
 
 - State: `ACTIVE`
-- Diperbarui: 2026-09-20
+- Diperbarui: 2026-09-21
 - Branch: `main`
 - Commit implementasi terakhir: `c548fe6`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
@@ -27,11 +27,18 @@ Uji browser di work/test-kampung3d.cjs memakai bundled Playwright/Chrome
 karena tool browser Node REPL tidak tersedia. Screenshot di work/3d-*.png.
 Perbaikan pendukung: key unik backdrop, favicon.svg yang memang tersedia,
 audit UI menerima koreksi logo merah v9 yang sudah ada sebelum task ini.
-Next action: selesaikan uji mobile, build final, sync/commit/push github main
-dan tunggu Pages. Fetch session 34161 belum selesai; gh auth status sandbox
-menyatakan invalid, perlu cek dengan akses jaringan sebelum menyimpulkan.
-Belum publish. Aset asli dan mekanik tidak diedit. Detail art masih tahap
-low-poly eksperimental; performa perangkat fisik belum diuji.
+Implementasi b043b90; merge 3860d85 mempertahankan github/main 7f78069 (notifikasi
+match, Minta Rescue, CSS/HUD dan sumber Lala baru). Konflik hanya disatukan,
+bukan menimpa fitur. Path notifikasi memakai publicAsset agar Pages valid.
+TSC + build final setelah merge lulus; browser desktop setelah merge tanpa error.
+Mobile landscape/portrait sebelum merge juga lulus; pengujian build produksi
+mobile/asli/non-WebGL sedang dijalankan di work/test-kampung3d.cjs.
+Audit sebelum merge lulus lengkap; setelah merge hanya baseline sumber Lala
+gagal karena commit upstream ff31445 mengubah sprite-sources/lala.png tanpa
+rebuild atlas/baseline. Jangan ubah baseline atau sprite untuk menutupi ini.
+Test-kampung3d lulus setelah merge. Autentikasi GitHub terverifikasi valid.
+Next action: push github main, tunggu Pages dan catat run. Belum publish.
+Detail art masih low-poly eksperimental; performa perangkat fisik belum diuji.
 
 Task terbaru: ABOUT DEVELOPER di landing dengan latar upload dan kredit lengkap.
 Selesai: komponen developer-credits, CSS responsif, generator background WebP,
