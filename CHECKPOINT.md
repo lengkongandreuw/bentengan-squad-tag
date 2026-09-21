@@ -5,10 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
-- Diperbarui: 2026-09-21
+- State: `IDLE`
+- Diperbarui: 2026-09-22
 - Branch: `main`
-- Commit implementasi terakhir: `c548fe6`
+- Commit implementasi terakhir: `ea9b24e`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
@@ -32,7 +32,7 @@ match, Minta Rescue, CSS/HUD dan sumber Lala baru). Konflik hanya disatukan,
 bukan menimpa fitur. Path notifikasi memakai publicAsset agar Pages valid.
 TSC + build final setelah merge lulus; browser desktop setelah merge tanpa error.
 Mobile landscape/portrait sebelum merge juga lulus; pengujian build produksi
-mobile/asli/non-WebGL sedang dijalankan di work/test-kampung3d.cjs.
+mobile/asli/non-WebGL selesai melalui work/test-kampung3d.cjs.
 Audit sebelum merge lulus lengkap; setelah merge hanya baseline sumber Lala
 gagal karena commit upstream ff31445 mengubah sprite-sources/lala.png tanpa
 rebuild atlas/baseline. Jangan ubah baseline atau sprite untuk menutupi ini.
@@ -41,7 +41,9 @@ Pengujian build produksi: mobile landscape/portrait dan Kampung asli tanpa
 console error; WebGL dinonaktifkan menampilkan pesan jelas dan Back berfungsi.
 Push pertama ditolak karena commit upstream baru 7295482 (path/preload event).
 Sudah merge tanpa membuang perubahan; helper URL tidak dipanggil dua kali.
-Next action: push github main, tunggu Pages dan catat run. Belum publish.
+Publikasi selesai 2026-09-22: ea9b24e sudah di github/main. GitHub Pages run
+35658921041 selesai SUCCESS: https://github.com/lengkongandreuw/bentengan-squad-tag/actions/runs/35658921041
+Next action: tunggu feedback pengguna pada map kelima Kampung Merdeka 3D.
 Detail art masih low-poly eksperimental; performa perangkat fisik belum diuji.
 
 Task terbaru: ABOUT DEVELOPER di landing dengan latar upload dan kredit lengkap.
