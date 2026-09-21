@@ -2576,13 +2576,13 @@ const statPercent = (value: number, min: number, max: number) =>
   `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
 const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = {
-  tag: '/arena-ui/match-events/notification-victory.png',
-  rescue: '/arena-ui/match-events/notification-featured.png',
-  'rescue-request': '/arena-ui/match-events/notification-victory.png',
+  tag: publicAsset('arena-ui/match-events/notification-victory.png?v=1'),
+  rescue: publicAsset('arena-ui/match-events/notification-featured.png?v=1'),
+  'rescue-request': publicAsset('arena-ui/match-events/notification-victory.png?v=1'),
 };
 const ROUND_RESULT_ASSET: Record<Team, string> = {
-  blue: '/arena-ui/match-events/merah-menang.png',
-  red: '/arena-ui/match-events/hijau-menang.png',
+  blue: publicAsset('arena-ui/match-events/merah-menang.png?v=1'),
+  red: publicAsset('arena-ui/match-events/hijau-menang.png?v=1'),
 };
 
 const CharacterPreview = ({
@@ -2760,7 +2760,14 @@ export function BentenganPrototype() {
           if (field.background) images.push(getFieldImage(field.background));
           if (field.waterMask) images.push(getFieldImage(field.waterMask));
         }
-        urls.push(rajaUltimateBannerAsset(), kakaUltimateBannerAsset());
+        urls.push(
+          rajaUltimateBannerAsset(),
+          kakaUltimateBannerAsset(),
+          ...new Set([
+            ...Object.values(MATCH_EVENT_FRAME),
+            ...Object.values(ROUND_RESULT_ASSET),
+          ]),
+        );
       } else if (selectedFaction) {
         for (const id of FIXED_ROSTERS[selectedFaction]) {
           urls.push(characterFullBodyPortrait(id), characterPreviewIcon(id));
