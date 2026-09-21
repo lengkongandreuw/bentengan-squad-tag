@@ -5,13 +5,33 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
+- State: `ACTIVE`
 - Diperbarui: 2026-09-20
 - Branch: `main`
 - Commit implementasi terakhir: `c548fe6`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+2026-09-21: Kampung Merdeka 3D eksperimental sebagai map kelima, bukan pengganti.
+MODE implementasi + publish. Terrain asli, seluruh scenery low-poly 3D;
+sprite dan gameplay tetap. Konfigurasi arena kloning setelah normalisasi agar
+collider/base/prison identik. Renderer WebGL terpisah, loading/error terkontrol.
+Sudah: renderer lib/kampung-3d.ts, map kelima deep clone, WebGL loading/error,
+scenery low-poly lengkap dan margin Kampung, batching, resource disposal,
+sprite billboard depth, koreksi kaki/nameplate terpotong, carousel lima map.
+TSC dan audit lulus (termasuk test-kampung3d: clone, collider, proyeksi, rotasi).
+Build Pages awal lulus. Browser desktop: pilih tim/map, loading, overview,
+follow, berjalan keluar base dan animasi bot lulus; console terakhir bersih.
+Uji browser di work/test-kampung3d.cjs memakai bundled Playwright/Chrome
+karena tool browser Node REPL tidak tersedia. Screenshot di work/3d-*.png.
+Perbaikan pendukung: key unik backdrop, favicon.svg yang memang tersedia,
+audit UI menerima koreksi logo merah v9 yang sudah ada sebelum task ini.
+Next action: selesaikan uji mobile, build final, sync/commit/push github main
+dan tunggu Pages. Fetch session 34161 belum selesai; gh auth status sandbox
+menyatakan invalid, perlu cek dengan akses jaringan sebelum menyimpulkan.
+Belum publish. Aset asli dan mekanik tidak diedit. Detail art masih tahap
+low-poly eksperimental; performa perangkat fisik belum diuji.
 
 Task terbaru: ABOUT DEVELOPER di landing dengan latar upload dan kredit lengkap.
 Selesai: komponen developer-credits, CSS responsif, generator background WebP,

@@ -302,3 +302,6 @@ button { font:inherit; }
 .audio-settings-panel button,.audio-settings-panel select { min-height:36px; padding:7px; border:1px solid #66845d; background:#24382b; color:#fff; border-radius:6px; width:100%; }
 .audio-settings-panel small { font-size:11px; line-height:1.4; color:#bdcbb8; }
 .playing-shell .game-topbar { z-index:120; }
+/* Experimental renderer errors must never leave an unresponsive black screen. */
+.renderer-error { position: absolute; inset: 15%; z-index: 120; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; background: #17231af5; border: 2px solid #d4b965; color: #fff4d1; }
+.renderer-error button { padding: 14px 24px; background: #b9ee3d; color: #152014; font-weight: 800; cursor: pointer; }

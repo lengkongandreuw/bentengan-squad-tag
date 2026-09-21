@@ -29,7 +29,8 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 - Game web 2.5D Bentengan 5 lawan 5 melawan bot.
 - Framework: React 19, TypeScript, Vinext/Vite.
 - Node minimum: 22.13.0.
-- Empat arena: `kampung`, `pasar`, `taman`, dan `kanal`.
+- Empat arena asli: `kampung`, `pasar`, `taman`, dan `kanal`; satu arena
+  tambahan eksperimental `kampung3d` (Kampung Merdeka 3D).
 - Empat belas karakter dibagi tetap menjadi Tim Merah dan Tim Hijau.
 - Entry gameplay utama dan konfigurasi arena: `app/prototype.tsx`.
 - Aturan tim dan spawn: `config/game-rules.json`.
@@ -91,6 +92,30 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 - Aset yang sudah ada harus digunakan kembali sebelum membuat aset baru.
 
 ## Status arena saat ini
+
+### Eksperimental — Kampung Merdeka 3D (2026-09-21)
+
+- Map kelima `kampung3d` merupakan deep clone Kampung setelah normalisasi.
+  Ukuran, base, penjara, collider, dekorasi dan AI identik; sprite tetap 2D.
+- `lib/kampung-3d.ts` adalah renderer Three.js WebGL2 terpisah, dimuat lazy
+  hanya saat memulai map eksperimental. Loading memeriksa shader/WebGL lebih
+  dulu; kegagalan menawarkan kembali ke menu, tidak layar hitam tanpa respons.
+- Terrain menggunakan tekstur asli, bagian border bunga 2D dicrop runtime
+  agar tidak bertumpuk dengan margin 3D. Aset sumber tidak diubah.
+- Semua scenery map: low-poly prosedural (bangunan/gerobak, pohon, barrier,
+  benteng, penjara, bunting, planter dan komposisi pagar bunga Kampung).
+  Ini interpretasi low-poly tahap awal, bukan konversi artistik identik piksel.
+- Kamera ortografik tetap; mapping tanah mempertahankan koordinat gameplay.
+  Sprite dirender pada bidang di scene dengan depth terhadap objek 3D;
+  lantai tidak menulis depth agar kaki dan nameplate tidak terpotong.
+- Geometri statis dibatch per material, DPR WebGL dibatasi 1.5, tanpa dynamic
+  shadow mahal. Resource GPU dilepas saat keluar/restart.
+- Rotasi empat map asli tidak memasukkan map eksperimental secara otomatis;
+  map eksperimental tetap terpilih ketika rematch. Preview/loading memakai
+  aset Kampung asli dan kartu diberi label EKSPERIMENTAL.
+- Test `scripts/test-kampung3d.mjs` memverifikasi clone independen, lima ID unik,
+  kesetaraan seluruh data gameplay dan proyeksi tanah di tiga tingkat zoom.
+  Termasuk dalam `npm run audit`. Detail hasil uji/publikasi di CHECKPOINT.md.
 
 ### Map 1 — Kampung Merdeka
 

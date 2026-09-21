@@ -80,13 +80,15 @@ import {
   teamComboSpeedMultiplier,
 } from '../lib/team-combo.js';
 import GAME_RULES from '../config/game-rules.json';
+import type { Kampung3D } from '../lib/kampung-3d';
+let Kampung3DRenderer: typeof Kampung3D | undefined;
 
 type Team = 'blue' | 'red';
 type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type PlayerAction = 'tag' | 'rescue' | 'ultimate';
 type Grade = 25 | 40 | 75 | 100;
-type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal';
+type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kampung3d';
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type DifficultyId = 'easy' | 'normal' | 'hard';
@@ -2424,6 +2426,13 @@ const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
     })),
   };
 });
+// Clone AFTER normalization: no second scaling and no change to live arena rules.
+FIELD_CONFIGS.push({
+  ...structuredClone(FIELD_CONFIGS[0]),
+  id: 'kampung3d',
+  name: 'Kampung Merdeka 3D',
+  kicker: 'EKSPERIMENTAL · low-poly / gameplay 2D',
+});
 const prisonClearance = 12;
 const arenaValidationErrors: string[] = [];
 for (const field of FIELD_CONFIGS) {
@@ -2540,7 +2549,10 @@ const formatTime = (seconds: number) => {
 };
 const statPercent = (value: number, min: number, max: number) =>
   `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
-const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
+const uiAsset = (file: string) => {
+  file = file.replace('fields/kampung3d.', 'fields/kampung.');
+  return publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
+};
 
 const CharacterPreview = ({
   id,
@@ -2689,6 +2701,7 @@ export function BentenganPrototype() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadError, setLoadError] = useState('');
+  const [rendererError, setRendererError] = useState('');
   const selectionLoading = mode === 'menu' && menuStep === 'character' &&
     !!selectedFaction && readyFaction !== selectedFaction;
   const assetsLoading = selectionLoading || gameLoading;
@@ -2742,6 +2755,18 @@ export function BentenganPrototype() {
         }
       }));
       if (cancelled) return;
+      if (gameLoading && selectedFieldId === 'kampung3d') {
+        const module = await import('../lib/kampung-3d');
+        Kampung3DRenderer = module.Kampung3D;
+        let probe: Kampung3D | undefined;
+        try {
+          probe = new module.Kampung3D(FIELD_BY_ID.kampung3d, getFieldImage('kampung-map.webp'));
+          await probe.warmup();
+        } catch {
+          throw new Error('Map 3D membutuhkan WebGL2 yang aktif. Aktifkan akselerasi grafis atau pilih Kampung Merdeka asli.');
+        } finally { probe?.dispose(); }
+        if (cancelled) return;
+      }
       keys.current.clear();
       if (gameLoading) {
         setGameLoading(false);
@@ -2754,7 +2779,7 @@ export function BentenganPrototype() {
       cancelled = true;
     });
     return () => { cancelled = true; };
-  }, [assetsLoading, gameLoading, selectedFaction, loadAttempt]);
+  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, loadAttempt]);
   const selected = CHARACTER_BY_ID[selectedId];
   const availableCharacters = useMemo(
     () =>
@@ -3018,8 +3043,9 @@ export function BentenganPrototype() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const mainContext = canvas.getContext('2d');
+    if (!mainContext) return;
+    let ctx: CanvasRenderingContext2D = mainContext;
     let raf = 0,
       last = performance.now(),
       lastHud = 0;
@@ -3092,6 +3118,16 @@ export function BentenganPrototype() {
     const fieldBackground = field.background
       ? getFieldImage(field.background)
       : null;
+    let scene3d: Kampung3D | undefined;
+    if (selectedFieldId === 'kampung3d' && mode === 'playing') {
+      try {
+        if (!Kampung3DRenderer) throw new Error('Renderer 3D belum siap. Kembali ke menu lalu coba lagi.');
+        scene3d = new Kampung3DRenderer(field, fieldBackground!);
+      } catch (error) {
+        paused = true;
+        setRendererError(error instanceof Error ? error.message : 'Renderer 3D gagal dimulai.');
+      }
+    }
     const fieldWaterMask = field.waterMask
       ? getFieldImage(field.waterMask)
       : null;
@@ -5332,22 +5368,37 @@ export function BentenganPrototype() {
       const camY = followsPlayer
         ? clamp(me.y, halfH, worldHeight - halfH)
         : worldHeight / 2;
+      if (scene3d) {
+        try {
+          for (const p of players) scene3d.updateActor(p.id, p.x, p.y, target => {
+            const previous = ctx;
+            try { ctx = target; drawPlayer(p, me, now); } finally { ctx = previous; }
+          });
+          ctx.drawImage(scene3d.render(cw, ch, scale, camX, camY, now), 0, 0, cw, ch);
+        } catch (error) {
+          paused = true;
+          setRendererError(error instanceof Error ? error.message : 'Grafis 3D terhenti. Kembali ke menu untuk mencoba lagi.');
+          scene3d.dispose(); scene3d = undefined;
+        }
+      }
       ctx.save();
       ctx.translate(cw / 2, ch / 2);
       ctx.scale(scale, scale);
       ctx.translate(-camX, -camY);
-      drawMap();
-      drawNearbyFieldDetails(me, activeCamera);
+      if (selectedFieldId !== 'kampung3d' || mode !== 'playing') {
+        drawMap();
+        drawNearbyFieldDetails(me, activeCamera);
+      }
       drawBase('blue');
       drawBase('red');
       if (mode === 'playing') {
         drawFieldAnimations(now);
         refills.forEach((item) => drawRefill(item, now));
-        players
+        if (!scene3d) players
           .slice()
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now));
-        drawPrisonOverlays(now);
+        if (selectedFieldId !== 'kampung3d') drawPrisonOverlays(now);
         particles.forEach((p) => {
           ctx.globalAlpha = Math.max(0, p.life / 0.65);
           ctx.fillStyle = p.color;
@@ -5505,6 +5556,7 @@ export function BentenganPrototype() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      scene3d?.dispose();
       window.removeEventListener('pointerdown', gameplayAudio.unlock);
       window.removeEventListener('keydown', gameplayAudio.unlock);
       gameplayAudio.close();
@@ -5527,6 +5579,7 @@ export function BentenganPrototype() {
     snapshot.paused;
   const start = () => {
     if (!selectedFaction || assetsLoading) return;
+    setRendererError('');
     playAudioCue('press-play.mp3', 0.64);
     completedMatchesRef.current = 0;
     setSnapshot(initialSnapshot);
@@ -5555,7 +5608,7 @@ export function BentenganPrototype() {
     const decision = fieldCycleDecision(
       selectedFieldId,
       completedMatchesRef.current,
-      FIELD_CONFIGS.map((item) => item.id),
+      selectedFieldId === 'kampung3d' ? ['kampung3d'] : FIELD_CONFIGS.filter(item => item.id !== 'kampung3d').map((item) => item.id),
     );
     completedMatchesRef.current = decision.wins;
     setSelectedFieldId(decision.fieldId);
@@ -5997,7 +6050,7 @@ export function BentenganPrototype() {
                   className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''}`}
                   onClick={() => setSelectedFieldId(field.id)}
                   aria-pressed={selectedFieldId === field.id}
-                  style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + 5) % 4) - 1 } as React.CSSProperties}
+                  style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + FIELD_CONFIGS.length + 1) % FIELD_CONFIGS.length) - 1 } as React.CSSProperties}
                 >
                   <img
                     className="field-card-preview"
@@ -6192,6 +6245,11 @@ export function BentenganPrototype() {
             ref={canvasRef}
             aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`}
           />
+          {rendererError && <div className="renderer-error" role="alert">
+            <strong>MAP 3D TIDAK TERSEDIA</strong>
+            <p>{rendererError}</p>
+            <button onClick={() => { setRendererError(''); quit(); }}>KEMBALI KE MENU</button>
+          </div>}
           <div
             className="stage-hud"
             role="button"
