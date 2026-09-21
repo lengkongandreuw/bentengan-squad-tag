@@ -219,6 +219,23 @@ type PlayerStats = {
   prisons: number;
   rescues: number;
 };
+type MatchEventKind = 'tag' | 'rescue';
+type MatchEvent = {
+  id: number;
+  kind: MatchEventKind;
+  priority: number;
+  actorName?: string;
+  actorTeam?: Team;
+  targetName?: string;
+  targetTeam?: Team;
+  rescuedCount?: number;
+  expiresAt: number;
+};
+type RoundResultAnnouncement = {
+  visible: boolean;
+  winner?: Team;
+  final: boolean;
+};
 type StatsBoard = {
   visible: boolean;
   final: boolean;
@@ -278,6 +295,8 @@ type Snapshot = {
   ultimateMeter: number;
   ultimateBuffRemaining: number;
   ultimateCasting: boolean;
+  matchEvents: MatchEvent[];
+  roundResult: RoundResultAnnouncement;
   statsBoard: StatsBoard;
 };
 
@@ -2513,6 +2532,8 @@ const initialSnapshot: Snapshot = {
   ultimateMeter: 0,
   ultimateBuffRemaining: 0,
   ultimateCasting: false,
+  matchEvents: [],
+  roundResult: { visible: false, final: false },
   statsBoard: {
     visible: false,
     final: false,
@@ -2541,6 +2562,14 @@ const formatTime = (seconds: number) => {
 const statPercent = (value: number, min: number, max: number) =>
   `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 const uiAsset = (file: string) => publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
+const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = {
+  tag: '/arena-ui/match-events/notification-victory.png',
+  rescue: '/arena-ui/match-events/notification-featured.png',
+};
+const ROUND_RESULT_ASSET: Record<Team, string> = {
+  blue: '/arena-ui/match-events/merah-menang.png',
+  red: '/arena-ui/match-events/hijau-menang.png',
+};
 
 const CharacterPreview = ({
   id,
@@ -3057,6 +3086,10 @@ export function BentenganPrototype() {
     };
     let comboCallout = '',
       comboCalloutUntil = 0;
+    let matchEvents: MatchEvent[] = [];
+    let matchEventId = 0;
+    let resultWinner: Team | undefined;
+    let resultAnnouncementUntil = 0;
     let particles: Array<{
       x: number;
       y: number;
@@ -3259,6 +3292,39 @@ export function BentenganPrototype() {
       ensureStats(roundStats, player)[key] += amount;
       ensureStats(matchStats, player)[key] += amount;
     };
+    const addMatchEvent = (
+      event: Omit<MatchEvent, 'id' | 'priority' | 'expiresAt'>,
+      now: number,
+    ) => {
+      const priority =
+        event.kind === 'tag' ? 1 : event.kind === 'rescue' ? 2 : 3;
+      const duration =
+        event.kind === 'tag'
+          ? 2100
+          : event.kind === 'rescue'
+            ? 2500
+            : 3200;
+      matchEvents = matchEvents.filter((item) => item.expiresAt > now);
+      if (matchEvents.length >= 2) {
+        const lowestPriority = Math.min(
+          ...matchEvents.map((item) => item.priority),
+        );
+        if (priority <= lowestPriority) return;
+        const replacement = matchEvents.findIndex(
+          (item) => item.priority === lowestPriority,
+        );
+        matchEvents.splice(replacement, 1);
+      }
+      matchEvents.push({
+        ...event,
+        id: ++matchEventId,
+        priority,
+        expiresAt: now + duration,
+      });
+      matchEvents.sort(
+        (a, b) => b.priority - a.priority || b.id - a.id,
+      );
+    };
     const contributionScore = (stats: PlayerStats) =>
       stats.tags * 100 + stats.rescues * 120 - stats.prisons * 40;
     const boardRows = (
@@ -3295,7 +3361,7 @@ export function BentenganPrototype() {
         );
       const mvp = rankedPlayers[0];
       return {
-        visible: automatic,
+        visible: automatic && now >= resultAnnouncementUntil,
         final,
         round,
         winner: roundWinner,
@@ -3387,6 +3453,7 @@ export function BentenganPrototype() {
     const resetRound = () => {
       players = makePlayers();
       roundStats = makeStatsStore();
+      matchEvents = [];
       players.forEach((player) => ensureStats(matchStats, player));
       seedRefills();
       timer = 240;
@@ -3395,6 +3462,8 @@ export function BentenganPrototype() {
       suddenDeath = false;
       roundWinner = undefined;
       roundEndReason = '';
+      resultWinner = undefined;
+      resultAnnouncementUntil = 0;
       ultimateImpactAt = 0;
       ultimateBuffUntil = 0;
       ultimateShieldUntil = 0;
@@ -3418,6 +3487,10 @@ export function BentenganPrototype() {
       roundWinner = team;
       roundEndReason = reason;
       phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
+      const resultNow = performance.now();
+      matchEvents = [];
+      resultWinner = team;
+      resultAnnouncementUntil = resultNow + 1500;
       if (phase === 'MATCH_OVER') {
         completedMatchesRef.current++;
         fieldRotationPending = completedMatchesRef.current >= 3;
@@ -3426,7 +3499,7 @@ export function BentenganPrototype() {
           0.68,
         );
       }
-      phaseUntil = performance.now() + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 3000);
+      phaseUntil = resultNow + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 4500);
       announcement =
         phase === 'MATCH_OVER'
           ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
@@ -3875,6 +3948,16 @@ export function BentenganPrototype() {
       winner.captures++;
       addStat(winner, 'tags');
       addStat(loser, 'prisons');
+      addMatchEvent(
+        {
+          kind: 'tag',
+          actorName: winner.name,
+          actorTeam: winner.team,
+          targetName: loser.name,
+          targetTeam: loser.team,
+        },
+        now,
+      );
       if (!winner.capturedIds.includes(loser.id))
         winner.capturedIds.push(loser.id);
       winner.action = 'tag';
@@ -3975,6 +4058,17 @@ export function BentenganPrototype() {
             rescuer.action = 'rescue';
             rescuer.actionUntil = now + 460;
             addStat(rescuer, 'rescues');
+            addMatchEvent(
+              {
+                kind: 'rescue',
+                actorName: rescuer.name,
+                actorTeam: rescuer.team,
+                targetName: held.length === 1 ? held[0].name : undefined,
+                targetTeam: held.length === 1 ? held[0].team : undefined,
+                rescuedCount: held.length,
+              },
+              now,
+            );
             burst(held[0].x, held[0].y, '#b9ee3d', 26);
             if (held.some(p => p.controlled)) gameplayAudio.play('rescued');
             else if (rescuer.controlled) gameplayAudio.play('rescue');
@@ -5497,6 +5591,12 @@ export function BentenganPrototype() {
             ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
             me.action === 'ultimate' &&
             now < me.actionUntil,
+          matchEvents: matchEvents.filter((event) => event.expiresAt > now),
+          roundResult: {
+            visible: Boolean(resultWinner) && now < resultAnnouncementUntil,
+            winner: resultWinner,
+            final: phase === 'MATCH_OVER',
+          },
           statsBoard: buildStatsBoard(now),
         });
       }
@@ -6222,6 +6322,45 @@ export function BentenganPrototype() {
               <span>{snapshot.red}</span>
             </div>
           </div>
+          {snapshot.matchEvents.length > 0 && (
+            <aside className="match-event-feed" aria-live="polite">
+              {snapshot.matchEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className={`match-event-toast ${event.kind}`}
+                >
+                  <img src={MATCH_EVENT_FRAME[event.kind]} alt="" />
+                  <p>
+                    {event.kind === 'tag' && (
+                      <>
+                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
+                        menangkap{' '}
+                        <strong className={event.targetTeam}>{event.targetName}</strong>
+                      </>
+                    )}
+                    {event.kind === 'rescue' && (
+                      <>
+                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
+                        menyelamatkan tim
+                      </>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </aside>
+          )}
+          {snapshot.roundResult.visible && snapshot.roundResult.winner && (
+            <section
+              className="round-result-announcement"
+              aria-live="assertive"
+              aria-label={`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'match' : 'ronde'}`}
+            >
+              <img
+                src={ROUND_RESULT_ASSET[snapshot.roundResult.winner]}
+                alt={`${teamName(snapshot.roundResult.winner)} menang`}
+              />
+            </section>
+          )}
           {showStatsBoard && (
             <section
               className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
