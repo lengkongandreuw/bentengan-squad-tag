@@ -3,11 +3,11 @@
   "purpose": "Golden hashes diperbarui hanya setelah audit visual seluruh karakter lulus.",
   "characters": {
     "robot": {
-      "source": "365bdd8e1c0cfdc86aaf0fcb2691f32d320aec0573354045d06d8e8efa48a80c",
-      "atlas": "fb8da98f2875b389f93be4f23fab8b7b26b4d07fe90d5e17fa8ff7171cd94545",
-      "runtime": "23f8732f947e090b186e93a2cd27926d985e5737d2e3e9be7dee731e8180cb6e",
-      "portrait": "3a54f1b948c1680bb83cf93400c0cd41557656b68e99f8b66c5d965ee248c021",
-      "animation": "af023dacb4bae70d79b4b7370a3ff960049f449b6dbb458c2a23aee4ea81324f"
+      "source": "aea490d5e4b0fb35798054d2dae0b31742c52f61f525beb7771cc391fba2bee0",
+      "atlas": "5b59067a64c3dd5f98723aa545867377f61143e4f5c8a2bc63684f3036d0d4d4",
+      "runtime": "3dd4d6687c88f59c396293596778ab01a71b7a9909e06e569ff16fd1b7115b83",
+      "portrait": "ad6336808087bc7363a2d866cba9c9e3a21e765d6b98fd58778ddf61c8b9bb85",
+      "animation": "2a82b28846eabff2738a550cb2e47696625a2b932fdeb82b125c94666ec3abe3"
     },
     "ciici": {
       "source": "b40175f02cd75e13bfc02489897359e33f351fceab7fe4a654e07aea64ca2877",
@@ -59,11 +59,11 @@
       "animation": "3ff01e72722e113c7ce30a781666d73d2362342381746063c3f7cf7f7157af04"
     },
     "kumis": {
-      "source": "5f84efb2508465486ba18c0c309e54f287c841ef7108359910a88b70bd14af93",
-      "atlas": "5e0516fda1e972151eb1ccc3d4c228d2bcdb4fcc1c16ae3818ec3e60e226661c",
-      "runtime": "211da04c1bc51c39d00c50fb45494d70375cde3d40787e3ce5fb75dd7843564d",
-      "portrait": "f0236a2d31b81d40bd1c6f456457d93916248a949e94ef9ee465736c39d72d97",
-      "animation": "b43b90f3b4975b1f9583062b906509e24b6d1bb42746ea3267966edafb8b9ea8"
+      "source": "3fa02e1a86b244384b3e889a04b82a6bbc189fbdc49e008e1c500fb2b1b671e7",
+      "atlas": "f028984c18b6ee96e87b90e8df98fd231d74f5a665937297c95c0ecb2cac0d8c",
+      "runtime": "6e3e8e378da1981217eb560bd0bbf61e3c532517c9c4594214fb0fee66322ded",
+      "portrait": "dbb9e5ba8b3f82be871da45a64b2e0f35f076856e38d9638aa72c617bb49bd5f",
+      "animation": "cf7788be2743fb714d35bd17da81171edc6e731a643af8c6d8228c984aa13e2e"
     },
     "boke": {
       "source": "d4060e22031fbd4fce38f3129568ef3262fd405f94f974121b6ed65bb86efb58",
