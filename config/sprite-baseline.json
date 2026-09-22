@@ -94,11 +94,11 @@
       "animation": "c606fb95e159960f3631624338481ad23feb79541fa3881395b8d48c6a0e33e2"
     },
     "kodo": {
-      "source": "4dacbf9777c5a21a171884c98b7ab0b18d9f6997458b7c7d2f4630f9d63f5579",
-      "atlas": "d6deda3532b333afeb0c9bf52175250941df1e7819e05cb59d132a4cb897ecec",
-      "runtime": "f5e22ff41d228a63cab3716f34a0daa731a796896aec81ef7e2e986b2eb99d37",
-      "portrait": "30198c481eb06d1b4fc183f9e167973fa1e8d30b36cd0ee897888abfd3e990b8",
-      "animation": "6b0cdab0fc593187d1471a3f5ad422b05c89eed191833b8dd169b86eba18209a"
+      "source": "3b0b42d5319abef798537eae5b54f675463bcd93a4ca7d01afdca5eb5c1809fb",
+      "atlas": "ad3222f5b8b3073f6fd0f432d4bc1ae6627e297edc18ea1e981f7d2cead6f7bf",
+      "runtime": "bd6d76f3d56e88784deb3c2689cc74b28821f829a9ef1b5de1ce6ec4c1e7e0fb",
+      "portrait": "bd50f3c48127592f7c2794c503bbeb05db00ed43f14df65fc3aa85d5768e6aaf",
+      "animation": "e0f6b2ad79ac583b9aed5360b1f2b8f55020acabbf85ec7b231de722baf9060b"
     }
   }
 }
