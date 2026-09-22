@@ -5,18 +5,18 @@
   "role": "Runner",
   "source": {
     "file": "kaka.png",
-    "width": 1448,
-    "height": 1086,
+    "width": 1755,
+    "height": 1229,
     "columns": 7,
     "rows": 5,
     "segmentation": "row-separated-alpha-components",
     "rowBounds": [
       0,
-      214,
-      417,
-      638,
-      854,
-      1086
+      239,
+      442,
+      803,
+      1001,
+      1229
     ],
     "frames": [
       {
@@ -24,58 +24,58 @@
         "column": 0,
         "sourceRow": 0,
         "box": {
-          "x": 45,
-          "y": 0,
-          "width": 94,
-          "height": 215
+          "x": 86,
+          "y": 40,
+          "width": 83,
+          "height": 164
         },
-        "width": 94,
-        "height": 215,
+        "width": 83,
+        "height": 164,
         "componentCount": 1,
-        "retainedRatio": 0.998072410325176
+        "retainedRatio": 1
       },
       {
         "row": 0,
         "column": 1,
         "sourceRow": 0,
         "box": {
-          "x": 231,
-          "y": 3,
-          "width": 103,
-          "height": 212
+          "x": 345,
+          "y": 42,
+          "width": 73,
+          "height": 157
         },
-        "width": 103,
-        "height": 212,
+        "width": 73,
+        "height": 157,
         "componentCount": 1,
-        "retainedRatio": 0.9997528626740259
+        "retainedRatio": 1
       },
       {
         "row": 0,
         "column": 2,
         "sourceRow": 0,
         "box": {
-          "x": 406,
-          "y": 2,
-          "width": 106,
-          "height": 213
+          "x": 589,
+          "y": 50,
+          "width": 85,
+          "height": 153
         },
-        "width": 106,
-        "height": 213,
+        "width": 85,
+        "height": 153,
         "componentCount": 1,
-        "retainedRatio": 0.5037274162427644
+        "retainedRatio": 1
       },
       {
         "row": 0,
         "column": 3,
         "sourceRow": 0,
         "box": {
-          "x": 749,
-          "y": 2,
-          "width": 133,
-          "height": 213
+          "x": 844,
+          "y": 52,
+          "width": 79,
+          "height": 144
         },
-        "width": 133,
-        "height": 213,
+        "width": 79,
+        "height": 144,
         "componentCount": 1,
         "retainedRatio": 1
       },
@@ -84,103 +84,103 @@
         "column": 4,
         "sourceRow": 0,
         "box": {
-          "x": 948,
-          "y": 2,
-          "width": 122,
-          "height": 213
+          "x": 1088,
+          "y": 48,
+          "width": 69,
+          "height": 151
         },
-        "width": 122,
-        "height": 213,
+        "width": 69,
+        "height": 151,
         "componentCount": 1,
-        "retainedRatio": 0.9993504911910368
+        "retainedRatio": 1
       },
       {
         "row": 0,
         "column": 5,
         "sourceRow": 0,
         "box": {
-          "x": 1126,
-          "y": 3,
+          "x": 1356,
+          "y": 39,
+          "width": 74,
+          "height": 155
+        },
+        "width": 74,
+        "height": 155,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 0,
+        "column": 6,
+        "sourceRow": 0,
+        "box": {
+          "x": 1589,
+          "y": 33,
+          "width": 80,
+          "height": 159
+        },
+        "width": 80,
+        "height": 159,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "sourceRow": 1,
+        "box": {
+          "x": 82,
+          "y": 240,
+          "width": 68,
+          "height": 168
+        },
+        "width": 68,
+        "height": 168,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "sourceRow": 1,
+        "box": {
+          "x": 320,
+          "y": 263,
           "width": 110,
-          "height": 212
+          "height": 144
         },
         "width": 110,
-        "height": 212,
+        "height": 144,
         "componentCount": 1,
-        "retainedRatio": 0.9999139044339217
-      },
-      {
-        "row": 0,
-        "column": 6,
-        "sourceRow": 0,
-        "box": {
-          "x": 1277,
-          "y": 5,
-          "width": 149,
-          "height": 202
-        },
-        "width": 149,
-        "height": 202,
-        "componentCount": 1,
-        "retainedRatio": 0.999712023038157
-      },
-      {
-        "row": 1,
-        "column": 0,
-        "sourceRow": 1,
-        "box": {
-          "x": 211,
-          "y": 213,
-          "width": 149,
-          "height": 204
-        },
-        "width": 149,
-        "height": 204,
-        "componentCount": 1,
-        "retainedRatio": 0.5165615471367111
-      },
-      {
-        "row": 1,
-        "column": 1,
-        "sourceRow": 1,
-        "box": {
-          "x": 380,
-          "y": 213,
-          "width": 152,
-          "height": 198
-        },
-        "width": 152,
-        "height": 198,
-        "componentCount": 1,
-        "retainedRatio": 0.9999228573632647
+        "retainedRatio": 1
       },
       {
         "row": 1,
         "column": 2,
         "sourceRow": 1,
         "box": {
-          "x": 572,
-          "y": 213,
-          "width": 149,
-          "height": 202
+          "x": 591,
+          "y": 271,
+          "width": 91,
+          "height": 141
         },
-        "width": 149,
-        "height": 202,
+        "width": 91,
+        "height": 141,
         "componentCount": 1,
-        "retainedRatio": 0.9998500524816314
+        "retainedRatio": 1
       },
       {
         "row": 1,
         "column": 3,
         "sourceRow": 1,
         "box": {
-          "x": 748,
-          "y": 213,
-          "width": 154,
-          "height": 205
+          "x": 828,
+          "y": 257,
+          "width": 100,
+          "height": 148
         },
-        "width": 154,
-        "height": 205,
+        "width": 100,
+        "height": 148,
         "componentCount": 1,
         "retainedRatio": 1
       },
@@ -189,403 +189,403 @@
         "column": 4,
         "sourceRow": 1,
         "box": {
-          "x": 923,
-          "y": 213,
-          "width": 157,
-          "height": 199
+          "x": 1060,
+          "y": 270,
+          "width": 117,
+          "height": 139
         },
-        "width": 157,
-        "height": 199,
+        "width": 117,
+        "height": 139,
         "componentCount": 1,
-        "retainedRatio": 0.9997762863534676
+        "retainedRatio": 1
       },
       {
         "row": 1,
         "column": 5,
         "sourceRow": 1,
         "box": {
-          "x": 1096,
-          "y": 213,
-          "width": 148,
-          "height": 202
-        },
-        "width": 148,
-        "height": 202,
-        "componentCount": 1,
-        "retainedRatio": 0.9998428661219358
-      },
-      {
-        "row": 1,
-        "column": 6,
-        "sourceRow": 1,
-        "box": {
-          "x": 1259,
-          "y": 213,
-          "width": 168,
-          "height": 198
-        },
-        "width": 168,
-        "height": 198,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 2,
-        "column": 0,
-        "sourceRow": 1,
-        "box": {
-          "x": 211,
-          "y": 213,
-          "width": 149,
-          "height": 204
-        },
-        "width": 149,
-        "height": 204,
-        "componentCount": 1,
-        "retainedRatio": 0.5165615471367111
-      },
-      {
-        "row": 2,
-        "column": 1,
-        "sourceRow": 1,
-        "box": {
-          "x": 380,
-          "y": 213,
-          "width": 152,
-          "height": 198
-        },
-        "width": 152,
-        "height": 198,
-        "componentCount": 1,
-        "retainedRatio": 0.9999228573632647
-      },
-      {
-        "row": 2,
-        "column": 2,
-        "sourceRow": 1,
-        "box": {
-          "x": 572,
-          "y": 213,
-          "width": 149,
-          "height": 202
-        },
-        "width": 149,
-        "height": 202,
-        "componentCount": 1,
-        "retainedRatio": 0.9998500524816314
-      },
-      {
-        "row": 2,
-        "column": 3,
-        "sourceRow": 1,
-        "box": {
-          "x": 748,
-          "y": 213,
-          "width": 154,
-          "height": 205
-        },
-        "width": 154,
-        "height": 205,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 2,
-        "column": 4,
-        "sourceRow": 1,
-        "box": {
-          "x": 923,
-          "y": 213,
-          "width": 157,
-          "height": 199
-        },
-        "width": 157,
-        "height": 199,
-        "componentCount": 1,
-        "retainedRatio": 0.9997762863534676
-      },
-      {
-        "row": 2,
-        "column": 5,
-        "sourceRow": 1,
-        "box": {
-          "x": 1096,
-          "y": 213,
-          "width": 148,
-          "height": 202
-        },
-        "width": 148,
-        "height": 202,
-        "componentCount": 1,
-        "retainedRatio": 0.9998428661219358
-      },
-      {
-        "row": 2,
-        "column": 6,
-        "sourceRow": 1,
-        "box": {
-          "x": 1259,
-          "y": 213,
-          "width": 168,
-          "height": 198
-        },
-        "width": 168,
-        "height": 198,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 3,
-        "column": 0,
-        "sourceRow": 2,
-        "box": {
-          "x": 34,
-          "y": 417,
-          "width": 101,
-          "height": 222
-        },
-        "width": 101,
-        "height": 222,
-        "componentCount": 1,
-        "retainedRatio": 0.9937520285621552
-      },
-      {
-        "row": 3,
-        "column": 1,
-        "sourceRow": 2,
-        "box": {
-          "x": 210,
-          "y": 416,
-          "width": 90,
-          "height": 218
-        },
-        "width": 90,
-        "height": 218,
-        "componentCount": 1,
-        "retainedRatio": 0.9998203861697351
-      },
-      {
-        "row": 3,
-        "column": 2,
-        "sourceRow": 2,
-        "box": {
-          "x": 393,
-          "y": 416,
-          "width": 98,
-          "height": 206
-        },
-        "width": 98,
-        "height": 206,
-        "componentCount": 1,
-        "retainedRatio": 0.9993732091690545
-      },
-      {
-        "row": 3,
-        "column": 3,
-        "sourceRow": 2,
-        "box": {
-          "x": 746,
-          "y": 417,
-          "width": 101,
-          "height": 222
-        },
-        "width": 101,
-        "height": 222,
-        "componentCount": 1,
-        "retainedRatio": 0.5058215919902143
-      },
-      {
-        "row": 3,
-        "column": 4,
-        "sourceRow": 2,
-        "box": {
-          "x": 929,
-          "y": 416,
-          "width": 109,
-          "height": 223
-        },
-        "width": 109,
-        "height": 223,
-        "componentCount": 1,
-        "retainedRatio": 0.9999130585985047
-      },
-      {
-        "row": 3,
-        "column": 5,
-        "sourceRow": 2,
-        "box": {
-          "x": 1116,
-          "y": 416,
-          "width": 102,
-          "height": 223
-        },
-        "width": 102,
-        "height": 223,
-        "componentCount": 1,
-        "retainedRatio": 0.9999123114696598
-      },
-      {
-        "row": 3,
-        "column": 6,
-        "sourceRow": 2,
-        "box": {
-          "x": 1273,
-          "y": 416,
-          "width": 151,
-          "height": 220
-        },
-        "width": 151,
-        "height": 220,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 4,
-        "column": 0,
-        "sourceRow": 3,
-        "box": {
-          "x": 20,
-          "y": 637,
-          "width": 126,
-          "height": 218
-        },
-        "width": 126,
-        "height": 218,
-        "componentCount": 1,
-        "retainedRatio": 0.5146272054638589
-      },
-      {
-        "row": 4,
-        "column": 1,
-        "sourceRow": 3,
-        "box": {
-          "x": 353,
-          "y": 637,
-          "width": 172,
-          "height": 218
-        },
-        "width": 172,
-        "height": 218,
-        "componentCount": 2,
-        "retainedRatio": 0.9977383560675667
-      },
-      {
-        "row": 4,
-        "column": 2,
-        "sourceRow": 3,
-        "box": {
-          "x": 542,
-          "y": 637,
-          "width": 157,
-          "height": 209
-        },
-        "width": 157,
-        "height": 209,
-        "componentCount": 1,
-        "retainedRatio": 0.9990017825311943
-      },
-      {
-        "row": 4,
-        "column": 3,
-        "sourceRow": 3,
-        "box": {
-          "x": 729,
-          "y": 637,
-          "width": 145,
-          "height": 218
-        },
-        "width": 145,
-        "height": 218,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 4,
-        "column": 4,
-        "sourceRow": 3,
-        "box": {
-          "x": 911,
-          "y": 637,
-          "width": 156,
-          "height": 208
-        },
-        "width": 156,
-        "height": 208,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 4,
-        "column": 5,
-        "sourceRow": 3,
-        "box": {
-          "x": 1101,
-          "y": 637,
-          "width": 142,
-          "height": 213
-        },
-        "width": 142,
-        "height": 213,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 4,
-        "column": 6,
-        "sourceRow": 3,
-        "box": {
-          "x": 1263,
-          "y": 644,
-          "width": 163,
-          "height": 189
-        },
-        "width": 163,
-        "height": 189,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 5,
-        "column": 0,
-        "sourceRow": 4,
-        "box": {
-          "x": 19,
-          "y": 879,
-          "width": 110,
-          "height": 188
-        },
-        "width": 110,
-        "height": 188,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 5,
-        "column": 1,
-        "sourceRow": 4,
-        "box": {
-          "x": 174,
-          "y": 886,
-          "width": 111,
-          "height": 174
-        },
-        "width": 111,
-        "height": 174,
-        "componentCount": 1,
-        "retainedRatio": 1
-      },
-      {
-        "row": 5,
-        "column": 2,
-        "sourceRow": 4,
-        "box": {
-          "x": 344,
-          "y": 853,
+          "x": 1341,
+          "y": 259,
           "width": 123,
-          "height": 223
+          "height": 147
         },
         "width": 123,
-        "height": 223,
+        "height": 147,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 1,
+        "column": 6,
+        "sourceRow": 1,
+        "box": {
+          "x": 1570,
+          "y": 265,
+          "width": 107,
+          "height": 142
+        },
+        "width": 107,
+        "height": 142,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "sourceRow": 1,
+        "box": {
+          "x": 82,
+          "y": 240,
+          "width": 68,
+          "height": 168
+        },
+        "width": 68,
+        "height": 168,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "sourceRow": 1,
+        "box": {
+          "x": 320,
+          "y": 263,
+          "width": 110,
+          "height": 144
+        },
+        "width": 110,
+        "height": 144,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "sourceRow": 1,
+        "box": {
+          "x": 591,
+          "y": 271,
+          "width": 91,
+          "height": 141
+        },
+        "width": 91,
+        "height": 141,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 3,
+        "sourceRow": 1,
+        "box": {
+          "x": 828,
+          "y": 257,
+          "width": 100,
+          "height": 148
+        },
+        "width": 100,
+        "height": 148,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 4,
+        "sourceRow": 1,
+        "box": {
+          "x": 1060,
+          "y": 270,
+          "width": 117,
+          "height": 139
+        },
+        "width": 117,
+        "height": 139,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 5,
+        "sourceRow": 1,
+        "box": {
+          "x": 1341,
+          "y": 259,
+          "width": 123,
+          "height": 147
+        },
+        "width": 123,
+        "height": 147,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 2,
+        "column": 6,
+        "sourceRow": 1,
+        "box": {
+          "x": 1570,
+          "y": 265,
+          "width": 107,
+          "height": 142
+        },
+        "width": 107,
+        "height": 142,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "sourceRow": 2,
+        "box": {
+          "x": 82,
+          "y": 443,
+          "width": 79,
+          "height": 172
+        },
+        "width": 79,
+        "height": 172,
+        "componentCount": 1,
+        "retainedRatio": 0.5326676176890157
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "sourceRow": 2,
+        "box": {
+          "x": 320,
+          "y": 460,
+          "width": 110,
+          "height": 144
+        },
+        "width": 110,
+        "height": 144,
+        "componentCount": 1,
+        "retainedRatio": 0.540223135642983
+      },
+      {
+        "row": 3,
+        "column": 2,
+        "sourceRow": 2,
+        "box": {
+          "x": 592,
+          "y": 645,
+          "width": 71,
+          "height": 159
+        },
+        "width": 71,
+        "height": 159,
+        "componentCount": 1,
+        "retainedRatio": 0.5407020872865275
+      },
+      {
+        "row": 3,
+        "column": 3,
+        "sourceRow": 2,
+        "box": {
+          "x": 828,
+          "y": 454,
+          "width": 100,
+          "height": 148
+        },
+        "width": 100,
+        "height": 148,
+        "componentCount": 1,
+        "retainedRatio": 0.503021978021978
+      },
+      {
+        "row": 3,
+        "column": 4,
+        "sourceRow": 2,
+        "box": {
+          "x": 1060,
+          "y": 467,
+          "width": 117,
+          "height": 139
+        },
+        "width": 117,
+        "height": 139,
+        "componentCount": 1,
+        "retainedRatio": 0.5438182354676896
+      },
+      {
+        "row": 3,
+        "column": 5,
+        "sourceRow": 2,
+        "box": {
+          "x": 1570,
+          "y": 462,
+          "width": 107,
+          "height": 142
+        },
+        "width": 107,
+        "height": 142,
+        "componentCount": 1,
+        "retainedRatio": 0.34887609139884823
+      },
+      {
+        "row": 3,
+        "column": 6,
+        "sourceRow": 2,
+        "box": {
+          "x": 1598,
+          "y": 652,
+          "width": 71,
+          "height": 152
+        },
+        "width": 71,
+        "height": 152,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 4,
+        "column": 0,
+        "sourceRow": 3,
+        "box": {
+          "x": 70,
+          "y": 878,
+          "width": 89,
+          "height": 120
+        },
+        "width": 89,
+        "height": 120,
+        "componentCount": 1,
+        "retainedRatio": 0.8818558123490859
+      },
+      {
+        "row": 4,
+        "column": 1,
+        "sourceRow": 3,
+        "box": {
+          "x": 336,
+          "y": 888,
+          "width": 74,
+          "height": 109
+        },
+        "width": 74,
+        "height": 109,
+        "componentCount": 1,
+        "retainedRatio": 0.9614190687361419
+      },
+      {
+        "row": 4,
+        "column": 2,
+        "sourceRow": 3,
+        "box": {
+          "x": 563,
+          "y": 879,
+          "width": 89,
+          "height": 120
+        },
+        "width": 89,
+        "height": 120,
+        "componentCount": 1,
+        "retainedRatio": 0.9609756097560975
+      },
+      {
+        "row": 4,
+        "column": 3,
+        "sourceRow": 3,
+        "box": {
+          "x": 837,
+          "y": 893,
+          "width": 74,
+          "height": 108
+        },
+        "width": 74,
+        "height": 108,
+        "componentCount": 1,
+        "retainedRatio": 0.950636243966652
+      },
+      {
+        "row": 4,
+        "column": 4,
+        "sourceRow": 3,
+        "box": {
+          "x": 1076,
+          "y": 874,
+          "width": 89,
+          "height": 120
+        },
+        "width": 89,
+        "height": 120,
+        "componentCount": 1,
+        "retainedRatio": 0.9567091454272864
+      },
+      {
+        "row": 4,
+        "column": 5,
+        "sourceRow": 3,
+        "box": {
+          "x": 1361,
+          "y": 885,
+          "width": 74,
+          "height": 107
+        },
+        "width": 74,
+        "height": 107,
+        "componentCount": 1,
+        "retainedRatio": 0.9986152780983153
+      },
+      {
+        "row": 4,
+        "column": 6,
+        "sourceRow": 3,
+        "box": {
+          "x": 1589,
+          "y": 879,
+          "width": 89,
+          "height": 120
+        },
+        "width": 89,
+        "height": 120,
+        "componentCount": 1,
+        "retainedRatio": 0.9677786201667931
+      },
+      {
+        "row": 5,
+        "column": 0,
+        "sourceRow": 4,
+        "box": {
+          "x": 72,
+          "y": 1091,
+          "width": 90,
+          "height": 128
+        },
+        "width": 90,
+        "height": 128,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 5,
+        "column": 1,
+        "sourceRow": 4,
+        "box": {
+          "x": 327,
+          "y": 1086,
+          "width": 98,
+          "height": 130
+        },
+        "width": 98,
+        "height": 130,
+        "componentCount": 1,
+        "retainedRatio": 1
+      },
+      {
+        "row": 5,
+        "column": 2,
+        "sourceRow": 4,
+        "box": {
+          "x": 578,
+          "y": 1056,
+          "width": 94,
+          "height": 163
+        },
+        "width": 94,
+        "height": 163,
         "componentCount": 1,
         "retainedRatio": 1
       },
@@ -594,28 +594,28 @@
         "column": 3,
         "sourceRow": 4,
         "box": {
-          "x": 499,
-          "y": 853,
-          "width": 107,
-          "height": 220
+          "x": 834,
+          "y": 1053,
+          "width": 85,
+          "height": 163
         },
-        "width": 107,
-        "height": 220,
+        "width": 85,
+        "height": 163,
         "componentCount": 1,
-        "retainedRatio": 1
+        "retainedRatio": 0.999264841021871
       },
       {
         "row": 5,
         "column": 4,
         "sourceRow": 4,
         "box": {
-          "x": 654,
-          "y": 859,
-          "width": 151,
-          "height": 217
+          "x": 1079,
+          "y": 1061,
+          "width": 96,
+          "height": 155
         },
-        "width": 151,
-        "height": 217,
+        "width": 96,
+        "height": 155,
         "componentCount": 1,
         "retainedRatio": 1
       },
@@ -624,14 +624,14 @@
         "column": 5,
         "sourceRow": 4,
         "box": {
-          "x": 840,
-          "y": 896,
-          "width": 153,
-          "height": 172
+          "x": 1361,
+          "y": 1060,
+          "width": 72,
+          "height": 156
         },
-        "width": 153,
-        "height": 172,
-        "componentCount": 1,
+        "width": 72,
+        "height": 156,
+        "componentCount": 2,
         "retainedRatio": 1
       },
       {
@@ -639,15 +639,15 @@
         "column": 6,
         "sourceRow": 4,
         "box": {
-          "x": 1051,
-          "y": 924,
-          "width": 179,
-          "height": 136
+          "x": 1599,
+          "y": 1058,
+          "width": 75,
+          "height": 157
         },
-        "width": 179,
-        "height": 136,
+        "width": 75,
+        "height": 157,
         "componentCount": 1,
-        "retainedRatio": 0.5490918548701721
+        "retainedRatio": 1
       }
     ]
   },
@@ -664,10 +664,10 @@
   },
   "quality": {
     "frameCount": 42,
-    "minimumRetainedRatio": 0.5037274162427644,
+    "minimumRetainedRatio": 0.34887609139884823,
     "normalization": "uniform-character-scale-south-anchor-lanczos3",
-    "referenceHeight": 218,
-    "scale": 1.0642201834862386
+    "referenceHeight": 168,
+    "scale": 1.380952380952381
   },
   "anchor": {
     "x": 0.5,

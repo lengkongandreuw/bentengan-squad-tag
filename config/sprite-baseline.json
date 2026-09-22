@@ -17,18 +17,18 @@
       "animation": "6fd9d35466e4110e2b8e929f8b3a97b93f3552ee239d0047039d94a9326b6f32"
     },
     "kaka": {
-      "source": "58e3956c60cd3609e69758e422f181c4a8227e087b6df53b3038d314085cd623",
-      "atlas": "d1f47728f598ed3be398be0f90a9c4d107eefa1bcd11af1f74ffc3f33da38ac1",
-      "runtime": "a92af699a070f6a67b42236b6e189356638f467b0ee5e203db461d0a07070953",
-      "portrait": "50edbc25c77a56548739744509b2a0a2fbb6da5929d89cbafeb306f5f2c2015f",
-      "animation": "9f1cf7ff71a8bc57dd2c4449d7807b6b75ff87722198c7fba6c0b5665d8b9989"
+      "source": "df8cf32d777a6259226007f4b870c2344e6396ea367354c9194cd28f8aea1bc1",
+      "atlas": "598e8cb41112af3556a49f97ac6112c727e8da36e7f18a6e43c369a63c25fff7",
+      "runtime": "3e62ad9e0df26ba55abce1bdaebbbb2fe083da8d0ef14d79cb6e8e062bc1f099",
+      "portrait": "1c27de2d4df57b644eea1078777dc1f2189a97d452c397e7a237a64a08378f4d",
+      "animation": "dc578d49b602e229f118aec64a8c2eea0bb1f62534f45082c3589bc6cfb2159f"
     },
     "buto": {
-      "source": "fded4e2e734448d29a7c7f3fa2c9d60d567e7fbf25ea9be5bd88159d3859e39d",
-      "atlas": "e0de37187dbad83ef8b4f567e8de3e127f339918bebe55aa37db513195ab3a4c",
-      "runtime": "a476cc9723bc5f2009c5816c90fd2eebc2c95caa99094aa5cdd5c87164fdcf99",
-      "portrait": "fea5ad8af7849f0e8630d30503916315ebd4ab114e081e4c57db8f688582dfb2",
-      "animation": "8d1f9f740f76c05c886377d7acc77ee104ec642d4634cb9c323948d56e2ffaa5"
+      "source": "085663d3fa0ae895ef12727be852e875283ca9057e77bcae3f30c1930f3337da",
+      "atlas": "3d066f912f4c42f7e43be14b25ac8a8baefd9bdf97bac4ad23ed12d13e191ad9",
+      "runtime": "55e8345a7772a759c9446742e8dad3e055c82d591dfcd4d891ec67154d37dfe8",
+      "portrait": "82e95e5ddb232b0f27523e76d22b4b945da54bba0dd2cec948dd0ad4c130e1f5",
+      "animation": "c0efb544ddf28967414223f7764ef61a9279a8c163ec2c307e1faf1e6fad8e0d"
     },
     "jago": {
       "source": "a4d03712c93cd6b2565b16e08b5f45d061878c4049848355f40d8b50d8943bcf",
