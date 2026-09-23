@@ -73,11 +73,11 @@
       "animation": "ad911b579c55e1216360a5e65df314257f81b1cb0fb529f208dc5c7f723193d4"
     },
     "tui": {
-      "source": "ed5525e0fe7a63254e58c032f562fa91404b1485902a466829b8a7380b255b00",
-      "atlas": "733e9df2d6fc7311440803e8ca163e1a39fcce73b67a718744a65d93c3cc8f71",
-      "runtime": "9876b214e6c3933b2cbdef12ffffea2f1f2b1f4748daa69221cc9831dc827bf3",
-      "portrait": "c90a05ecdd59c9cb5b4b334a11437e254f1f64afb3f6df336afa6826b77c8736",
-      "animation": "ac077c79b40b530b401bf7e91694489a184be4bcbaf16dde684c2ecb756e564b"
+      "source": "850a37645005126b902aebd367c64d0f514b1c7b0af53dc1825e19e40c00c861",
+      "atlas": "246dd998997394c0a9a2b3149ab9fce8effcf62e3c62afc2e8e50f80dc09ee5c",
+      "runtime": "896e8cbada1969ebb2f9835b6ec5e51ca4dfb86855cd8eb01843f7ecc0e9076a",
+      "portrait": "81a9e8c797860ea86c2aa9f2b672328f10feca57c61a747779f6ac9c872142ad",
+      "animation": "27e01cfe1cc5cec2a40db8dc897843c82620824a2824223ee7d2410363210b4a"
     },
     "lui": {
       "source": "729ae48b8e1569b5a8d936362e1dd185a43212233bc0dfc812f49a27ed4feaff",
