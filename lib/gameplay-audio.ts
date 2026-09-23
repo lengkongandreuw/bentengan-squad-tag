@@ -1,4 +1,8 @@
 import { audioLevels, AUDIO_SETTINGS_EVENT } from './audio-settings';
+
+//for tambah kse kuat suara
+const SFX_BOOST = 3; 
+
 export type GameplaySound = 'step' | 'dash' | 'tag' | 'caught' | 'prison' |
   'rescued' | 'rescue' | 'fort-enter' | 'fort-captured';
 
@@ -9,9 +13,18 @@ export class GameplayAudio {
   private noise: AudioBuffer | null = null;
   private last = new Map<GameplaySound, number>();
   private closed = false;
+ 
+//update
   private updateVolume = () => {
-    if (this.output && this.context) this.output.gain.setTargetAtTime(audioLevels().sfx, this.context.currentTime, .02);
-  };
+  if (this.output && this.context) {
+    this.output.gain.setTargetAtTime(
+      audioLevels().sfx * SFX_BOOST,
+      this.context.currentTime,
+      .02
+    );
+  }
+};
+  
   unlock = async () => {
     if (this.closed) return;
     try {
@@ -21,7 +34,7 @@ export class GameplayAudio {
         compressor.threshold.value = -18;
         compressor.ratio.value = 5;
         this.output = this.context.createGain();
-        this.output.gain.value = audioLevels().sfx;
+        this.output.gain.value = audioLevels().sfx * SFX_BOOST; //edit baru
         window.addEventListener(AUDIO_SETTINGS_EVENT, this.updateVolume);
         this.output.connect(compressor);
         compressor.connect(this.context.destination);
