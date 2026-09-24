@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "characters": {
+    "raja": {
+      "animated": "selection-previews/raja/71aa5d79f16bbdcf234a7c8fbce099439778fd85936486b393af7d2752bf5acd.gif",
+      "static": null,
+      "scale": 1.7,
+      "x": 2.3,
+      "y": 13.4
+    },
+    "robot": {
+      "animated": "selection-previews/robot/1b2c77824813e6738ec32b9e17680dd3e6eb511b376d830cca5917e004b3b9f3.gif",
+      "static": null,
+      "scale": 1.7,
+      "x": -1.2,
+      "y": 17.2
+    },
+    "jago": {
+      "animated": "selection-previews/jago/ec1f5a182ac34a77efb5bb1859e834aae016b95075b70848b0dea99c906e99c7.gif",
+      "static": null,
+      "scale": 1.96,
+      "x": -0.8,
+      "y": 23
+    },
+    "ciici": {
+      "animated": "selection-previews/ciici/9078ee00f078b0da47e2785ad0d201d9c84664b3458d35c2638535b11696ebfa.gif",
+      "static": null,
+      "scale": 1.72,
+      "x": 0.9,
+      "y": 11.8
+    },
+    "bebe": {
+      "animated": "selection-previews/bebe/aefe7d183652174f6af3f25400a8b3f0d99e89509f8b83508a1172516edca7c7.gif",
+      "static": null,
+      "scale": 1.61,
+      "x": -0.7,
+      "y": 11.4
+    },
+    "tui": {
+      "animated": "selection-previews/tui/1d4012f84b3b8f257352952f71d7421440f08c12187a63b36ccd5ea3d2e1204e.gif",
+      "static": null,
+      "scale": 1.63,
+      "x": 1.1,
+      "y": 13.5
+    },
+    "kumis": {
+      "animated": "selection-previews/kumis/fde7e7092111ecaaca7d48a00375277539f98f5d7a7877492cb9f9625a70205a.gif",
+      "static": null,
+      "scale": 1.85,
+      "x": 3.3,
+      "y": 16.2
+    },
+    "lala": {
+      "animated": "selection-previews/lala/76386965f38b969c744ffdc5a4df97422341d8836693be658ea1a3cd6dbb61e6.gif",
+      "static": null,
+      "scale": 1.77,
+      "x": -0.5,
+      "y": 11
+    },
+    "kaka": {
+      "animated": "selection-previews/kaka/23a443d81960581c09e1b3ed736f3ed3ac906ea3fa2936aefea65ae26106272e.gif",
+      "static": null,
+      "scale": 1.72,
+      "x": 1.5,
+      "y": 13.6
+    },
+    "buto": {
+      "animated": "selection-previews/buto/fa2b3619cb6eb3ab76299f0143441fa4fa899ea3582931f3fcb08c87b72f2ec2.gif",
+      "static": null,
+      "scale": 1.7,
+      "x": 1.4,
+      "y": 15.9
+    },
+    "maria": {
+      "animated": "selection-previews/maria/c0aa575399aa09e01b8d9d3133a69d699bf62262959438c09a5c72301f65a32e.gif",
+      "static": null,
+      "scale": 1.92,
+      "x": 2.2,
+      "y": 17
+    },
+    "boke": {
+      "animated": "selection-previews/boke/59edd66e264ba4d334024ae6784f373f0d0dcc87b378706020cad396db1f32aa.gif",
+      "static": null,
+      "scale": 1.92,
+      "x": 1,
+      "y": 20.1
+    },
+    "kodo": {
+      "animated": "selection-previews/kodo/c95e76746dd2d65790ebeb2458565489aa601e6181f49c4d148cdd9764928709.gif",
+      "static": null,
+      "scale": 2,
+      "x": 8.8,
+      "y": 26.1
+    },
+    "lui": {
+      "animated": "selection-previews/lui/711b599405d63257e3f1258c912485caa11bdab12179326a4bb73dbf44efc164.gif",
+      "static": null,
+      "scale": 1.61,
+      "x": 0.1,
+      "y": 11.1
+    }
+  }
+}

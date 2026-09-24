@@ -29,6 +29,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
+import { SelectionPortrait } from '../components/selection-portrait';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -6183,11 +6184,10 @@ export function BentenganPrototype() {
                     onClick={() => setSelectedId(character.id)}
                     aria-pressed={selectedId === character.id}
                   >
-                    <CharacterPreview
+                    <SelectionPortrait
                       id={character.id}
                       alt={character.name}
-                      eager={selectedId === character.id}
-                      variant="full"
+                      active={selectedId === character.id}
                     />
                     {ULTIMATE_CHARACTER_IDS.has(character.id) && (
                       <strong className="ultimate-roster-badge">

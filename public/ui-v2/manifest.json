@@ -118,6 +118,10 @@
       "bytes": 42662
     },
     {
+      "file": "credits/background.webp",
+      "bytes": 238414
+    },
+    {
       "file": "fields/kampung.webp",
       "bytes": 77514
     },
@@ -222,5 +226,5 @@
       "bytes": 3651509
     }
   ],
-  "totalBytes": 16183405
+  "totalBytes": 16421819
 }
