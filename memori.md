@@ -197,6 +197,26 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Pipeline aset
 
+### Panel lokal preview karakter (2026-09-24)
+
+- `npm run admin:characters` -> http://127.0.0.1:4318/ (loopback saja).
+- Upload GIF aktif/gambar statis, preview, drag/slider posisi dan skala, simpan,
+  publish GitHub dengan pemeriksaan build dan penolakan perubahan di luar preview.
+- Konfigurasi versioned `config/selection-previews.json`, aset hash immutable di
+  `public/selection-previews/`. Backup lokal `.preview-admin/` diabaikan Git.
+- UI seleksi memakai `SelectionPortrait` dan kontrak `lib/selection-preview-model.js`.
+  UI baru harus mempertahankan adapter ini; panel tidak bergantung pada CSS/page.
+  X/Y persentase area gambar; skala berjangkar bawah-tengah. Gameplay tidak diubah.
+- Server/editor di `scripts/character-admin/` tidak termasuk situs Pages. Ini bukan
+  admin online: akses dibatasi komputer, bukan autentikasi antar-pengguna komputer.
+- Cara pakai, batas upload, keamanan, dan kontrak UI: `scripts/character-admin/README.md`.
+- Panel juga mengelola logo landing (branding.logo); gambar PNG/WebP/JPG disimpan
+  dengan hash di selection-previews/brand. Logo tim/HUD tidak ikut diganti.
+- Loading character selection menunggu semua GIF/custom static tim terpilih;
+  `lib/selection-preview-assets.ts` menyimpan cache readiness + decoded image
+  bersama komponen preview. Tidak menambah jeda tetap; timeout GIF 90 detik/retry.
+- Favicon memakai upload BST pengguna: public/favicon-bst.png, pada Pages dan dev.
+
 - Preview seleksi Boke/Kodo memakai upload 2026-09-20 di
   `asset-inbox/2026-09-20-preview-refresh/`. Preview saja diperbesar 1.05/1.17,
   mengikuti proporsi roster; sprite dan ukuran gameplay tidak diubah.

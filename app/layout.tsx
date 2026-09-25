@@ -6,6 +6,7 @@ const heading = Barlow_Condensed({ variable: '--font-heading', subsets: ['latin'
 const body = Inter({ variable: '--font-body', subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  icons: { icon: './favicon-bst.png?v=1' },
   title: 'Bentengan: Squad Tag — Playable Prototype',
   description: 'Bentengan web 2,5D 5v5: pilih Tim Merah atau Hijau, mainkan 14 karakter unik di empat arena, sprint, parkour, penjara, dan rescue.',
 };

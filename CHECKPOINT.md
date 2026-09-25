@@ -5,13 +5,28 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-22
+- State: `ACTIVE`
+- Diperbarui: 2026-09-25
 - Branch: `main`
 - Commit implementasi terakhir: `ea9b24e`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+2026-09-24: Panel lokal preview karakter. Scope: upload GIF/gambar statis,
+posisi/skala active preview, preview langsung, simpan dan publish GitHub.
+Konfigurasi versioned terpisah dari layout publik; gameplay tidak diubah.
+Selesai: editor lokal, upload/drag/slider/reset/simpan/publish, kontrak terpisah,
+Host/Origin/token, validasi path/ukuran, backup konfigurasi dan concurrency guard.
+Pengguna telah mengisi GIF seluruh roster dan menyimpan/memublikasikan sebagian
+integrasi pada 065eaca; jangan menimpa konfigurasi atau CSS roster mereka.
+Tambahan terbaru: editor logo landing, preload GIF seluruh tim sebelum character
+selection dengan shared readiness cache, favicon BST upload pengguna.
+Validasi: 3 test node lulus (cache/retry, validator, server upload/logo/security),
+TypeScript dan build:pages lulus. Browser produksi: loading -> GIF Ciici; pindah
+Kaka langsung src GIF complete, Ciici kembali statis. Tidak ada console error.
+Panel logo terlihat dan server terbaru berjalan pada 127.0.0.1:4318.
+Next action: commit/push ke GitHub dan verifikasi deployment Pages.
 
 2026-09-21: Kampung Merdeka 3D eksperimental sebagai map kelima, bukan pengganti.
 MODE implementasi + publish. Terrain asli, seluruh scenery low-poly 3D;

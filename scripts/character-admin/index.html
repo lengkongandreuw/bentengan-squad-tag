@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Studio Preview • Benteng</title><link rel="icon" type="image/png" href="/favicon-bst.png"><link rel="stylesheet" href="/editor.css"></head>
+<body>
+<header><div><small>BENTENG SQUAD TAG / LOCAL TOOLS</small><h1>Studio Preview Karakter</h1><p>Atur penampilan. Gameplay tetap sama.</p></div><b class="local">● LOKAL SAJA</b></header>
+<main>
+<aside><label for="character">Karakter</label><select id="character"></select><p id="team"></p><hr>
+<label for="animated">Animasi saat aktif</label><input id="animated" type="file" accept="image/gif,image/webp,image/png"><p>GIF / animated WebP / PNG, maksimal 20 MB. Transparansi dipertahankan.</p><button id="removeAnimated">Gunakan gambar statis saja</button>
+<label for="static">Gambar saat inactive (opsional)</label><input id="static" type="file" accept="image/png,image/webp,image/jpeg"><p>Tetap hitam-putih saat tidak disorot. Kosong = gambar asli game.</p><button id="removeStatic">Gunakan gambar asli</button><hr>
+<label for="scale">Skala aktif <output id="scaleValue"></output></label><input id="scale" type="range" min="0.25" max="2" step="0.01"><input id="scaleNumber" aria-label="Skala numerik" type="number" min="0.25" max="2" step="0.01">
+<label for="x">Posisi horizontal (%)</label><input id="x" type="range" min="-50" max="50" step="0.5"><input id="xNumber" aria-label="Posisi horizontal numerik" type="number" min="-50" max="50" step="0.5">
+<label for="y">Posisi vertikal (%)</label><input id="y" type="range" min="-50" max="50" step="0.5"><input id="yNumber" aria-label="Posisi vertikal numerik" type="number" min="-50" max="50" step="0.5">
+<p>Seret gambar untuk memindahkan. Nilai positif: kanan / bawah. Skala bertumpu pada tengah bawah.</p>
+<button id="reset">Reset posisi &amp; skala</button><button id="revert">Batalkan perubahan belum disimpan</button></aside>
+<section class="workspace"><div class="toolbar"><h2 id="title">Preview</h2><label><input type="checkbox" id="light"> Latar terang</label><label><input type="checkbox" id="motion" checked> Putar animasi</label></div>
+<div class="previews"><figure><div class="stage" id="stage" tabindex="0" aria-label="Preview aktif. Seret atau gunakan tombol panah untuk mengubah posisi."><img id="activeImage" alt="Preview aktif" draggable="false"><div class="guide"></div></div><figcaption>AKTIF · transform relatif terhadap area ini</figcaption></figure><figure class="inactive"><div class="stage"><img id="inactiveImage" alt="Preview inactive" draggable="false"></div><figcaption>INACTIVE · gambar statis hitam-putih</figcaption></figure></div>
+<p class="hint">Preview ini independen dari desain halaman game. Ukuran layar dapat berbeda; rasio gambar, titik kaki, dan aturan transform memakai kontrak yang sama.</p>
+<div class="actions"><button id="save" class="primary">Simpan ke proyek</button><button id="publish">Publish ke GitHub</button><a href="https://github.com/lengkongandreuw/bentengan-squad-tag/actions" target="_blank" rel="noreferrer">Status deployment ↗</a></div>
+<pre id="status" role="status" aria-live="polite">Memuat…</pre><p class="hint">Simpan memperbarui aset lokal. Publish menjalankan pemeriksaan, commit aset preview saja, lalu push. Tidak mengunggah panel admin ke situs game.</p>
+<details class="logo-editor"><summary>Logo halaman depan / landing</summary><p>Ganti logo utama di atas tombol Start. Tidak mengubah logo tim atau sprite karakter.</p><div class="logo-stage"><img id="logoImage" alt="Preview logo landing"></div><label for="logoFile">Upload logo PNG / WebP / JPG statis</label><input id="logoFile" type="file" accept="image/png,image/webp,image/jpeg"><div class="actions"><button id="saveLogo">Simpan logo</button><button id="resetLogo">Kembalikan logo bawaan</button></div><p id="logoStatus" role="status">Belum ada perubahan logo.</p></details>
+</section></main><script type="module" src="/editor.js"></script></body></html>

@@ -6,6 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "admin:characters": "node scripts/character-admin/server.mjs",
+    "test:character-admin": "node --test scripts/character-admin/test.mjs",
     "dev": "vinext dev",
     "build": "vinext build",
     "build:pages": "vite build --config vite.github.config.ts",

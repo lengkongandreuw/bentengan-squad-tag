@@ -37,4 +37,5 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/.preview-admin/
 *.tsbuildinfo

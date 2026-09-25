@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
+import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
+import { landingLogoAsset } from '../lib/branding';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -2793,6 +2795,11 @@ export function BentenganPrototype() {
       }
       images.push(...[...new Set(urls)].map(getPresentationImage));
       const tasks = [...new Set(images)].map(image => () => imageReady(image));
+      if (!gameLoading && selectedFaction) {
+        for (const url of new Set(FIXED_ROSTERS[selectedFaction].flatMap(selectionPreviewUrls))) {
+          tasks.push(() => loadSelectionPreview(url));
+        }
+      }
       if (!gameLoading && selectedFaction) tasks.push(() => videoReady(characterSelectionVideo(selectedFaction)));
       tasks.push(() => document.fonts.ready.then(() => undefined));
       let done = 0;
@@ -6057,7 +6064,7 @@ export function BentenganPrototype() {
             <div className="splash-center">
               <img
                 className="splash-logo"
-                src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
+                src={landingLogoAsset()}
                 alt="Benteng Squad Tag"
                 id="game-title"
               />
