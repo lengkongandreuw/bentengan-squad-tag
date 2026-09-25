@@ -5,13 +5,23 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `IDLE`
-- Diperbarui: 2026-09-25
+- State: `ACTIVE`
+- Diperbarui: 2026-09-26
 - Branch: `main`
 - Commit implementasi terakhir: `8c6502d`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+2026-09-26: Kontrol mouse klik kiri HANYA tujuan, kanan boost (revisi terbaru).
+Parkour tetap Shift/tombol mobile. Route A* terhadap collider/water; keyboard
+mengambil alih; batalkan target saat pause/penjara/ultimate/menu. Tidak mengubah aset.
+Kontrol sentuh hanya pada viewport <=1024px; layout lengkap landscape/portrait.
+Tes navigasi node, TypeScript, build:pages lulus. Browser: kontrol tersembunyi
+1366x768; tampil dan seluruh tombol di layar pada 844x390 dan 390x844; console
+error kosong. Pengujian perangkat fisik belum dilakukan. Next: push dan Pages.
+User memiliki perubahan config/selection-previews.json dan aset brand yang belum
+dicommit; jangan ikut stage perubahan tersebut.
 
 2026-09-24: Panel lokal preview karakter. Scope: upload GIF/gambar statis,
 posisi/skala active preview, preview langsung, simpan dan publish GitHub.

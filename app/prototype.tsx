@@ -32,6 +32,7 @@ import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
+import { clickRoute, pointerWorld } from '../lib/click-navigation';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -3203,6 +3204,11 @@ export function BentenganPrototype() {
       ultimateBuffUntil = 0,
       ultimateShieldUntil = 0,
       ultimateImpactApplied = false;
+    let mouseRoute: Array<{ x: number; y: number }> = [];
+    let mouseBoost = false;
+    let mouseStuckTime = 0;
+    let view = { x: 0, y: 0, width: 1, height: 1, scale: 1 };
+    const clearMouse = () => { mouseRoute = []; mouseBoost = false; mouseStuckTime = 0; };
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
     const worldWidth = field.width ?? W;
@@ -3585,6 +3591,7 @@ export function BentenganPrototype() {
     };
     seedRefills();
     const resetRound = () => {
+      clearMouse();
       players = makePlayers();
       roundStats = makeStatsStore();
       matchEvents = [];
@@ -4349,7 +4356,8 @@ export function BentenganPrototype() {
         keys.current.delete('p');
         paused = !paused;
       }
-      if (paused || mode !== 'playing') return;
+      if (paused || mode !== 'playing') { clearMouse(); return; }
+      if (phase !== 'PLAYING') clearMouse();
       if (phase === 'COUNTDOWN') {
         announcement = `${Math.max(1, Math.ceil((phaseUntil - now) / 1000))}`;
         if (now >= phaseUntil) {
@@ -4515,6 +4523,7 @@ export function BentenganPrototype() {
         now,
       );
       if (ultimateCasting) {
+        clearMouse();
         players.forEach((player) => {
           player.vx = 0;
           player.vy = 0;
@@ -4529,15 +4538,27 @@ export function BentenganPrototype() {
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
       if (keys.current.has('s') || keys.current.has('arrowdown')) dy++;
-      const boostKey = keys.current.has(' ');
+      if (!['ACTIVE', 'IN_BASE'].includes(me.state)) clearMouse();
+      if (dx || dy) { mouseRoute = []; mouseStuckTime = 0; }
+      let mouseDistance = Infinity;
+      if (mouseRoute.length) {
+        while (mouseRoute.length && distance(me, mouseRoute[0]) <= 5) mouseRoute.shift();
+        const waypoint = mouseRoute[0];
+        if (waypoint) {
+          dx = waypoint.x - me.x; dy = waypoint.y - me.y;
+          mouseDistance = Math.hypot(dx, dy);
+        }
+      }
+      const boostKey = keys.current.has(' ') || mouseBoost;
       if (
         boostKey &&
-        !boostLatch &&
+        (!boostLatch || mouseBoost) &&
         me.boost > 0 &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       )
         boostBurstUntil = now + GAME_RULES.boostDurationMs;
       boostLatch = boostKey;
+      mouseBoost = false;
       const boosting =
         now < boostBurstUntil &&
         me.boost > 0 &&
@@ -4592,6 +4613,7 @@ export function BentenganPrototype() {
         }
       }
       parkourLatch = parkourKey;
+      const mouseBefore = { x: me.x, y: me.y };
       if (me.state === 'RETURNING') {
         const vector = navigateAroundHazards(
           me,
@@ -4613,16 +4635,20 @@ export function BentenganPrototype() {
           me,
           dx,
           dy,
-          selected.speed *
+          Math.min(mouseDistance / Math.max(dt, .001), selected.speed *
             playerComboMultiplier *
             rajaUltimateMultiplier(me) *
-            (boosting ? selected.boostMultiplier : 1),
+            (boosting ? selected.boostMultiplier : 1)),
           dt,
           now,
         );
       else {
         me.vx = 0;
         me.vy = 0;
+      }
+      if (mouseRoute.length) {
+        mouseStuckTime = distance(me, mouseBefore) < .1 ? mouseStuckTime + dt : 0;
+        if (mouseStuckTime > .6) clearMouse();
       }
       players.slice(1).forEach((p) => {
         if (p.state === 'PRISONER') {
@@ -5585,10 +5611,9 @@ export function BentenganPrototype() {
       }
     };
     const draw = (now: number) => {
-      const rect = canvas.getBoundingClientRect(),
-        dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
-        cw = rect.width,
-        ch = rect.height;
+      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
+        cw = canvas.clientWidth,
+        ch = canvas.clientHeight;
       if (
         canvas.width !== Math.round(cw * dpr) ||
         canvas.height !== Math.round(ch * dpr)
@@ -5615,6 +5640,7 @@ export function BentenganPrototype() {
       const camY = followsPlayer
         ? clamp(me.y, halfH, worldHeight - halfH)
         : worldHeight / 2;
+      view = { x: camX, y: camY, width: cw, height: ch, scale };
       if (scene3d) {
         try {
           for (const p of players) scene3d.updateActor(p.id, p.x, p.y, target => {
@@ -5638,6 +5664,11 @@ export function BentenganPrototype() {
       }
       drawBase('blue');
       drawBase('red');
+      if (mouseRoute.length) {
+        const target = mouseRoute[mouseRoute.length - 1];
+        ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
+        ctx.beginPath(); ctx.arc(target.x, target.y, 9, 0, Math.PI * 2); ctx.stroke();
+      }
       if (mode === 'playing') {
         drawFieldAnimations(now);
         refills.forEach((item) => drawRefill(item, now));
@@ -5840,8 +5871,40 @@ export function BentenganPrototype() {
       }
       raf = requestAnimationFrame(loop);
     };
+    const pointerDown = (event: PointerEvent) => {
+      const me = players[0], now = performance.now();
+      if (event.pointerType !== 'mouse' || ![0, 2].includes(event.button) || mode !== 'playing' ||
+        phase !== 'PLAYING' || paused || !['ACTIVE', 'IN_BASE'].includes(me.state) ||
+        players.some(player => player.action === 'ultimate' && now < player.actionUntil)) return;
+      event.preventDefault();
+      const shell = canvas.closest('.playing-shell');
+      const matrix = shell ? new DOMMatrix(getComputedStyle(shell).transform) : new DOMMatrix();
+      const target = pointerWorld({ x: event.clientX, y: event.clientY }, canvas.getBoundingClientRect(), view, Math.abs(matrix.b - 1) < .01);
+      if (event.button === 2) {
+        mouseBoost = true;
+        return;
+      }
+      const passable = (x: number, y: number) => x >= 34 && x <= worldWidth - 34 && y >= 58 && y <= worldHeight - 32 && !blocked(x, y, me, now) && !isWaterAt(x, y);
+      const route = clickRoute(me, target, worldWidth, worldHeight, passable);
+      clearMouse();
+      if (!route.length) { log('Tujuan tidak dapat dijangkau. Pilih tanah kosong atau jalur jembatan.'); return; }
+      mouseRoute = route;
+    };
+    const contextMenu = (event: MouseEvent) => { if (mode === 'playing') event.preventDefault(); };
+    const stopForMenu = (event: PointerEvent) => { if (event.target instanceof Element && event.target.closest('button,input,select,[role="button"]')) clearMouse(); };
+    const stopWhenHidden = () => { if (document.hidden) clearMouse(); };
+    canvas.addEventListener('pointerdown', pointerDown);
+    canvas.addEventListener('contextmenu', contextMenu);
+    window.addEventListener('blur', clearMouse);
+    document.addEventListener('visibilitychange', stopWhenHidden);
+    document.addEventListener('pointerdown', stopForMenu);
     raf = requestAnimationFrame(loop);
     return () => {
+      canvas.removeEventListener('pointerdown', pointerDown);
+      canvas.removeEventListener('contextmenu', contextMenu);
+      window.removeEventListener('blur', clearMouse);
+      document.removeEventListener('visibilitychange', stopWhenHidden);
+      document.removeEventListener('pointerdown', stopForMenu);
       cancelAnimationFrame(raf);
       scene3d?.dispose();
       window.removeEventListener('pointerdown', gameplayAudio.unlock);
@@ -6033,11 +6096,11 @@ export function BentenganPrototype() {
     return {
       onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => {
         event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
         touchKey(key, true);
       },
       onPointerUp: release,
       onPointerCancel: release,
-      onPointerLeave: release,
       onLostPointerCapture: release,
     };
   };
@@ -6490,7 +6553,7 @@ export function BentenganPrototype() {
                 </li>
               </ol>
               <p>
-                Desktop: WASD gerak · Space sprint · Shift parkour · Caps Lock
+                Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock
                 Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.
               </p>
             </div>

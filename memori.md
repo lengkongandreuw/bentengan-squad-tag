@@ -4,6 +4,13 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Kontrol terbaru (2026-09-26): klik kiri menentukan tujuan tanpa boost; klik kanan
+memicu boost tanpa mengubah tujuan; WASD mengambil alih navigasi, Shift parkour.
+Navigasi klik memakai A* menghindari collider dan sungai. Tombol mobile hanya
+tampil pada viewport <=1024px, dengan D-pad kiri dan aksi kanan, pointer capture
+untuk menahan tombol. Konversi koordinat mendukung shell portrait yang diputar.
+Tes regresi: `node scripts/test-click-navigation.mjs`.
+
 Urutan sumber kebenaran:
 
 1. Instruksi eksplisit pada task yang sedang aktif.
