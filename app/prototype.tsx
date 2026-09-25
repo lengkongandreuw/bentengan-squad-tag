@@ -2591,13 +2591,13 @@ const uiAsset = (file: string) => {
   return publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
 };
 const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = {
-  tag: publicAsset('arena-ui/match-events/notification-victory.png?v=1'),
-  rescue: publicAsset('arena-ui/match-events/notification-featured.png?v=1'),
-  'rescue-request': publicAsset('arena-ui/match-events/notification-victory.png?v=1'),
+  tag: publicAsset('arena-ui/match-events/notification-tag.png.PNG?v=3'),
+  rescue: publicAsset('arena-ui/match-events/notification-rescue.png.PNG?v=3'),
+  'rescue-request': publicAsset('arena-ui/match-events/notification-rescue.png.PNG?v=3'),
 };
 const ROUND_RESULT_ASSET: Record<Team, string> = {
-  blue: publicAsset('arena-ui/match-events/merah-menang.png?v=1'),
-  red: publicAsset('arena-ui/match-events/hijau-menang.png?v=1'),
+  blue: publicAsset('arena-ui/match-events/merah-menang.png?v=3'),
+  red: publicAsset('arena-ui/match-events/hijau-menang.png?v=3'),
 };
 const loadingUiFrame = (faction: Faction, progress: number) => {
   const milestone = Math.min(100, Math.max(20, Math.ceil(progress / 20) * 20));
@@ -6587,14 +6587,18 @@ export function BentenganPrototype() {
           )}
           {snapshot.roundResult.visible && snapshot.roundResult.winner && (
             <section
-              className="round-result-announcement"
+              className={`round-result-announcement ${FACTION_FOR_TEAM[snapshot.roundResult.winner]}`}
               aria-live="assertive"
               aria-label={`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'match' : 'ronde'}`}
             >
               <img
                 src={ROUND_RESULT_ASSET[snapshot.roundResult.winner]}
-                alt={`${teamName(snapshot.roundResult.winner)} menang`}
+                alt=""
               />
+              <p>
+                <strong>{teamName(snapshot.roundResult.winner).toUpperCase()}</strong>{' '}
+                {snapshot.roundResult.final ? 'MENANG MATCH!' : 'MENANG RONDE!'}
+              </p>
             </section>
           )}
           {showStatsBoard && (
