@@ -24,6 +24,7 @@ import {
   Users,
   Volume2,
   VolumeX,
+  Wrench,
   X,
   Zap,
 } from 'lucide-react';
@@ -6403,6 +6404,11 @@ export function BentenganPrototype() {
             trigger={<img src={uiAsset('controls/settings-button.png')} alt="" />}
           />
         </div>
+        {menuStep === 'character' && (
+          <button className="workshop-link workshop-float" onClick={() => setView('workshop')}>
+            <Wrench size={14} /> Workshop
+          </button>
+        )}
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && (
           <div
