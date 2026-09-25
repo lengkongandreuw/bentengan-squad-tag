@@ -24,7 +24,6 @@ import {
   Users,
   Volume2,
   VolumeX,
-  Wrench,
   X,
   Zap,
 } from 'lucide-react';
@@ -6385,15 +6384,13 @@ export function BentenganPrototype() {
         )}
         <div className={`pregame-actions step-${menuStep}`}>
           {menuStep === 'splash' && <button className="music-toggle" onKeyDown={event => event.stopPropagation()} onClick={() => setCreditsOpen(true)}>ABOUT DEVELOPER</button>}
-          <AudioSettings onOpen={() => keys.current.clear()} />
           <button
-            className={`music-toggle ${musicMuted ? 'muted' : ''}`}
+            className={`sound-trigger ${musicMuted ? 'muted' : ''}`}
             onClick={toggleBackgroundMusic}
             aria-pressed={musicMuted}
             aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
           >
-            {musicMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            <span>{musicMuted ? 'MUSIK MATI' : 'MUSIK AKTIF'}</span>
+            <img src={uiAsset(`controls/sound-trigger-${musicMuted ? 'off' : 'on'}.png`)} alt="" />
           </button>
           <button
             className="rules-button graffiti-primary"
@@ -6401,9 +6398,10 @@ export function BentenganPrototype() {
           >
             <span>GAME RULES</span>
           </button>
-          <button className="workshop-link" onClick={() => setView('workshop')}>
-            <Wrench size={14} /> Workshop
-          </button>
+          <AudioSettings
+            onOpen={() => keys.current.clear()}
+            trigger={<img src={uiAsset('controls/settings-button.png')} alt="" />}
+          />
         </div>
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && (

@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { audioLevels, saveAudioLevels, DEFAULT_AUDIO_LEVELS, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio, type GameplaySound } from '../lib/gameplay-audio';
 import { uiAudioAsset } from '../lib/characters';
 
-export function AudioSettings({ onOpen }: { onOpen?: () => void }) {
+export function AudioSettings({ onOpen, trigger }: { onOpen?: () => void; trigger?: ReactNode }) {
   const [levels, setLevels] = useState(DEFAULT_AUDIO_LEVELS);
   const [sound, setSound] = useState<GameplaySound>('step');
   const [previewing, setPreviewing] = useState(false);
@@ -36,11 +36,11 @@ export function AudioSettings({ onOpen }: { onOpen?: () => void }) {
     void sample.play().catch(() => { if (music.current === sample) { stop(); setMessage('Audio belum dapat diputar. Coba lagi.'); } });
     timer.current = setTimeout(stop, 5000);
   };
-  return <details className="audio-settings" onToggle={event => {
+  return <details className={`audio-settings${trigger ? ' image-trigger' : ''}`} onToggle={event => {
     onOpen?.();
     if (!event.currentTarget.open) { stop(); sfx.current?.close(); sfx.current = null; }
   }} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()}>
-    <summary aria-label="Pengaturan volume audio">♫ AUDIO</summary>
+    <summary aria-label="Pengaturan volume audio">{trigger ?? '♫ AUDIO'}</summary>
     <div className="audio-settings-panel">
       <b>VOLUME AUDIO</b>
       <label>Musik latar <output>{Math.round(levels.music * 100)}%</output>
