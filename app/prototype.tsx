@@ -2599,6 +2599,17 @@ const ROUND_RESULT_ASSET: Record<Team, string> = {
   blue: publicAsset('arena-ui/match-events/merah-menang.png?v=1'),
   red: publicAsset('arena-ui/match-events/hijau-menang.png?v=1'),
 };
+const loadingUiFrame = (faction: Faction, progress: number) => {
+  const milestone = Math.min(100, Math.max(20, Math.ceil(progress / 20) * 20));
+  const suffix = faction === 'red' && progress < 20 ? '00' : String(milestone);
+  const team = faction === 'red' ? 'MERAH' : 'HIJAU';
+  return publicAsset(`loading-ui/TEAM ${team} LOADING ${suffix}_.png?v=1`);
+};
+const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
+  [0, 20, 40, 60, 80, 100]
+    .filter((progress) => faction === 'red' || progress > 0)
+    .map((progress) => loadingUiFrame(faction, progress)),
+);
 
 const CharacterPreview = ({
   id,
@@ -2737,6 +2748,7 @@ export function BentenganPrototype() {
     setLandingArena(FIELD_CONFIGS[Math.floor(Math.random() * FIELD_CONFIGS.length)].id);
     // Warm the small loading posters while the user navigates the menus.
     for (const team of ['red', 'green']) getPresentationImage(arenaImage(`${team}-loading`));
+    LOADING_UI_FRAMES.forEach(getPresentationImage);
   }, []);
   const nextLandingArena = () => setLandingArena(current => {
     const choices = FIELD_CONFIGS.filter(field => field.id !== current);
@@ -2761,7 +2773,7 @@ export function BentenganPrototype() {
     const prepare = async () => {
       const images: HTMLImageElement[] = [];
       const urls = [uiAsset('controls/primary.webp'), uiAsset('controls/primary-hover.webp'),
-        uiAsset('controls/back.webp')];
+        uiAsset('controls/back.webp'), ...LOADING_UI_FRAMES];
       for (const field of FIELD_CONFIGS) urls.push(arenaImage(field.id));
       if (gameLoading) {
         for (const id of Object.keys(CHARACTER_BY_ID) as CharacterId[]) {
@@ -6012,9 +6024,21 @@ export function BentenganPrototype() {
     setLeaderboardOpen(false);
   };
   if (assetsLoading) return (
-    <main className="pregame-shell asset-loading-screen">
+    <main
+      className={`pregame-shell asset-loading-screen ${selectionLoading ? `loading-ui-${selectedFaction ?? 'red'}` : ''}`}
+      aria-busy={!loadError}
+      aria-label={`Memuat aset ${loadProgress}%`}
+    >
       <ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />
-      <section className="asset-loading-card" aria-busy={!loadError} aria-live="polite">
+      {selectionLoading && (
+        <img
+          className="team-loading-frame"
+          src={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
+          alt=""
+          aria-hidden="true"
+        />
+      )}
+      <section className={`asset-loading-card ${selectionLoading ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`} aria-busy={!loadError} aria-live="polite">
         <h1>{gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER'}</h1>
         <p>{loadError || 'Memuat aset… Tunggu sebentar.'}</p>
         <progress max={100} value={loadProgress} aria-label="Progres pemuatan aset" />
