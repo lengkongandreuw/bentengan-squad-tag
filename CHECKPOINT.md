@@ -5,10 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
+- State: `IDLE`
 - Diperbarui: 2026-09-25
 - Branch: `main`
-- Commit implementasi terakhir: `ea9b24e`
+- Commit implementasi terakhir: `8c6502d`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
@@ -26,7 +26,9 @@ Validasi: 3 test node lulus (cache/retry, validator, server upload/logo/security
 TypeScript dan build:pages lulus. Browser produksi: loading -> GIF Ciici; pindah
 Kaka langsung src GIF complete, Ciici kembali statis. Tidak ada console error.
 Panel logo terlihat dan server terbaru berjalan pada 127.0.0.1:4318.
-Next action: commit/push ke GitHub dan verifikasi deployment Pages.
+Publikasi selesai: commit 8c6502d, Pages run 36079767892 SUCCESS (2026-09-25).
+Favicon identik SHA256 dengan upload pengguna. Folder admin tidak ada dalam
+dist-pages. Next action: tunggu feedback; buka panel lewat npm run admin:characters.
 
 2026-09-21: Kampung Merdeka 3D eksperimental sebagai map kelima, bukan pengganti.
 MODE implementasi + publish. Terrain asli, seluruh scenery low-poly 3D;
