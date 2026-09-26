@@ -2613,8 +2613,9 @@ const loadingUiFrame = (faction: Faction, progress: number) => {
   const team = faction === 'red' ? 'MERAH' : 'HIJAU';
 
   return publicAsset(`loading-ui/TEAM ${team} LOADING ${suffix}_.png?v=1`);
-  // === AKHIR PERUBAHAN ===
-  // === TEST CHARACTER SELECTION VOICE ===
+};
+
+// === TEST CHARACTER SELECTION VOICE ===
 const CHARACTER_VOICE_FILES: Partial<Record<CharacterId, string>> = {
   bebe: 'characters/bebe.mp3',
   kodo: 'characters/kodo.mp3',
@@ -2625,7 +2626,12 @@ const characterVoiceAsset = (id: CharacterId) => {
   return file ? uiAudioAsset(file) : null;
 };
 // === END TEST CHARACTER SELECTION VOICE ===
-};
+
+const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
+  [0, 20, 40, 60, 80, 100]
+    .filter((progress) => faction === 'red' || progress > 0)
+    .map((progress) => loadingUiFrame(faction, progress)),
+);
 const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
   [0, 20, 40, 60, 80, 100]
     .filter((progress) => faction === 'red' || progress > 0)
