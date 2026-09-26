@@ -2614,6 +2614,17 @@ const loadingUiFrame = (faction: Faction, progress: number) => {
 
   return publicAsset(`loading-ui/TEAM ${team} LOADING ${suffix}_.png?v=1`);
   // === AKHIR PERUBAHAN ===
+  // === TEST CHARACTER SELECTION VOICE ===
+const CHARACTER_VOICE_FILES: Partial<Record<CharacterId, string>> = {
+  bebe: 'characters/bebe.mp3',
+  kodo: 'characters/kodo.mp3',
+};
+
+const characterVoiceAsset = (id: CharacterId) => {
+  const file = CHARACTER_VOICE_FILES[id];
+  return file ? uiAudioAsset(file) : null;
+};
+// === END TEST CHARACTER SELECTION VOICE ===
 };
 const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
   [0, 20, 40, 60, 80, 100]
