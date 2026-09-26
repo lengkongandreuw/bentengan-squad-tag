@@ -2632,11 +2632,6 @@ const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
     .filter((progress) => faction === 'red' || progress > 0)
     .map((progress) => loadingUiFrame(faction, progress)),
 );
-const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
-  [0, 20, 40, 60, 80, 100]
-    .filter((progress) => faction === 'red' || progress > 0)
-    .map((progress) => loadingUiFrame(faction, progress)),
-);
 
 const CharacterPreview = ({
   id,
