@@ -2620,6 +2620,17 @@ const CHARACTER_VOICE_FILES: Partial<Record<CharacterId, string>> = {
   bebe: 'characters/bebe.mp3',
   kodo: 'characters/kodo.mp3',
   maria: 'characters/maria.mp3',
+  tui: 'characters/lui.mp3',
+  lui: 'characters/tui.mp3',
+  raja: 'characters/raja.mp3',
+  kaka: 'characters/kaka.mp3',
+  jago: 'characters/jago.mp3',
+  lala: 'characters/lala.mp3',
+  buto: 'characters/buto.mp3',
+  boke: 'characters/boke.mp3',
+  kumis: 'characters/kumis.mp3',
+  robot: 'characters/robot.mp3',
+  ciici: 'characters/ciici.mp3',
 };
 
 const characterVoiceAsset = (id: CharacterId) => {
