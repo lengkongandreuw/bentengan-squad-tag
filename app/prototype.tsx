@@ -2821,7 +2821,14 @@ export function BentenganPrototype() {
         while (!cancelled && next < tasks.length) {
           const task = tasks[next++];
           await task();
-          if (!cancelled) setLoadProgress(Math.round(++done / tasks.length * 100));
+
+          // === PERUBAHAN: 100% hanya boleh berarti seluruh loading benar-benar selesai ===
+          // Selama masih menyelesaikan task satu per satu, progres ditahan maksimal 99%.
+          // Dengan begitu layar tidak pernah menampilkan 100% sementara proses lanjutan masih berjalan.
+          const completed = ++done;
+          const progress = Math.round((completed / tasks.length) * 100);
+          if (!cancelled) setLoadProgress(Math.min(99, progress));
+          // === AKHIR PERUBAHAN ===
         }
       }));
       if (cancelled) return;
@@ -2838,11 +2845,21 @@ export function BentenganPrototype() {
         if (cancelled) return;
       }
       keys.current.clear();
+
+      // === PERUBAHAN: 100% adalah readiness gate final ===
+      // Barulah setelah seluruh image/GIF/video/font dan warmup tambahan selesai,
+      // progres boleh menjadi 100%. Tidak ada delay buatan setelah titik ini:
+      // langsung lanjut ke gameplay atau Character Selection.
+      setLoadProgress(100);
+      // === AKHIR PERUBAHAN ===
+
       if (gameLoading) {
         setGameLoading(false);
         setMode('playing');
         setRun(v => v + 1);
-      } else setReadyFaction(selectedFaction);
+      } else {
+        setReadyFaction(selectedFaction);
+      }
     };
     void prepare().catch(error => {
       if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Aset gagal dimuat.');
