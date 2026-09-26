@@ -2925,6 +2925,33 @@ export function BentenganPrototype() {
     }
   };
 
+  // === CHARACTER SELECTION VOICE: direct user-triggered playback ===
+  const playCharacterVoice = (id: CharacterId) => {
+    const src = characterVoiceAsset(id);
+    if (!src) return;
+
+    if (characterVoiceRef.current) {
+      characterVoiceRef.current.pause();
+      characterVoiceRef.current.currentTime = 0;
+      characterVoiceRef.current = null;
+    }
+
+    const voice = new Audio(src);
+    voice.preload = 'auto';
+    voice.volume = 0.85 * audioLevels().sfx;
+    characterVoiceRef.current = voice;
+
+    void voice.play().catch((error) => {
+      console.warn(`[character voice] gagal memutar ${id}`, error);
+    });
+  };
+
+  const selectCharacterWithVoice = (id: CharacterId) => {
+    setSelectedId(id);
+    playCharacterVoice(id);
+  };
+  // === END CHARACTER SELECTION VOICE ===
+
   const toggleBackgroundMusic = () => {
     setMusicMuted((muted) => {
       const next = !muted;
@@ -2956,53 +2983,6 @@ export function BentenganPrototype() {
       document.removeEventListener('keydown', unlock);
     };
   }, []);
-
-  // === CHARACTER SELECTION VOICE PLAYBACK ===
-  useEffect(() => {
-    if (
-      !audioUnlocked ||
-      mode !== 'menu' ||
-      menuStep !== 'character' ||
-      !selectedFaction ||
-      readyFaction !== selectedFaction
-    ) {
-      return;
-    }
-
-    // Hentikan voice karakter sebelumnya agar tidak bertumpuk.
-    if (characterVoiceRef.current) {
-      characterVoiceRef.current.pause();
-      characterVoiceRef.current.currentTime = 0;
-      characterVoiceRef.current = null;
-    }
-
-    const src = characterVoiceAsset(selectedId);
-    if (!src) return;
-
-    const voice = new Audio(src);
-    voice.preload = 'auto';
-    voice.volume = 0.85 * audioLevels().sfx;
-    characterVoiceRef.current = voice;
-
-    void voice.play().catch(() => undefined);
-
-    return () => {
-      voice.pause();
-      voice.currentTime = 0;
-
-      if (characterVoiceRef.current === voice) {
-        characterVoiceRef.current = null;
-      }
-    };
-  }, [
-    selectedId,
-    audioUnlocked,
-    mode,
-    menuStep,
-    selectedFaction,
-    readyFaction,
-  ]);
-  // === END CHARACTER SELECTION VOICE PLAYBACK ===
 
   useEffect(() => {
     if (!audioUnlocked || musicMuted) return;
@@ -6060,7 +6040,8 @@ export function BentenganPrototype() {
     if (!selectedFaction) return;
     const roster = FIXED_ROSTERS[selectedFaction];
     const index = roster.indexOf(selectedId);
-    setSelectedId(roster[(index + direction + roster.length) % roster.length]);
+    const nextId = roster[(index + direction + roster.length) % roster.length];
+    selectCharacterWithVoice(nextId);
   };
   const goBack = () => {
     if (rulesOpen) return setRulesOpen(false);
@@ -6361,7 +6342,7 @@ export function BentenganPrototype() {
                           ),
                       } as React.CSSProperties
                     }
-                    onClick={() => setSelectedId(character.id)}
+                    onClick={() => selectCharacterWithVoice(character.id)}
                     aria-pressed={selectedId === character.id}
                   >
                     <SelectionPortrait
@@ -6970,7 +6951,7 @@ export function BentenganPrototype() {
                         className={
                           selectedId === character.id ? 'selected' : ''
                         }
-                        onClick={() => setSelectedId(character.id)}
+                        onClick={() => selectCharacterWithVoice(character.id)}
                         aria-pressed={selectedId === character.id}
                       >
                         <CharacterPreview
