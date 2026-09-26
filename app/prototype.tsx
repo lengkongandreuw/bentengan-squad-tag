@@ -2744,6 +2744,7 @@ const getFieldImage = (asset: string) => {
 export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
+  const characterVoiceRef = useRef<HTMLAudioElement | null>(null); // === CHARACTER SELECTION VOICE ===
   const cameraModeRef = useRef<CameraMode>('follow');
   const completedMatchesRef = useRef(0);
   const leaderboardOpenRef = useRef(false);
