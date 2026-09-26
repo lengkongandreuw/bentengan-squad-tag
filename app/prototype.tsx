@@ -2957,6 +2957,53 @@ export function BentenganPrototype() {
     };
   }, []);
 
+  // === CHARACTER SELECTION VOICE PLAYBACK ===
+  useEffect(() => {
+    if (
+      !audioUnlocked ||
+      mode !== 'menu' ||
+      menuStep !== 'character' ||
+      !selectedFaction ||
+      readyFaction !== selectedFaction
+    ) {
+      return;
+    }
+
+    // Hentikan voice karakter sebelumnya agar tidak bertumpuk.
+    if (characterVoiceRef.current) {
+      characterVoiceRef.current.pause();
+      characterVoiceRef.current.currentTime = 0;
+      characterVoiceRef.current = null;
+    }
+
+    const src = characterVoiceAsset(selectedId);
+    if (!src) return;
+
+    const voice = new Audio(src);
+    voice.preload = 'auto';
+    voice.volume = 0.85 * audioLevels().sfx;
+    characterVoiceRef.current = voice;
+
+    void voice.play().catch(() => undefined);
+
+    return () => {
+      voice.pause();
+      voice.currentTime = 0;
+
+      if (characterVoiceRef.current === voice) {
+        characterVoiceRef.current = null;
+      }
+    };
+  }, [
+    selectedId,
+    audioUnlocked,
+    mode,
+    menuStep,
+    selectedFaction,
+    readyFaction,
+  ]);
+  // === END CHARACTER SELECTION VOICE PLAYBACK ===
+
   useEffect(() => {
     if (!audioUnlocked || musicMuted) return;
     const music = new Audio(
