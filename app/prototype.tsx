@@ -2600,10 +2600,19 @@ const ROUND_RESULT_ASSET: Record<Team, string> = {
   red: publicAsset('arena-ui/match-events/hijau-menang.png?v=3'),
 };
 const loadingUiFrame = (faction: Faction, progress: number) => {
-  const milestone = Math.min(100, Math.max(20, Math.ceil(progress / 20) * 20));
+  // === PERUBAHAN: artwork 100% hanya tampil saat progress benar-benar 100% ===
+  // Sebelumnya Math.ceil() membuat progress 81-99% langsung memakai gambar 100%.
+  // Sekarang milestone dibulatkan ke bawah, sehingga 80-99% tetap memakai frame 80.
+  const milestone =
+    progress >= 100
+      ? 100
+      : Math.max(20, Math.floor(progress / 20) * 20);
+
   const suffix = faction === 'red' && progress < 20 ? '00' : String(milestone);
   const team = faction === 'red' ? 'MERAH' : 'HIJAU';
+
   return publicAsset(`loading-ui/TEAM ${team} LOADING ${suffix}_.png?v=1`);
+  // === AKHIR PERUBAHAN ===
 };
 const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
   [0, 20, 40, 60, 80, 100]
