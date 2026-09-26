@@ -2619,6 +2619,7 @@ const loadingUiFrame = (faction: Faction, progress: number) => {
 const CHARACTER_VOICE_FILES: Partial<Record<CharacterId, string>> = {
   bebe: 'characters/bebe.mp3',
   kodo: 'characters/kodo.mp3',
+  maria: 'characters/maria.mp3',
 };
 
 const characterVoiceAsset = (id: CharacterId) => {
@@ -2745,6 +2746,7 @@ export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
   const characterVoiceRef = useRef<HTMLAudioElement | null>(null); // === CHARACTER SELECTION VOICE ===
+  const characterVoiceIdRef = useRef<CharacterId | null>(null);
   const cameraModeRef = useRef<CameraMode>('follow');
   const completedMatchesRef = useRef(0);
   const leaderboardOpenRef = useRef(false);
@@ -2925,28 +2927,49 @@ export function BentenganPrototype() {
     }
   };
 
-  // === CHARACTER SELECTION VOICE: direct user-triggered playback ===
+  // === CHARACTER SELECTION VOICE: loop selama karakter masih disorot ===
+  const stopCharacterVoice = () => {
+    const voice = characterVoiceRef.current;
+    if (voice) {
+      voice.pause();
+      voice.loop = false;
+      voice.currentTime = 0;
+    }
+    characterVoiceRef.current = null;
+    characterVoiceIdRef.current = null;
+  };
+
   const playCharacterVoice = (id: CharacterId) => {
+    // Pointer/focus/click pada karakter yang sama tidak boleh me-restart loop.
+    if (
+      characterVoiceIdRef.current === id &&
+      characterVoiceRef.current &&
+      !characterVoiceRef.current.paused
+    ) {
+      return;
+    }
+
+    // Saat sorotan pindah, voice lama harus langsung berhenti.
+    stopCharacterVoice();
+
     const src = characterVoiceAsset(id);
     if (!src) return;
 
-    if (characterVoiceRef.current) {
-      characterVoiceRef.current.pause();
-      characterVoiceRef.current.currentTime = 0;
-      characterVoiceRef.current = null;
-    }
-
     const voice = new Audio(src);
     voice.preload = 'auto';
+    voice.loop = true;
     voice.volume = 0.85 * audioLevels().sfx;
     characterVoiceRef.current = voice;
+    characterVoiceIdRef.current = id;
 
     void voice.play().catch((error) => {
+      // Jika browser menolak autoplay pada hover pertama, click/focus berikutnya
+      // akan mencoba lagi karena elemen yang gagal tetap dianggap paused.
       console.warn(`[character voice] gagal memutar ${id}`, error);
     });
   };
 
-  const selectCharacterWithVoice = (id: CharacterId) => {
+  const highlightCharacterWithVoice = (id: CharacterId) => {
     setSelectedId(id);
     playCharacterVoice(id);
   };
@@ -2983,6 +3006,39 @@ export function BentenganPrototype() {
       document.removeEventListener('keydown', unlock);
     };
   }, []);
+
+  // Voice karakter mengikuti volume SFX dan berhenti ketika Character Selection ditinggalkan.
+  useEffect(() => {
+    const updateVoiceVolume = () => {
+      if (characterVoiceRef.current) {
+        characterVoiceRef.current.volume = 0.85 * audioLevels().sfx;
+      }
+    };
+    window.addEventListener(AUDIO_SETTINGS_EVENT, updateVoiceVolume);
+    return () => {
+      window.removeEventListener(AUDIO_SETTINGS_EVENT, updateVoiceVolume);
+      const voice = characterVoiceRef.current;
+      if (voice) {
+        voice.pause();
+        voice.loop = false;
+        voice.currentTime = 0;
+      }
+      characterVoiceRef.current = null;
+      characterVoiceIdRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (mode === 'menu' && menuStep === 'character' && view === 'game') return;
+    const voice = characterVoiceRef.current;
+    if (voice) {
+      voice.pause();
+      voice.loop = false;
+      voice.currentTime = 0;
+    }
+    characterVoiceRef.current = null;
+    characterVoiceIdRef.current = null;
+  }, [mode, menuStep, view]);
 
   useEffect(() => {
     if (!audioUnlocked || musicMuted) return;
@@ -5969,6 +6025,7 @@ export function BentenganPrototype() {
     snapshot.paused;
   const start = () => {
     if (!selectedFaction || assetsLoading) return;
+    stopCharacterVoice();
     setRendererError('');
     playAudioCue('press-play.mp3', 0.64);
     completedMatchesRef.current = 0;
@@ -5978,6 +6035,7 @@ export function BentenganPrototype() {
     setGameLoading(true);
   };
   const quit = () => {
+    stopCharacterVoice();
     keys.current.clear();
     setLeaderboardOpen(false);
     postRoundActionRef.current = null;
@@ -6020,6 +6078,7 @@ export function BentenganPrototype() {
     setSnapshot(initialSnapshot);
     setMode('menu');
     setMenuStep(selectedFaction ? 'character' : 'team');
+    if (selectedFaction) playCharacterVoice(selectedId);
     setRulesOpen(false);
     setMissionOpen(false);
     setRun((v) => v + 1);
@@ -6041,12 +6100,20 @@ export function BentenganPrototype() {
     const roster = FIXED_ROSTERS[selectedFaction];
     const index = roster.indexOf(selectedId);
     const nextId = roster[(index + direction + roster.length) % roster.length];
-    selectCharacterWithVoice(nextId);
+    highlightCharacterWithVoice(nextId);
   };
   const goBack = () => {
     if (rulesOpen) return setRulesOpen(false);
-    if (menuStep === 'field') return setMenuStep('character');
-    if (menuStep === 'character') return setMenuStep('team');
+    if (menuStep === 'field') {
+      setMenuStep('character');
+      playCharacterVoice(selectedId);
+      return;
+    }
+    if (menuStep === 'character') {
+      stopCharacterVoice();
+      setMenuStep('team');
+      return;
+    }
     if (menuStep === 'team') return setMenuStep('splash');
   };
 
@@ -6078,8 +6145,10 @@ export function BentenganPrototype() {
         return;
       }
       if (menuStep === 'team' && key === 'enter' && hoveredFaction) {
+        const firstId = FIXED_ROSTERS[hoveredFaction][0];
         chooseFaction(hoveredFaction);
         setMenuStep('character');
+        playCharacterVoice(firstId);
         return;
       }
       if (
@@ -6091,6 +6160,7 @@ export function BentenganPrototype() {
         return;
       }
       if (menuStep === 'character' && key === 'enter') {
+        stopCharacterVoice();
         setMenuStep('field');
         return;
       }
@@ -6253,8 +6323,10 @@ export function BentenganPrototype() {
                 onPointerLeave={() => setHoveredFaction(null)}
                 onFocus={() => setHoveredFaction(faction)}
                 onClick={() => {
+                  const firstId = FIXED_ROSTERS[faction][0];
                   chooseFaction(faction);
                   setMenuStep('character');
+                  playCharacterVoice(firstId);
                 }}
                 aria-label={`Pilih ${factionName(faction)}`}
               >
@@ -6305,7 +6377,9 @@ export function BentenganPrototype() {
                 className="roster-team-swap"
                 onClick={() => {
                   const next = selectedFaction === 'red' ? 'green' : 'red';
+                  const nextId = FIXED_ROSTERS[next][0];
                   chooseFaction(next);
+                  playCharacterVoice(nextId);
                 }}
                 aria-label="Ganti tim"
               >
@@ -6342,7 +6416,13 @@ export function BentenganPrototype() {
                           ),
                       } as React.CSSProperties
                     }
-                    onClick={() => selectCharacterWithVoice(character.id)}
+                    onPointerEnter={(event) => {
+                      if (event.pointerType === 'mouse') {
+                        highlightCharacterWithVoice(character.id);
+                      }
+                    }}
+                    onFocus={() => highlightCharacterWithVoice(character.id)}
+                    onClick={() => highlightCharacterWithVoice(character.id)}
                     aria-pressed={selectedId === character.id}
                   >
                     <SelectionPortrait
@@ -6419,7 +6499,10 @@ export function BentenganPrototype() {
               </dl>
               <button
                 className="graffiti-primary"
-                onClick={() => setMenuStep('field')}
+                onClick={() => {
+                  stopCharacterVoice();
+                  setMenuStep('field');
+                }}
               >
                 <span>PILIH {selected.name}</span>
               </button>
@@ -6535,7 +6618,13 @@ export function BentenganPrototype() {
           />
         </div>
         {menuStep === 'character' && (
-          <button className="workshop-link workshop-float" onClick={() => setView('workshop')}>
+          <button
+            className="workshop-link workshop-float"
+            onClick={() => {
+              stopCharacterVoice();
+              setView('workshop');
+            }}
+          >
             <Wrench size={14} /> Workshop
           </button>
         )}
@@ -6951,7 +7040,13 @@ export function BentenganPrototype() {
                         className={
                           selectedId === character.id ? 'selected' : ''
                         }
-                        onClick={() => selectCharacterWithVoice(character.id)}
+                        onPointerEnter={(event) => {
+                          if (event.pointerType === 'mouse') {
+                            highlightCharacterWithVoice(character.id);
+                          }
+                        }}
+                        onFocus={() => highlightCharacterWithVoice(character.id)}
+                        onClick={() => highlightCharacterWithVoice(character.id)}
                         aria-pressed={selectedId === character.id}
                       >
                         <CharacterPreview
