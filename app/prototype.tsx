@@ -6427,11 +6427,11 @@ export function BentenganPrototype() {
                           ),
                       } as React.CSSProperties
                     }
-                    onPointerEnter={(event) => {
+                    /*onPointerEnter={(event) => {
                       if (event.pointerType === 'mouse') {
                         highlightCharacterWithVoice(character.id);
                       }
-                    }}
+                    }}*/
                     onFocus={() => highlightCharacterWithVoice(character.id)}
                     onClick={() => highlightCharacterWithVoice(character.id)}
                     aria-pressed={selectedId === character.id}
