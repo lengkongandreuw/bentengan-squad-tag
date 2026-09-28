@@ -341,6 +341,171 @@ button { font:inherit; }
 }
 
 /* === MERGE RESOLUTION: pertahankan loading + match event dari github/main === */
+.framed-character-panel {
+  isolation: isolate;
+  width: min(55vw, 900px);
+  max-width: none;
+  aspect-ratio: 1914 / 822;
+}
+
+.character-panel-frame {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* These insets are mapped from the 1914 x 822 panel artwork's usable interiors. */
+.framed-character-panel .character-panel-identity {
+  position: absolute;
+  z-index: 1;
+  top: 15.2%;
+  left: 17.8%;
+  display: grid;
+  width: 21.4%;
+  height: 8%;
+  margin: 0;
+  place-items: center;
+  text-align: center;
+}
+
+.framed-character-panel .character-panel-role,
+.framed-character-panel .character-panel-summary {
+  display: none;
+}
+
+.framed-character-panel .character-panel-name {
+  margin: 0;
+  color: #151515;
+  font: 900 clamp(28px, 2.25vw, 40px) / 1 var(--font-heading);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transform: scaleX(1.08);
+}
+
+.framed-character-panel .character-panel-skill {
+  position: absolute;
+  z-index: 1;
+  top: 37.6%;
+  left: 23%;
+  width: 57.5%;
+  margin: 0;
+  color: #171717;
+  text-align: center;
+}
+
+.framed-character-panel .character-panel-skill small {
+  display: block;
+  font-size: clamp(9px, 0.68vw, 12px);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.framed-character-panel .character-panel-skill b {
+  display: block;
+  margin-top: 3px;
+  font: 900 clamp(24px, 1.9vw, 32px) / 1 var(--font-heading);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.framed-character-panel .character-panel-skill p {
+  margin: 1px 0 0;
+  font-size: clamp(10px, 0.78vw, 14px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* The stat list spans the three artwork rows. Each row owns its label and bar coordinates. */
+.framed-character-panel .character-panel-stats {
+  position: absolute;
+  z-index: 1;
+  top: 65.7%;
+  left: 7.63%;
+  display: grid;
+  width: 80.67%;
+  height: 28.59%;
+  margin: 0;
+  grid-template-rows: repeat(3, 27.25%);
+  align-content: space-between;
+}
+
+.framed-character-panel .character-panel-stat {
+  position: relative;
+  min-height: 0;
+}
+
+.framed-character-panel .character-panel-stat-label {
+  position: absolute;
+  top: 23.4%;
+  left: 0;
+  display: flex;
+  width: 16.84%;
+  height: 46.9%;
+  margin: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+  color: #171717;
+  font-size: clamp(10px, 0.88vw, 15px);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.framed-character-panel .character-panel-stat-label b {
+  display: none;
+}
+
+.framed-character-panel .character-panel-stat-track {
+  position: absolute;
+  top: 6.25%;
+  left: 19.56%;
+  width: 71.83%;
+  height: 96.88%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  transform: none;
+  mask-image: url('/ui-v2/panels/stat-bar-mask.png');
+  mask-mode: alpha;
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-image: url('/ui-v2/panels/stat-bar-mask.png');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+}
+
+.framed-character-panel .character-panel-stat-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--team-accent), #fff);
+}
+
+.framed-character-panel .character-panel-select {
+  position: absolute;
+  z-index: 1;
+  right: 2%;
+  bottom: -120px;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .framed-character-panel {
+    top: 30%;
+    right: 4%;
+    bottom: auto;
+    left: auto;
+    display: block;
+    width: min(92vw, 700px);
+    max-width: none;
+  }
+}
 .asset-loading-screen .team-loading-frame{position:absolute;z-index:1;bottom:-2%;left:1%;width:min(660px,48vw);height:auto;pointer-events:none}.asset-loading-screen .asset-loading-card.team-loading-card:not(.load-error){display:none}.asset-loading-screen .asset-loading-card.load-error{z-index:2}@media(max-width:720px){.asset-loading-screen .team-loading-frame{bottom:0;left:2%;width:min(88vw,560px)}}
 .match-event-feed{width:min(360px,calc(100% - 440px))!important}@media(max-width:900px){.match-event-feed{width:min(360px,calc(100% - 280px))!important}}@media(max-width:620px){.match-event-feed{width:min(360px,calc(100% - 20px))!important}}.round-result-announcement{inset:0!important;display:grid!important;place-items:center!important;width:auto!important;padding:24px!important;aspect-ratio:auto!important;background:#000!important;transform:none!important}.round-result-announcement img{position:static!important;display:block!important;width:min(1080px,94%)!important;height:auto!important;object-fit:contain!important}.round-result-announcement p{position:absolute;z-index:1;max-width:64%;margin:0;color:#fff;font:900 clamp(24px,3vw,42px)/1 var(--font-heading);letter-spacing:0;text-align:center;text-shadow:0 3px 6px #000}
 .match-event-feed{width:min(560px,calc(100% - 440px))}.match-event-toast{height:auto;aspect-ratio:3/1}.match-event-toast img{top:0;height:100%;object-fit:contain;transform:none}.match-event-toast p{max-width:62%;font-size:20px}.match-event-toast.rescue p{transform:none}.round-result-announcement{position:absolute;z-index:54;top:42%;right:auto;bottom:auto;left:50%;display:grid;width:min(760px,72vw);padding:0;aspect-ratio:3/1;background:transparent;transform:translate(-50%,-50%);pointer-events:none;animation:round-result-fade .2s ease-out both}.round-result-announcement img{position:absolute;width:100%;height:100%;object-fit:contain;animation:round-result-punch .52s cubic-bezier(.16,1,.3,1) both}.round-result-announcement p{z-index:1;max-width:64%;margin:0;color:#fff;font:900 clamp(24px,3vw,42px)/1 var(--font-heading);letter-spacing:0;text-align:center;text-shadow:0 3px 6px #000}.round-result-announcement.red strong{color:#ff4d55}.round-result-announcement.green strong{color:#a8f23d}@media(max-width:900px){.match-event-feed{width:min(500px,calc(100% - 280px))}.match-event-toast p{font-size:17px}.round-result-announcement{width:min(640px,80vw)}.round-result-announcement p{font-size:clamp(20px,4vw,32px)}}@media(max-width:620px){.match-event-feed{width:calc(100% - 20px)}.match-event-toast p{font-size:15px}.round-result-announcement{top:38%;width:calc(100% - 20px)}.round-result-announcement p{font-size:20px}}

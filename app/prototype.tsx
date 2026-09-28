@@ -6463,43 +6463,51 @@ export function BentenganPrototype() {
                 ›
               </button>
             </div>
-            <aside className="ability-panel">
-              <span>
+            <aside className={`ability-panel framed-character-panel ${selectedFaction}`}>
+              <img
+                className="character-panel-frame"
+                src={uiAsset(`panels/character-panel-${selectedFaction}.png`)}
+                alt=""
+                aria-hidden="true"
+              />
+              <header className="character-panel-identity">
+              <span className="character-panel-role">
                 {factionName(selectedFaction)} · {selected.role}
               </span>
-              <h2>{selected.name}</h2>
-              <p>{selected.copy}</p>
-              <div className="passive-card">
+              <h2 className="character-panel-name">{selected.name}</h2>
+              <p className="character-panel-summary">{selected.copy}</p>
+              </header>
+              <section className="character-panel-skill">
                 <small>KEMAMPUAN KHUSUS</small>
                 <b>{selected.passiveName}</b>
-                <em>{selected.passiveCopy}</em>
-              </div>
-              <dl>
-                <div>
-                  <dt>
+                <p>{selected.passiveCopy}</p>
+              </section>
+              <dl className="character-panel-stats">
+                <div className="character-panel-stat">
+                  <dt className="character-panel-stat-label">
                     Speed <b>{selected.speed}</b>
                   </dt>
-                  <dd>
+                  <dd className="character-panel-stat-track">
                     <i
                       style={{ width: statPercent(selected.speed, 188, 240) }}
                     />
                   </dd>
                 </div>
-                <div>
-                  <dt>
+                <div className="character-panel-stat">
+                  <dt className="character-panel-stat-label">
                     Boost <b>{selected.boost}</b>
                   </dt>
-                  <dd>
+                  <dd className="character-panel-stat-track">
                     <i
                       style={{ width: statPercent(selected.boost, 84, 128) }}
                     />
                   </dd>
                 </div>
-                <div>
-                  <dt>
+                <div className="character-panel-stat">
+                  <dt className="character-panel-stat-label">
                     Agility <b>{selected.agility.toFixed(2)}</b>
                   </dt>
-                  <dd>
+                  <dd className="character-panel-stat-track">
                     <i
                       style={{
                         width: statPercent(selected.agility, 0.82, 1.25),
@@ -6509,7 +6517,7 @@ export function BentenganPrototype() {
                 </div>
               </dl>
               <button
-                className="graffiti-primary"
+                className="graffiti-primary character-panel-select"
                 onClick={() => {
                   stopCharacterVoice();
                   setMenuStep('field');
