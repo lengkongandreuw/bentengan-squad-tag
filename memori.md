@@ -4,6 +4,11 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Alur Sprite Studio sederhana: pilih seri/arah, proses upload, tandai sudah sesuai,
+lalu Simpan & update karakter atau Simpan & publish ke GitHub. Batch atomik hanya
+mengubah arah yang dipilih. Draft hasil proses tersimpan di memori tab sampai
+diterapkan, bukan disk; refresh/close memberi peringatan. Opsi teknis di Advanced options.
+
 Sprite Studio memiliki preview upload langsung dan crop visual drag/resize.
 Crop diterapkan sama setelah grid dipisahkan; Proses upload & preview wajib
 sebelum menyimpan perubahan sumber/crop. File sumber dan karakter lain tetap utuh.

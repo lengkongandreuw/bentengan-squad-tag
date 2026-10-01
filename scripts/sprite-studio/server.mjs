@@ -89,7 +89,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
       }
       if(req.method!=='POST'||req.headers.origin!==origin||req.headers['x-admin-token']!==token)return json(403,{error:'Sesi tidak valid. Muat ulang panel.'});
       if(busy)return json(409,{error:'Proses lain sedang berjalan.'});
-      if(!['/api/compile','/api/save','/api/build','/api/publish'].includes(url.pathname))return json(404,{error:'Tidak ditemukan.'});
+      if(!['/api/compile','/api/save','/api/save-character','/api/build','/api/publish'].includes(url.pathname))return json(404,{error:'Tidak ditemukan.'});
       if(req.headers['content-type']!=='application/json')throw new Error('Gunakan JSON.');
       busy=true;
       try {
@@ -98,7 +98,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
         const current=await readConfig();
         if(data.revision!==current.revision)return json(409,{error:'Konfigurasi berubah. Muat ulang sebelum menyimpan.'});
         if(['/api/build','/api/publish'].includes(url.pathname)){job={status:'running',message:'Memulai…'};void runJob(url.pathname==='/api/publish');return json(202,job);}
-        if(!ids.includes(data.id)||!SLOTS.includes(data.slot))throw new Error('Karakter/slot tidak valid.');
+        if(!ids.includes(data.id)||(url.pathname!=='/api/save-character'&&!SLOTS.includes(data.slot)))throw new Error('Karakter/slot tidak valid.');
         if(url.pathname==='/api/compile') {
           const atlas=await compileSprites(data.files,data.options);
           const asset=`sprite-studio/${data.id}/${atlas.hash}.webp`;
@@ -109,13 +109,17 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
           return json(200,{clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:0,y:0,pivotX:.5,pivotY:1,mirror:false,loop:['run','idle','prisoner'].includes(data.slot.split('.')[0])}});
         }
         const document=structuredClone(current.document);
-        if(data.clip===null) {if(document.characters[data.id])delete document.characters[data.id][data.slot];}
-        else {
-          const clip=validateClip(data.clip,data.id);
+        const changes=url.pathname==='/api/save-character'?data.clips:{[data.slot]:data.clip};
+        if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length||Object.keys(changes).length>SLOTS.length)throw new Error('Daftar perubahan tidak valid.');
+        // Validate all selected directions before any manifest write: one atomic character update.
+        for(const [slot,value] of Object.entries(changes)) {
+          if(!SLOTS.includes(slot))throw new Error('Slot animasi tidak valid.');
+          if(value===null) {if(document.characters[data.id])delete document.characters[data.id][slot];continue;}
+          const clip=validateClip(value,data.id);
           const target=await realpath(path.join(projectRoot,'public',clip.asset)),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!target.startsWith(publicDir+path.sep))throw new Error('Aset di luar proyek.');
           const meta=await sharp(await readFile(target)).metadata();if(meta.width!==clip.width||meta.height!==clip.height)throw new Error('Ukuran atlas tidak cocok.');
-          document.characters[data.id]??={};document.characters[data.id][data.slot]=clip;
+          document.characters[data.id]??={};document.characters[data.id][slot]=clip;
         }
         if(document.characters[data.id]&&!Object.keys(document.characters[data.id]).length)delete document.characters[data.id];
         validateSpriteDocument(document,ids);

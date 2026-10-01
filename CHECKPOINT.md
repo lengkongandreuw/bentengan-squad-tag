@@ -5,6 +5,11 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+- Revisi UI sederhana: seri/arah + upload/crop + tandai sesuai + update karakter
+  batch atomik. Draft hasil proses bertahan saat pindah arah/seri/karakter;
+  pengaturan teknis dipindah ke Advanced options. Tes API batch termasuk rollback
+  invalid, revision guard, dan preservasi arah/karakter lain lulus. Publikasi pending.
+
 - Revisi Sprite Studio 2026-10-01: preview upload GIF/gambar langsung, crop visual
   move/resize, koordinat per sel sheet, reset full frame dan guard sebelum Save.
   Tidak mengubah sprite karakter maupun mekanik game. Commit `e545f1b` dipush;

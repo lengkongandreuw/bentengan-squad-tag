@@ -6,3 +6,10 @@
 #cropBox span{position:absolute;top:0;left:0;padding:2px 5px;background:#b8ed7c;color:#17200d;font-size:11px;pointer-events:none;white-space:nowrap}
 #cropHandle{position:absolute;right:-2px;bottom:-2px;margin:0;border-radius:0;padding:3px 7px;background:#b8ed7c;color:#17200d;cursor:nwse-resize;touch-action:none}
 #cropInfo{font-size:12px;color:#cbedb3}
+#advanced{margin:20px 0;padding:14px 18px;border:1px solid #354737;border-radius:12px;background:#172119}
+#advanced>summary{font-size:16px;font-weight:700;padding:5px 0}
+.batch{margin-top:20px;padding-top:10px;border-top:1px solid #354737}
+.batch>button,#save,#compile{display:block;width:100%;margin:10px 0}
+.batch-item{display:block;width:100%;text-align:left;font-size:12px}
+.batch-item.ready,.slot.ready{border-color:#b8ed7c;color:#b8ed7c;background:#25391f}
+#batchSummary{font-size:13px}#sourceEditor h2{margin-top:0}

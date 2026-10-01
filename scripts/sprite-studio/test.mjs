@@ -62,6 +62,16 @@ test('local API: token, revision guard, per-slot save/delete and untouched chara
     const removed=await post('save',{revision:saved.revision,id:'lala',slot:'run.east',clip:null}).then(r=>r.json());
     assert.deepEqual(removed.document.characters,{});
     assert.deepEqual(JSON.parse(await readFile(path.join(root,'config/sprite-studio.json'),'utf8')).characters,{});
+    const before=await readFile(path.join(root,'config/sprite-studio.json'),'utf8');
+    const invalid=await post('save-character',{revision:removed.revision,id:'lala',clips:{'run.east':compiled.clip,'run.west':{...compiled.clip,width:999}}});
+    assert.equal(invalid.status,400);
+    assert.equal(await readFile(path.join(root,'config/sprite-studio.json'),'utf8'),before,'failed batch must not partially save');
+    const batch=await post('save-character',{revision:removed.revision,id:'lala',clips:{'run.east':compiled.clip,'run.west':{...compiled.clip,mirror:true}}}).then(r=>r.json());
+    assert.equal(Object.keys(batch.document.characters.lala).length,2);assert.equal(batch.document.characters.lala['run.west'].mirror,true);
+    assert.equal(batch.document.characters.jago,undefined);
+    assert.equal((await post('save-character',{revision:removed.revision,id:'lala',clips:{idle:compiled.clip}})).status,409);
+    const partial=await post('save-character',{revision:batch.revision,id:'lala',clips:{idle:compiled.clip,'run.west':null}}).then(r=>r.json());
+    assert.ok(partial.document.characters.lala['run.east']);assert.ok(partial.document.characters.lala.idle);assert.equal(partial.document.characters.lala['run.west'],undefined);
     assert.equal((await fetch(origin+'/.git/config')).status,404);
   }finally{if(server)await new Promise(r=>server.close(r));assert.ok(root.startsWith(path.join(os.tmpdir(),'benteng-sprite-test-')));await rm(root,{recursive:true,force:true});}
 });

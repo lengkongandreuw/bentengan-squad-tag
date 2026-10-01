@@ -26,11 +26,19 @@ Panel ini hanya tersedia di komputer lokal; jangan expose port melalui tunnel.
 5. Proses upload, lalu atur FPS, loop, mirror, skala, offset X/Y, pivot X/Y.
    Offset menggunakan unit dunia game; pivot menggunakan rasio frame (0–1).
    Pivot default tengah bawah. Seret sprite untuk mengatur offset.
-6. Simpan slot. Salin slot tersimpan ke arah lain lalu aktifkan mirror bila perlu.
+6. Tandai Arah / animasi ini sudah sesuai. Berpindah arah/seri mempertahankan
+   draft hasil proses; arah yang masih perlu diperiksa ditandai ○, siap ditandai ✓.
+   Setelah seluruh perubahan yang dipilih sudah sesuai, Simpan & update karakter
+   menerapkan semua arah/seri karakter itu dalam satu transaksi. Tidak harus
+   mengupload delapan arah: arah yang tidak diganti tetap memakai sprite saat ini.
+   Draft karakter lain tetap terpisah. Refresh/menutup tab menghapus draft yang
+   belum diterapkan (browser memberi peringatan). Salin, mirror, grid, FPS,
+   skala, pivot, reset, dan build lokal berada di Advanced options.
 7. Build + Uji game membangun game lokal dan menyediakan tautan untuk mencoba
    karakter di arena sebenarnya. Preview atlas lama hanya ilustrasi; renderer
    game tetap menggunakan mapping khusus Jago/Raja/Maria/Boke/Kaka yang sekarang.
-8. Publish ke GitHub Pages membuat commit konfigurasi/aset custom, push, dan
+8. Simpan & publish ke GitHub menyimpan batch yang sudah diperiksa terlebih dahulu,
+   lalu membuat commit konfigurasi/aset custom, push, dan
    memeriksa status Actions sampai deploy berhasil atau mengembalikan kegagalan.
 
 30 slot: run/tag/parkour masing-masing delapan arah, idle, prisoner, ready,
