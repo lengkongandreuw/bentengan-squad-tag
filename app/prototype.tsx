@@ -33,6 +33,8 @@ import { SelectionPortrait } from '../components/selection-portrait';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
+import { studioImages, createStudioResolver } from '../lib/sprite-studio';
+import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -2814,6 +2816,7 @@ export function BentenganPrototype() {
       if (gameLoading) {
         for (const id of Object.keys(CHARACTER_BY_ID) as CharacterId[]) {
           images.push(getSpriteImage(id));
+          images.push(...studioImages(id));
           if (hasSpriteSeries(id)) images.push(getSeriesImage(id));
           urls.push(characterPreviewIcon(id));
         }
@@ -5336,6 +5339,7 @@ export function BentenganPrototype() {
         ? '#ff544b'
         : '#f1d46c';
     };
+    const studioResolve = createStudioResolver();
     const drawPlayer = (p: Player, me: Player, now: number) => {
       const color = TEAM_COLOR[p.team],
         outline = relationColor(p, me, now),
@@ -5460,6 +5464,15 @@ export function BentenganPrototype() {
         frame = series;
         mirror = series.mirror;
       }
+      const studio = studioResolve(p.characterId, p.id, {
+        vx: p.vx, vy: p.vy, now, state: p.state, ready: phase === 'COUNTDOWN',
+        result: phase === 'ROUND_OVER' || phase === 'MATCH_OVER'
+          ? roundWinner === p.team ? 'win' : 'lose' : null,
+        action: now < p.actionUntil ? p.action ?? null : null,
+        parkour: now < p.parkourUntil,
+        tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
+      });
+      if (studio) { renderImage = studio.image; frame = studio.frame; mirror = studio.clip.mirror; }
 
       if (p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
         const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
@@ -5570,6 +5583,14 @@ export function BentenganPrototype() {
         ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+        if (studio) {
+          const placement = spritePlacement(studio.clip, frame, 74 * stats.visualScale);
+          ctx.translate(p.x + studio.clip.x, p.y + 18 + bob + studio.clip.y);
+          if (mirror) ctx.scale(-1, 1);
+          ctx.drawImage(renderImage, frame.x, frame.y, frame.width, frame.height,
+            -placement.width * studio.clip.pivotX, -placement.height * studio.clip.pivotY,
+            placement.width, placement.height);
+        } else {
         if (mirror) {
           ctx.translate(p.x * 2, 0);
           ctx.scale(-1, 1);
@@ -5585,6 +5606,7 @@ export function BentenganPrototype() {
           width,
           height,
         );
+        }
         ctx.restore();
       } else {
         ctx.fillStyle = color;

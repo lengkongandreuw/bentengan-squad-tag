@@ -4,6 +4,13 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Sprite Studio ingame (2026-10-01): `npm run admin:sprites`, port 4319, terpisah
+dari panel selection 4318. Manifest `config/sprite-studio.json` override per slot
+dan karakter; slot kosong tetap memakai renderer lama. Custom hanya visual:
+30 slot, 8 arah run/tag/parkour + idle/prisoner/ready/ultimate/victory/defeat.
+Loading pertandingan preload atlas custom. Editor tidak bergantung pada UI
+publik; petunjuk lengkap `scripts/sprite-studio/README.md`.
+
 Kontrol terbaru (2026-09-26): klik kiri menentukan tujuan tanpa boost; klik kanan
 memicu boost tanpa mengubah tujuan; WASD mengambil alih navigasi, Shift parkour.
 Navigasi klik memakai A* menghindari collider dan sungai. Tombol mobile hanya

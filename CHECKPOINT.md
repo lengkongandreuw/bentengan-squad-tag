@@ -13,6 +13,14 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Tujuan aktif
 
+2026-10-01 ACTIVE: Sprite Studio ingame lokal port 4319. Manifest override per
+karakter/per slot, 30 slot (run/tag/parkour 8 arah; idle/prisoner/ready/ultimate/
+victory/defeat). Server/editor/compiler + renderer fallback dan preload dibuat.
+Input sheet PNG/GIF/WebP/multi PNG, grid/order/crop, pivot/scale/offset/FPS/mirror.
+Simpan slot, reset fallback, build+uji game, publish dengan monitoring Pages.
+Next: tes node/browser, build, publish implementasi. Dirty milik user: globals.css,
+lib/characters.ts, public/fonts; jangan ikut commit atau menimpa perubahan itu.
+
 2026-09-26: Kontrol mouse klik kiri HANYA tujuan, kanan boost (revisi terbaru).
 Parkour tetap Shift/tombol mobile. Route A* terhadap collider/water; keyboard
 mengambil alih; batalkan target saat pause/penjara/ultimate/menu. Tidak mengubah aset.
