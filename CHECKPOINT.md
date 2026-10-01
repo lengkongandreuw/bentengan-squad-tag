@@ -7,7 +7,9 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 - Revisi Sprite Studio 2026-10-01: preview upload GIF/gambar langsung, crop visual
   move/resize, koordinat per sel sheet, reset full frame dan guard sebelum Save.
-  Tidak mengubah sprite karakter maupun mekanik game. Publikasi sedang diverifikasi.
+  Tidak mengubah sprite karakter maupun mekanik game. Commit `e545f1b` dipush;
+  GitHub Pages run `36861802699` build/deploy SUCCESS. Lima tes, typecheck,
+  build Pages dan uji browser GIF/crop lulus. Warning npm/CSS build lama masih ada.
 
 - State: `COMPLETE` (Sprite Studio 2026-10-01)
 - Diperbarui: 2026-10-01
