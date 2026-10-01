@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { publicAsset } from '../lib/characters';
 
-const sourceArena = (id: string) => id === 'kampung3d' ? 'kampung' : id;
+const sourceArena = (id: string) => id === 'kampung3d' ? 'kampung' : id === 'kanal2' ? 'kanal' : id;
 export const arenaImage = (id: string) => publicAsset(`arena-ui/${sourceArena(id)}.webp?v=1`);
 export const arenaVideo = (id: string) => publicAsset(`arena-ui/${sourceArena(id)}.mp4?v=1`);
 

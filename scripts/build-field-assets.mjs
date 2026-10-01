@@ -66,6 +66,31 @@ const objects = [
   { id: 'canalStraightV', file: 'v3-canals.png', crop: { left: 634, top: 18, width: 206, height: 389 }, width: 128, height: 240 },
   { id: 'canalT', file: 'v3-canals.png', crop: { left: 942, top: 18, width: 429, height: 389 }, width: 250, height: 210 },
   { id: 'canalCurve', file: 'v3-canals.png', crop: { left: 424, top: 432, width: 254, height: 305 }, width: 170, height: 190 },
+  // Modular Nusantara props for Kanal. They are intentionally individual
+  // sprites—not a pre-composed map layer—so placement, draw order, and
+  // collision can all use the same per-object data.
+  { id: 'kanalNusaBridgeH', source: path.join(map4SourceDir, 'generated', 'kanal-bridge-clean-v2.png'), width: 600, height: 304 },
+  { id: 'kanalNusaBridgeV', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 362, top: 0, width: 362, height: 362 }, width: 185, height: 270 },
+  // The generated sheet is not a strict 4x3 grid: foliage crosses nominal
+  // cell borders. Crop to each actual silhouette to avoid rectangular scraps.
+  { id: 'kanalNusaPlanterLong', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 684, top: 78, width: 480, height: 220 }, width: 300, height: 145 },
+  { id: 'kanalNusaPlanterOval', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 1170, top: 78, width: 272, height: 225 }, width: 210, height: 135 },
+  { id: 'kanalNusaFountain', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 20, top: 323, width: 390, height: 326 }, width: 210, height: 190 },
+  { id: 'kanalNusaLamp', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 362, top: 362, width: 362, height: 362 }, width: 90, height: 220 },
+  { id: 'kanalNusaBarrier', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 682, top: 407, width: 392, height: 224 }, width: 260, height: 150 },
+  { id: 'kanalNusaBarrierCorner', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 1086, top: 362, width: 362, height: 362 }, width: 250, height: 180 },
+  { id: 'kanalNusaTree', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 12, top: 642, width: 450, height: 406 }, width: 250, height: 320 },
+  // The palm silhouette crosses the sheet's nominal cell edge. A silhouette-
+  // aligned crop avoids the straight vertical cut visible on the map border.
+  { id: 'kanalNusaForest', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 445, top: 652, width: 350, height: 430 }, width: 250, height: 250 },
+  { id: 'kanalNusaCart', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 724, top: 724, width: 362, height: 362 }, width: 220, height: 210 },
+  { id: 'kanalNusaLantern', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-prop-atlas-v1.png'), crop: { left: 1225, top: 725, width: 220, height: 358 }, width: 90, height: 180 },
+  { id: 'kanalNusaPosRonda', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-building-atlas-v1.png'), crop: { left: 0, top: 0, width: 512, height: 512 }, width: 250, height: 260, alphaCutoff: 96 },
+  { id: 'kanalNusaBalaiDesa', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-building-atlas-v1.png'), crop: { left: 512, top: 0, width: 512, height: 512 }, width: 330, height: 250, alphaCutoff: 96 },
+  { id: 'kanalNusaWarung', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-building-atlas-v1.png'), crop: { left: 1024, top: 0, width: 512, height: 512 }, width: 280, height: 245, alphaCutoff: 96 },
+  { id: 'kanalNusaSembako', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-building-atlas-v1.png'), crop: { left: 0, top: 512, width: 512, height: 512 }, width: 280, height: 245, alphaCutoff: 96 },
+  { id: 'kanalNusaGazebo', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-building-atlas-v1.png'), crop: { left: 512, top: 512, width: 512, height: 512 }, width: 250, height: 245, alphaCutoff: 96 },
+  { id: 'kanalNusaGate', source: path.join(map4SourceDir, 'generated', 'kanal-nusantara-building-atlas-v1.png'), crop: { left: 1024, top: 512, width: 512, height: 512 }, width: 260, height: 250, alphaCutoff: 96 },
   { id: 'jungleNW', file: 'v3-edge-nw.png', width: 330, height: 330 },
   { id: 'jungleNE', file: 'v3-edge-ne.png', width: 330, height: 330 },
   { id: 'jungleSW', file: 'v3-edge-sw.png', width: 330, height: 330 },
@@ -340,7 +365,18 @@ for (const object of objects) {
   const sourcePath = object.source ?? path.join(sourceDir, object.file);
   const metadata = await sharp(sourcePath).metadata();
   const crop = object.crop ?? (object.grid ? gridCrop(metadata.width, metadata.height, object.grid) : undefined);
-  const objectInput = crop ? await sharp(sourcePath).extract(crop).png().toBuffer() : sourcePath;
+  let objectInput = crop ? await sharp(sourcePath).extract(crop).png().toBuffer() : sourcePath;
+  // Image-generated cutouts can retain a faint semi-transparent studio
+  // backdrop. Remove it once here so every runtime prop remains a clean
+  // transparent sprite rather than carrying a rectangular haze into the map.
+  if (object.alphaCutoff) {
+    const raw = await sharp(objectInput).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let offset = 3; offset < raw.data.length; offset += 4)
+      if (raw.data[offset] < object.alphaCutoff) raw.data[offset] = 0;
+    objectInput = await sharp(raw.data, {
+      raw: { width: raw.info.width, height: raw.info.height, channels: 4 },
+    }).png().toBuffer();
+  }
   let pipeline = sharp(objectInput)
     .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 2 })
     .resize({ width: object.width, height: object.height, fit: 'inside', withoutEnlargement: true })
@@ -357,11 +393,24 @@ for (const object of objects) {
 }
 
 const objectAtlasWidth = 2048;
-const objectPack = pack(preparedObjects, objectAtlasWidth);
+const sharedObjects = preparedObjects.filter(object => !object.id.startsWith('kanalNusa'));
+const kanalObjects = preparedObjects.filter(object => object.id.startsWith('kanalNusa'));
+const objectPack = pack(sharedObjects, objectAtlasWidth);
 await sharp({ create: { width: objectAtlasWidth, height: objectPack.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
   .composite(objectPack.composites)
   .webp({ quality: 80, alphaQuality: 90, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'objects.webp'));
+const kanalAtlasWidth = 1024;
+const kanalPack = pack(kanalObjects, kanalAtlasWidth);
+await sharp({ create: { width: kanalAtlasWidth, height: kanalPack.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+  .composite(kanalPack.composites)
+  .webp({ quality: 80, alphaQuality: 90, effort: 6, smartSubsample: true })
+  .toFile(path.join(outputDir, 'kanal-object-atlas.webp'));
+const objectFrames = {
+  ...objectPack.placed,
+  ...Object.fromEntries(Object.entries(kanalPack.placed).map(([id, frame]) =>
+    [id, { ...frame, atlas: 'kanal-object-atlas.webp' }])),
+};
 
 const preparedFrames = [];
 const animationManifest = {};
@@ -414,7 +463,7 @@ await sharp({ create: { width: tileWidth * groundColumns, height: tileHeight * g
   .toFile(path.join(outputDir, 'grounds.webp'));
 
 const manifest = {
-  version: 8,
+  version: 12,
   maps: {
     kampung: {
       file: 'kampung-map.webp',
@@ -441,8 +490,16 @@ const manifest = {
         height: map4WaterMaskHeight,
       },
     },
+    kanal2: {
+      file: 'kanal2-map.webp',
+      width: 2059,
+      height: 926,
+      layers: { ground: 'kanal2-ground.webp', objects: 'objects.webp' },
+      waterMask: { file: 'kanal2-water-mask.png', width: 1030, height: 463 },
+    },
   },
-  objects: { file: 'objects.webp', width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed },
+  objects: { file: 'objects.webp', width: objectAtlasWidth, height: objectPack.height, assets: objectFrames },
+  kanalObjects: { file: 'kanal-object-atlas.webp', width: kanalAtlasWidth, height: kanalPack.height },
   animated: { file: 'animated.webp', width: animatedAtlasWidth, height: animatedPack.height, animations: animationManifest },
   grounds: { file: 'grounds.webp', width: tileWidth * groundColumns, height: tileHeight * groundRows, tiles: groundTiles },
 };
@@ -450,7 +507,7 @@ await writeFile(path.join(outputDir, 'manifest.json'), `${JSON.stringify(manifes
 
 const ts = `// Generated by scripts/build-field-assets.mjs. Do not edit by hand.\n` +
   `export const FIELD_ASSET_VERSION = ${manifest.version} as const;\n` +
-  `export const FIELD_OBJECT_ATLAS = ${JSON.stringify({ width: objectAtlasWidth, height: objectPack.height, assets: objectPack.placed }, null, 2)} as const;\n` +
+  `export const FIELD_OBJECT_ATLAS = ${JSON.stringify({ width: objectAtlasWidth, height: objectPack.height, assets: objectFrames }, null, 2)} as const;\n` +
   `export const FIELD_ANIMATED_ATLAS = ${JSON.stringify({ width: animatedAtlasWidth, height: animatedPack.height, animations: animationManifest }, null, 2)} as const;\n` +
   `export const FIELD_GROUND_ATLAS = ${JSON.stringify({ width: tileWidth * groundColumns, height: tileHeight * groundRows, tiles: groundTiles }, null, 2)} as const;\n` +
   `export type FieldAssetId = keyof typeof FIELD_OBJECT_ATLAS.assets;\n` +
