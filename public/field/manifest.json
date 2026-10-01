@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 12,
   "maps": {
     "kampung": {
       "file": "kampung-map.webp",
@@ -23,6 +23,20 @@
       "waterMask": {
         "file": "kanal-water-mask.png",
         "width": 850,
+        "height": 463
+      }
+    },
+    "kanal2": {
+      "file": "kanal2-map.webp",
+      "width": 2059,
+      "height": 926,
+      "layers": {
+        "ground": "kanal2-ground.webp",
+        "objects": "objects.webp"
+      },
+      "waterMask": {
+        "file": "kanal2-water-mask.png",
+        "width": 1030,
         "height": 463
       }
     }
@@ -481,6 +495,132 @@
         "y": 2043,
         "width": 244,
         "height": 40
+      },
+      "kanalNusaBridgeH": {
+        "x": 8,
+        "y": 8,
+        "width": 600,
+        "height": 293,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaPosRonda": {
+        "x": 616,
+        "y": 8,
+        "width": 194,
+        "height": 260,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaBalaiDesa": {
+        "x": 8,
+        "y": 309,
+        "width": 264,
+        "height": 250,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaForest": {
+        "x": 280,
+        "y": 309,
+        "width": 219,
+        "height": 250,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaWarung": {
+        "x": 507,
+        "y": 309,
+        "width": 278,
+        "height": 245,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaGazebo": {
+        "x": 8,
+        "y": 567,
+        "width": 250,
+        "height": 236,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaSembako": {
+        "x": 266,
+        "y": 567,
+        "width": 280,
+        "height": 231,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaGate": {
+        "x": 554,
+        "y": 567,
+        "width": 260,
+        "height": 222,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaTree": {
+        "x": 8,
+        "y": 811,
+        "width": 250,
+        "height": 221,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaCart": {
+        "x": 266,
+        "y": 811,
+        "width": 220,
+        "height": 194,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaFountain": {
+        "x": 494,
+        "y": 811,
+        "width": 210,
+        "height": 180,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaBarrierCorner": {
+        "x": 712,
+        "y": 811,
+        "width": 156,
+        "height": 180,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaBridgeV": {
+        "x": 8,
+        "y": 1040,
+        "width": 185,
+        "height": 169,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaLantern": {
+        "x": 201,
+        "y": 1040,
+        "width": 90,
+        "height": 164,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaPlanterOval": {
+        "x": 299,
+        "y": 1040,
+        "width": 170,
+        "height": 135,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaPlanterLong": {
+        "x": 477,
+        "y": 1040,
+        "width": 300,
+        "height": 127,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaBarrier": {
+        "x": 8,
+        "y": 1217,
+        "width": 260,
+        "height": 114,
+        "atlas": "kanal-object-atlas.webp"
+      },
+      "kanalNusaLamp": {
+        "x": 276,
+        "y": 1217,
+        "width": 90,
+        "height": 90,
+        "atlas": "kanal-object-atlas.webp"
       }
     }
   },
@@ -846,5 +986,10 @@
         "height": 224
       }
     }
+  },
+  "kanalObjects": {
+    "file": "kanal-object-atlas.webp",
+    "width": 1024,
+    "height": 1408
   }
 }

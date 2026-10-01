@@ -72,6 +72,7 @@ import {
   sprintEffectRotation,
 } from '../lib/sprite-motion.js';
 import { fieldCycleDecision } from '../lib/field-cycle.js';
+import { kanalObjectRects, kanalObjectPolygons, kanalFortPolygon, polygonToRects } from '../lib/kanal-footprints.js';
 import { sweptContactDistance } from '../lib/tag-contact.js';
 import {
   depenetrateFromRects,
@@ -93,7 +94,8 @@ type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type PlayerAction = 'tag' | 'rescue' | 'ultimate';
 type Grade = 25 | 40 | 75 | 100;
-type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kampung3d';
+type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kanal2' | 'kampung3d';
+const isKanalField = (id: FieldId) => id === 'kanal2';
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type DifficultyId = 'easy' | 'normal' | 'hard';
@@ -126,6 +128,8 @@ type Player = {
   ultimateShieldUntil: number;
   fallSafeUntil: number;
   fallNoticeUntil: number;
+  waterEnteredAt: number;
+  waterFallUntil: number;
   capturedIds: string[];
   action?: PlayerAction;
   actionUntil: number;
@@ -189,15 +193,23 @@ type FieldConfig = {
   aiIntensity: number;
   ground: GroundTileId;
   background?: string;
+
   designWidth?: number;
   designHeight?: number;
   width?: number;
   height?: number;
   objectScale?: number;
   structuresInBackground?: boolean;
+  // Some authored maps already include their forts but still need the
+  // gameplay prison buildings rendered above the terrain.
+  basesInBackground?: boolean;
   waterMask?: string;
   waterMaskWidth?: number;
   waterMaskHeight?: number;
+
+
+
+  baseRadius?: number;
   bases?: Record<Team, { x: number; y: number }>;
   prisons: Record<Team, Prison>;
   paths: FieldPath[];
@@ -336,9 +348,17 @@ const MAP3_WORLD_WIDTH = Math.round(MAP3_GUIDE_WIDTH * 1.15);
 const MAP3_WORLD_HEIGHT = Math.round(MAP3_GUIDE_HEIGHT * 1.15);
 const MAP4_GUIDE_WIDTH = 1699;
 const MAP4_GUIDE_HEIGHT = 926;
+// A 15% physical expansion creates genuine running room between the canal,
+// forts, prison yards, and centre obstacles. Keep the terrain and authored
+// scenery at the same scale so the village reads as one cohesive place.
 const MAP4_WORLD_SCALE = 1.15;
+const MAP4_OBJECT_SCALE = 1.4;
 const MAP4_WORLD_WIDTH = Math.round(MAP4_GUIDE_WIDTH * MAP4_WORLD_SCALE);
 const MAP4_WORLD_HEIGHT = Math.round(MAP4_GUIDE_HEIGHT * MAP4_WORLD_SCALE);
+const MAP4_2_GUIDE_WIDTH = 2059;
+const MAP4_2_INSERT = 360;
+const MAP4_2_LEFT_ANCHOR = 750;
+const MAP4_2_RIGHT_ANCHOR = 950;
 const STATIC_MAP_SCALE = 0.5;
 const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
@@ -404,6 +424,7 @@ const DIFFICULTY_PROFILES = {
 const worldX = (value: number) => Math.round(value * WORLD_SCALE_X);
 const worldY = (value: number) => Math.round(value * WORLD_SCALE_Y);
 const BASE_RADIUS = 118;
+const KANAL2_FALL_RESET_MS = 3000;
 const BASES = {
   blue: { x: 174, y: 520 },
   red: { x: W - 174, y: 520 },
@@ -1988,6 +2009,7 @@ const guideCollider = (
   ...guideObstacle(asset, x, y, w, h, 1, 1),
   hidden: true,
 });
+
 const MAP_OBJECT_SCALE = 0.9;
 const map2GroupObstacle = (
   x: number,
@@ -2382,6 +2404,103 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   },
 ];
 
+// Nusantara 2 keeps every current sprite at its original size. Only the
+// horizontal coordinate space between the bridge approaches is lengthened.
+// Keep Nusantara 2's approved sprite layout self-contained. Its published
+// config must not depend on any uncommitted changes to Nusantara 1.
+const kanalGuide: FieldConfig = {
+  ...structuredClone(GUIDE_FIELD_CONFIGS.find(field => field.id === 'kanal')!),
+  background: 'kanal-ground.webp',
+  baseRadius: Math.round(BASE_RADIUS * MAP4_OBJECT_SCALE),
+  objectScale: MAP4_OBJECT_SCALE,
+  structuresInBackground: false,
+  basesInBackground: false,
+  bases: {
+    blue: { x: 212, y: 408 },
+    red: { x: 1485, y: 408 },
+  },
+  prisons: {
+    blue: { x: 325, y: 246, w: 118, h: 102, floorAsset: 'industrialPrisonBlueFloor', overlayAsset: 'industrialPrisonBlueOverlay' },
+    red: { x: 1256, y: 246, w: 118, h: 102, floorAsset: 'industrialPrisonRedFloor', overlayAsset: 'industrialPrisonRedOverlay' },
+  },
+  obstacles: [
+    guideObstacle('kanalNusaFountain', 782, 452, 136, 48, 136, 120),
+    guideObstacle('kanalNusaPlanterOval', 672, 326, 146, 34, 146, 90),
+    guideObstacle('kanalNusaPlanterOval', 881, 326, 146, 34, 146, 90),
+    guideObstacle('kanalNusaPlanterOval', 672, 572, 146, 34, 146, 90),
+    guideObstacle('kanalNusaPlanterOval', 881, 572, 146, 34, 146, 90),
+    guideObstacle('kanalNusaPlanterLong', 764, 207, 172, 35, 172, 86),
+    guideObstacle('kanalNusaPlanterLong', 764, 676, 172, 35, 172, 86),
+    guideObstacle('kanalNusaBarrier', 172, 238, 118, 29, 128, 73),
+    guideObstacle('kanalNusaBarrier', 1409, 238, 118, 29, 128, 73, true),
+    guideObstacle('kanalNusaBarrier', 415, 710, 144, 38, 152, 84),
+    guideObstacle('kanalNusaBarrier', 1140, 710, 144, 38, 152, 84, true),
+    guideObstacle('kanalNusaPosRonda', 90, 146, 158, 42, 175, 132),
+    guideObstacle('kanalNusaWarung', 1451, 146, 158, 42, 175, 132),
+    guideObstacle('kanalNusaSembako', 140, 820, 170, 44, 190, 154),
+    guideObstacle('kanalNusaGazebo', 1389, 820, 170, 44, 190, 154),
+    guideObstacle('kanalNusaForest', 24, 215, 116, 38, 136, 142),
+    guideObstacle('kanalNusaForest', 1559, 215, 116, 38, 136, 142, true),
+    guideObstacle('kanalNusaForest', 26, 725, 118, 38, 140, 145),
+    guideObstacle('kanalNusaForest', 1555, 725, 118, 38, 140, 145, true),
+    guideObstacle('kanalNusaBarrier', 270, 608, 124, 30, 130, 74),
+    guideObstacle('kanalNusaBarrier', 1305, 608, 124, 30, 130, 74, true),
+    guideObstacle('kanalNusaLantern', 45, 322, 30, 24, 37, 86),
+    guideObstacle('kanalNusaLantern', 1624, 322, 30, 24, 37, 86),
+    guideObstacle('kanalNusaLantern', 104, 626, 30, 24, 37, 86),
+    guideObstacle('kanalNusaLantern', 1565, 626, 30, 24, 37, 86),
+    guideCollider('kanalNusaBridgeH', 420, 431, 21, 9),
+    guideCollider('kanalNusaBridgeH', 539, 431, 21, 9),
+    guideCollider('kanalNusaBridgeH', 420, 480, 21, 9),
+    guideCollider('kanalNusaBridgeH', 539, 480, 21, 9),
+    guideCollider('kanalNusaBridgeH', 1139, 431, 21, 9),
+    guideCollider('kanalNusaBridgeH', 1258, 431, 21, 9),
+    guideCollider('kanalNusaBridgeH', 1139, 480, 21, 9),
+    guideCollider('kanalNusaBridgeH', 1258, 480, 21, 9),
+  ],
+  decorations: [
+    { asset: 'kanalNusaBridgeH', x: 417, y: 416, w: 146, h: 74 },
+    { asset: 'kanalNusaBridgeH', x: 1136, y: 416, w: 146, h: 74, flip: true },
+  ],
+};
+const kanal2X = (x: number) => {
+  if (x <= MAP4_2_LEFT_ANCHOR) return x;
+  if (x >= MAP4_2_RIGHT_ANCHOR) return x + MAP4_2_INSERT;
+  return x + Math.floor(MAP4_2_INSERT / 2);
+};
+const kanal2Item = <T extends { x: number; w: number }>(item: T): T => ({
+  ...item,
+  x: Math.round(kanal2X(item.x + item.w / 2) - item.w / 2),
+});
+// Two low, mirrored planters use the same grounded silhouette/collision as
+// the approved Nusantara planters; the rest of the new center stays open.
+const kanal2SmallPlanters = [
+  guideObstacle('kanalNusaPlanterOval', 802, 245, 82, 20, 82, 51),
+  guideObstacle('kanalNusaPlanterOval', MAP4_2_GUIDE_WIDTH - 802 - 82, 245, 82, 20, 82, 51),
+];
+GUIDE_FIELD_CONFIGS.push({
+  ...structuredClone(kanalGuide),
+  id: 'kanal2',
+  name: 'Alun Kanal Nusantara 2',
+  kicker: 'Kanal panjang · ruang tengah 2×',
+  background: 'kanal2-ground.webp',
+  waterMask: 'kanal2-water-mask.png',
+  waterMaskWidth: Math.round(MAP4_2_GUIDE_WIDTH / 2),
+  designWidth: MAP4_2_GUIDE_WIDTH,
+  width: Math.round(MAP4_2_GUIDE_WIDTH * MAP4_OBJECT_SCALE),
+  height: Math.round(MAP4_GUIDE_HEIGHT * MAP4_OBJECT_SCALE),
+  bases: {
+    blue: { ...kanalGuide.bases!.blue, x: Math.round(kanal2X(kanalGuide.bases!.blue.x)) },
+    red: { ...kanalGuide.bases!.red, x: Math.round(kanal2X(kanalGuide.bases!.red.x)) },
+  },
+  prisons: {
+    blue: kanal2Item(kanalGuide.prisons.blue),
+    red: kanal2Item(kanalGuide.prisons.red),
+  },
+  obstacles: [...kanalGuide.obstacles.map(kanal2Item), ...kanal2SmallPlanters],
+  decorations: kanalGuide.decorations.map(kanal2Item),
+});
+
 const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
   const width = field.width ?? W;
   const height = field.height ?? H;
@@ -2472,7 +2591,11 @@ for (const field of FIELD_CONFIGS) {
   const fieldWidth = field.width ?? W;
   const fieldHeight = field.height ?? H;
   const fieldBases = field.bases ?? BASES;
-  if (field.obstacles.length < 26)
+  const fieldBaseRadius = field.baseRadius ?? BASE_RADIUS;
+  // Kanal deliberately uses only visual, solid footprints. Its broad border
+  // art lives on the background layer and must not be padded with invisible
+  // navigation boxes just to satisfy the denser-map guideline.
+  if (!isKanalField(field.id) && field.obstacles.length < 26)
     arenaValidationErrors.push(`${field.id}: kepadatan arena tidak mencukupi`);
   for (const obstacle of field.obstacles) {
     if (
@@ -2504,7 +2627,7 @@ for (const field of FIELD_CONFIGS) {
         obstacle.y,
         Math.min(obstacle.y + obstacle.h, base.y),
       );
-      if (Math.hypot(base.x - nearestX, base.y - nearestY) < BASE_RADIUS + 28)
+      if (Math.hypot(base.x - nearestX, base.y - nearestY) < fieldBaseRadius + 28)
         arenaValidationErrors.push(
           `${field.id}: obstacle ${obstacle.asset} (${obstacle.x},${obstacle.y}) menutup akses benteng`,
         );
@@ -2822,7 +2945,9 @@ export function BentenganPrototype() {
         // Preload the rotation too, so later rounds cannot expose an unloaded map.
         for (const field of FIELD_CONFIGS) {
           if (field.background) images.push(getFieldImage(field.background));
+
           if (field.waterMask) images.push(getFieldImage(field.waterMask));
+
         }
         urls.push(
           rajaUltimateBannerAsset(),
@@ -3318,21 +3443,31 @@ export function BentenganPrototype() {
     const clearMouse = () => { mouseRoute = []; mouseBoost = false; mouseStuckTime = 0; };
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
+    const development = process.env.NODE_ENV !== 'production';
+    let debugColliders = development && new URLSearchParams(window.location.search).has('debugColliders');
     const worldWidth = field.width ?? W;
     const worldHeight = field.height ?? H;
     const bases = field.bases ?? BASES;
-    const obstacles = field.obstacles;
+    const baseRadius = field.baseRadius ?? BASE_RADIUS;
+    const visualObstacles = field.obstacles;
+    const obstacles = isKanalField(field.id)
+      ? visualObstacles.flatMap(item => kanalObjectRects(item).map((rect: { x: number; y: number; w: number; h: number }) => ({ ...item, ...rect, hidden: true })))
+      : visualObstacles;
     const fieldObjectScale = field.objectScale ?? 1;
     const fortWidth = Math.round(168 * fieldObjectScale);
     const fortHeight = Math.round(188 * fieldObjectScale);
     const fortAnchorY = Math.round(130 * fieldObjectScale);
     const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
     const fieldObjectAtlas = getFieldImage('objects.webp');
+    const kanalObjectAtlas = isKanalField(field.id)
+      ? getFieldImage('kanal-object-atlas.webp')
+      : null;
     const fieldAnimatedAtlas = getFieldImage('animated.webp');
     const fieldGroundAtlas = getFieldImage('grounds.webp');
     const fieldBackground = field.background
       ? getFieldImage(field.background)
       : null;
+
     let scene3d: Kampung3D | undefined;
     if (selectedFieldId === 'kampung3d' && mode === 'playing') {
       try {
@@ -3346,13 +3481,28 @@ export function BentenganPrototype() {
     const fieldWaterMask = field.waterMask
       ? getFieldImage(field.waterMask)
       : null;
+
     const waterMaskCanvas = document.createElement('canvas');
     waterMaskCanvas.width = field.waterMaskWidth ?? 1;
     waterMaskCanvas.height = field.waterMaskHeight ?? 1;
     const waterMaskContext = waterMaskCanvas.getContext('2d', {
       willReadFrequently: true,
     });
+    const waterDebugCanvas = development && isKanalField(field.id)
+      ? document.createElement('canvas')
+      : null;
+    if (waterDebugCanvas) {
+      waterDebugCanvas.width = waterMaskCanvas.width;
+      waterDebugCanvas.height = waterMaskCanvas.height;
+    }
+    const waterDebugContext = waterDebugCanvas?.getContext('2d');
+
+
+
+
     let waterMaskPixels: Uint8ClampedArray | null = null;
+
+    const kanalWaterGlints: { x: number; y: number; phase: number }[] = [];
     const cacheWaterMask = () => {
       if (
         !fieldWaterMask ||
@@ -3380,10 +3530,51 @@ export function BentenganPrototype() {
         waterMaskCanvas.width,
         waterMaskCanvas.height,
       ).data;
+      if (waterDebugContext) {
+        const overlay = waterDebugContext.createImageData(
+          waterMaskCanvas.width,
+          waterMaskCanvas.height,
+        );
+        for (let pixel = 0; pixel < waterMaskCanvas.width * waterMaskCanvas.height; pixel++) {
+          if (waterMaskPixels[pixel * 4] <= 127) continue;
+          overlay.data[pixel * 4] = 255;
+          overlay.data[pixel * 4 + 1] = 69;
+          overlay.data[pixel * 4 + 2] = 69;
+          overlay.data[pixel * 4 + 3] = 78;
+        }
+        waterDebugContext.putImageData(overlay, 0, 0);
+      }
+      kanalWaterGlints.length = 0;
+      if (isKanalField(field.id)) {
+        const maskWidth = waterMaskCanvas.width;
+        const maskHeight = waterMaskCanvas.height;
+        for (let y = 9; y < maskHeight - 9; y += 12)
+          for (let x = 9; x < maskWidth - 9; x += 12) {
+            const solidWater = (px: number, py: number) =>
+              waterMaskPixels![(py * maskWidth + px) * 4] > 127;
+            if (
+              solidWater(x, y) &&
+              solidWater(x - 3, y) &&
+              solidWater(x + 3, y) &&
+              solidWater(x, y - 3) &&
+              solidWater(x, y + 3)
+            )
+              kanalWaterGlints.push({
+                x: ((x + 0.5) / maskWidth) * worldWidth,
+                y: ((y + 0.5) / maskHeight) * worldHeight,
+                phase: (x * 17 + y * 31) % 29,
+              });
+          }
+      }
     };
-    const staticMapScale = field.structuresInBackground
-      ? 0.75
-      : STATIC_MAP_SCALE;
+
+    // Raised authored scenery needs a full-resolution cache; otherwise the
+    // close camera resamples it twice and makes fences/foliage look flat.
+    const staticMapScale = isKanalField(field.id)
+      ? 1.5
+      : field.structuresInBackground
+        ? 0.75
+        : STATIC_MAP_SCALE;
     const staticLayer = document.createElement('canvas');
     staticLayer.width = Math.round(worldWidth * staticMapScale);
     staticLayer.height = Math.round(worldHeight * staticMapScale);
@@ -3393,10 +3584,14 @@ export function BentenganPrototype() {
       staticMapDirty = true;
     };
     fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
+    kanalObjectAtlas?.addEventListener('load', invalidateStaticMap);
     fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
     fieldBackground?.addEventListener('load', invalidateStaticMap);
+
     fieldWaterMask?.addEventListener('load', cacheWaterMask);
+
     if (fieldWaterMask?.complete) cacheWaterMask();
+
 
     const gameplayAudio = new GameplayAudio();
     gameplayAudio.unlock();
@@ -3464,6 +3659,8 @@ export function BentenganPrototype() {
         ultimateShieldUntil: 0,
         fallSafeUntil: 0,
         fallNoticeUntil: 0,
+        waterEnteredAt: 0,
+        waterFallUntil: 0,
         capturedIds: [],
         actionUntil: 0,
         lastX: b.x + offset.x * direction,
@@ -3550,7 +3747,7 @@ export function BentenganPrototype() {
             !player.controlled &&
             player.team === requester.team &&
             player.state === 'ACTIVE' &&
-            distance(player, bases[other(player.team)]) > BASE_RADIUS * 1.25,
+            distance(player, bases[other(player.team)]) > baseRadius * 1.25,
         )
         .sort((a, b) => distance(a, requester) - distance(b, requester))[0];
       rescueRequest = {
@@ -3762,9 +3959,10 @@ export function BentenganPrototype() {
       players.find(
         (p) =>
           p.id !== exceptId &&
+          !(field.id === 'kanal2' && p.waterEnteredAt) &&
           p.state === 'ACTIVE' &&
           p.team !== baseTeam &&
-          distance(p, bases[baseTeam]) < BASE_RADIUS,
+          distance(p, bases[baseTeam]) < baseRadius,
       );
     const tieHash = (id: string) => {
       let value = (2166136261 ^ round) >>> 0;
@@ -3788,11 +3986,55 @@ export function BentenganPrototype() {
       }
       return false;
     };
+    // Kanal's prison uses a thin U-frame: walls block traversal, while the
+    // wide front gate and entire interior remain open for rescues. No other
+    // arena receives these additional collision rules.
+    const kanalPrisonWalls = isKanalField(field.id)
+      ? Object.values(field.prisons).flatMap((prison): Obstacle[] => {
+          const thickness = Math.max(12, Math.round(Math.min(prison.w, prison.h) * 0.09));
+          const gateWidth = Math.max(76, Math.round(prison.w * 0.48));
+          const shoulderWidth = Math.round((prison.w - gateWidth) / 2);
+          const hiddenWall = (x: number, y: number, w: number, h: number): Obstacle => ({
+            asset: prison.floorAsset ?? 'prisonFloor',
+            x,
+            y,
+            w,
+            h,
+            visualW: 1,
+            visualH: 1,
+            hidden: true,
+          });
+          return [
+            hiddenWall(prison.x, prison.y, prison.w, thickness),
+            hiddenWall(prison.x, prison.y + thickness, thickness, prison.h - thickness),
+            hiddenWall(prison.x + prison.w - thickness, prison.y + thickness, thickness, prison.h - thickness),
+            hiddenWall(prison.x, prison.y + prison.h - thickness, shoulderWidth, thickness),
+            hiddenWall(prison.x + prison.w - shoulderWidth, prison.y + prison.h - thickness, shoulderWidth, thickness),
+          ];
+        })
+      : [];
+    const solidObstacles = [...obstacles, ...kanalPrisonWalls];
+    const kanalFortPolygons = isKanalField(field.id)
+      ? Object.values(bases).map(base => kanalFortPolygon(base, fortWidth, fortHeight, fortAnchorY))
+      : [];
+    const kanalFortRects = kanalFortPolygons.flatMap(polygon => polygonToRects(polygon));
+
+
+
     const hasLineOfSight = (a: Player, b: Player) =>
-      !obstacles.some((o) => segmentHitsRect(a, b, o));
+      !solidObstacles.some((o) => segmentHitsRect(a, b, o));
     const hitsObstacle = (x: number, y: number) =>
-      obstacles.some((o) =>
+      solidObstacles.some((o) =>
         pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS),
+      );
+    // The fort core is solid while its capture circle remains walkable. This
+    // prevents walking through the tower but preserves the original base
+    // entry, capture, and return rules.
+    const isInsideFortCore = (x: number, y: number) =>
+      isKanalField(field.id)
+        ? kanalFortRects.some(rect => pointHitsExpandedRect(x, y, rect, PLAYER_COLLISION_RADIUS))
+        : Object.values(bases).some(
+        (base) => Math.hypot(x - base.x, y - base.y) < Math.max(48, fortWidth * (isKanalField(field.id) ? 0.48 : 0.38)),
       );
     const isWaterAt = (x: number, y: number) => {
       if (!waterMaskPixels) return false;
@@ -3807,6 +4049,48 @@ export function BentenganPrototype() {
         waterMaskCanvas.height - 1,
       );
       return waterMaskPixels[(maskY * waterMaskCanvas.width + maskX) * 4] > 127;
+    };
+    const kanalWaterBlocks = (x: number, y: number) => {
+      if (isWaterAt(x, y)) return true;
+      for (let side = 0; side < 16; side++) {
+        const angle = side * Math.PI / 8;
+        if (isWaterAt(x + Math.cos(angle) * PLAYER_COLLISION_RADIUS, y + Math.sin(angle) * PLAYER_COLLISION_RADIUS)) return true;
+      }
+      return false;
+    };
+    const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) => {
+      if (
+        field.id !== 'kanal2' || p.id === '__collision_probe__' ||
+        p.waterEnteredAt || p.state === 'PRISONER' ||
+        now < p.fallSafeUntil || now < p.parkourUntil
+      ) return false;
+      let waterPoint = isWaterAt(x, y) ? { x, y } : null;
+      for (let side = 0; !waterPoint && side < 16; side++) {
+        const angle = side * Math.PI / 8;
+        const sample = {
+          x: x + Math.cos(angle) * PLAYER_COLLISION_RADIUS,
+          y: y + Math.sin(angle) * PLAYER_COLLISION_RADIUS,
+        };
+        if (isWaterAt(sample.x, sample.y)) waterPoint = sample;
+      }
+      if (!waterPoint) return false;
+      p.x = waterPoint.x;
+      p.y = waterPoint.y;
+      p.lastX = p.x;
+      p.lastY = p.y;
+      p.vx = 0;
+      p.vy = 0;
+      p.action = undefined;
+      p.actionUntil = 0;
+      p.waterEnteredAt = now;
+      p.waterFallUntil = now + 720;
+      burst(p.x, p.y + 7, '#65e9ff', 12);
+      if (p.controlled) {
+        clearMouse();
+        gameplayAudio.play('dash', 0.38);
+        log('TERJATUH KE AIR · kembali ke benteng sebentar lagi.');
+      }
+      return true;
     };
     const isNearWater = (x: number, y: number) =>
       field.waterMask
@@ -3823,32 +4107,55 @@ export function BentenganPrototype() {
     const recoverFromObstacle = (p: Player, now: number) => {
       if (
         p.state === 'PRISONER' ||
+        (field.id === 'kanal2' && p.waterEnteredAt) ||
         now < p.parkourUntil ||
         !hitsObstacle(p.x, p.y)
       )
         return;
       const recovered = depenetrateFromRects(
         p,
-        obstacles,
+        solidObstacles,
         PLAYER_COLLISION_RADIUS,
         { minX: 34, maxX: worldWidth - 34, minY: 58, maxY: worldHeight - 32 },
       );
       p.x = recovered.x;
       p.y = recovered.y;
     };
-    const blocked = (x: number, y: number, p: Player, now: number) => {
-      if (now >= p.parkourUntil && hitsObstacle(x, y)) return true;
+    const blocked = (
+      x: number,
+      y: number,
+      p: Player,
+      now: number,
+    ) => {
+      // The canal's actual water mask is the collision source for its stone
+      // banks. This blocks the visible canal instead of inventing rectangles
+      // on clear ground, and bridges remain open because they are not water.
+      if (
+        isKanalField(field.id) &&
+        kanalWaterBlocks(x, y)
+      )
+        return true;
+      const entersFortCore =
+        isKanalField(field.id) &&
+        !isInsideFortCore(p.x, p.y) &&
+        isInsideFortCore(x, y);
+
+      if (
+        now >= p.parkourUntil &&
+        (hitsObstacle(x, y) || entersFortCore)
+      )
+        return true;
       if (
         p.state === 'IN_BASE' &&
         p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance(p, bases[p.team]) < BASE_RADIUS &&
-        distance({ x, y }, bases[p.team]) >= BASE_RADIUS
+        distance(p, bases[p.team]) < baseRadius &&
+        distance({ x, y }, bases[p.team]) >= baseRadius
       )
         return true;
       for (const team of ['blue', 'red'] as Team[]) {
         const entering =
-          distance({ x, y }, bases[team]) < BASE_RADIUS &&
-          distance(p, bases[team]) >= BASE_RADIUS;
+          distance({ x, y }, bases[team]) < baseRadius &&
+          distance(p, bases[team]) >= baseRadius;
         if (entering && p.team !== team && fortOccupant(team, p.id))
           return true;
       }
@@ -3862,26 +4169,36 @@ export function BentenganPrototype() {
       dt: number,
       now: number,
     ) => {
+      if (field.id === 'kanal2' && p.waterEnteredAt) {
+        p.vx = 0;
+        p.vy = 0;
+        return;
+      }
       const len = Math.hypot(dx, dy) || 1;
       p.vx = (dx / len) * speed;
       p.vy = (dy / len) * speed;
       const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
         ny = clamp(p.y + p.vy * dt, 58, worldHeight - 32);
       if (!blocked(nx, p.y, p, now)) p.x = nx;
+      else if (beginKanal2WaterFall(p, now, nx, p.y)) return;
       if (!blocked(p.x, ny, p, now)) p.y = ny;
+      else beginKanal2WaterFall(p, now, p.x, ny);
     };
     const spacingPositionAllowed = (p: Player, x: number, y: number) => {
-      if (hitsObstacle(x, y)) return false;
+      if (isKanalField(field.id) && (
+        kanalWaterBlocks(x, y) || (!isInsideFortCore(p.x, p.y) && isInsideFortCore(x, y))
+      )) return false;
+      if ((isKanalField(field.id) && isWaterAt(x, y)) || hitsObstacle(x, y)) return false;
       if (
         p.state === 'IN_BASE' &&
         p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance({ x, y }, bases[p.team]) >= BASE_RADIUS
+        distance({ x, y }, bases[p.team]) >= baseRadius
       )
         return false;
       return true;
     };
     const resolvePlayerSpacing = (now: number) => {
-      const visible = players.filter((p) => p.state !== 'PRISONER');
+      const visible = players.filter((p) => p.state !== 'PRISONER' && !(field.id === 'kanal2' && p.waterEnteredAt));
       for (let i = 0; i < visible.length; i++)
         for (let j = i + 1; j < visible.length; j++) {
           const a = visible[i],
@@ -4019,6 +4336,8 @@ export function BentenganPrototype() {
       p.actionUntil = 0;
       p.fallSafeUntil = now + 1800;
       p.fallNoticeUntil = now + 1500;
+      p.waterEnteredAt = 0;
+      p.waterFallUntil = 0;
       burst(p.x, p.y, '#60e6ff', 14);
       if (p.controlled) {
         beep(210, 0.16);
@@ -4027,6 +4346,17 @@ export function BentenganPrototype() {
     };
     const riverFallCheck = (now: number) => {
       if (!field.waterMask || !waterMaskPixels) return;
+      if (field.id === 'kanal2') {
+        players.forEach((p) => {
+          if (p.waterEnteredAt) {
+            if (now - p.waterEnteredAt >= KANAL2_FALL_RESET_MS) resetFallenPlayer(p, now);
+            return;
+          }
+          if (p.state === 'PRISONER' || now < p.parkourUntil || now < p.fallSafeUntil || !isWaterAt(p.x, p.y)) return;
+          beginKanal2WaterFall(p, now, p.x, p.y);
+        });
+        return;
+      }
       players.forEach((p) => {
         if (
           p.state === 'PRISONER' ||
@@ -4111,7 +4441,7 @@ export function BentenganPrototype() {
           .filter((p) => p.state === 'PRISONER' && p.prisonOwner === owner)
           .forEach((p, i) => {
             p.prisonIndex = i;
-            if (field.id === 'kanal') {
+            if (field.id === 'kanal' || isKanalField(field.id)) {
               const column = i % 3;
               const row = Math.floor(i / 3);
               const leftToRight = prison.x + 34 + column * ((prison.w - 68) / 2);
@@ -4251,6 +4581,7 @@ export function BentenganPrototype() {
             );
           if (
             a.team === b.team ||
+            (field.id === 'kanal2' && (a.waterEnteredAt || b.waterEnteredAt)) ||
             !hasLineOfSight(a, b) ||
             now < a.parkourUntil ||
             now < b.parkourUntil
@@ -4298,7 +4629,7 @@ export function BentenganPrototype() {
     };
     const rescueCheck = (now: number) => {
       players
-        .filter((p) => p.state === 'ACTIVE')
+        .filter((p) => p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
         .forEach((rescuer) => {
           const held = players
             .filter((p) => p.team === rescuer.team && p.state === 'PRISONER')
@@ -4349,6 +4680,7 @@ export function BentenganPrototype() {
         .filter(
           (p) =>
             p.state === 'ACTIVE' &&
+            !(field.id === 'kanal2' && p.waterEnteredAt) &&
             p.boost < CHARACTER_BY_ID[p.characterId].boost,
         )
         .forEach((p) => {
@@ -4377,9 +4709,9 @@ export function BentenganPrototype() {
       now: number,
       exitCandidates: Player[],
     ) => {
-      if (p.state === 'PRISONER') return;
+      if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) return;
       const stats = CHARACTER_BY_ID[p.characterId],
-        insideOwn = distance(p, bases[p.team]) < BASE_RADIUS,
+        insideOwn = distance(p, bases[p.team]) < baseRadius,
         maxBoost = stats.boost,
         chargeTime = stats.baseChargeTime;
       const contested = Boolean(fortOccupant(p.team));
@@ -4404,7 +4736,7 @@ export function BentenganPrototype() {
               (q) =>
                 q.team === p.team &&
                 q.state === 'IN_BASE' &&
-                distance(q, bases[q.team]) < BASE_RADIUS,
+                distance(q, bases[q.team]) < baseRadius,
             )
             .sort(
               (a, b) =>
@@ -4428,7 +4760,7 @@ export function BentenganPrototype() {
           ) {
             p.x =
               bases[p.team].x +
-              (p.team === 'blue' ? BASE_RADIUS + 5 : -BASE_RADIUS - 5);
+              (p.team === 'blue' ? baseRadius + 5 : -baseRadius - 5);
             exitCandidates.push(p);
             log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
           }
@@ -4438,13 +4770,13 @@ export function BentenganPrototype() {
       }
       if (
         p.state === 'ACTIVE' &&
-        distance(p, bases[other(p.team)]) < BASE_RADIUS
+        distance(p, bases[other(p.team)]) < baseRadius
       ) {
         const defending = players.some(
           (q) =>
             q.team !== p.team &&
             q.state === 'ACTIVE' &&
-            distance(q, bases[other(p.team)]) < BASE_RADIUS,
+            distance(q, bases[other(p.team)]) < baseRadius,
         );
         p.fortCharge = defending ? 0 : p.fortCharge + dt;
         if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
@@ -4554,6 +4886,7 @@ export function BentenganPrototype() {
           ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
           ultimateMeter >= 100 &&
           me.state === 'ACTIVE' &&
+          !(field.id === 'kanal2' && me.waterEnteredAt) &&
           now >= me.parkourUntil &&
           (!me.action || now >= me.actionUntil);
         if (actionAvailable) {
@@ -4661,6 +4994,7 @@ export function BentenganPrototype() {
         boostKey &&
         (!boostLatch || mouseBoost) &&
         me.boost > 0 &&
+        !(field.id === 'kanal2' && me.waterEnteredAt) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       )
         boostBurstUntil = now + GAME_RULES.boostDurationMs;
@@ -4669,6 +5003,7 @@ export function BentenganPrototype() {
       const boosting =
         now < boostBurstUntil &&
         me.boost > 0 &&
+        !(field.id === 'kanal2' && me.waterEnteredAt) &&
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE');
       if (boosting) {
@@ -4687,6 +5022,7 @@ export function BentenganPrototype() {
         !parkourLatch &&
         me.boost >= parkourCost &&
         now > me.parkourUntil &&
+        !(field.id === 'kanal2' && me.waterEnteredAt) &&
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       ) {
@@ -4758,7 +5094,7 @@ export function BentenganPrototype() {
         if (mouseStuckTime > .6) clearMouse();
       }
       players.slice(1).forEach((p) => {
-        if (p.state === 'PRISONER') {
+        if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) {
           p.vx = 0;
           p.vy = 0;
           return;
@@ -4777,6 +5113,7 @@ export function BentenganPrototype() {
         const boostThreshold = AI_BOOST_THRESHOLD;
         const boostAi =
           p.state === 'ACTIVE' &&
+          !(field.id === 'kanal2' && p.waterEnteredAt) &&
           p.boost > 10 &&
           far &&
           Math.sin(now / 950 + p.aiSeed) > boostThreshold;
@@ -4821,7 +5158,7 @@ export function BentenganPrototype() {
       if (boosting && !wasDashing && movingForSound) gameplayAudio.play('dash');
       wasDashing = Boolean(boosting && movingForSound);
       if (me.state === 'PRISONER') gameplayAudio.play('prison');
-      const inEnemyFort = me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < BASE_RADIUS;
+      const inEnemyFort = me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < baseRadius;
       if (inEnemyFort && !wasInEnemyFort) gameplayAudio.play('fort-enter');
       wasInEnemyFort = inEnemyFort;
       const exitCandidates: Player[] = [];
@@ -4884,7 +5221,8 @@ export function BentenganPrototype() {
       opacity = 1,
     ) => {
       const source = FIELD_OBJECT_ATLAS.assets[asset];
-      if (!fieldObjectAtlas.complete || !fieldObjectAtlas.naturalWidth) {
+      const atlas = asset.startsWith('kanalNusa') ? kanalObjectAtlas : fieldObjectAtlas;
+      if (!atlas?.complete || !atlas.naturalWidth) {
         target.fillStyle = 'rgba(28,43,31,.34)';
         roundedOn(target, x, y, w, h, Math.min(12, w / 5));
         target.fill();
@@ -4894,12 +5232,19 @@ export function BentenganPrototype() {
       target.globalAlpha = opacity;
       target.imageSmoothingEnabled = true;
       target.imageSmoothingQuality = 'high';
+      if (isKanalField(field.id)) {
+        // Atlas sprites have transparent edges, so a shadow follows the true
+        // silhouette rather than drawing a rectangular backdrop.
+        target.shadowColor = 'rgba(5, 16, 12, .46)';
+        target.shadowBlur = 4;
+        target.shadowOffsetY = 5;
+      }
       if (flip) {
         target.translate(x * 2 + w, 0);
         target.scale(-1, 1);
       }
       target.drawImage(
-        fieldObjectAtlas,
+        atlas,
         source.x,
         source.y,
         source.width,
@@ -4993,8 +5338,62 @@ export function BentenganPrototype() {
         target.fillStyle = primaryPattern ?? '#7f815a';
         target.fillRect(0, 0, worldWidth, worldHeight);
       }
-      target.fillStyle = 'rgba(19,27,21,.08)';
+      target.fillStyle = isKanalField(field.id)
+        ? 'rgba(19,27,21,.03)'
+        : 'rgba(19,27,21,.08)';
       target.fillRect(0, 0, worldWidth, worldHeight);
+      // The authored reference already contains its finished plaza. Extra
+      // runtime guide rectangles make the ground look boxed-in at close range.
+      if (isKanalField(field.id) && field.paths.length > 0) {
+        // The cleared centre planters become quiet, walkable mini-plazas.
+        // This is terrain detail only: it deliberately adds no obstruction.
+        const scaleX = worldWidth / (field.designWidth ?? worldWidth);
+        const scaleY = worldHeight / (field.designHeight ?? worldHeight);
+        const plazaZones = [
+          { x: 568, y: 378, w: 202, h: 76 },
+          { x: 930, y: 378, w: 202, h: 76 },
+        ];
+        target.save();
+        plazaZones.forEach((zone) => {
+          const x = Math.round(zone.x * scaleX);
+          const y = Math.round(zone.y * scaleY);
+          const w = Math.round(zone.w * scaleX);
+          const h = Math.round(zone.h * scaleY);
+          const radius = Math.max(12, Math.min(w, h) * 0.22);
+          target.fillStyle = 'rgba(91, 73, 44, .14)';
+          roundedOn(target, x, y, w, h, radius);
+          target.fill();
+          target.strokeStyle = 'rgba(53, 43, 30, .16)';
+          target.lineWidth = 1;
+          roundedOn(target, x, y, w, h, radius);
+          target.stroke();
+
+          // A few low-contrast stones make the grass-to-plaza transition feel
+          // grounded without drawing a rigid grid or a visible white box.
+          const pebbles = [
+            [0.2, 0.3, 3],
+            [0.53, 0.68, 2],
+            [0.82, 0.38, 3],
+            [0.38, 0.47, 2],
+          ];
+          target.fillStyle = 'rgba(54, 44, 30, .17)';
+          pebbles.forEach(([px, py, size]) => {
+            target.beginPath();
+            target.ellipse(
+              x + w * px,
+              y + h * py,
+              size * scaleX,
+              size * 0.65 * scaleY,
+              -0.25,
+              0,
+              Math.PI * 2,
+            );
+            target.fill();
+          });
+        });
+        target.restore();
+      }
+
       field.paths.forEach((pathConfig) => {
         const pattern = target.createPattern(
           groundTileCanvas(pathConfig.tile),
@@ -5026,18 +5425,24 @@ export function BentenganPrototype() {
         );
         target.stroke();
       });
-      target.strokeStyle = 'rgba(255,255,255,.13)';
-      target.lineWidth = 2;
-      target.setLineDash([16, 18]);
-      [worldY(296), worldY(506)].forEach((y) => {
-        target.beginPath();
-        target.moveTo(worldX(238), y);
-        target.lineTo(worldWidth - worldX(238), y);
-        target.stroke();
-      });
-      target.setLineDash([]);
+      if (!isKanalField(field.id)) {
+        target.strokeStyle = 'rgba(255,255,255,.13)';
+        target.lineWidth = 2;
+        target.setLineDash([16, 18]);
+        [worldY(296), worldY(506)].forEach((y) => {
+          target.beginPath();
+          target.moveTo(worldX(238), y);
+          target.lineTo(worldWidth - worldX(238), y);
+          target.stroke();
+        });
+        target.setLineDash([]);
+      }
 
       const drawSceneryLayer = (underlay: boolean) => {
+        // Kanal's raised props are drawn at native atlas resolution on the
+        // live canvas below. Baking them into the scaled ground and drawing
+        // them again at close range caused soft/doubled silhouettes.
+        if (isKanalField(field.id) && !underlay) return;
         const scenery = [
           ...field.decorations
             .filter((item) => Boolean(item.underlay) === underlay)
@@ -5055,7 +5460,7 @@ export function BentenganPrototype() {
                   item.opacity,
                 ),
             })),
-          ...obstacles
+          ...visualObstacles
             .filter(
               (item) =>
                 !item.hidden && Boolean(item.underlay) === underlay,
@@ -5080,34 +5485,35 @@ export function BentenganPrototype() {
       // Border and perimeter art belongs below gameplay-critical structures.
       drawSceneryLayer(true);
 
-      (['blue', 'red'] as Team[]).forEach((team) => {
-        const b = bases[team],
-          color = TEAM_COLOR[team];
-        target.fillStyle = `${color}20`;
-        target.beginPath();
-        target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
-        target.fill();
-        target.strokeStyle = `${color}68`;
-        target.lineWidth = 3;
-        target.beginPath();
-        target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
-        target.stroke();
-        const fortAsset: FieldAssetId =
-          team === 'blue' ? 'fortRed' : 'fortGreen';
-        if (!field.structuresInBackground)
-          drawFieldAsset(
-            target,
-            fortAsset,
-            b.x - fortWidth / 2,
-            b.y - fortAnchorY,
-            fortWidth,
-            fortHeight,
-            false,
-            0.96,
-          );
-      });
+      if (!isKanalField(field.id))
+        (['blue', 'red'] as Team[]).forEach((team) => {
+          const b = bases[team],
+            color = TEAM_COLOR[team];
+          target.fillStyle = `${color}20`;
+          target.beginPath();
+          target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
+          target.fill();
+          target.strokeStyle = `${color}68`;
+          target.lineWidth = 3;
+          target.beginPath();
+          target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
+          target.stroke();
+          const fortAsset: FieldAssetId =
+            team === 'blue' ? 'fortRed' : 'fortGreen';
+          if (!field.structuresInBackground && !field.basesInBackground)
+            drawFieldAsset(
+              target,
+              fortAsset,
+              b.x - fortWidth / 2,
+              b.y - fortAnchorY,
+              fortWidth,
+              fortHeight,
+              false,
+              0.96,
+            );
+        });
 
-      if (!field.structuresInBackground)
+      if (!field.structuresInBackground && !isKanalField(field.id))
         (['blue', 'red'] as Team[]).forEach((team) => {
           const prison = field.prisons[team];
           drawFieldAsset(
@@ -5175,15 +5581,23 @@ export function BentenganPrototype() {
       }
     };
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
-      if (activeCamera === 'overview' || mode !== 'playing') return;
+      if (mode !== 'playing' && !isKanalField(field.id)) return;
+      // Kanal has few props, so draw every one at native atlas resolution in
+      // both cameras. This also prevents props vanishing at the view edge.
+      const showEverything = activeCamera === 'overview' || isKanalField(field.id);
       const radiusSquared = NEAR_FIELD_DETAIL_RADIUS * NEAR_FIELD_DETAIL_RADIUS;
       const isNearby = (x: number, y: number, w: number, h: number) => {
+        if (showEverything) return true;
         const dx = x + w / 2 - me.x,
           dy = y + h / 2 - me.y;
         return dx * dx + dy * dy <= radiusSquared;
       };
       field.decorations.forEach((item) => {
-        if (!item.underlay && isNearby(item.x, item.y, item.w, item.h))
+        if (
+          !item.underlay &&
+          (isKanalField(field.id) || !showEverything) &&
+          isNearby(item.x, item.y, item.w, item.h)
+        )
           drawFieldAsset(
             ctx,
             item.asset,
@@ -5195,8 +5609,9 @@ export function BentenganPrototype() {
             item.opacity,
           );
       });
-      obstacles.forEach((item) => {
+      visualObstacles.forEach((item) => {
         if (
+          (!isKanalField(field.id) && showEverything) ||
           item.hidden ||
           item.underlay ||
           !isNearby(item.x, item.y, item.w, item.h)
@@ -5216,6 +5631,7 @@ export function BentenganPrototype() {
         const base = bases[team];
         if (
           !field.structuresInBackground &&
+          !field.basesInBackground &&
           isNearby(
             base.x - fortWidth / 2,
             base.y - fortAnchorY,
@@ -5264,6 +5680,81 @@ export function BentenganPrototype() {
           item.opacity,
         ),
       );
+    const drawKanalWater = (now: number) => {
+      if (!isKanalField(field.id) || !waterMaskPixels) return;
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 2.3;
+      ctx.strokeStyle = 'rgba(184, 243, 252, .46)';
+      for (const glint of kanalWaterGlints) {
+        const upper = glint.y < worldHeight * 0.36;
+        const lower = glint.y > worldHeight * 0.64;
+        const sideways = upper ? 0.55 : lower ? -0.55 : 0;
+        const dx = glint.x < worldWidth / 2 ? -sideways : sideways;
+        const drift = ((now * 0.018 + glint.phase) % 18) - 9;
+        const x = glint.x + dx * drift;
+        const y = glint.y + drift;
+        if (!isWaterAt(x, y)) continue;
+        ctx.globalAlpha = 0.42 + 0.18 * Math.sin(now / 650 + glint.phase);
+        ctx.beginPath();
+        ctx.moveTo(x - dx * 4, y - 4);
+        ctx.lineTo(x + dx * 4, y + 4);
+        ctx.stroke();
+      }
+      // A translucent falling sheet, bright crest, and downstream foam make
+      // the two canal drops readable even in the overview camera. This is
+      // visual-only; the water mask and movement rules are untouched.
+      const sx = worldWidth / (field.designWidth ?? MAP4_GUIDE_WIDTH);
+      const sy = worldHeight / (field.designHeight ?? MAP4_GUIDE_HEIGHT);
+      for (const drop of [{ y: 94, h: 22 }, { y: 798, h: 34 }]) {
+        const x = (field.id === 'kanal2' ? kanal2X(849) : 849) * sx;
+        const y = drop.y * sy;
+        if (!isWaterAt(x, y + 7 * sy)) continue;
+        const width = 55 * sx;
+        const fallHeight = drop.h * sy;
+        const fallingWater = ctx.createLinearGradient(x, y, x, y + fallHeight);
+        fallingWater.addColorStop(0, 'rgba(226, 253, 255, .8)');
+        fallingWater.addColorStop(0.42, 'rgba(112, 218, 238, .55)');
+        fallingWater.addColorStop(1, 'rgba(42, 143, 193, .2)');
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = fallingWater;
+        ctx.beginPath();
+        ctx.moveTo(x - width * 0.46, y + 2 * sy);
+        ctx.lineTo(x + width * 0.46, y + 2 * sy);
+        ctx.lineTo(x + width * 0.4, y + fallHeight);
+        ctx.lineTo(x - width * 0.4, y + fallHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 0.82;
+        ctx.lineWidth = 3.2 * sx;
+        ctx.strokeStyle = 'rgba(239, 255, 255, .9)';
+        ctx.beginPath();
+        ctx.ellipse(x, y, width / 2, 4 * sy, 0, 0, Math.PI);
+        ctx.stroke();
+        for (let index = -3; index <= 3; index++) {
+          const ribbonX = x + index * 7 * sx;
+          const fall = (now / 28 + index * 11) % fallHeight;
+          ctx.globalAlpha = 0.3 + 0.12 * Math.sin(now / 330 + index);
+          ctx.beginPath();
+          ctx.moveTo(ribbonX, y + 3 * sy + fall * 0.42);
+          ctx.lineTo(ribbonX + 1.5 * sx, y + 4 * sy + fall);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 0.62 + 0.08 * Math.sin(now / 260);
+        ctx.beginPath();
+        ctx.ellipse(x, y + fallHeight, width * 0.43, 5 * sy, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let bubble = -2; bubble <= 2; bubble++) {
+          const bob = Math.sin(now / 310 + bubble * 1.7) * 2 * sy;
+          ctx.globalAlpha = 0.38 + 0.12 * Math.sin(now / 270 + bubble);
+          ctx.beginPath();
+          ctx.arc(x + bubble * 10 * sx, y + fallHeight + 6 * sy + bob, 2.6 * sx, 0, Math.PI * 2);
+          ctx.fillStyle = '#e7fcff';
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    };
     const drawPrisonOverlays = (now: number) => {
       if (field.structuresInBackground) return;
       (['blue', 'red'] as Team[]).forEach((team) => {
@@ -5288,22 +5779,58 @@ export function BentenganPrototype() {
       ctx.lineWidth = occupant ? 7 : 4;
       ctx.setLineDash(occupant ? [3, 5] : [8, 7]);
       ctx.beginPath();
-      ctx.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, baseRadius, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
+      const baseLabelY = isKanalField(field.id) ? b.y + baseRadius + 16 : b.y + 130;
       ctx.fillStyle = '#fff3d0';
       ctx.font = '800 10px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(
         team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU',
         b.x,
-        b.y + 130,
+        baseLabelY,
       );
       if (occupant) {
         ctx.fillStyle = '#f5cf45';
         ctx.font = '900 9px Arial';
-        ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, b.y + 144);
+        ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, baseLabelY + 14);
       }
+    };
+    let debugLayer: HTMLCanvasElement | null = null;
+    let debugWaterSource: Uint8ClampedArray | null = null;
+    const drawColliderDebug = () => {
+      if (!debugColliders || (!isKanalField(field.id))) return;
+      if (!debugLayer || debugWaterSource !== waterMaskPixels) {
+        debugWaterSource = waterMaskPixels;
+        debugLayer = document.createElement('canvas');
+        debugLayer.width = Math.ceil(worldWidth);
+        debugLayer.height = Math.ceil(worldHeight);
+        const layer = debugLayer.getContext('2d')!;
+        layer.fillStyle = '#fff';
+        if (waterMaskPixels) layer.drawImage(waterMaskCanvas, 0, 0, worldWidth, worldHeight);
+        for (const box of [...solidObstacles, ...kanalFortRects]) layer.fillRect(box.x, box.y, box.w, box.h);
+        layer.fillRect(0, 0, 34, worldHeight);
+        layer.fillRect(worldWidth-34, 0, 34, worldHeight);
+        layer.fillRect(0, 0, worldWidth, 58);
+        layer.fillRect(0, worldHeight-32, worldWidth, 32);
+        const pixels = layer.getImageData(0, 0, debugLayer.width, debugLayer.height);
+        const solid = new Uint8Array(debugLayer.width * debugLayer.height);
+        for (let i=0; i<solid.length; i++) solid[i] = pixels.data[i*4] > 127 ? 1 : 0;
+        for (let i=0; i<solid.length; i++) {
+          const x=i%debugLayer.width, y=Math.floor(i/debugLayer.width);
+          const edge = solid[i] && (x===0 || y===0 || x===debugLayer.width-1 || y===debugLayer.height-1 ||
+            !solid[i-1] || !solid[i+1] || !solid[i-debugLayer.width] || !solid[i+debugLayer.width]);
+          pixels.data[i*4] = solid[i] ? 255 : 70;
+          pixels.data[i*4+1] = edge ? 242 : solid[i] ? 55 : 220;
+          pixels.data[i*4+2] = edge ? 130 : solid[i] ? 60 : 135;
+          pixels.data[i*4+3] = edge ? 255 : solid[i] ? 105 : 22;
+        }
+        layer.putImageData(pixels, 0, 0);
+      }
+      ctx.save();
+      ctx.drawImage(debugLayer, 0, 0, worldWidth, worldHeight);
+      ctx.restore();
     };
     const drawRefill = (item: Refill, now: number) => {
       const animation: FieldAnimatedId =
@@ -5339,10 +5866,23 @@ export function BentenganPrototype() {
     const drawPlayer = (p: Player, me: Player, now: number) => {
       const color = TEAM_COLOR[p.team],
         outline = relationColor(p, me, now),
-        bob = now < p.parkourUntil ? -15 : 0;
+        sinking = field.id === 'kanal2' && p.waterEnteredAt > 0,
+        waterFall = now < p.waterFallUntil,
+        fallProgress = sinking
+          ? clamp((now - p.waterEnteredAt) / 720, 0, 1)
+          : waterFall ? 1 - (p.waterFallUntil - now) / 720 : 0,
+        bob = now < p.parkourUntil
+          ? -15
+          : waterFall
+            ? Math.sin(fallProgress * Math.PI / 2) * 12
+            : 0;
       const stats = CHARACTER_BY_ID[p.characterId],
         image = getSpriteImage(p.characterId),
         speed = Math.hypot(p.vx, p.vy);
+      const inWater =
+        p.state !== 'PRISONER' &&
+        now >= p.parkourUntil &&
+        isWaterAt(p.x, p.y);
       const animation = characterAnimationMapping(p.characterId);
       // Visual-only roster proportions; keep physics and the foot anchor unchanged.
       const headOffset = 74 * (stats.visualScale - 1);
@@ -5461,7 +6001,7 @@ export function BentenganPrototype() {
         mirror = series.mirror;
       }
 
-      if (p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
+      if (!sinking && p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
         const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
         ctx.save();
         ctx.globalAlpha = 0.7;
@@ -5479,6 +6019,7 @@ export function BentenganPrototype() {
       }
 
       if (
+        !sinking &&
         p.state === 'ACTIVE' &&
         p.team === me.team &&
         now < ultimateBuffUntil
@@ -5509,7 +6050,7 @@ export function BentenganPrototype() {
         ctx.restore();
       }
 
-      if (now < p.ultimateShieldUntil) {
+      if (!sinking && now < p.ultimateShieldUntil) {
         const pulse = 31 + Math.sin(now / 90 + p.aiSeed) * 3;
         ctx.save();
         ctx.globalAlpha = 0.22;
@@ -5526,7 +6067,7 @@ export function BentenganPrototype() {
         ctx.restore();
       }
 
-      if (sprinting && dust.complete && dust.naturalWidth) {
+      if (!sinking && sprinting && dust.complete && dust.naturalWidth) {
         const dustColumn = Math.floor(now / 78) % 4;
         ctx.save();
         ctx.globalAlpha = 0.58;
@@ -5537,6 +6078,43 @@ export function BentenganPrototype() {
         ctx.drawImage(dust, dustColumn * 256, 0, 256, 192, -78, -29, 92, 69);
         ctx.restore();
       }
+      if (inWater) {
+        const ripple = 19 + Math.sin(now / 130 + p.aiSeed) * 3;
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#36c8f0';
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y + 12, ripple + 7, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.86;
+        ctx.strokeStyle = '#b8f8ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y + 12, ripple, 6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.48;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y + 12, ripple + 12, 10, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        if (waterFall) {
+          ctx.globalAlpha = 0.86 - fallProgress * 0.34;
+          ctx.lineWidth = 3;
+          for (const offset of [-13, 0, 13]) {
+            ctx.beginPath();
+            ctx.moveTo(p.x + offset, p.y + 11);
+            ctx.quadraticCurveTo(
+              p.x + offset + (offset ? -offset / 2 : 0),
+              p.y - 11 - Math.sin(fallProgress * Math.PI) * 13,
+              p.x + offset / 2,
+              p.y - 2,
+            );
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+      ctx.save();
+      if (sinking) ctx.globalAlpha = Math.max(0, 1 - fallProgress);
       ctx.fillStyle = 'rgba(0,0,0,.34)';
       ctx.beginPath();
       ctx.ellipse(p.x, p.y + 15, 22 * stats.visualScale, 8, 0, 0, Math.PI * 2);
@@ -5567,6 +6145,9 @@ export function BentenganPrototype() {
           width = kakaUltimateActive
             ? 238 * stats.visualScale
             : (height * frame.width) / frame.height;
+        const fallScale = sinking ? 1 - fallProgress * 0.8 : 1;
+        const drawHeight = height * fallScale;
+        const drawWidth = width * fallScale;
         ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
@@ -5580,10 +6161,10 @@ export function BentenganPrototype() {
           frame.y,
           frame.width,
           frame.height,
-          p.x - width / 2,
-          p.y + 18 - height + bob,
-          width,
-          height,
+          p.x - drawWidth / 2,
+          p.y + 18 - drawHeight + bob,
+          drawWidth,
+          drawHeight,
         );
         ctx.restore();
       } else {
@@ -5591,10 +6172,23 @@ export function BentenganPrototype() {
         ctx.strokeStyle = outline;
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(p.x, p.y - 2 + bob, 14, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y - 2 + bob, 14 * (sinking ? 1 - fallProgress * 0.8 : 1), 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
       }
+      ctx.restore();
+      if (inWater) {
+        // A waterline over the lower body makes the character feel submerged,
+        // while the ripple below communicates that movement is still possible.
+        ctx.save();
+        ctx.globalAlpha = 0.42;
+        ctx.fillStyle = '#159cc5';
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y + 9 + bob, 19 * stats.visualScale, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      if (sinking) return;
       if (now < p.ultimateShieldUntil) {
         const shieldX = p.x - 24;
         const shieldY = p.y - 49 - headOffset + bob;
@@ -5661,6 +6255,11 @@ export function BentenganPrototype() {
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
       ctx.fillText(label, p.x, p.y + 35);
+      if (inWater) {
+        ctx.fillStyle = '#b8f8ff';
+        ctx.font = '900 7px Arial';
+        ctx.fillText('AIR DALAM · PARKOUR', p.x, p.y + 49);
+      }
       if (p.state === 'ACTIVE') {
         ctx.fillStyle = '#141a15';
         ctx.beginPath();
@@ -5748,6 +6347,16 @@ export function BentenganPrototype() {
         ? clamp(me.y, halfH, worldHeight - halfH)
         : worldHeight / 2;
       view = { x: camX, y: camY, width: cw, height: ch, scale };
+      if (isKanalField(field.id) && !followsPlayer) {
+        // Contain-fitting is already correct. Letterboxing is necessary when
+        // the viewport and map ratios differ; give it an intentional matte.
+        ctx.fillStyle = '#14211c';
+        ctx.fillRect(0, 0, cw, ch);
+        const mapLeft=(cw-worldWidth*scale)/2, mapTop=(ch-worldHeight*scale)/2;
+        ctx.strokeStyle='rgba(210,195,143,.32)';
+        ctx.lineWidth=1;
+        ctx.strokeRect(mapLeft-1.5, mapTop-1.5, worldWidth*scale+3, worldHeight*scale+3);
+      }
       if (scene3d) {
         try {
           for (const p of players) scene3d.updateActor(p.id, p.x, p.y, target => {
@@ -5767,6 +6376,7 @@ export function BentenganPrototype() {
       ctx.translate(-camX, -camY);
       if (selectedFieldId !== 'kampung3d' || mode !== 'playing') {
         drawMap();
+        drawKanalWater(now);
         drawNearbyFieldDetails(me, activeCamera);
       }
       drawBase('blue');
@@ -5776,6 +6386,7 @@ export function BentenganPrototype() {
         ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
         ctx.beginPath(); ctx.arc(target.x, target.y, 9, 0, Math.PI * 2); ctx.stroke();
       }
+      drawColliderDebug();
       if (mode === 'playing') {
         drawFieldAnimations(now);
         refills.forEach((item) => drawRefill(item, now));
@@ -5982,6 +6593,7 @@ export function BentenganPrototype() {
       const me = players[0], now = performance.now();
       if (event.pointerType !== 'mouse' || ![0, 2].includes(event.button) || mode !== 'playing' ||
         phase !== 'PLAYING' || paused || !['ACTIVE', 'IN_BASE'].includes(me.state) ||
+        (field.id === 'kanal2' && me.waterEnteredAt > 0) ||
         players.some(player => player.action === 'ultimate' && now < player.actionUntil)) return;
       event.preventDefault();
       const shell = canvas.closest('.playing-shell');
@@ -6005,6 +6617,54 @@ export function BentenganPrototype() {
     window.addEventListener('blur', clearMouse);
     document.addEventListener('visibilitychange', stopWhenHidden);
     document.addEventListener('pointerdown', stopForMenu);
+    let collisionToggle: HTMLButtonElement | null = null;
+    const toggleCollision = () => {
+      debugColliders = !debugColliders;
+      if (collisionToggle) collisionToggle.textContent = `COLLISION ${debugColliders ? 'ON' : 'OFF'} · F8`;
+    };
+    const collisionKey = (event: KeyboardEvent) => {
+      if (event.key === 'F8') { event.preventDefault(); toggleCollision(); }
+    };
+    const debugHost = window as Window & { __kanalCollision?: unknown };
+    if (development && isKanalField(field.id)) {
+      collisionToggle = document.createElement('button');
+      collisionToggle.type = 'button';
+      collisionToggle.textContent = `COLLISION ${debugColliders ? 'ON' : 'OFF'} · F8`;
+      collisionToggle.title = 'Development: merah = solid, hijau = terbuka, kuning = batas. F8 untuk toggle.';
+      collisionToggle.style.cssText = 'position:absolute;z-index:50;left:12px;top:100px;padding:7px 10px;color:#fff0bb;background:#19241fee;border:1px solid #e5cc7e;border-radius:5px;font:700 10px monospace;cursor:pointer';
+      collisionToggle.addEventListener('click', toggleCollision);
+      canvas.parentElement?.appendChild(collisionToggle);
+      window.addEventListener('keydown', collisionKey);
+      // Development probes use a detached player and the actual move/blocked
+      // functions. They never change the live actors, timers, or game rules.
+      debugHost.__kanalCollision = {
+        geometry: () => ({
+          width: worldWidth, height: worldHeight, radius: PLAYER_COLLISION_RADIUS,
+          props: visualObstacles.map((item, index) => ({ id: `${item.asset}-${index}`, polygons: kanalObjectPolygons(item) })),
+          rects: solidObstacles,
+          forts: kanalFortPolygons,
+          prisons: field.prisons,
+          prisonWalls: kanalPrisonWalls,
+          bridges: field.decorations.filter(item => item.asset === 'kanalNusaBridgeH'),
+          waterReady: Boolean(waterMaskPixels),
+        }),
+        blocked: (x: number, y: number) => hitsObstacle(x,y) || isInsideFortCore(x,y) || kanalWaterBlocks(x,y),
+        water: isWaterAt,
+        probe: (from: {x:number;y:number}, to: {x:number;y:number}, team: Team = players[0].team) => {
+          const probe: Player = { ...players[0], ...from, team, id: '__collision_probe__', state: 'ACTIVE', parkourUntil: 0, baseCharge: 1e6 };
+          const trace = [{ x: probe.x, y: probe.y }];
+          const steps = Math.ceil(Math.hypot(to.x-from.x,to.y-from.y)/2)+12;
+          for (let i=0;i<steps;i++) {
+            const dx=to.x-probe.x, dy=to.y-probe.y;
+            if (Math.hypot(dx,dy)<1.9) break;
+            move(probe,dx,dy,120,1/60,performance.now());
+            trace.push({x:probe.x,y:probe.y});
+          }
+          return trace;
+        },
+        toggle: toggleCollision,
+      };
+    }
     raf = requestAnimationFrame(loop);
     return () => {
       canvas.removeEventListener('pointerdown', pointerDown);
@@ -6020,9 +6680,15 @@ export function BentenganPrototype() {
       audio?.close();
       window.clearTimeout(bannerTimeout);
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
+      kanalObjectAtlas?.removeEventListener('load', invalidateStaticMap);
       fieldGroundAtlas.removeEventListener('load', invalidateStaticMap);
       fieldBackground?.removeEventListener('load', invalidateStaticMap);
+
       fieldWaterMask?.removeEventListener('load', cacheWaterMask);
+
+      collisionToggle?.remove();
+      window.removeEventListener('keydown', collisionKey);
+      if (isKanalField(field.id)) delete debugHost.__kanalCollision;
     };
   }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId]);
 
