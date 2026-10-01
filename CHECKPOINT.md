@@ -5,21 +5,27 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
-- Diperbarui: 2026-09-26
+- State: `COMPLETE` (Sprite Studio 2026-10-01)
+- Diperbarui: 2026-10-01
 - Branch: `main`
 - Commit implementasi terakhir: `8c6502d`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
 
-2026-10-01 ACTIVE: Sprite Studio ingame lokal port 4319. Manifest override per
+2026-10-01 COMPLETE: Sprite Studio ingame lokal port 4319. Manifest override per
 karakter/per slot, 30 slot (run/tag/parkour 8 arah; idle/prisoner/ready/ultimate/
 victory/defeat). Server/editor/compiler + renderer fallback dan preload dibuat.
 Input sheet PNG/GIF/WebP/multi PNG, grid/order/crop, pivot/scale/offset/FPS/mirror.
 Simpan slot, reset fallback, build+uji game, publish dengan monitoring Pages.
-Next: tes node/browser, build, publish implementasi. Dirty milik user: globals.css,
-lib/characters.ts, public/fonts; jangan ikut commit atau menimpa perubahan itu.
+Validasi: 5 tes node PASS, TypeScript PASS, build:pages PASS; browser editor dan
+Build + Uji game PASS, console error kosong. Manifest tetap kosong: tidak ada
+sprite karakter diganti. GIF berlebih ditolak dengan batas yang jelas (128 frame).
+Publikasi: implementasi 16b9e39, merge map/UI terbaru 1179d0e; Pages run
+36859336242 SUCCESS (build + deploy). Server sesi 13901 port 4319 aktif.
+Dirty milik user: globals.css, lib/characters.ts, public/fonts; sudah dikembalikan
+sesudah sync dan tidak ikut publish. Backup stash bernama 'Preserve user font and
+character edits during Sprite Studio sync' masih disimpan untuk pemulihan.
 
 2026-09-26: Kontrol mouse klik kiri HANYA tujuan, kanan boost (revisi terbaru).
 Parkour tetap Shift/tombol mobile. Route A* terhadap collider/water; keyboard
