@@ -84,8 +84,12 @@ async function saveCharacter(){
   if(!entries.length)return;
   const unchecked=entries.filter(([,v])=>!v.reviewed);
   if(unchecked.length)throw new Error(`Periksa dan tandai sudah sesuai terlebih dahulu: ${unchecked.map(([s])=>slotName(s)).join(', ')}`);
-  const result=await api('save-character',{id:id(),clips:Object.fromEntries(entries.map(([s,v])=>[s,v.clip]))});
-  Object.assign(state,result);delete drafts[id()];dirty=false;await loadSlot();message(`${entries.length} arah / animasi diperbarui sekaligus. Karakter lain tidak berubah.`);
+  const character=id();processingState(true);
+  try {
+    const result=await api('save-character',{id:character,clips:Object.fromEntries(entries.map(([s,v])=>[s,v.clip]))});
+    Object.assign(state,result);delete drafts[character];dirty=false;
+  } finally {processingState(false);settings();}
+  await loadSlot();message(`${entries.length} arah / animasi diperbarui sekaligus. Karakter lain tidak berubah.`);
 }
 async function job(publish){await saveCharacter();await api(publish?'publish':'build',{});message('Memulai…');
   const poll=setInterval(async()=>{try{const result=await api('job');message(result.message);if(result.status!=='running'){clearInterval(poll);if(result.url){$('gameLink').href=result.url;$('gameLink').hidden=false;}}}catch(e){clearInterval(poll);message(e.message);}},2000);
