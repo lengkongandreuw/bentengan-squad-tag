@@ -8,7 +8,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 - Revisi UI sederhana: seri/arah + upload/crop + tandai sesuai + update karakter
   batch atomik. Draft hasil proses bertahan saat pindah arah/seri/karakter;
   pengaturan teknis dipindah ke Advanced options. Tes API batch termasuk rollback
-  invalid, revision guard, dan preservasi arah/karakter lain lulus. Publikasi pending.
+  invalid, revision guard, dan preservasi arah/karakter lain lulus. Typecheck/syntax
+  dan uji UI draft/approval/switch karakter lulus tanpa error browser. Commit
+  `d1d3205` dipush; Pages run `36871348889` build/deploy SUCCESS. Server lokal
+  4319 dimuat ulang; pengguna perlu refresh panel. Sprite game tidak diganti.
 
 - Revisi Sprite Studio 2026-10-01: preview upload GIF/gambar langsung, crop visual
   move/resize, koordinat per sel sheet, reset full frame dan guard sebelum Save.
@@ -19,8 +22,9 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 - State: `COMPLETE` (Sprite Studio 2026-10-01)
 - Diperbarui: 2026-10-01
 - Branch: `main`
-- Commit implementasi terakhir: `8c6502d`
-- Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
+- Commit implementasi terakhir: `d1d3205`
+- Perubahan pengguna yang dipertahankan: app/globals.css, lib/characters.ts,
+  public/fonts/ dan aset public/sprite-studio/ yang tidak dirujuk manifest.
 
 ## Tujuan aktif
 

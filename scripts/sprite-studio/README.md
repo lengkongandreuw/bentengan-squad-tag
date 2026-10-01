@@ -75,5 +75,5 @@ tanpa build). Crop visual: seret kotak hijau untuk memindahkan area, atau sudut
 kanan bawah untuk resize. Untuk PNG sheet, isi kolom/baris lalu pilih sel yang
 diperiksa; crop memakai koordinat dalam setiap sel, bukan seluruh sheet.
 Multi-file dapat diperiksa bergantian melalui File sumber. Gunakan seluruh frame
-mereset crop. Setelah mengubah sumber/grid/crop, klik Proses upload & preview
-sebelum Simpan slot. Sumber asli tidak diubah.
+mereset crop. Setelah mengubah sumber/grid/crop, klik Proses & lihat hasil,
+tandai sudah sesuai, lalu update karakter sekaligus. Sumber asli tidak diubah.
