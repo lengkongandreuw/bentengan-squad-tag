@@ -21,6 +21,8 @@ test('sheet slicing preserves padding and source order; invalid crop/frame count
   const a=await compileSprites([file],{columns:2,rows:1,count:2,order:[1,0]});
   assert.equal(a.frames.length,2);assert.equal(a.frames[0].width,40);assert.equal(a.frames[0].height,40);
   const m=await sharp(a.bytes).metadata();assert.equal(m.width,a.width);assert.equal(m.height,a.height);
+  const cropped=await compileSprites([file],{columns:2,rows:1,count:2,crop:{left:3,top:4,width:20,height:18}});
+  assert.equal(cropped.frames.length,2);assert.equal(cropped.frames[0].width,28);assert.equal(cropped.frames[0].height,26);
   await assert.rejects(compileSprites([file],{columns:2,rows:1,count:3}));
   await assert.rejects(compileSprites([file],{crop:{left:50,top:0,width:30,height:30}}));
   await assert.rejects(compileSprites([{data:'INVALID!'}]));

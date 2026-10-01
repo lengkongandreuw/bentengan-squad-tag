@@ -2,6 +2,25 @@ import {ACTIONS,DIRECTIONS,SLOTS,frameAt,spritePlacement} from '/model.js';
 const $=id=>document.getElementById(id),names={run:'Lari',tag:'Tag / menangkap',parkour:'Lompat / parkour',idle:'Idle',prisoner:'Idle tertangkap',ready:'Bersiap awal',ultimate:'Ultimate (opsional)',victory:'Menang',defeat:'Kalah',south:'Depan / bawah ↓',north:'Belakang / atas ↑',west:'Kiri ←',east:'Kanan →',northwest:'Kiri atas ↖',northeast:'Kanan atas ↗',southwest:'Kiri bawah ↙',southeast:'Kanan bawah ↘'};
 let state,clip=null,image=null,legacy=null,dirty=false,playing=true,frame=0,start=performance.now(),uploaded=[],selection='',requestId=0,drag=null;
 const numeric=['fps','scale','x','y','pivotX','pivotY'];
+let sourceUrls=[],sourceTicket=0,sourceWidth=0,sourceHeight=0,crop=null,cropDrag=null,pendingUpload=false;
+function clearSource(){sourceTicket++;sourceUrls.forEach(URL.revokeObjectURL);sourceUrls=[];sourceWidth=sourceHeight=0;crop=null;pendingUpload=false;$('sourceEditor').hidden=true;$('sourceImage').removeAttribute('src');for(const k of ['cropLeft','cropTop'])$(k).value=0;for(const k of ['cropWidth','cropHeight'])$(k).value='';}
+function sourceBounds(){const sheet=uploaded.length===1&&uploaded[0]?.type==='image/png';const columns=sheet?Math.max(1,+$('columns').value||1):1,rows=sheet?Math.max(1,+$('rows').value||1):1;return {width:Math.max(1,Math.floor(sourceWidth/columns)),height:Math.max(1,Math.floor(sourceHeight/rows)),columns,rows};}
+function renderCrop(){
+  if(!sourceWidth)return;
+  const b=sourceBounds(),stage=$('cropStage');
+  stage.style.setProperty('--crop-fit',`${500*b.width/b.height}px`);
+  const factor=stage.clientWidth/b.width;
+  stage.style.height=`${b.height*factor}px`;
+  const cell=Math.max(0,Math.min(b.columns*b.rows-1,+$('sourceCell').value||0));
+  $('sourceCell').max=b.columns*b.rows-1;$('sourceCell').value=cell;
+  const img=$('sourceImage');
+  Object.assign(img.style,{width:`${sourceWidth*factor}px`,height:`${sourceHeight*factor}px`,left:`-${(cell%b.columns)*b.width*factor}px`,top:`-${Math.floor(cell/b.columns)*b.height*factor}px`});
+  const r=crop??{left:0,top:0,width:b.width,height:b.height};
+  Object.assign($('cropBox').style,{left:`${r.left*factor}px`,top:`${r.top*factor}px`,width:`${r.width*factor}px`,height:`${r.height*factor}px`});
+  $('cropInfo').textContent=`Frame ${b.width} × ${b.height} px · potongan ${r.width} × ${r.height} px · (${r.left}, ${r.top})`;
+}
+function setCrop(r){const b=sourceBounds();const left=Math.max(0,Math.min(b.width-1,Math.round(r.left))),top=Math.max(0,Math.min(b.height-1,Math.round(r.top)));crop={left,top,width:Math.max(1,Math.min(b.width-left,Math.round(r.width))),height:Math.max(1,Math.min(b.height-top,Math.round(r.height)))};for(const [key,input] of Object.entries({left:'cropLeft',top:'cropTop',width:'cropWidth',height:'cropHeight'}))$(input).value=crop[key];pendingUpload=true;$('save').disabled=true;renderCrop();}
+async function showSource(){const ticket=++sourceTicket;const index=+$('sourceFile').value||0;sourceWidth=sourceHeight=0;$('sourceImage').src=sourceUrls[index];const loaded=await loadImage(sourceUrls[index]);if(ticket!==sourceTicket)return;sourceWidth=loaded.naturalWidth;sourceHeight=loaded.naturalHeight;if(crop)setCrop(crop);renderCrop();}
 const slot=()=>['run','tag','parkour'].includes($('action').value)?`${$('action').value}.${$('direction').value}`:$('action').value;
 const id=()=>$('character').value;
 const message=s=>{$('status').textContent=s;};
@@ -27,7 +46,7 @@ async function legacyClip(character,s){
 async function loadSlot(){
   const next=`${id()}/${slot()}`;
   if(dirty&&!confirm('Buang draft slot yang belum disimpan?')){const [oldId,oldSlot]=selection.split('/');$('character').value=oldId;$('action').value=oldSlot.split('.')[0];if(oldSlot.includes('.'))$('direction').value=oldSlot.split('.')[1];return;}
-  selection=next;dirty=false;uploaded=[];$('files').value='';$('fileNames').textContent='';
+  selection=next;dirty=false;clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';
   $('direction').disabled=!['run','tag','parkour'].includes($('action').value);refreshSlots();
   $('title').textContent=`${state.roster.find(r=>r.id===id()).name} · ${names[$('action').value]} ${$('direction').disabled?'':names[$('direction').value]}`;
   clip=structuredClone(state.document.characters[id()]?.[slot()]??null);legacy=null;image=null;frame=0;start=performance.now();settings();
@@ -40,12 +59,21 @@ async function loadSlot(){
     message(clip?'Siap mengedit slot ini.':'Slot ini tetap memakai animasi game saat ini. Preview atlas lama hanya referensi; Uji game memakai renderer yang sebenarnya.');
   }catch(e){if(ticket===requestId)message(e.message);}
 }
-async function save(){if(!clip)throw new Error('Proses upload atau salin slot terlebih dahulu.');const result=await api('save',{id:id(),slot:slot(),clip});Object.assign(state,result);dirty=false;refreshSlots();$('origin').textContent='Sprite custom tersimpan';message('Slot disimpan. Slot/karakter lain tidak berubah.');}
+async function save(){if(pendingUpload)throw new Error('Proses upload & preview dahulu agar perubahan crop masuk ke sprite.');if(!clip)throw new Error('Proses upload atau salin slot terlebih dahulu.');const result=await api('save',{id:id(),slot:slot(),clip});Object.assign(state,result);dirty=false;refreshSlots();$('origin').textContent='Sprite custom tersimpan';message('Slot disimpan. Slot/karakter lain tidak berubah.');}
 async function job(publish){if(dirty)await save();await api(publish?'publish':'build',{});message('Memulai…');
   const poll=setInterval(async()=>{try{const result=await api('job');message(result.message);if(result.status!=='running'){clearInterval(poll);if(result.url){$('gameLink').href=result.url;$('gameLink').hidden=false;}}}catch(e){clearInterval(poll);message(e.message);}},2000);
 }
 const safe=fn=>async()=>{try{await fn();}catch(e){message(e.message);}};
-$('files').onchange=async()=>{uploaded=[...$('files').files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));$('fileNames').textContent=uploaded.map(f=>f.name).join('\n');if(uploaded.length>1)$('count').value=uploaded.length;};
+$('files').onchange=safe(async()=>{clearSource();uploaded=[...$('files').files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));$('fileNames').textContent=uploaded.map(f=>f.name).join('\n');if(!uploaded.length)return;if(uploaded.length>1)$('count').value=uploaded.length;sourceUrls=uploaded.map(f=>URL.createObjectURL(f));options($('sourceFile'),uploaded.map((_,i)=>String(i)),i=>uploaded[+i].name);$('sourceCell').value=0;$('sourceEditor').hidden=false;pendingUpload=true;mark();$('save').disabled=true;await showSource();message('Preview sumber siap. Atur crop visual, kemudian Proses upload & preview.');});
+$('sourceFile').onchange=safe(showSource);$('sourceCell').oninput=renderCrop;
+for(const k of ['count','order'])$(k).oninput=()=>{if(uploaded.length){pendingUpload=true;mark();$('save').disabled=true;}};
+for(const k of ['columns','rows'])$(k).oninput=()=>{crop=null;$('cropWidth').value=$('cropHeight').value='';$('cropLeft').value=$('cropTop').value=0;if(uploaded.length){pendingUpload=true;$('save').disabled=true;}renderCrop();};
+for(const k of ['cropLeft','cropTop','cropWidth','cropHeight'])$(k).oninput=()=>{if(sourceWidth){const b=sourceBounds();setCrop({left:+$('cropLeft').value,top:+$('cropTop').value,width:+$('cropWidth').value||b.width,height:+$('cropHeight').value||b.height});}};
+$('resetCrop').onclick=()=>{crop=null;$('cropWidth').value=$('cropHeight').value='';$('cropLeft').value=$('cropTop').value=0;pendingUpload=true;$('save').disabled=true;renderCrop();};
+$('cropBox').onpointerdown=e=>{if(!sourceWidth)return;e.preventDefault();$('cropBox').setPointerCapture(e.pointerId);const b=sourceBounds();cropDrag={x:e.clientX,y:e.clientY,resize:e.target.closest('#cropHandle')!==null,rect:{...(crop??{left:0,top:0,width:b.width,height:b.height})},factor:b.width/$('cropStage').clientWidth};};
+$('cropBox').onpointermove=e=>{if(!cropDrag)return;const d=cropDrag,dx=(e.clientX-d.x)*d.factor,dy=(e.clientY-d.y)*d.factor,b=sourceBounds();setCrop(d.resize?{...d.rect,width:d.rect.width+dx,height:d.rect.height+dy}:{...d.rect,left:Math.max(0,Math.min(b.width-d.rect.width,d.rect.left+dx)),top:Math.max(0,Math.min(b.height-d.rect.height,d.rect.top+dy))});};
+$('cropBox').onpointerup=$('cropBox').onpointercancel=$('cropBox').onlostpointercapture=()=>{cropDrag=null;};
+new ResizeObserver(renderCrop).observe($('cropStage'));
 $('compile').onclick=safe(async()=>{
   if(!uploaded.length)throw new Error('Pilih file dahulu.');
   if(uploaded.reduce((sum,f)=>sum+f.size,0)>30*1024*1024)throw new Error('Total maksimal 30 MB.');
@@ -55,7 +83,7 @@ $('compile').onclick=safe(async()=>{
   if($('cropWidth').value||$('cropHeight').value)options.crop={left:+$('cropLeft').value,top:+$('cropTop').value,width:+$('cropWidth').value,height:+$('cropHeight').value};
   const result=await api('compile',{id:id(),slot:slot(),files,options});const previous=clip;
   clip=result.clip;if(previous)for(const k of [...numeric,'loop','mirror'])clip[k]=previous[k];
-  image=await loadImage('/'+clip.asset);frame=0;start=performance.now();settings();mark();message(`${clip.frames.length} frame siap. Periksa potongan, titik kaki, dan skala sebelum Simpan slot.`);
+  image=await loadImage('/'+clip.asset);pendingUpload=false;frame=0;start=performance.now();settings();mark();message(`${clip.frames.length} frame siap. Periksa potongan, titik kaki, dan skala sebelum Simpan slot.`);
 });
 $('copy').onclick=safe(async()=>{const source=state.document.characters[id()]?.[$('copySource').value];if(!source)throw new Error('Belum ada slot custom tersimpan untuk disalin.');clip=structuredClone(source);image=await loadImage('/'+clip.asset);settings();mark();message('Slot disalin sebagai draft. Atur mirror jika perlu, lalu simpan.');});
 numeric.forEach(k=>{$(k).oninput=()=>{if(clip){clip[k]=+$(k).value;mark();}};});['loop','mirror'].forEach(k=>{$(k).onchange=()=>{if(clip){clip[k]=$(k).checked;mark();}};});

@@ -4,6 +4,10 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Sprite Studio memiliki preview upload langsung dan crop visual drag/resize.
+Crop diterapkan sama setelah grid dipisahkan; Proses upload & preview wajib
+sebelum menyimpan perubahan sumber/crop. File sumber dan karakter lain tetap utuh.
+
 Sprite Studio ingame (2026-10-01): `npm run admin:sprites`, port 4319, terpisah
 dari panel selection 4318. Manifest `config/sprite-studio.json` override per slot
 dan karakter; slot kosong tetap memakai renderer lama. Custom hanya visual:

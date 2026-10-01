@@ -61,3 +61,11 @@ Batas: upload total 30 MB, 128 frame, sisi sumber/atlas 4096 px dan total sumber
 64 juta pixel. Sel berbeda ukuran dinormalisasi tengah bawah tanpa stretching.
 
 Verifikasi: `npm run test:sprite-studio`, `npx tsc --noEmit`, `npm run build:pages`.
+
+Preview upload muncul langsung setelah memilih file (GIF/WebP animasi bergerak
+tanpa build). Crop visual: seret kotak hijau untuk memindahkan area, atau sudut
+kanan bawah untuk resize. Untuk PNG sheet, isi kolom/baris lalu pilih sel yang
+diperiksa; crop memakai koordinat dalam setiap sel, bukan seluruh sheet.
+Multi-file dapat diperiksa bergantian melalui File sumber. Gunakan seluruh frame
+mereset crop. Setelah mengubah sumber/grid/crop, klik Proses upload & preview
+sebelum Simpan slot. Sumber asli tidak diubah.
