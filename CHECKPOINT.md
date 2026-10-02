@@ -9,7 +9,8 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   common camera/zoom/pijakan, visualScale karakter seperti renderer, filter/pause,
   reload manifest, deep link edit slot. Uji browser 9 animasi Raja dan filter
   ultimate lulus tanpa error; tes server route dan syntax lulus. Tidak mengubah
-  config/sprite-studio.json atau aset upload pengguna. Publikasi sedang diverifikasi.
+  config/sprite-studio.json atau aset upload pengguna. Commit `4559dd2` dipush;
+  Pages run `36951628757` build/deploy SUCCESS. Panel lokal 4319 sudah direstart.
 
 - 2026-10-02: movement independen (aktif saja atau draft dicentang), 81 slot
   (Default + 8 arah untuk setiap movement), fallback kompatibel renderer lama,
