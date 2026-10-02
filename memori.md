@@ -95,8 +95,9 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 - Modul baru: `lib/player-profile/`, `components/player-profile/`, dokumentasi
   `FEATURE_USER_PROFILE_RADAR_CHART.md`. Panel profil dimuat lazy. Upstream juga
   membersihkan opsi .npmrc deprecated dan meregenerasi package-lock.json.
-- Pada inspeksi ini upstream tersebut BARU di-fetch/dibaca, belum di-merge ke
-  checkout lokal. Jangan menganggap fitur remote sudah aktif di localhost.
+- Saat publikasi Jago/map berikutnya, upstream a199b80 sudah digabung ke lokal
+  tanpa konflik; tes 11 editor, typecheck dan build Pages lulus. Browser build
+  produksi berhasil setup profil dan masuk pertandingan map custom tanpa error.
 - Enam arena bawaan saat ini mencakup lima 2D (`kampung`, `pasar`, `taman`,
   `kanal`, `kanal2`) dan satu eksperimental `kampung3d`; uraian empat/lima arena
   di bagian historis di bawah bukan jumlah roster arena terbaru.

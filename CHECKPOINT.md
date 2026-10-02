@@ -7,6 +7,12 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ### ACTIVE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
 
+- Implementasi/aset scoped `1623c1a` tersimpan; upstream `a199b80` sudah merge
+  tanpa konflik. 6 tes map + 5 tes sprite PASS, tsc --noEmit PASS,
+  build:pages PASS (warning CSS/chunk legacy masih ada).
+- Browser build produksi 4322 masuk Arena Benteng 1; console error kosong.
+  Screenshot ../release-jago-map.png. Next: push dan tunggu Pages selesai.
+
 - Pengguna mengizinkan publikasi manifest sprite Jago dan map lokal beserta
   aset yang dirujuk. Diff sprite hanya Jago: enam arah run diagonal/kiri/kanan.
 - Arena Benteng 1 lulus mapIssues (kosong). builtinStates.kampung3d=deleted
