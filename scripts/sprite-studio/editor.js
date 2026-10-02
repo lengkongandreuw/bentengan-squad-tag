@@ -63,8 +63,8 @@ async function legacyClip(character,s){
 }
 async function loadSlot(){
   const next=`${id()}/${slot()}`;
-  if(processing){const [oldId,oldSlot]=selection.split('/');$('character').value=oldId;$('action').value=oldSlot.split('.')[0];if(oldSlot.includes('.'))$('direction').value=oldSlot.split('.')[1];throw new Error('Tunggu pemrosesan animasi selesai.');}
-  if(pendingUpload&&!confirm('File/crop ini belum diproses. Buang upload ini dan berpindah arah? Draft arah lain tetap disimpan.')){const [oldId,oldSlot]=selection.split('/');$('character').value=oldId;$('action').value=oldSlot.split('.')[0];if(oldSlot.includes('.'))$('direction').value=oldSlot.split('.')[1];return;}
+  if(processing){const [oldId,oldSlot]=selection.split('/');$('character').value=oldId;$('action').value=oldSlot.split('.')[0];$('direction').value=oldSlot.split('.')[1]??'default';throw new Error('Tunggu pemrosesan animasi selesai.');}
+  if(pendingUpload&&!confirm('File/crop ini belum diproses. Buang upload ini dan berpindah arah? Draft arah lain tetap disimpan.')){const [oldId,oldSlot]=selection.split('/');$('character').value=oldId;$('action').value=oldSlot.split('.')[0];$('direction').value=oldSlot.split('.')[1]??'default';return;}
   // Edits are already staged by mark(); changing direction must not uncheck a selected draft.
   selection=next;dirty=false;clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';
   for(const k of ['columns','rows','count'])$(k).value=1;$('order').value='';
@@ -96,7 +96,7 @@ async function saveCharacter(onlyCurrent=false){
 async function job(publish){await api(publish?'publish':'build',{});message('Memulai publikasi perubahan yang sudah diterapkan. Draft tidak ikut dipublikasikan.');
   const poll=setInterval(async()=>{try{const result=await api('job');message(result.message);if(result.status!=='running'){clearInterval(poll);if(result.url){$('gameLink').href=result.url;$('gameLink').hidden=false;}}}catch(e){clearInterval(poll);message(e.message);}},2000);
 }
-const safe=fn=>async()=>{try{if(processing)throw new Error('Tunggu pemrosesan animasi selesai.');await fn();}catch(e){message(e.message);fileNotice(e.message,true);}};
+const safe=fn=>async()=>{try{if(processing)throw new Error('Tunggu pemrosesan animasi selesai.');await fn();}catch(e){if(pendingUpload&&!sourceWidth)$('sourceEditor').hidden=true;message(e.message);fileNotice(e.message,true);}};
 $('files').onchange=safe(async()=>{
   clearSource();uploadValid=false;uploaded=[...$('files').files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));$('fileNames').textContent=uploaded.map(f=>f.name).join('\n');if(!uploaded.length)return;
   pendingUpload=true;mark();fileNotice('Memeriksa file…');

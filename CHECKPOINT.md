@@ -9,7 +9,9 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   (Default + 8 arah untuk setiap movement), fallback kompatibel renderer lama,
   status file dekat upload + inspeksi metadata dan dukungan PNG tunggal/sheet/frame.
   Uji PNG/idle diagonal/victory diagonal/draft tidak terpilih/error file di browser
-  lulus; API dan unit fallback lulus. Publikasi sedang diverifikasi.
+  lulus; API/unit fallback/typecheck lulus. Commit `722686a` dipush; Pages run
+  `36947108535` build/deploy SUCCESS. Server 4319 diperbarui, refresh tab untuk
+  sesi baru. Pengujian tidak menerapkan sprite test ke karakter game.
 
 - Revisi UI sederhana: seri/arah + upload/crop + tandai sesuai + update karakter
   batch atomik. Draft hasil proses bertahan saat pindah arah/seri/karakter;
