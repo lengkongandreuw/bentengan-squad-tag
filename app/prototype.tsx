@@ -2326,7 +2326,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
     aiIntensity: 1.03,
     ground: 'canalGrass',
     background: 'kanal-map.webp',
-    waterMask: 'kanal-water-mask.png',
+    waterMask: 'kanal1-water-mask.png',
     waterMaskWidth: 850,
     waterMaskHeight: 463,
     designWidth: MAP4_GUIDE_WIDTH,
@@ -4481,7 +4481,7 @@ export function BentenganPrototype() {
           .filter((p) => p.state === 'PRISONER' && p.prisonOwner === owner)
           .forEach((p, i) => {
             p.prisonIndex = i;
-            if (field.id === 'kanal' || isKanalField(field.id)) {
+            if (isKanalField(field.id)) {
               const column = i % 3;
               const row = Math.floor(i / 3);
               const leftToRight = prison.x + 34 + column * ((prison.w - 68) / 2);
