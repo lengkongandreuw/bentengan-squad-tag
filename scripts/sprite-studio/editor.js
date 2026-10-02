@@ -8,7 +8,7 @@ let uploadValid=false;
 const fileNotice=(text,error=false)=>{$('fileStatus').textContent=text;$('fileStatus').className=error?'error':'success';};
 const filePayload=()=>Promise.all(uploaded.map(f=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve({name:f.name,data:String(reader.result).split(',')[1]});reader.onerror=()=>reject(new Error(`Gagal membaca ${f.name}`));reader.readAsDataURL(f);})));
 let processing=false;
-function processingState(value){processing=value;for(const k of ['files','columns','rows','count','order','cropLeft','cropTop','cropWidth','cropHeight','sourceFile','sourceCell','compile','resetCrop','character','action','direction'])$(k).disabled=value;$('settings').disabled=value||!clip;refreshBatch();}
+function processingState(value){processing=value;for(const k of ['files','columns','rows','count','order','cropLeft','cropTop','cropWidth','cropHeight','sourceFile','sourceCell','compile','resetCrop','character','action','direction'])$(k).disabled=value;$('settings').disabled=value||!clip;$('quickFps').disabled=value||!clip;refreshBatch();}
 const slotName=s=>`${names[s.split('.')[0]]} ${names[s.split('.')[1]]??''}`.trim();
 function stageCurrent(reviewed=false){if(!selection||pendingUpload||!clip)return;const [character,s]=selection.split('/');drafts[character]??={};drafts[character][s]={clip:structuredClone(clip),reviewed};}
 function refreshBatch(){
@@ -51,7 +51,7 @@ function refreshSlots(){
   const custom=Object.keys(state.document.characters[id()]??{});$('summary').textContent=`${state.roster.find(r=>r.id===id()).team==='red'?'Tim Merah':'Tim Hijau'} · ${custom.length} movement / arah custom`;
   options($('copySource'),[...new Set([...custom,...Object.keys(drafts[id()]??{}).filter(s=>drafts[id()][s].clip)])],slotName);refreshBatch();
 }
-function settings(){numeric.forEach(k=>{$(k).value=clip?.[k]??'';});['loop','mirror'].forEach(k=>{$(k).checked=clip?.[k]??false;});$('settings').disabled=!clip||processing;$('save').disabled=!clip||pendingUpload||processing;$('frame').max=String((clip??legacy)?.frames.length-1||0);}
+function settings(){numeric.forEach(k=>{$(k).value=clip?.[k]??'';});$('quickFps').value=clip?.fps??'';$('quickFps').disabled=!clip||processing;['loop','mirror'].forEach(k=>{$(k).checked=clip?.[k]??false;});$('settings').disabled=!clip||processing;$('save').disabled=!clip||pendingUpload||processing;$('frame').max=String((clip??legacy)?.frames.length-1||0);refreshBatch();}
 async function loadImage(src){const i=new Image();i.src=src;try{await i.decode();}catch{throw new Error('Gambar tidak bisa dibaca atau ditampilkan. Periksa file PNG/GIF/WebP, lalu pilih ulang.');}return i;}
 async function legacyClip(character,s){
   const manifest=await fetch(`/characters/${character}/animations.json`).then(r=>r.json());
@@ -136,6 +136,8 @@ $('compile').onclick=safe(async()=>{
 });
 $('copy').onclick=safe(async()=>{const s=$('copySource').value,source=drafts[id()]?.[s]?.clip??state.document.characters[id()]?.[s];if(!source)throw new Error('Belum ada animasi custom untuk disalin.');clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';clip=structuredClone(source);image=await loadImage('/'+clip.asset);settings();mark();message('Animasi disalin sebagai draft. Atur mirror bila perlu, kemudian tandai sudah sesuai.');});
 numeric.forEach(k=>{$(k).oninput=()=>{if(clip){clip[k]=+$(k).value;mark();}};});['loop','mirror'].forEach(k=>{$(k).onchange=()=>{if(clip){clip[k]=$(k).checked;mark();}};});
+$('quickFps').oninput=()=>{if(!clip||processing)return;const fps=+$('quickFps').value;if(!Number.isInteger(fps)||fps<1||fps>60){fileNotice('FPS harus bilangan bulat 1–60.',true);return;}clip.fps=fps;$('fps').value=fps;mark();};
+$('fps').oninput=()=>{if(clip){const fps=+$('fps').value;if(!Number.isInteger(fps)||fps<1||fps>60){fileNotice('FPS harus bilangan bulat 1–60.',true);return;}clip.fps=fps;$('quickFps').value=fps;mark();}};
 $('save').onclick=safe(save);$('saveCharacter').onclick=safe(()=>saveCharacter());$('applyCurrent').onclick=safe(()=>saveCharacter(true));
 $('discard').onclick=safe(async()=>{if(drafts[id()])delete drafts[id()][slot()];dirty=false;clearSource();await loadSlot();});
 $('discardAll').onclick=safe(async()=>{if(!confirm('Buang seluruh draft karakter ini? Sprite game yang tersimpan tidak berubah.'))return;delete drafts[id()];dirty=false;clearSource();await loadSlot();});

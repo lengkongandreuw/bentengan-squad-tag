@@ -5,6 +5,10 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+- 2026-10-02: kontrol FPS 1–60 langsung di preview editor, tersinkron Advanced;
+  pengali playback bersama 0,25×–4× di comparison (preview saja, tanpa mengubah
+  skala atau FPS game). Tes browser FPS 6/24 dan pengali lulus. Publikasi pending.
+
 - Panel perbandingan `/comparison`: seluruh animasi custom diterapkan lokal,
   common camera/zoom/pijakan, visualScale karakter seperti renderer, filter/pause,
   reload manifest, deep link edit slot. Uji browser 9 animasi Raja dan filter

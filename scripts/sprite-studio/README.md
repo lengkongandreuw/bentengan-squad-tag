@@ -80,6 +80,11 @@ Batas: upload total 30 MB, 128 frame, sisi sumber/atlas 4096 px dan total sumber
 
 Verifikasi: `npm run test:sprite-studio`, `npx tsc --noEmit`, `npm run build:pages`.
 
+Kecepatan animasi: FPS 1–60 tersedia langsung di preview editor (angka kecil
+lebih lambat). Perubahan menjadi draft; Terapkan movement ini saja atau batch
+untuk menyimpan FPS ke game. Panel `/comparison` memiliki pengali preview bersama
+0,25×–4×; pengali ini tidak mengubah FPS tersimpan atau ukuran karakter.
+
 Preview upload muncul langsung setelah memilih file (GIF/WebP animasi bergerak
 tanpa build). Crop visual: seret kotak hijau untuk memindahkan area, atau sudut
 kanan bawah untuk resize. Untuk PNG sheet, isi kolom/baris lalu pilih sel yang

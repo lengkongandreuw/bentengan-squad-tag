@@ -30,7 +30,7 @@ async function refresh(){const ticket=++generation;$('compareStatus').textConten
   entries=state.roster.flatMap(c=>Object.entries(state.document.characters[c.id]??{}).map(([slot,clip])=>({...c,slot,clip,visualScale:c.visualScale??1})));
   const previous=$('compareCharacter').value;$('compareCharacter').replaceChildren();option($('compareCharacter'),'','Semua karakter');for(const c of state.roster)option($('compareCharacter'),c.id,c.name);$('compareCharacter').value=previous;render();
 }catch(e){$('compareStatus').textContent=e.message;}}
-function animate(now){if(playing)elapsed+=Math.min(now-last,100);last=now;
+function animate(now){if(playing&&!document.hidden)elapsed+=Math.max(0,Math.min(now-last,100))*Number($('compareSpeed').value);last=now;
   if(!document.hidden)for(const c of cards){if(!c.visible)continue;const {ctx,canvas,clip,zoom,baseX,baseY}=c;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle='#b8ed7c';ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(0,baseY);ctx.lineTo(canvas.width,baseY);ctx.stroke();

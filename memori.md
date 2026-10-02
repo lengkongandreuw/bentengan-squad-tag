@@ -4,6 +4,10 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Kecepatan Sprite Studio: FPS 1–60 di preview editor, diterapkan per movement
+melalui tombol Terapkan atau batch. Pengali 0,25×–4× di panel perbandingan hanya
+mengubah playback preview bersama, bukan konfigurasi game atau skala karakter.
+
 Panel perbandingan Sprite Studio: `http://127.0.0.1:4319/comparison`, menampilkan
 semua slot custom yang sudah diterapkan lokal (bukan draft / verifikasi GitHub).
 Zoom bersama, garis pijakan, skala karakter × slot, filter, pause, dan link Edit.
