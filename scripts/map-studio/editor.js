@@ -22,6 +22,8 @@ const $ = (id) => document.getElementById(id),
 let state,
   map,
   template,
+  builtinTemplates = [],
+  builtins = [],
   library = [],
   selected = '',
   dirty = false,
@@ -210,9 +212,18 @@ function open(m) {
     notice('Tunggu upload selesai.', true);
     return;
   }
-  if (dirty && !confirm('Tinggalkan perubahan map yang belum disimpan?'))
+  if (dirty && !confirm('Tinggalkan perubahan map yang belum disimpan?')) {
+    mapChoices();
     return;
+  }
   map = structuredClone(m);
+  $('save').disabled = false;
+  $('test').disabled = false;
+  $('duplicateMap').disabled = false;
+  document.querySelector('.workspace').inert = false;
+  document.querySelector('main > aside:last-child').inert = false;
+  for (const id of ['mapName', 'description', 'width', 'height', 'enabled'])
+    $(id).disabled = false;
   dirty = !state.document.maps.some((v) => v.id === m.id);
   selected = '';
   history = [];
@@ -224,6 +235,7 @@ function open(m) {
   fit();
   check();
   notice('Siap. Map asli tetap utuh.');
+  mapChoices();
 }
 function add(asset, name = 'Area baru') {
   if (testing) return;
@@ -756,15 +768,101 @@ $('clone').onclick = () => {
 };
 $('duplicateMap').onclick = () => {
   const m = structuredClone(map);
+  delete m.replaces;
+  delete m.archived;
+  delete m.deleted;
   m.id = 'studio-copy-' + uid().slice(0, 8);
   m.name += ' — salinan';
   m.enabled = false;
   open(m);
 };
 $('maps').onchange = () => {
-  const m = state.document.maps.find((m) => m.id === $('maps').value);
-  if (m) open(m);
+  const value = $('maps').value;
+  if (value.startsWith('builtin:')) {
+    const id = value.slice(8),
+      saved = state.document.maps.find((m) => m.replaces === id),
+      source = builtinTemplates.find((m) => m.replaces === id);
+    if (source) open(saved ?? source);
+    else {
+      if (
+        dirty &&
+        !confirm('Tinggalkan draft yang belum disimpan untuk mengelola map 3D?')
+      ) {
+        mapChoices();
+        return;
+      }
+      dirty = false;
+      $('save').disabled = true;
+      $('test').disabled = true;
+      $('duplicateMap').disabled = true;
+      document.querySelector('.workspace').inert = true;
+      document.querySelector('main > aside:last-child').inert = true;
+      for (const id of ['mapName', 'description', 'width', 'height', 'enabled'])
+        $(id).disabled = true;
+      $('mapOrigin').textContent =
+        'Map 3D: hanya pengelolaan daftar (Arsip/Sampah/Pulihkan). Canvas sebelumnya bukan preview 3D.';
+      notice(
+        'Edit visual map 3D belum didukung. Anda bisa mengatur Arsip/Sampah dari tombol di kiri.',
+      );
+    }
+  } else {
+    const m = state.document.maps.find((m) => m.id === value);
+    if (m) open(m);
+  }
 };
+$('showArchived').onchange = mapChoices;
+async function manageMap(action) {
+  if (loading || testing)
+    throw new Error('Selesaikan upload/uji cepat dahulu.');
+  const value = $('maps').value;
+  if (!value)
+    throw new Error('Pilih map yang sudah tersimpan atau map bawaan dahulu.');
+  if (dirty && !confirm('Perubahan belum disimpan akan ditinggalkan. Lanjut?'))
+    return;
+  if (
+    ['delete', 'reset'].includes(action) &&
+    !confirm(
+      action === 'delete'
+        ? 'Pindahkan map ke Sampah? Data dan aset tetap tersedia untuk dipulihkan.'
+        : 'Pulihkan map bawaan asli? Versi editor akan dilepas dari daftar; backup tetap tersimpan.',
+    )
+  )
+    return;
+  const id = value.startsWith('builtin:') ? value.slice(8) : value,
+    r = await api('/api/manage', { id, action });
+  state.document = r.document;
+  state.revision = r.revision;
+  dirty = false;
+  $('showArchived').checked = true;
+  if (value.startsWith('builtin:')) {
+    const m =
+      r.document.maps.find((m) => m.replaces === id) ??
+      builtinTemplates.find((m) => m.replaces === id);
+    if (m) open(m);
+  } else {
+    const m = r.document.maps.find((m) => m.id === id);
+    if (m) open(m);
+  }
+  dirty = false;
+  mapChoices();
+  if (id === 'kampung3d') $('maps').value = value;
+  notice(
+    action === 'archive'
+      ? 'Map diarsipkan. Build/publish untuk menyembunyikannya di game.'
+      : action === 'delete'
+        ? 'Map dipindahkan ke Sampah, tidak menghapus aset. Build/publish untuk menerapkan.'
+        : action === 'reset'
+          ? 'Versi asli dipulihkan. Build/publish untuk menerapkan.'
+          : 'Map dipulihkan sebagai draft; centang Aktifkan jika ingin memakai versi editor.',
+  );
+}
+for (const [id, action] of [
+  ['archiveMap', 'archive'],
+  ['deleteMap', 'delete'],
+  ['restoreMap', 'restore'],
+  ['resetMap', 'reset'],
+])
+  $(id).onclick = safe(() => manageMap(action));
 $('area').onclick = () => add(null);
 $('duplicate').onclick = () => {
   const o = object();
@@ -811,6 +909,24 @@ for (const k of ['Terrain', 'Icon'])
     map[k.toLowerCase()] = null;
   };
 $('zoom').oninput = resize;
+$('clearWaterMask').onclick = () => {
+  if (!map.waterMask) {
+    notice('Map tidak memiliki mask air bawaan.');
+    return;
+  }
+  if (
+    !confirm(
+      'Hapus mask sungai bawaan? Grafik air tetap di terrain; buat area air baru jika masih diperlukan.',
+    )
+  )
+    return;
+  remember();
+  delete map.waterMask;
+  notice(
+    'Mask air bawaan dilepas. Anda dapat menggantinya dengan area air/polygon atau jembatan.',
+  );
+  check();
+};
 $('fit').onclick = fit;
 $('validate').onclick = safe(() => {
   validateMap(map);
@@ -818,9 +934,29 @@ $('validate').onclick = safe(() => {
 });
 function mapChoices() {
   $('maps').replaceChildren(new Option('Pilih map…', ''));
+  const show = $('showArchived').checked;
+  const status = (m) =>
+    m.deleted ? 'Sampah' : m.archived ? 'Arsip' : m.enabled ? 'Aktif' : 'Draft';
+  for (const b of builtins) {
+    const m = state.document.maps.find((m) => m.replaces === b.id),
+      s = state.document.builtinStates?.[b.id] ?? 'active',
+      hidden = s !== 'active';
+    if (!show && hidden) continue;
+    $('maps').add(
+      new Option(
+        `[Bawaan${m ? ' · versi editor' : ''}${hidden ? ' · ' + (s === 'deleted' ? 'Sampah' : 'Arsip') : ''}] ${m?.name ?? b.name}${b.editable ? '' : ' · 3D (daftar saja)'}`,
+        'builtin:' + b.id,
+      ),
+    );
+  }
   for (const m of state.document.maps)
-    $('maps').add(new Option(`${m.enabled ? '●' : '○'} ${m.name}`, m.id));
-  $('maps').value = map.id;
+    if (!m.replaces && (show || (!m.archived && !m.deleted)))
+      $('maps').add(new Option(`[${status(m)}] ${m.name}`, m.id));
+  $('maps').value = map.replaces ? 'builtin:' + map.replaces : map.id;
+  $('resetMap').disabled = !map.replaces;
+  $('mapOrigin').textContent = map.replaces
+    ? `Versi pengganti ${map.replaces}. Simpan draft lalu Aktifkan untuk mengganti di game; Pulihkan versi asli untuk membatalkan. ${map.archived ? 'ARSIP. ' : ''}${map.deleted ? 'SAMPAH. ' : ''}Grafik baked-in tetap menyatu di terrain.`
+    : 'Map buatan editor. Arsip/Sampah tidak menghapus aset. Perubahan daftar berlaku setelah Build/publish.';
 }
 $('save').onclick = safe(async () => {
   if (loading) return;
@@ -830,6 +966,12 @@ $('save').onclick = safe(async () => {
       throw new Error('Perbaiki nilai field yang ditandai sebelum menyimpan.');
     }
   map = validateMap(map);
+  if (map.archived || map.deleted) {
+    map.enabled = false;
+    throw new Error(
+      'Pulihkan map dari Arsip/Sampah sebelum mengedit dan menyimpan.',
+    );
+  }
   check();
   const r = await api('/api/save', { map });
   state.document = r.document;
@@ -887,6 +1029,8 @@ async function job(publish) {
 $('build').onclick = safe(() => job(false));
 $('publish').onclick = safe(() => job(true));
 $('file').onchange = safe(async () => {
+  if ($('maps').value === 'builtin:kampung3d')
+    throw new Error('Pilih map 2D untuk upload/edit.');
   const f = $('file').files[0];
   if (!f) return;
   if (f.size > 30 * 1024 * 1024)
@@ -986,8 +1130,10 @@ safe(async () => {
   state = await api('/api/state');
   const t = await api('/api/templates');
   template = t.template;
+  builtinTemplates = t.builtinTemplates ?? [];
+  builtins = t.builtins ?? [];
   library = t.library;
-  map = state.document.maps[0] ?? blank();
+  map = state.document.maps.find((m) => !m.archived && !m.deleted) ?? blank();
   fields();
   fit();
   mapChoices();

@@ -7,8 +7,10 @@ import {
   type MapAsset,
 } from './map-studio-model.js';
 import { publicAsset } from './characters';
-export const studioMaps = validateDocument(config).maps.filter(
-  (m) => m.enabled,
+export const mapDocument = validateDocument(config);
+export const studioBuiltinStates = mapDocument.builtinStates ?? {};
+export const studioMaps = mapDocument.maps.filter(
+  (m) => m.enabled && !m.archived && !m.deleted,
 );
 export const studioMapById = Object.fromEntries(
   studioMaps.map((m) => [m.id, m]),

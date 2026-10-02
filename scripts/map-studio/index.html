@@ -26,6 +26,20 @@
         <section>
           <h2>01 · Map</h2>
           <label>Map tersimpan<select id="maps"></select></label>
+          <label class="check"
+            ><input type="checkbox" id="showArchived" />Tampilkan Arsip &
+            Sampah</label
+          >
+          <div class="pair">
+            <button id="archiveMap">Arsipkan map</button
+            ><button id="deleteMap">Hapus ke Sampah</button
+            ><button id="restoreMap">Pulihkan map</button
+            ><button id="resetMap">Pulihkan versi asli</button>
+          </div>
+          <p id="mapOrigin">
+            Pilih map bawaan atau map tersimpan untuk mengedit. Data di
+            Arsip/Sampah dapat dipulihkan; aset tidak dihapus.
+          </p>
           <div class="pair">
             <button id="new">+ Map kosong</button
             ><button id="clone">Salin Kampung</button>
@@ -97,6 +111,7 @@
                 max="1024" /></label
             ><button id="clearTerrain">Hapus terrain</button
             ><button id="clearIcon">Hapus ikon</button
+            ><button id="clearWaterMask">Hapus area air bawaan</button
             ><canvas
               id="iconPreview"
               width="160"

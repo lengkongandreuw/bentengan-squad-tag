@@ -35,7 +35,7 @@ import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
 import { studioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
-import { studioMaps, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
+import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
 import { solidAt as studioSolidAt, waterAt as studioWaterAt, speedAt as studioSpeedAt, contains as studioContains } from '../lib/map-studio-model.js';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
@@ -2641,9 +2641,15 @@ for (const field of FIELD_CONFIGS) {
 if (arenaValidationErrors.length > 0)
   throw new Error(arenaValidationErrors.join('\n'));
 // Custom maps are already in world coordinates. Existing arena definitions remain untouched.
+const replacedFields = new Set(studioMaps.map(map => map.replaces));
+const nativeFieldConfigs = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field]));
+for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
+  const id = FIELD_CONFIGS[index].id;
+  if (replacedFields.has(id) || ['archived','deleted'].includes(studioBuiltinStates[id])) FIELD_CONFIGS.splice(index, 1);
+}
 FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
-  id: map.id, name: map.name, kicker: map.description, difficulty: 'normal',
-  aiIntensity: 1, ground: 'kampungGround', width: map.width, height: map.height,
+  id: map.id, name: map.name, kicker: map.description, difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
+  aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined, ground: 'kampungGround', width: map.width, height: map.height,
   bases: map.bases, prisons: map.prisons, paths: [], obstacles: [], decorations: [], animated: [],
 })));
 const FIELD_BY_ID = Object.fromEntries(
@@ -2899,7 +2905,7 @@ export function BentenganPrototype() {
   const postRoundActionRef = useRef<'next-round' | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
   const [selectedId, setSelectedId] = useState<CharacterId>('raja');
-  const [selectedFieldId, setSelectedFieldId] = useState<FieldId>('kampung');
+  const [selectedFieldId, setSelectedFieldId] = useState<FieldId>(FIELD_CONFIGS[0].id);
   const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');

@@ -1,13 +1,7 @@
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  readFile,
-  writeFile,
-  mkdir,
-  rename,
-  realpath,
-} from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, realpath } from 'node:fs/promises';
 import { randomBytes, createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
@@ -16,6 +10,7 @@ import {
   validateDocument,
   validateMap,
   mapIssues,
+  BUILTIN_IDS,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url)),
@@ -77,6 +72,21 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
   const read = async () => {
     const b = await readFile(config);
     return { document: validateDocument(JSON.parse(b)), revision: hash(b) };
+  };
+  const saveDocument = async (document, current) => {
+    validateDocument(document);
+    const backup = path.join(projectRoot, '.preview-admin');
+    await mkdir(backup, { recursive: true });
+    await writeFile(
+      path.join(
+        backup,
+        `map-backup-${Date.now()}-${randomBytes(4).toString('hex')}.json`,
+      ),
+      JSON.stringify(current.document),
+    );
+    const temp = `${config}.${randomBytes(4).toString('hex')}.tmp`;
+    await writeFile(temp, JSON.stringify(document, null, 2) + '\n');
+    await rename(temp, config);
   };
   const safeFile = async (base, relative) => {
     const dir = await realpath(base),
@@ -236,7 +246,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           file = path.join(projectRoot, 'lib/map-studio-model.js');
         else if (
           /^\/map-studio\/[a-f0-9]{64}\.webp$/.test(url.pathname) ||
-          /^\/field\/(objects|grounds|animated|kampung-map)\.webp$/.test(
+          /^\/field\/(objects|grounds|animated|kampung-map|pasar-map|taman-map|kanal-map|kanal2-ground|kanal-object-atlas)\.webp$/.test(
             url.pathname,
           )
         )
@@ -269,9 +279,13 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
         return json(403, { error: 'Sesi tidak valid. Refresh panel.' });
       if (busy) return json(409, { error: 'Proses lain sedang berlangsung.' });
       if (
-        !['/api/upload', '/api/save', '/api/build', '/api/publish'].includes(
-          url.pathname,
-        )
+        ![
+          '/api/upload',
+          '/api/save',
+          '/api/manage',
+          '/api/build',
+          '/api/publish',
+        ].includes(url.pathname)
       )
         return json(404, { error: 'Tidak ditemukan.' });
       if (req.headers['content-type'] !== 'application/json')
@@ -297,6 +311,37 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           job = { status: 'running', message: 'Memulai…' };
           void runJob(url.pathname === '/api/publish');
           return json(202, job);
+        }
+        if (url.pathname === '/api/manage') {
+          if (!['archive', 'delete', 'restore', 'reset'].includes(data.action))
+            throw new Error('Aksi map tidak valid.');
+          const document = structuredClone(current.document),
+            builtin = BUILTIN_IDS.includes(data.id),
+            m = document.maps.find((m) =>
+              builtin ? m.replaces === data.id : m.id === data.id,
+            );
+          if (!builtin && !m) throw new Error('Map tidak ditemukan.');
+          if (data.action === 'reset') {
+            if (!builtin)
+              throw new Error('Pulihkan asli hanya untuk map bawaan.');
+            document.maps = document.maps.filter((m) => m.replaces !== data.id);
+          } else if (m) {
+            m.archived = data.action === 'archive';
+            m.deleted = data.action === 'delete';
+            m.enabled = false;
+          }
+          if (builtin) {
+            document.builtinStates ??= {};
+            document.builtinStates[data.id] = ['restore', 'reset'].includes(
+              data.action,
+            )
+              ? 'active'
+              : data.action === 'archive'
+                ? 'archived'
+                : 'deleted';
+          }
+          await saveDocument(document, current);
+          return json(200, await read());
         }
         if (url.pathname === '/api/upload') {
           let file = data.file;
@@ -354,6 +399,8 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           });
         }
         const map = validateMap(data.map);
+        if (map.replaces === 'kampung3d')
+          throw new Error('Map 3D belum mendukung edit visual di editor 2D.');
         await verify(map);
         const issues = mapIssues(map);
         if (map.enabled && issues.length)
@@ -365,19 +412,11 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           index = document.maps.findIndex((m) => m.id === map.id);
         if (index < 0) document.maps.push(map);
         else document.maps[index] = map;
-        validateDocument(document);
-        const backup = path.join(projectRoot, '.preview-admin');
-        await mkdir(backup, { recursive: true });
-        await writeFile(
-          path.join(
-            backup,
-            `map-backup-${Date.now()}-${randomBytes(4).toString('hex')}.json`,
-          ),
-          JSON.stringify(current.document),
-        );
-        const temp = `${config}.${randomBytes(4).toString('hex')}.tmp`;
-        await writeFile(temp, JSON.stringify(document, null, 2) + '\n');
-        await rename(temp, config);
+        if (map.enabled && !map.archived && !map.deleted && map.replaces) {
+          document.builtinStates ??= {};
+          document.builtinStates[map.replaces] = 'active';
+        }
+        await saveDocument(document, current);
         return json(200, { ...(await read()), issues });
       } finally {
         if (job.status !== 'running') busy = false;

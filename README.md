@@ -23,6 +23,25 @@ npm run build:pages
 
 ## Map Studio — editor map lokal
 
+Daftar **Map tersimpan** kini memuat lima map bawaan 2D dan map custom. Memilih
+map bawaan membuka versi pengganti: edit, Simpan, Aktifkan, lalu Build/publish.
+Versi asli tetap ada dan dapat dipulihkan dengan **Pulihkan versi asli**.
+Kampung 3D hanya mendukung pengelolaan daftar, belum edit visual 3D.
+
+**Arsipkan map** dan **Hapus ke Sampah** menyembunyikan map dari pilihan game
+setelah Build/publish. Centang **Tampilkan Arsip & Sampah**, pilih map dan
+**Pulihkan map** untuk mengembalikannya. Versi custom dipulihkan sebagai draft;
+versi bawaan asli tersedia kembali. Tidak menghapus file aset; backup tetap ada.
+Minimal satu arena harus tersedia. Arsip/Sampah tetap termasuk batas 24 map custom.
+
+Import kanal mempertahankan mask sungai dalam bentuk rentang pixel. Area jembatan
+bisa menutup air secara lokal; **Hapus area air bawaan** melepaskan mask seluruh
+map bila ingin menggambar ulang area air. Sebagian objek/dekorasi baked-in tidak
+bisa dipindahkan dari gambar terrain. Kanal pertama dapat memunculkan peringatan
+spawn/air dari validator yang lebih ketat: periksa dan buka akses sebelum mengaktifkan
+versi pengganti. Import menjadi map editor 2D, bukan rekonstruksi 3D atau renderer
+legacy yang persis sama; difficulty/AI intensity dan skala benteng sumber dipertahankan.
+
 Jalankan dari folder project dengan `npm run admin:maps`, kemudian buka
 <http://127.0.0.1:4320/>. Biarkan terminal terbuka. Panel hanya dapat diakses
 di komputer lokal; panel admin tidak dipublikasikan ke GitHub Pages.

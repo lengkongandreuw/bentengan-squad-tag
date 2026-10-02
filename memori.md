@@ -4,6 +4,13 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Map Studio lifecycle: daftar bawaan/custom, edit versi pengganti 5 arena 2D,
+Arsip/Sampah/Pulihkan, Pulihkan versi asli. Sampah recoverable, aset tidak dihapus.
+Manifest builtinStates mengatur visibilitas bawaan; map.replaces memilih sumber
+yang diganti setelah Aktifkan. archived/deleted tidak ditampilkan game.
+Import kanal membawa mask RLE air; tombol hapus mask tersedia, bridge menutup air.
+3D hanya lifecycle, bukan edit visual. Grafik baked-in tetap menyatu di terrain.
+
 Map Studio (2026-10-02): `npm run admin:maps`, localhost 4320. Editor lokal
 terpisah dari UI game, dengan map kosong/salin Kampung, PNG/GIF/WebP, collider
 rect/ellipse/polygon, layer/z/Y, terrain/icon, FPS, base/prison anchors,

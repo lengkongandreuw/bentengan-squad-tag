@@ -5,6 +5,13 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+- 2026-10-02: revisi edit existing map + Arsip/Sampah/Pulihkan. Enam tes model/API
+  lulus, typecheck lulus; browser isolated menguji edit/simpan Pasar, Arsip, Sampah,
+  Pulihkan tanpa error. Server baru 4322 (session 95860) agar tab/draft lama 4320
+  tidak ditutup. Fixture 4321 (session 45903). Sedang build dan publish kode saja.
+  config/map-studio.json aktual tetap kosong; perubahan sprite/config dan upload
+  pengguna tidak disentuh. Bawaan 3D hanya pengelolaan daftar, editor visual 2D.
+
 - 2026-10-02 Map Studio: implementasi editor/model/server/runtime sudah tersimpan
   di commit checkpoint dda7ee0 dan 605e2ad; penyelesaian 03df919. Pengujian 5
   model/API map, 5 Sprite Studio, TypeScript dan build Pages lulus. Uji browser

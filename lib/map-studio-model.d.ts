@@ -32,6 +32,10 @@ export interface StudioMap {
   width: number;
   height: number;
   enabled: boolean;
+  archived?: boolean;
+  deleted?: boolean;
+  replaces?: string;
+  waterMask?: { width: number; height: number; rows: number[][] };
   terrain: MapAsset | null;
   icon: MapAsset | null;
   terrainMode: string;
@@ -47,6 +51,7 @@ export function validateMap(m: unknown): StudioMap;
 export function validateDocument(d: unknown): {
   version: number;
   maps: StudioMap[];
+  builtinStates?: Record<string, string>;
 };
 export function contains(o: MapObject, x: number, y: number): boolean;
 export function touches(
@@ -71,3 +76,4 @@ export function mapIssues(
 export function validateAsset(a: unknown): MapAsset | null;
 export const BEHAVIORS: string[];
 export const LAYERS: string[];
+export const BUILTIN_IDS: string[];

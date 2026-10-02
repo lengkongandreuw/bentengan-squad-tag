@@ -129,6 +129,47 @@ test('Kampung template and library use normalized valid assets', async () => {
   assert.deepEqual(mapIssues(t.template), []);
   t.library.forEach((a) => validateAsset(a.clip));
   assert.equal(t.template.enabled, false);
+  assert.equal(t.builtins.length, 6);
+  assert.equal(t.builtinTemplates.length, 5);
+  t.builtinTemplates.forEach(validateMap);
+  assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
+});
+test('archive metadata and inherited water mask remain backwards compatible', () => {
+  const m = {
+    ...map(),
+    replaces: 'kampung',
+    archived: true,
+    waterMask: { width: 2, height: 2, rows: [[0, 1], []] },
+  };
+  const doc = validateDocument({
+    version: 1,
+    maps: [m],
+    builtinStates: { pasar: 'deleted' },
+  });
+  assert.equal(doc.maps[0].archived, true);
+  assert.equal(doc.builtinStates.pasar, 'deleted');
+  assert.ok(waterAt(m, 100, 100));
+  assert.ok(!waterAt(m, 1200, 100));
+  assert.throws(() =>
+    validateDocument({ version: 1, maps: [m, { ...m, id: 'studio-second' }] }),
+  );
+  assert.throws(() =>
+    validateDocument({
+      version: 1,
+      maps: [],
+      builtinStates: Object.fromEntries(
+        ['kampung', 'pasar', 'taman', 'kanal', 'kanal2', 'kampung3d'].map(
+          (id) => [id, 'archived'],
+        ),
+      ),
+    }),
+  );
+  assert.throws(() =>
+    validateMap({
+      ...m,
+      waterMask: { width: 2, height: 2, rows: [[1, 0], []] },
+    }),
+  );
 });
 test('local API upload, session guard, revision conflict and safe map merge', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'benteng-map-test-'));
@@ -189,6 +230,39 @@ test('local API upload, session guard, revision conflict and safe map merge', as
     assert.deepEqual(disk.maps[0], m);
     const backups = await readdir(path.join(dir, '.preview-admin'));
     assert.equal(backups.length, 2);
+    state = {
+      ...state,
+      ...(await (await fetch(origin + '/api/state')).json()),
+    };
+    const managed = await post('/api/manage', { id: m.id, action: 'archive' });
+    assert.equal(managed.status, 200);
+    const archived = await managed.json();
+    assert.ok(archived.document.maps[0].archived);
+    assert.deepEqual(archived.document.maps[1], second);
+    assert.equal(
+      (await post('/api/manage', { id: m.id, action: 'delete' })).status,
+      409,
+    );
+    state = { ...state, ...archived };
+    const trash = await post('/api/manage', { id: m.id, action: 'delete' });
+    state = { ...state, ...(await trash.json()) };
+    assert.ok(state.document.maps[0].deleted);
+    const restored = await post('/api/manage', { id: m.id, action: 'restore' });
+    state = { ...state, ...(await restored.json()) };
+    assert.ok(!state.document.maps[0].deleted);
+    assert.equal(state.document.maps[0].enabled, false);
+    const native = await post('/api/manage', {
+      id: 'pasar',
+      action: 'archive',
+    });
+    assert.equal(native.status, 200);
+    state = { ...state, ...(await native.json()) };
+    assert.equal(state.document.builtinStates.pasar, 'archived');
+    assert.equal(
+      (await post('/api/manage', { id: 'invalid', action: 'delete' })).status,
+      400,
+    );
+    assert.ok(await readFile(path.join(dir, 'public', asset.asset)));
     assert.ok((await fetch(origin + '/')).ok);
     assert.ok((await fetch(origin + '/editor.js')).ok);
   } finally {
