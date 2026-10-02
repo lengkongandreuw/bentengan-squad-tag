@@ -35,6 +35,8 @@ import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
 import { studioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
+import { studioMaps, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
+import { solidAt as studioSolidAt, waterAt as studioWaterAt, speedAt as studioSpeedAt, contains as studioContains } from '../lib/map-studio-model.js';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -96,7 +98,7 @@ type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type PlayerAction = 'tag' | 'rescue' | 'ultimate';
 type Grade = 25 | 40 | 75 | 100;
-type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kanal2' | 'kampung3d';
+type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kanal2' | 'kampung3d' | `studio-${string}`;
 const isKanalField = (id: FieldId) => id === 'kanal2';
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
@@ -2638,6 +2640,12 @@ for (const field of FIELD_CONFIGS) {
 }
 if (arenaValidationErrors.length > 0)
   throw new Error(arenaValidationErrors.join('\n'));
+// Custom maps are already in world coordinates. Existing arena definitions remain untouched.
+FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
+  id: map.id, name: map.name, kicker: map.description, difficulty: 'normal',
+  aiIntensity: 1, ground: 'kampungGround', width: map.width, height: map.height,
+  bases: map.bases, prisons: map.prisons, paths: [], obstacles: [], decorations: [], animated: [],
+})));
 const FIELD_BY_ID = Object.fromEntries(
   FIELD_CONFIGS.map((field) => [field.id, field]),
 ) as Record<FieldId, FieldConfig>;
@@ -2713,6 +2721,8 @@ const formatTime = (seconds: number) => {
 const statPercent = (value: number, min: number, max: number) =>
   `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
 const uiAsset = (file: string) => {
+  const customId = file.match(/^fields\/(studio-[a-z0-9-]+)\.webp$/)?.[1];
+  if (customId) return mapArtwork(customId) ?? publicAsset('ui-v2/fields/kampung.webp');
   file = file.replace('fields/kampung3d.', 'fields/kampung.');
   return publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
 };
@@ -2947,6 +2957,7 @@ export function BentenganPrototype() {
         for (const asset of ['objects.webp', 'animated.webp', 'grounds.webp']) images.push(getFieldImage(asset));
         // Preload the rotation too, so later rounds cannot expose an unloaded map.
         for (const field of FIELD_CONFIGS) {
+          if (studioMapById[field.id]) images.push(...mapImages(studioMapById[field.id]));
           if (field.background) images.push(getFieldImage(field.background));
 
           if (field.waterMask) images.push(getFieldImage(field.waterMask));
@@ -3446,6 +3457,7 @@ export function BentenganPrototype() {
     const clearMouse = () => { mouseRoute = []; mouseBoost = false; mouseStuckTime = 0; };
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
+    const studioMap = studioMapById[selectedFieldId];
     const development = process.env.NODE_ENV !== 'production';
     let debugColliders = development && new URLSearchParams(window.location.search).has('debugColliders');
     const worldWidth = field.width ?? W;
@@ -4027,7 +4039,7 @@ export function BentenganPrototype() {
     const hasLineOfSight = (a: Player, b: Player) =>
       !solidObstacles.some((o) => segmentHitsRect(a, b, o));
     const hitsObstacle = (x: number, y: number) =>
-      solidObstacles.some((o) =>
+      (studioMap ? studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS) : false) || solidObstacles.some((o) =>
         pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS),
       );
     // The fort core is solid while its capture circle remains walkable. This
@@ -4040,6 +4052,7 @@ export function BentenganPrototype() {
         (base) => Math.hypot(x - base.x, y - base.y) < Math.max(48, fortWidth * (isKanalField(field.id) ? 0.48 : 0.38)),
       );
     const isWaterAt = (x: number, y: number) => {
+      if (studioMap) return studioWaterAt(studioMap, x, y);
       if (!waterMaskPixels) return false;
       const maskX = clamp(
         Math.round((x / worldWidth) * (waterMaskCanvas.width - 1)),
@@ -4096,7 +4109,7 @@ export function BentenganPrototype() {
       return true;
     };
     const isNearWater = (x: number, y: number) =>
-      field.waterMask
+      (field.waterMask || studioMap)
         ? [
             [0, 0],
             [-30, 0],
@@ -4130,6 +4143,7 @@ export function BentenganPrototype() {
       p: Player,
       now: number,
     ) => {
+      if (studioMap && studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
       // The canal's actual water mask is the collision source for its stone
       // banks. This blocks the visible canal instead of inventing rectangles
       // on clear ground, and bridges remain open because they are not water.
@@ -4178,6 +4192,7 @@ export function BentenganPrototype() {
         return;
       }
       const len = Math.hypot(dx, dy) || 1;
+      if (studioMap) speed *= studioSpeedAt(studioMap, p.x, p.y);
       p.vx = (dx / len) * speed;
       p.vy = (dy / len) * speed;
       const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
@@ -4253,6 +4268,7 @@ export function BentenganPrototype() {
       }
       return true;
     };
+    const studioRoutes = new Map<string,{target:{x:number;y:number};route:Array<{x:number;y:number}>;until:number}>();
     const navigateAroundHazards = (
       p: Player,
       desired: { x: number; y: number },
@@ -4260,6 +4276,18 @@ export function BentenganPrototype() {
       probeDistance: number,
       turnBias: number,
     ) => {
+      if (studioMap) {
+        const target = { x: clamp(p.x + desired.x, 34, worldWidth - 34), y: clamp(p.y + desired.y, 58, worldHeight - 32) };
+        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !studioSolidAt(studioMap,x,y,PLAYER_COLLISION_RADIUS) && !studioWaterAt(studioMap,x,y);
+        const cached = studioRoutes.get(p.id);
+        if (!cached || now > cached.until || distance(target,cached.target)>100) {
+          const route = clickRoute(p,target,worldWidth,worldHeight,passable,40);
+          studioRoutes.set(p.id,{target,route,until:now+1800});
+        }
+        const route = studioRoutes.get(p.id)!.route;
+        while(route.length && distance(p,route[0])<18) route.shift();
+        if(route[0]) return {x:route[0].x-p.x,y:route[0].y-p.y};
+      }
       const magnitude = Math.hypot(desired.x, desired.y);
       if (magnitude < 0.01) return desired;
       const distanceToProbe = Math.min(probeDistance, Math.max(48, magnitude));
@@ -4348,7 +4376,7 @@ export function BentenganPrototype() {
       }
     };
     const riverFallCheck = (now: number) => {
-      if (!field.waterMask || !waterMaskPixels) return;
+      if (!studioMap && (!field.waterMask || !waterMaskPixels)) return;
       if (field.id === 'kanal2') {
         players.forEach((p) => {
           if (p.waterEnteredAt) {
@@ -5036,7 +5064,7 @@ export function BentenganPrototype() {
               me.x - 44 < o.x + o.w &&
               me.y + 44 > o.y &&
               me.y - 44 < o.y + o.h,
-          ) || isNearWater(me.x, me.y);
+          ) || isNearWater(me.x, me.y) || !!studioMap?.objects.some(o => o.behavior === 'parkour' && studioContains({...o,x:o.x-40,y:o.y-40,w:o.w+80,h:o.h+80},me.x,me.y));
         if (near) {
           const parkourDistance = 54 * selected.agility;
           const landing = findParkourLanding(
@@ -5554,6 +5582,7 @@ export function BentenganPrototype() {
       }
     };
     const drawMap = () => {
+      if (studioMap) { drawMapTerrain(ctx, studioMap, performance.now()); return; }
       if (staticLayerContext && staticMapDirty) {
         staticLayerContext.setTransform(
           staticMapScale,
@@ -5584,6 +5613,9 @@ export function BentenganPrototype() {
       }
     };
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
+      if (studioMap) {
+        studioMap.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z).forEach(o=>drawMapObject(ctx,o,performance.now()));
+      }
       if (mode !== 'playing' && !isKanalField(field.id)) return;
       // Kanal has few props, so draw every one at native atlas resolution in
       // both cameras. This also prevents props vanishing at the view edge.
@@ -6412,11 +6444,19 @@ export function BentenganPrototype() {
       if (mode === 'playing') {
         drawFieldAnimations(now);
         refills.forEach((item) => drawRefill(item, now));
-        if (!scene3d) players
+        if (!scene3d && studioMap) {
+          const entries = [
+            ...players.map(p=>({y:p.y,z:0,draw:()=>drawPlayer(p,me,now)})),
+            ...studioMap.objects.filter(o=>o.layer==='world').map(o=>({y:o.y+o.h,z:o.z,draw:()=>drawMapObject(ctx,o,now)})),
+          ];
+          entries.sort((a,b)=>a.z-b.z||a.y-b.y).forEach(item=>item.draw());
+        }
+        if (!scene3d && !studioMap) players
           .slice()
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now));
         if (selectedFieldId !== 'kampung3d') drawPrisonOverlays(now);
+        if (studioMap) studioMap.objects.filter(o=>o.layer==='foreground').sort((a,b)=>a.z-b.z).forEach(o=>drawMapObject(ctx,o,now));
         const rescueRequester = rescueRequest
           ? players.find((player) => player.id === rescueRequest?.requesterId)
           : undefined;

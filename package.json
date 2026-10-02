@@ -6,6 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "admin:maps": "node scripts/map-studio/server.mjs",
+    "test:map-studio": "node --test scripts/map-studio/test.mjs",
     "admin:sprites": "node scripts/sprite-studio/server.mjs",
     "test:sprite-studio": "node --test scripts/sprite-studio/test.mjs",
     "admin:characters": "node scripts/character-admin/server.mjs",
