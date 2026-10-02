@@ -7,7 +7,6 @@ import {
   mkdir,
   rename,
   realpath,
-  stat,
 } from 'node:fs/promises';
 import { randomBytes, createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';

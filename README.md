@@ -21,8 +21,6 @@ Build statis untuk GitHub Pages:
 npm run build:pages
 ```
 
-## Kontrol
-
 ## Map Studio — editor map lokal
 
 Jalankan dari folder project dengan `npm run admin:maps`, kemudian buka
