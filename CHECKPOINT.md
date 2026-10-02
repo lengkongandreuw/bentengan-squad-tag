@@ -9,7 +9,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   di commit checkpoint dda7ee0 dan 605e2ad; penyelesaian 03df919. Pengujian 5
   model/API map, 5 Sprite Studio, TypeScript dan build Pages lulus. Uji browser
   save GIF/FPS 6 dan aktivasi pada fixture lulus; map custom muncul di pilihan
-  arena. Sedang menyelesaikan verifikasi pertandingan dan publish.
+  arena dan masuk pertandingan tanpa error JavaScript. Sedang publish GitHub.
   config/map-studio.json tetap kosong; tidak mengganti map/sprite pengguna.
   Fixture QA dipindahkan ke sa/map-studio-test-fixture-Tv5nsZ, di luar kode game.
   Audit lama masih gagal 7 assertion format/version/baseline; test Kampung 3D
