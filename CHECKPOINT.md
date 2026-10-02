@@ -5,6 +5,12 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+- 2026-10-02 Map Studio: implementasi editor/model/server/runtime sudah tersimpan
+  di commit checkpoint dda7ee0 dan 605e2ad. Pengujian 5 model/API map, 5 Sprite
+  Studio, TypeScript dan build Pages lulus. Sedang verifikasi browser dan publish.
+  config/map-studio.json tetap kosong; tidak mengganti map/sprite pengguna.
+  Fixture QA dipindahkan ke sa/map-studio-test-fixture-Tv5nsZ, di luar kode game.
+
 - 2026-10-02: kontrol FPS 1–60 langsung di preview editor, tersinkron Advanced;
   pengali playback bersama 0,25×–4× di comparison (preview saja, tanpa mengubah
   skala atau FPS game). Tes browser FPS 6/24, validasi FPS invalid dan pengali

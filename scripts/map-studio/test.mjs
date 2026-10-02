@@ -1,0 +1,199 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  mkdtemp,
+  mkdir,
+  writeFile,
+  readFile,
+  readdir,
+  rm,
+} from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
+import {
+  validateMap,
+  validateAsset,
+  validateDocument,
+  contains,
+  solidAt,
+  waterAt,
+  speedAt,
+  frameAt,
+  mapIssues,
+} from '../../lib/map-studio-model.js';
+import { templates } from './templates.mjs';
+import { startMapStudio } from './server.mjs';
+const root = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../..',
+);
+const object = (behavior = 'solid') => ({
+  id: 'obj-test',
+  name: 'Test',
+  asset: null,
+  x: 400,
+  y: 400,
+  w: 100,
+  h: 100,
+  rotation: 0,
+  opacity: 1,
+  layer: 'world',
+  z: 0,
+  behavior,
+  slow: 0.5,
+  shape: 'rect',
+  points: [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+    { x: 0, y: 1 },
+  ],
+  visible: true,
+  locked: false,
+  mirror: false,
+});
+const map = () => ({
+  id: 'studio-test',
+  name: 'Test map',
+  description: '',
+  width: 1800,
+  height: 1200,
+  enabled: false,
+  terrain: null,
+  icon: null,
+  terrainMode: 'stretch',
+  tileSize: 256,
+  objects: [],
+  bases: { blue: { x: 200, y: 600 }, red: { x: 1600, y: 600 } },
+  prisons: {
+    blue: { x: 80, y: 100, w: 240, h: 160 },
+    red: { x: 1480, y: 100, w: 240, h: 160 },
+  },
+});
+test('schema rejects invalid numbers, duplicate IDs and unsafe paths', () => {
+  assert.deepEqual(validateMap(map()), map());
+  assert.throws(() => validateMap({ ...map(), width: NaN }));
+  assert.throws(() => validateMap({ ...map(), objects: [object(), object()] }));
+  assert.throws(() => validateDocument({ version: 1, maps: [map(), map()] }));
+  assert.throws(() => validateAsset({ asset: '../secret.png' }));
+  const o = { ...object(), shape: 'ellipse', rotation: 45, w: 200, h: 50 };
+  assert.ok(contains(o, 500, 425));
+  assert.ok(!contains(o, 400, 400));
+});
+test('shared collision: solid, jumpable, bridge, hidden collider and slow', () => {
+  const m = map();
+  m.objects = [object()];
+  assert.ok(solidAt(m, 450, 450, 13, true));
+  m.objects[0].behavior = 'parkour';
+  assert.ok(solidAt(m, 450, 450));
+  assert.ok(!solidAt(m, 450, 450, 13, true));
+  m.objects[0].visible = false;
+  assert.ok(solidAt(m, 450, 450));
+  m.objects[0].behavior = 'water';
+  assert.ok(waterAt(m, 450, 450));
+  m.objects.push({ ...object('bridge'), id: 'obj-bridge' });
+  assert.ok(!waterAt(m, 450, 450));
+  m.objects.push({ ...object('slow'), id: 'obj-slow' });
+  assert.equal(speedAt(m, 450, 450), 0.5);
+  assert.equal(speedAt(m, 700, 700), 1);
+});
+test('polygon, animation speed and route validation', () => {
+  assert.ok(contains({ ...object(), shape: 'polygon' }, 450, 450));
+  const frames = [{ x: 0 }, { x: 1 }],
+    asset = { frames, fps: 6 };
+  assert.equal(frameAt(asset, 170), frames[1]);
+  assert.equal(frameAt({ ...asset, fps: 12 }, 170), frames[0]);
+  const m = map();
+  assert.deepEqual(mapIssues(m), []);
+  m.objects = [{ ...object('water'), x: 800, y: 0, w: 200, h: 1200 }];
+  assert.ok(mapIssues(m).some((i) => i.message.includes('Jalur')));
+  m.objects.push({
+    ...object('bridge'),
+    id: 'obj-bridge',
+    x: 800,
+    y: 500,
+    w: 200,
+    h: 200,
+  });
+  assert.deepEqual(mapIssues(m), []);
+  m.objects.push({ ...object(), id: 'obj-block', x: 180, y: 580 });
+  assert.ok(mapIssues(m).some((i) => i.message.includes('spawn')));
+});
+test('Kampung template and library use normalized valid assets', async () => {
+  const t = await templates(root);
+  validateMap(t.template);
+  assert.ok(t.library.length > 50);
+  assert.ok(t.template.objects.length > 20);
+  assert.deepEqual(mapIssues(t.template), []);
+  t.library.forEach((a) => validateAsset(a.clip));
+  assert.equal(t.template.enabled, false);
+});
+test('local API upload, session guard, revision conflict and safe map merge', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'benteng-map-test-'));
+  let server;
+  try {
+    await mkdir(path.join(dir, 'config'));
+    await mkdir(path.join(dir, 'public'));
+    await writeFile(
+      path.join(dir, 'config/map-studio.json'),
+      JSON.stringify({ version: 1, maps: [] }),
+    );
+    const started = await startMapStudio(0, dir);
+    server = started.server;
+    const origin = started.origin;
+    let state = await (await fetch(origin + '/api/state')).json();
+    const post = (route, data, token = state.token) =>
+      fetch(origin + route, {
+        method: 'POST',
+        headers: {
+          Origin: origin,
+          'Content-Type': 'application/json',
+          'X-Admin-Token': token,
+        },
+        body: JSON.stringify({ revision: state.revision, ...data }),
+      });
+    assert.equal(
+      (await post('/api/save', { map: map() }, 'wrong')).status,
+      403,
+    );
+    assert.equal(
+      (await post('/api/upload', { file: { data: 'invalid!' } })).status,
+      400,
+    );
+    const png = await sharp({
+      create: { width: 64, height: 32, channels: 4, background: '#33cc55' },
+    })
+      .png()
+      .toBuffer();
+    const response = await post('/api/upload', {
+      file: { data: png.toString('base64') },
+    });
+    assert.equal(response.status, 200);
+    const { asset } = await response.json();
+    validateAsset(asset);
+    const m = map();
+    m.objects = [{ ...object('decoration'), asset }];
+    const saved = await post('/api/save', { map: m });
+    assert.equal(saved.status, 200);
+    const next = await saved.json();
+    assert.equal((await post('/api/save', { map: m })).status, 409);
+    state = { ...state, ...next };
+    const second = { ...map(), id: 'studio-second', name: 'Second' };
+    assert.equal((await post('/api/save', { map: second })).status, 200);
+    const disk = JSON.parse(
+      await readFile(path.join(dir, 'config/map-studio.json'), 'utf8'),
+    );
+    assert.equal(disk.maps.length, 2);
+    assert.deepEqual(disk.maps[0], m);
+    const backups = await readdir(path.join(dir, '.preview-admin'));
+    assert.equal(backups.length, 2);
+    assert.ok((await fetch(origin + '/')).ok);
+    assert.ok((await fetch(origin + '/editor.js')).ok);
+  } finally {
+    if (server) await new Promise((r) => server.close(r));
+    assert.ok(dir.startsWith(path.join(os.tmpdir(), 'benteng-map-test-')));
+    await rm(dir, { recursive: true, force: true });
+  }
+});

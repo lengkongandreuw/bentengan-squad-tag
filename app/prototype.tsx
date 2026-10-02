@@ -3883,6 +3883,7 @@ export function BentenganPrototype() {
             laneBounds[lane][0] +
             Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
         if (
+          (!studioMap || (!studioSolidAt(studioMap, x, y, 28) && !studioWaterAt(studioMap, x, y))) &&
           obstacles.every(
             (o) =>
               x < o.x - 28 ||
@@ -4036,8 +4037,16 @@ export function BentenganPrototype() {
 
 
 
-    const hasLineOfSight = (a: Player, b: Player) =>
-      !solidObstacles.some((o) => segmentHitsRect(a, b, o));
+    const hasLineOfSight = (a: Player, b: Player) => {
+      if (solidObstacles.some((o) => segmentHitsRect(a, b, o))) return false;
+      if (studioMap) {
+        const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 4));
+        for (let i = 0; i <= steps; i++) {
+          if (studioSolidAt(studioMap, a.x + (b.x - a.x) * i / steps, a.y + (b.y - a.y) * i / steps, 2)) return false;
+        }
+      }
+      return true;
+    };
     const hitsObstacle = (x: number, y: number) =>
       (studioMap ? studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS) : false) || solidObstacles.some((o) =>
         pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS),

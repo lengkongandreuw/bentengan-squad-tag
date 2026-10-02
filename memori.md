@@ -4,6 +4,16 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Map Studio (2026-10-02): `npm run admin:maps`, localhost 4320. Editor lokal
+terpisah dari UI game, dengan map kosong/salin Kampung, PNG/GIF/WebP, collider
+rect/ellipse/polygon, layer/z/Y, terrain/icon, FPS, base/prison anchors,
+undo/redo, uji cepat, save/build/publish. Manifest config/map-studio.json;
+upload public/map-studio/*.webp, backup .preview-admin/. Map asli/sprite tidak
+diubah. Map aktif ditambahkan ke pilihan arena; mekanik shared collider, air,
+jembatan dan slow untuk pemain/bot. Publish menolak dirty non-map serta commit
+belum sinkron, tidak auto-merge/force-push. Salin Kampung memakai latar dengan
+beberapa dekorasi baked-in; terrain bersih diperlukan untuk memisahkannya.
+
 Kecepatan Sprite Studio: FPS 1–60 di preview editor, diterapkan per movement
 melalui tombol Terapkan atau batch. Pengali 0,25×–4× di panel perbandingan hanya
 mengubah playback preview bersama, bukan konfigurasi game atau skala karakter.
