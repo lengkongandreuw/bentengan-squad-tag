@@ -26,22 +26,24 @@ Panel ini hanya tersedia di komputer lokal; jangan expose port melalui tunnel.
 5. Proses upload, lalu atur FPS, loop, mirror, skala, offset X/Y, pivot X/Y.
    Offset menggunakan unit dunia game; pivot menggunakan rasio frame (0–1).
    Pivot default tengah bawah. Seret sprite untuk mengatur offset.
-6. Tandai Arah / animasi ini sudah sesuai. Berpindah arah/seri mempertahankan
-   draft hasil proses; arah yang masih perlu diperiksa ditandai ○, siap ditandai ✓.
-   Setelah seluruh perubahan yang dipilih sudah sesuai, Simpan & update karakter
-   menerapkan semua arah/seri karakter itu dalam satu transaksi. Tidak harus
-   mengupload delapan arah: arah yang tidak diganti tetap memakai sprite saat ini.
+6. Terapkan movement ini saja menyimpan hanya slot aktif, tanpa mewajibkan draft
+   lainnya. Alternatif: centang draft yang ingin diterapkan, lalu Terapkan movement
+   yang dicentang. Draft lainnya tidak menghalangi penyimpanan. Berpindah seri/arah
+   mempertahankan hasil proses. Tidak harus mengupload delapan arah; pilih Default
+   untuk satu animasi yang berlaku pada semua arah tanpa override khusus.
    Draft karakter lain tetap terpisah. Refresh/menutup tab menghapus draft yang
    belum diterapkan (browser memberi peringatan). Salin, mirror, grid, FPS,
    skala, pivot, reset, dan build lokal berada di Advanced options.
 7. Build + Uji game membangun game lokal dan menyediakan tautan untuk mencoba
    karakter di arena sebenarnya. Preview atlas lama hanya ilustrasi; renderer
    game tetap menggunakan mapping khusus Jago/Raja/Maria/Boke/Kaka yang sekarang.
-8. Simpan & publish ke GitHub menyimpan batch yang sudah diperiksa terlebih dahulu,
-   lalu membuat commit konfigurasi/aset custom, push, dan
+8. Publish perubahan tersimpan ke GitHub hanya mempublikasikan slot yang sudah
+   diterapkan, bukan draft. Membuat commit konfigurasi/aset custom, push, dan
    memeriksa status Actions sampai deploy berhasil atau mengembalikan kegagalan.
 
-30 slot: run/tag/parkour masing-masing delapan arah, idle, prisoner, ready,
+81 slot: setiap movement memiliki Default (fallback semua arah) dan delapan arah.
+Slot lama tetap kompatibel. Override khusus arah > Default movement > renderer lama.
+Movement mencakup run, tag, parkour, idle, prisoner, ready,
 ultimate, victory, defeat. Slot belum diisi memakai renderer sebelumnya. Reset
 satu slot tidak menghapus aset, slot lain, atau karakter lain. Bersiap mengikuti
 countdown; ultimate hanya animasi skill yang sudah ada; rescue memakai sprite
@@ -76,4 +78,6 @@ kanan bawah untuk resize. Untuk PNG sheet, isi kolom/baris lalu pilih sel yang
 diperiksa; crop memakai koordinat dalam setiap sel, bukan seluruh sheet.
 Multi-file dapat diperiksa bergantian melalui File sumber. Gunakan seluruh frame
 mereset crop. Setelah mengubah sumber/grid/crop, klik Proses & lihat hasil,
-tandai sudah sesuai, lalu update karakter sekaligus. Sumber asli tidak diubah.
+terapkan movement aktif atau draft yang dicentang. Sumber asli tidak diubah.
+Pemeriksaan awal membaca format dan metadata PNG/GIF/WebP; status dekat upload
+menjelaskan diterima/ditolak. Proses juga memvalidasi crop, grid dan ukuran atlas.

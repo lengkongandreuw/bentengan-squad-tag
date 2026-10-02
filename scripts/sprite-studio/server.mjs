@@ -89,7 +89,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
       }
       if(req.method!=='POST'||req.headers.origin!==origin||req.headers['x-admin-token']!==token)return json(403,{error:'Sesi tidak valid. Muat ulang panel.'});
       if(busy)return json(409,{error:'Proses lain sedang berjalan.'});
-      if(!['/api/compile','/api/save','/api/save-character','/api/build','/api/publish'].includes(url.pathname))return json(404,{error:'Tidak ditemukan.'});
+      if(!['/api/inspect','/api/compile','/api/save','/api/save-character','/api/build','/api/publish'].includes(url.pathname))return json(404,{error:'Tidak ditemukan.'});
       if(req.headers['content-type']!=='application/json')throw new Error('Gunakan JSON.');
       busy=true;
       try {
@@ -98,6 +98,22 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
         const current=await readConfig();
         if(data.revision!==current.revision)return json(409,{error:'Konfigurasi berubah. Muat ulang sebelum menyimpan.'});
         if(['/api/build','/api/publish'].includes(url.pathname)){job={status:'running',message:'Memulai…'};void runJob(url.pathname==='/api/publish');return json(202,job);}
+        if(url.pathname==='/api/inspect') {
+          if(!Array.isArray(data.files)||!data.files.length||data.files.length>128)throw new Error('File ditolak: pilih 1–128 PNG/GIF/WebP.');
+          let size=0,pixels=0;const files=[];
+          for(const file of data.files){
+            if(typeof file.data!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(file.data))throw new Error('Data file tidak valid.');
+            const bytes=Buffer.from(file.data,'base64');size+=bytes.length;if(size>30*1024*1024)throw new Error('File ditolak: maksimal 30 MB.');
+            let meta;try{meta=await sharp(bytes,{limitInputPixels:32_000_000}).metadata();}catch{throw new Error(`File tidak bisa dibaca: ${String(file.name??'gambar').slice(0,200)}. Gunakan PNG/GIF/WebP yang tidak rusak.`);}
+            const height=meta.pageHeight??meta.height,pages=meta.pages??1;
+            if(!['png','gif','webp'].includes(meta.format))throw new Error('Format ditolak: hanya PNG/GIF/WebP.');
+            pixels+=meta.width*height*pages;
+            if(meta.width>4096||height>4096||pages>128||pixels>64_000_000)throw new Error('File ditolak: sisi maksimal 4096 px, 128 frame, total 64 juta pixel.');
+            if(data.files.length>1&&pages>1)throw new Error('Pilih satu GIF/WebP animasi, atau beberapa gambar statis saja.');
+            files.push({format:meta.format,width:meta.width,height,pages});
+          }
+          return json(200,{files});
+        }
         if(!ids.includes(data.id)||(url.pathname!=='/api/save-character'&&!SLOTS.includes(data.slot)))throw new Error('Karakter/slot tidak valid.');
         if(url.pathname==='/api/compile') {
           const atlas=await compileSprites(data.files,data.options);

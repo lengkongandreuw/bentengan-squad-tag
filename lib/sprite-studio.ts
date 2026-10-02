@@ -1,5 +1,5 @@
 import settings from '../config/sprite-studio.json';
-import { frameAt, spriteSlot } from './sprite-studio-model.js';
+import { frameAt, spriteSlot, spriteDirection, studioSlotFallback } from './sprite-studio-model.js';
 import { publicAsset, type CharacterId } from './characters';
 type Clip = {asset:string;width:number;height:number;frames:{x:number;y:number;width:number;height:number}[];fps:number;scale:number;x:number;y:number;pivotX:number;pivotY:number;loop:boolean;mirror:boolean};
 const clips = settings.characters as Record<string, Record<string,Clip>>;
@@ -18,8 +18,9 @@ export function createStudioResolver() {
     const previous=actors.get(actor);
     const vx=Math.hypot(c.vx,c.vy)>8?c.vx:previous?.vx??0;
     const vy=Math.hypot(c.vx,c.vy)>8?c.vy:previous?.vy??1;
-    const slot=spriteSlot(c.parkour?{...c,vx,vy}:c);
-    const start=previous?.slot===slot?previous.start:c.now;
+    const requested=spriteSlot(c.parkour?{...c,vx,vy}:c);
+    const slot=studioSlotFallback(clips[id],requested,spriteDirection(vx,vy));
+    const start=previous&&previous.slot===slot?previous.start:c.now;
     actors.set(actor,{slot,start,vx,vy});
     const clip=slot?clips[id]?.[slot]:null;
     if(!clip) return null;

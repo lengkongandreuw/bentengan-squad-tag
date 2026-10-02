@@ -5,6 +5,12 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+- 2026-10-02: movement independen (aktif saja atau draft dicentang), 81 slot
+  (Default + 8 arah untuk setiap movement), fallback kompatibel renderer lama,
+  status file dekat upload + inspeksi metadata dan dukungan PNG tunggal/sheet/frame.
+  Uji PNG/idle diagonal/victory diagonal/draft tidak terpilih/error file di browser
+  lulus; API dan unit fallback lulus. Publikasi sedang diverifikasi.
+
 - Revisi UI sederhana: seri/arah + upload/crop + tandai sesuai + update karakter
   batch atomik. Draft hasil proses bertahan saat pindah arah/seri/karakter;
   pengaturan teknis dipindah ke Advanced options. Tes API batch termasuk rollback

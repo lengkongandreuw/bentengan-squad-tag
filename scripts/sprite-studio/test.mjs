@@ -6,10 +6,15 @@ import os from 'node:os';
 import path from 'node:path';
 import {compileSprites} from './compile.mjs';
 import {startSpriteStudio} from './server.mjs';
-import {SLOTS,validateClip,validateSpriteDocument,spriteSlot,frameAt,spriteDirection} from '../../lib/sprite-studio-model.js';
+import {SLOTS,validateClip,validateSpriteDocument,spriteSlot,frameAt,spriteDirection,studioSlotFallback} from '../../lib/sprite-studio-model.js';
 const png=()=>sharp({create:{width:64,height:32,channels:4,background:'#dd303080'}}).png().toBuffer();
-test('30 slots and exact eight directions; missing actions fall back, ultimate is visual only',()=>{
-  assert.equal(SLOTS.length,30);assert.equal(new Set(SLOTS).size,30);
+test('all movements support default plus eight directions, preserving legacy slot keys',()=>{
+  assert.equal(SLOTS.length,81);assert.equal(new Set(SLOTS).size,81);
+  for(const action of ['run','tag','parkour','idle','prisoner','ready','ultimate','victory','defeat'])assert.ok(SLOTS.includes(`${action}.northeast`));
+  assert.equal(studioSlotFallback({idle:true},'idle','northwest'),'idle');
+  assert.equal(studioSlotFallback({idle:true,'idle.northwest':true},'idle','northwest'),'idle.northwest');
+  assert.equal(studioSlotFallback({run:true},'run.east','east'),'run');
+  assert.equal(studioSlotFallback({},'idle','northwest'),null);
   assert.equal(spriteDirection(-1,-1),'northwest');assert.equal(spriteDirection(1,1),'southeast');
   const c={vx:40,vy:-40,state:'ACTIVE'};
   assert.equal(spriteSlot(c),'run.northeast');assert.equal(spriteSlot({...c,action:'tag',tagX:-5,tagY:5}),'tag.southwest');
@@ -18,6 +23,7 @@ test('30 slots and exact eight directions; missing actions fall back, ultimate i
 });
 test('sheet slicing preserves padding and source order; invalid crop/frame counts rejected',async()=>{
   const file={data:(await png()).toString('base64')};
+  const single=await compileSprites([file],{});assert.equal(single.frames.length,1);assert.equal(single.frames[0].width,72);assert.equal(single.frames[0].height,40);
   const a=await compileSprites([file],{columns:2,rows:1,count:2,order:[1,0]});
   assert.equal(a.frames.length,2);assert.equal(a.frames[0].width,40);assert.equal(a.frames[0].height,40);
   const m=await sharp(a.bytes).metadata();assert.equal(m.width,a.width);assert.equal(m.height,a.height);
@@ -56,6 +62,9 @@ test('local API: token, revision guard, per-slot save/delete and untouched chara
     assert.equal((await post('save',{},'wrong')).status,403);
     assert.equal((await fetch(origin+'/api/state',{headers:{Origin:'https://evil.test'}})).status,403);
     const compiled=await post('compile',{id:'lala',slot:'run.east',files:[{data:(await png()).toString('base64')}],options:{columns:2,rows:1,count:2}}).then(r=>r.json());
+    const inspected=await post('inspect',{files:[{name:'frame.png',data:(await png()).toString('base64')}]}).then(r=>r.json());
+    assert.equal(inspected.files[0].format,'png');assert.equal(inspected.files[0].pages,1);
+    assert.equal((await post('inspect',{files:[{name:'broken.png',data:Buffer.from('not an image').toString('base64')}]})).status,400);
     const saved=await post('save',{id:'lala',slot:'run.east',clip:compiled.clip}).then(r=>r.json());
     assert.ok(saved.document.characters.lala['run.east']);assert.equal(saved.document.characters.jago,undefined);
     assert.equal((await post('save',{id:'lala',slot:'idle',clip:compiled.clip})).status,409);
@@ -72,6 +81,8 @@ test('local API: token, revision guard, per-slot save/delete and untouched chara
     assert.equal((await post('save-character',{revision:removed.revision,id:'lala',clips:{idle:compiled.clip}})).status,409);
     const partial=await post('save-character',{revision:batch.revision,id:'lala',clips:{idle:compiled.clip,'run.west':null}}).then(r=>r.json());
     assert.ok(partial.document.characters.lala['run.east']);assert.ok(partial.document.characters.lala.idle);assert.equal(partial.document.characters.lala['run.west'],undefined);
+    const diagonal=await post('save',{revision:partial.revision,id:'lala',slot:'idle.northeast',clip:compiled.clip}).then(r=>r.json());
+    assert.ok(diagonal.document.characters.lala['idle.northeast']);assert.ok(diagonal.document.characters.lala.idle);assert.ok(diagonal.document.characters.lala['run.east']);
     assert.equal((await fetch(origin+'/.git/config')).status,404);
   }finally{if(server)await new Promise(r=>server.close(r));assert.ok(root.startsWith(path.join(os.tmpdir(),'benteng-sprite-test-')));await rm(root,{recursive:true,force:true});}
 });

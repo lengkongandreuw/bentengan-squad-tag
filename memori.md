@@ -4,6 +4,12 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-02 Sprite Studio: bebas menerapkan movement aktif saja atau draft yang
+dicentang. Draft lain tidak memblokir; Publish hanya slot yang sudah diterapkan.
+Setiap movement mendukung Default + 8 arah, prioritas override arah > default >
+sprite lama. PNG tunggal/sheet/kumpulan frame, GIF/WebP didukung; validasi file
+dekat upload sebelum proses, lalu validasi grid/crop/atlas saat proses.
+
 Alur Sprite Studio sederhana: pilih seri/arah, proses upload, tandai sudah sesuai,
 lalu Simpan & update karakter atau Simpan & publish ke GitHub. Batch atomik hanya
 mengubah arah yang dipilih. Draft hasil proses tersimpan di memori tab sampai
