@@ -9,12 +9,17 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   di commit checkpoint dda7ee0 dan 605e2ad; penyelesaian 03df919. Pengujian 5
   model/API map, 5 Sprite Studio, TypeScript dan build Pages lulus. Uji browser
   save GIF/FPS 6 dan aktivasi pada fixture lulus; map custom muncul di pilihan
-  arena dan masuk pertandingan tanpa error JavaScript. Sedang publish GitHub.
+  arena dan masuk pertandingan tanpa error JavaScript. COMPLETE: commit
+  65426da dipush; Pages run 36978917151 build/deploy SUCCESS.
   config/map-studio.json tetap kosong; tidak mengganti map/sprite pengguna.
   Fixture QA dipindahkan ke sa/map-studio-test-fixture-Tv5nsZ, di luar kode game.
   Audit lama masih gagal 7 assertion format/version/baseline; test Kampung 3D
   lama gagal isKanalField undefined (sudah ada pada baseline sebelum perubahan).
   Test series Maria/Boke lulus. Jangan rebuild sprite pengguna untuk mengatasinya.
+  Server Map Studio 4320 aktif (terminal session 34221). Tab editor berisi contoh
+  salinan Kampung belum disimpan; manifest aktual tetap maps:[]. Perubahan baru
+  pengguna config/sprite-studio.json dan public/sprite-studio/jago/ tidak ikut
+  commit/push Map Studio. Untuk mencoba lagi: npm run admin:maps.
 
 - 2026-10-02: kontrol FPS 1–60 langsung di preview editor, tersinkron Advanced;
   pengali playback bersama 0,25×–4× di comparison (preview saja, tanpa mengubah
