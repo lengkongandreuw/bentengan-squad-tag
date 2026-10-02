@@ -5,6 +5,12 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+- Panel perbandingan `/comparison`: seluruh animasi custom diterapkan lokal,
+  common camera/zoom/pijakan, visualScale karakter seperti renderer, filter/pause,
+  reload manifest, deep link edit slot. Uji browser 9 animasi Raja dan filter
+  ultimate lulus tanpa error; tes server route dan syntax lulus. Tidak mengubah
+  config/sprite-studio.json atau aset upload pengguna. Publikasi sedang diverifikasi.
+
 - 2026-10-02: movement independen (aktif saja atau draft dicentang), 81 slot
   (Default + 8 arah untuk setiap movement), fallback kompatibel renderer lama,
   status file dekat upload + inspeksi metadata dan dukungan PNG tunggal/sheet/frame.

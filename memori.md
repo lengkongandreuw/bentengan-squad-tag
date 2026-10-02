@@ -4,6 +4,11 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Panel perbandingan Sprite Studio: `http://127.0.0.1:4319/comparison`, menampilkan
+semua slot custom yang sudah diterapkan lokal (bukan draft / verifikasi GitHub).
+Zoom bersama, garis pijakan, skala karakter × slot, filter, pause, dan link Edit.
+Ukuran frame termasuk area transparan; tidak ada auto-fit yang menyamakan gambar.
+
 2026-10-02 Sprite Studio: bebas menerapkan movement aktif saja atau draft yang
 dicentang. Draft lain tidak memblokir; Publish hanya slot yang sudah diterapkan.
 Setiap movement mendukung Default + 8 arah, prioritas override arah > default >

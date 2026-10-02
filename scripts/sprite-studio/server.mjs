@@ -23,6 +23,8 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
   const rules=JSON.parse(await readFile(path.join(projectRoot,'config/game-rules.json'),'utf8'));
   const roster=Object.entries(rules.teams).flatMap(([team,t])=>t.roster.map(id=>({id,team,name:id==='ciici'?'Ciici':id[0].toUpperCase()+id.slice(1)})));
   const ids=roster.map(r=>r.id),token=randomBytes(32).toString('hex');
+  const definitions=await readFile(path.join(projectRoot,'lib/characters.ts'),'utf8').catch(()=> '');
+  for(const character of roster){const match=definitions.match(new RegExp(`id: '${character.id}'[\\s\\S]*?visualScale: ([0-9.]+)`));character.visualScale=match?Number(match[1]):1;}
   const readConfig=async()=>{const b=await readFile(configFile);return {document:validateSpriteDocument(JSON.parse(b),ids),revision:hash(b)};};
   let origin,busy=false,job={status:'idle',message:''};
   const git=args=>command('git',['-c',`safe.directory=${projectRoot.replaceAll('\\','/')}`,...args],projectRoot);
@@ -71,7 +73,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
       if(req.method==='GET') {
         if(url.pathname==='/api/state')return json(200,{...await readConfig(),roster,token,job});
         if(url.pathname==='/api/job')return json(200,job);
-        const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css'};
+        const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css','/comparison':'comparison.html','/comparison.js':'comparison.js'};
         if(editors[url.pathname]||url.pathname==='/model.js') {
           res.setHeader('Content-Security-Policy',"default-src 'self'; img-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'");
           const file=url.pathname==='/model.js'?path.join(projectRoot,'lib/sprite-studio-model.js'):path.join(directory,editors[url.pathname]);

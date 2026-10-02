@@ -58,6 +58,7 @@ test('local API: token, revision guard, per-slot save/delete and untouched chara
     await writeFile(path.join(root,'config/sprite-studio.json'),JSON.stringify({version:1,characters:{}}));
     const started=await startSpriteStudio(0,root);server=started.server;const origin=started.origin;
     const state=await fetch(origin+'/api/state').then(r=>r.json());
+    assert.equal(state.roster[0].visualScale,1);assert.equal((await fetch(origin+'/comparison')).status,200);assert.equal((await fetch(origin+'/comparison.js')).status,200);
     const post=(route,body,token=state.token)=>fetch(origin+'/api/'+route,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'x-admin-token':token},body:JSON.stringify({revision:state.revision,...body})});
     assert.equal((await post('save',{},'wrong')).status,403);
     assert.equal((await fetch(origin+'/api/state',{headers:{Origin:'https://evil.test'}})).status,403);

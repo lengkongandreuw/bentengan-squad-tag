@@ -13,6 +13,14 @@ Panel ini hanya tersedia di komputer lokal; jangan expose port melalui tunnel.
 
 ## Mengedit
 
+Panel perbandingan: http://127.0.0.1:4319/comparison (tautan dari editor).
+Semua slot custom yang sudah diterapkan di manifest lokal diputar pada satu
+zoom dan pijakan bersama, memakai visualScale karakter × skala slot seperti game.
+Filter karakter/movement, pause/ulang bersama, dan Muat ulang setelah menerapkan
+perubahan. Edit ukuran / movement membuka slot tepat di editor pada tab baru.
+Draft, renderer lama, dan preview character-selection 4318 tidak termasuk.
+Ukuran angka mencakup ruang transparan frame; gambar tidak di-auto-fit per kartu.
+
 1. Pilih karakter, jenis animasi, dan arah. Front = bawah layar; back = atas.
 2. Upload PNG sheet, GIF/animated WebP, atau beberapa PNG/WebP statis.
    Multi-file diurutkan berdasarkan nama secara numerik (frame1, frame2, frame10).
