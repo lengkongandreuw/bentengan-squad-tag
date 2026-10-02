@@ -1,4 +1,1431 @@
 {
   "version": 1,
-  "characters": {}
+  "characters": {
+    "raja": {
+      "run.south": {
+        "asset": "sprite-studio/raja/25bf5ac0a378c053b3465fc480da89005393e5847937bcd7e53c1ed49dc7fcc5.webp",
+        "width": 2624,
+        "height": 328,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -0.6267472959748039,
+        "y": 4.178272802909796,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.southwest": {
+        "asset": "sprite-studio/raja/dc9480ed5255d4cc0437e85ffa70277866d8b47fedd2a50bbe074659442db9fc.webp",
+        "width": 2624,
+        "height": 328,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -1.044568200727449,
+        "y": 6.476319656741016,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.west": {
+        "asset": "sprite-studio/raja/3d38902dc0b21c9c8ab2dd592cdb020d6b5ebb88f58d4f86abc685c342d2dd42.webp",
+        "width": 3936,
+        "height": 656,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2624,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2952,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 3280,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 3608,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 0,
+            "y": 328,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -0.20891045237632255,
+        "y": 8.147631168731811,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.northwest": {
+        "asset": "sprite-studio/raja/d3dfc5bad86ba54b81aef3a72366fdab8feee42a2a45ef67e82706c1c1449aa7.webp",
+        "width": 2624,
+        "height": 328,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.20892639122215884,
+        "y": 12.74373683052863,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.north": {
+        "asset": "sprite-studio/raja/4103971da98ddbe5af1f61748923c12ca9155f8053767e89d0027bb1f1f6cb2a.webp",
+        "width": 3936,
+        "height": 656,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2624,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2952,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 3280,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 3608,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 0,
+            "y": 328,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1.1,
+        "x": 0.4178368435984814,
+        "y": 9.401113806547041,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.northeast": {
+        "asset": "sprite-studio/raja/709376550a3059cca48b42f618ffaae828ef80405f755e315d556840ae2f11df.webp",
+        "width": 2624,
+        "height": 328,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 2.2980468538312206,
+        "y": 13.370484126503433,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.east": {
+        "asset": "sprite-studio/raja/a770feec74ac960f2285f5cdad2f26ead7771d0648e3ca1f68b0ac7c4a58ca41.webp",
+        "width": 3936,
+        "height": 656,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2624,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2952,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 3280,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 3608,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 0,
+            "y": 328,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 4.387199194131955,
+        "y": 6.685234093828798,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.southeast": {
+        "asset": "sprite-studio/raja/456f45d6c90bcd18611151c61a23059694b48a2c4b266309ce6b2635c46f0de8.webp",
+        "width": 2624,
+        "height": 328,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 328,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 656,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 984,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1312,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1640,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 1968,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          },
+          {
+            "x": 2296,
+            "y": 0,
+            "width": 328,
+            "height": 328
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.4178368435984814,
+        "y": 5.013926566549464,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "ultimate": {
+        "asset": "sprite-studio/raja/3b65e2c9063bb19fd1c8c4b704a0c5ff5cb7f3c4397f5d931ebff64a21c18444.webp",
+        "width": 3848,
+        "height": 1560,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          }
+        ],
+        "fps": 10,
+        "scale": 2,
+        "x": -0.4178209047526451,
+        "y": 23.607247711978683,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "ultimate.northeast": {
+        "asset": "sprite-studio/raja/3b65e2c9063bb19fd1c8c4b704a0c5ff5cb7f3c4397f5d931ebff64a21c18444.webp",
+        "width": 3848,
+        "height": 1560,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          }
+        ],
+        "fps": 33,
+        "scale": 2,
+        "x": 0,
+        "y": 0,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "ultimate.north": {
+        "asset": "sprite-studio/raja/3b65e2c9063bb19fd1c8c4b704a0c5ff5cb7f3c4397f5d931ebff64a21c18444.webp",
+        "width": 3848,
+        "height": 1560,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          }
+        ],
+        "fps": 32,
+        "scale": 2,
+        "x": 0,
+        "y": 0,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      }
+    },
+    "kaka": {
+      "ultimate": {
+        "asset": "sprite-studio/kaka/a3ea8bf6067fbaf1269170859900827cb71157ee4c973a9a5f274a460e0880d2.webp",
+        "width": 3848,
+        "height": 1560,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 0,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1776,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2072,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2368,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2664,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 2960,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3256,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 3552,
+            "y": 520,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 0,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 296,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 592,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 888,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1184,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          },
+          {
+            "x": 1480,
+            "y": 1040,
+            "width": 296,
+            "height": 520
+          }
+        ],
+        "fps": 12,
+        "scale": 1.5,
+        "x": -0.4178209047526451,
+        "y": 20.89136401454898,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      }
+    }
+  }
 }
