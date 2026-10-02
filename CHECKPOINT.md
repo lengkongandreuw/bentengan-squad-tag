@@ -5,6 +5,55 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### ACTIVE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
+
+- Pengguna mengizinkan publikasi manifest sprite Jago dan map lokal beserta
+  aset yang dirujuk. Diff sprite hanya Jago: enam arah run diagonal/kiri/kanan.
+- Arena Benteng 1 lulus mapIssues (kosong). builtinStates.kampung3d=deleted
+  menghapus arena eksperimental dari pilihan game, recoverable dari editor.
+- Optimasi ukuran/frame sumber sebelumnya masih diskusi, tidak diam-diam
+  mengurangi kualitas aset pengguna. Akan publish versi lokal yang tersimpan.
+- Next: commit scoped referenced assets, merge github/main terbaru, tes dan
+  build, push, tunggu workflow Pages; jangan stage upload yang tidak dirujuk.
+
+### Checkpoint terkini — 2026-10-02 (diskusi + pembaruan dokumentasi)
+
+- Request aktif: saran meringankan map editor dan catat fitur programmer lain.
+  Tidak mengubah aset, manifest map/sprite, dependency, atau gameplay pada turn ini.
+- HEAD implementasi lokal `2c1029c`: merge `github/main` lama `1c0977a`
+  (pemulihan baseline Nusantara 1) dengan lifecycle editor `6fac739`.
+  Enam tes Map Studio, typecheck dan build Pages sesudah merge tersebut PASS.
+  Kode lifecycle belum dipush; belum ada konfirmasi deployment untuk commit ini.
+- Fetch terbaru menghasilkan `github/main` = `a199b80`. PR #6 / `1a73c74`
+  menambah profil pemain localStorage, setup username, karakter unggulan,
+  menang/kalah, tag/penjara/rescue, KDA dan radar performa; panel lazy di menu/HUD.
+  `ac3edfb` membersihkan .npmrc; `75dc69f` meregenerasi package-lock.json.
+  Upstream ini belum di-merge, build/runtime fitur profil BELUM diuji lokal.
+  Branch `github/Refactor-Clio` ada tetapi tidak diasumsikan sudah masuk main.
+- IMPORTANT: pengguna sudah menyimpan map aktif `Arena Benteng 1` ke
+  config/map-studio.json (studio-kampung-2420b8cf, 1969x1560, 84 objek,
+  46 visual, 11 animasi @54 frame). Pernyataan manifest kosong di histori
+  setelah bagian ini SUDAH TIDAK BERLAKU. Jangan reset/replace manifest tersebut.
+- Referensi gambar map: 13 aset unik / 14,68 MiB file; perkiraan buffer RGBA
+  109,48 MiB berdasarkan dimensi (bukan profiling memori browser aktual).
+- Dirty pengguna: config/map-studio.json, config/sprite-studio.json,
+  public/map-studio/, public/sprite-studio/jago/. Semua dipertahankan.
+- Server lifecycle baru 4322; tab/server lama 4320 tetap dipertahankan agar
+  draft pengguna tidak hilang. Jangan hentikan/refresh paksa tab dengan draft.
+- Memori diperbarui berdasarkan kode remote, bukan hanya judul commit.
+  Tidak menjalankan ulang build karena perubahan turn ini dokumentasi saja.
+
+Next action jika implementasi/publikasi dilanjutkan: periksa status dan fetch
+lagi, gabungkan upstream terbaru secara aman dengan menjaga file map/sprite
+pengguna, selesaikan konflik hanya pada kode terkait, jalankan tes/typecheck/
+Pages build setelah merge, lalu publish hanya file tugas yang disetujui.
+Jangan ikut meng-commit map/sprite pengguna tanpa permintaan publish asetnya.
+
+Next action optimasi: ukur loading/memori/FPS map pengguna lebih dahulu;
+bedakan bottleneck atlas/animasi dari collider/AI, gunakan duplikat map/aset
+untuk uji kualitas sebelum menerapkan perubahan. Diskusi belum mengizinkan
+otomatis resize/reduce frame atau menghapus objek pengguna.
+
 - 2026-10-02: revisi edit existing map + Arsip/Sampah/Pulihkan. Enam tes model/API
   lulus, typecheck lulus; browser isolated menguji edit/simpan Pasar, Arsip, Sampah,
   Pulihkan tanpa error. Server baru 4322 (session 95860) agar tab/draft lama 4320

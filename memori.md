@@ -81,6 +81,49 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Ringkasan proyek
 
+- Publikasi diminta 2026-10-02: override enam arah lari Jago dan map aktif
+  Arena Benteng 1. Kampung Merdeka 3D dikeluarkan dari game lewat status deleted
+  pada builtinStates; kode/aset tetap tersimpan untuk pemulihan di Map Studio.
+
+### Sinkronisasi upstream yang diperiksa 2026-10-02
+
+- Remote `github/main` terakhir diperiksa: `a199b80`. PR #6 / commit `1a73c74`
+  menambahkan profil pemain lokal: setup username, panel profil di landing/HUD,
+  karakter unggulan, menang/kalah, tag musuh, masuk penjara, rescue dan radar
+  attack/support/survival. Data memakai localStorage, bukan akun/login server
+  atau sinkronisasi lintas perangkat. Statistik dicatat saat MATCH_OVER.
+- Modul baru: `lib/player-profile/`, `components/player-profile/`, dokumentasi
+  `FEATURE_USER_PROFILE_RADAR_CHART.md`. Panel profil dimuat lazy. Upstream juga
+  membersihkan opsi .npmrc deprecated dan meregenerasi package-lock.json.
+- Pada inspeksi ini upstream tersebut BARU di-fetch/dibaca, belum di-merge ke
+  checkout lokal. Jangan menganggap fitur remote sudah aktif di localhost.
+- Enam arena bawaan saat ini mencakup lima 2D (`kampung`, `pasar`, `taman`,
+  `kanal`, `kanal2`) dan satu eksperimental `kampung3d`; uraian empat/lima arena
+  di bagian historis di bawah bukan jumlah roster arena terbaru.
+- Prioritas verifikasi terbaru mengikuti CHECKPOINT.md; klaim audit lengkap
+  lulus di bagian historis tidak berlaku pada baseline sekarang (7 assertion
+  legacy diketahui gagal; jangan mengubah baseline/sprite untuk menyamarkannya).
+
+### Map buatan pengguna dan rencana optimasi (diskusi, belum diterapkan)
+
+- Manifest lokal kini berisi map aktif `studio-kampung-2420b8cf`, nama
+  `Arena Benteng 1`, ukuran 1969x1560, 84 objek: 46 visual dan 11 animasi
+  masing-masing 54 frame; perilaku 19 parkour / 45 decoration / 20 solid.
+  Ini perubahan pengguna, jangan ditimpa oleh manifest kosong dari checkpoint lama.
+- 13 file gambar unik yang dirujuk map: total sekitar 14,68 MiB di disk;
+  estimasi satu buffer RGBA dari dimensi atlas sekitar 109,48 MiB (bukan hasil
+  pengukuran memori browser/GPU; belum termasuk sprite, canvas dan buffer lain).
+- GIF upload diproses menjadi atlas WebP; runtime berbagi cache berdasarkan
+  path aset. Duplikat objek dengan aset sama tidak otomatis menggandakan download.
+  FPS lebih rendah mengubah playback, bukan jumlah frame/ukuran atlas atau
+  frekuensi render canvas. Mengecilkan w/h objek saja juga tidak mengecilkan atlas.
+- Saran awal: kurangi jumlah frame animasi sumber, resize/crop sebelum upload,
+  pakai ulang aset, batasi animasi dekorasi, sederhanakan collider tanpa menutup
+  jalur. Angka target merupakan anggaran awal untuk diuji, bukan jaminan FPS.
+- Optimasi kode opsional berikutnya: culling visual di luar kamera, cache layer
+  statis dan urutan layer; collider seluruh dunia tetap berlaku untuk AI/pemain.
+  Belum diterapkan dan belum ada pengukuran FPS pada perangkat pengguna.
+
 - Game web 2.5D Bentengan 5 lawan 5 melawan bot.
 - Framework: React 19, TypeScript, Vinext/Vite.
 - Node minimum: 22.13.0.
