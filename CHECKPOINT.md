@@ -5,13 +5,22 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### ACTIVE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
+### COMPLETE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
+
+- Release `c796cde` dipush ke github/main; Pages run `37027823960`
+  build + deploy SUCCESS. URL https://lengkongandreuw.github.io/bentengan-squad-tag/.
+- 53 referensi entry aset map/Jago terverifikasi ada di dist-pages dan dimensi
+  cocok dengan manifest. Working tree clean sebelum pencatatan hasil deployment.
+- Fitur editor lifecycle `6fac739` ikut release ini. Map3D tidak muncul dalam
+  daftar aktif, tetapi data/kode tetap recoverable. Optimasi frame/resolusi belum
+  dilakukan; versi map yang pengguna simpan dipublikasikan tanpa perubahan visual.
+- Next action: feedback pengguna / profiling dan optimasi map bila diminta.
 
 - Implementasi/aset scoped `1623c1a` tersimpan; upstream `a199b80` sudah merge
   tanpa konflik. 6 tes map + 5 tes sprite PASS, tsc --noEmit PASS,
   build:pages PASS (warning CSS/chunk legacy masih ada).
 - Browser build produksi 4322 masuk Arena Benteng 1; console error kosong.
-  Screenshot ../release-jago-map.png. Next: push dan tunggu Pages selesai.
+  Screenshot ../release-jago-map.png. Push dan deployment sudah selesai di atas.
 
 - Pengguna mengizinkan publikasi manifest sprite Jago dan map lokal beserta
   aset yang dirujuk. Diff sprite hanya Jago: enam arah run diagonal/kiri/kanan.

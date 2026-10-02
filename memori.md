@@ -84,6 +84,8 @@ lengkap agar task dapat diteruskan hanya dengan membaca repository.
 - Publikasi diminta 2026-10-02: override enam arah lari Jago dan map aktif
   Arena Benteng 1. Kampung Merdeka 3D dikeluarkan dari game lewat status deleted
   pada builtinStates; kode/aset tetap tersimpan untuk pemulihan di Map Studio.
+- Rilis `c796cde` sudah di github/main; Pages run `37027823960` build/deploy
+  SUCCESS. Fitur profil upstream dan editor lifecycle ikut terpublikasi.
 
 ### Sinkronisasi upstream yang diperiksa 2026-10-02
 
