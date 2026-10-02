@@ -330,6 +330,24 @@ await sharp(path.join(map4SourceDir, 'guide-final.png'))
 
 // Build a compact gameplay mask directly from the clean terrain. Blue/cyan
 // river pixels become white; bridges and walkable paving remain black.
+// Reproduce the original mask without overwriting the improved Nusantara 2
+// generator input (kanal-water-mask.png).
+const originalCanalTerrain = await sharp(path.join(map4SourceDir, 'terrain.png'))
+  .resize(map4WaterMaskWidth, map4WaterMaskHeight, { fit: 'fill' })
+  .removeAlpha().raw().toBuffer({ resolveWithObject: true });
+const originalCanalMask = Buffer.alloc(map4WaterMaskWidth * map4WaterMaskHeight);
+for (let pixel = 0; pixel < originalCanalMask.length; pixel++) {
+  const offset = pixel * originalCanalTerrain.info.channels;
+  const red = originalCanalTerrain.data[offset];
+  const green = originalCanalTerrain.data[offset + 1];
+  const blue = originalCanalTerrain.data[offset + 2];
+  originalCanalMask[pixel] = blue >= 34 && blue > red * 1.12 &&
+    green > red * 1.28 && blue > green * 0.94 ? 255 : 0;
+}
+await sharp(originalCanalMask, {
+  raw: { width: map4WaterMaskWidth, height: map4WaterMaskHeight, channels: 1 },
+}).dilate(3).erode(3).png({ palette: true, colours: 2, effort: 10 })
+  .toFile(path.join(outputDir, 'kanal1-water-mask.png'));
 const map4TerrainRaw = await sharp(path.join(map4SourceDir, 'terrain.png'))
   .resize(map4WaterMaskWidth, map4WaterMaskHeight, { fit: 'fill' })
   .removeAlpha()
@@ -485,7 +503,7 @@ const manifest = {
       width: map4GuideWidth,
       height: map4GuideHeight,
       waterMask: {
-        file: 'kanal-water-mask.png',
+        file: 'kanal1-water-mask.png',
         width: map4WaterMaskWidth,
         height: map4WaterMaskHeight,
       },
