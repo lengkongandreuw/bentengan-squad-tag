@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  lazy,
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -21,6 +23,7 @@ import {
   Play,
   RotateCcw,
   Shield,
+  UserRound,
   Users,
   Volume2,
   VolumeX,
@@ -59,6 +62,15 @@ import {
 } from '../lib/characters';
 import { characterAnimationMapping } from '../lib/character-animation.js';
 import { DeveloperCredits } from '../components/developer-credits';
+import { PlayerProfileSetup } from '../components/player-profile/player-profile-setup';
+import {
+  loadPlayerProfile,
+  PLAYER_PROFILE_CHANGED_EVENT,
+  EMPTY_KDA,
+  recordCompletedMatch,
+  type LocalPlayerProfile,
+  type PlayerKdaStats,
+} from '../lib/player-profile';
 import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
 import {
   FIELD_ANIMATED_ATLAS,
@@ -92,6 +104,9 @@ import {
 import GAME_RULES from '../config/game-rules.json';
 import type { Kampung3D } from '../lib/kampung-3d';
 let Kampung3DRenderer: typeof Kampung3D | undefined;
+const PlayerProfilePanel = lazy(async () => ({
+  default: (await import('../components/player-profile/player-profile-panel')).PlayerProfilePanel,
+}));
 
 type Team = 'blue' | 'red';
 type Faction = 'red' | 'green';
@@ -2895,6 +2910,7 @@ export function BentenganPrototype() {
   const characterVoiceIdRef = useRef<CharacterId | null>(null);
   const cameraModeRef = useRef<CameraMode>('follow');
   const completedMatchesRef = useRef(0);
+  const pendingProfileStatsRef = useRef<PlayerKdaStats>({ ...EMPTY_KDA });
   const leaderboardOpenRef = useRef(false);
   const postRoundActionRef = useRef<'next-round' | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
@@ -2915,6 +2931,17 @@ export function BentenganPrototype() {
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
   const [landingArena, setLandingArena] = useState<FieldId>('kampung');
+  const [playerProfile, setPlayerProfile] = useState<
+    LocalPlayerProfile | null | undefined
+  >(undefined);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const refreshPlayerProfile = () => setPlayerProfile(loadPlayerProfile());
+  useEffect(() => {
+    refreshPlayerProfile();
+    window.addEventListener(PLAYER_PROFILE_CHANGED_EVENT, refreshPlayerProfile);
+    return () =>
+      window.removeEventListener(PLAYER_PROFILE_CHANGED_EVENT, refreshPlayerProfile);
+  }, []);
   useEffect(() => {
     setLandingArena(FIELD_CONFIGS[Math.floor(Math.random() * FIELD_CONFIGS.length)].id);
     // Warm the small loading posters while the user navigates the menus.
@@ -3338,6 +3365,10 @@ export function BentenganPrototype() {
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+      if (profileOpen) {
+        keys.current.clear();
+        return;
+      }
       if (mode === 'playing') {
         if (key === 'tab') {
           event.preventDefault();
@@ -3381,11 +3412,12 @@ export function BentenganPrototype() {
       window.removeEventListener('blur', releaseAll);
       document.removeEventListener('visibilitychange', visibility);
     };
-  }, [mode]);
+  }, [mode, profileOpen]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    pendingProfileStatsRef.current = { ...EMPTY_KDA };
     const mainContext = canvas.getContext('2d');
     if (!mainContext) return;
     let ctx: CanvasRenderingContext2D = mainContext;
@@ -3955,6 +3987,11 @@ export function BentenganPrototype() {
       resultWinner = team;
       resultAnnouncementUntil = resultNow + 1500;
       if (phase === 'MATCH_OVER') {
+        recordCompletedMatch(
+          team === players[0].team ? 'win' : 'loss',
+          pendingProfileStatsRef.current,
+        );
+        pendingProfileStatsRef.current = { ...EMPTY_KDA };
         completedMatchesRef.current++;
         fieldRotationPending = completedMatchesRef.current >= 3;
         playAudioCue(
@@ -4577,6 +4614,8 @@ export function BentenganPrototype() {
       winner.captures++;
       addStat(winner, 'tags');
       addStat(loser, 'prisons');
+      if (winner.controlled) pendingProfileStatsRef.current.tagMusuh++;
+      if (loser.controlled) pendingProfileStatsRef.current.masukPenjara++;
       addMatchEvent(
         {
           kind: 'tag',
@@ -4688,6 +4727,7 @@ export function BentenganPrototype() {
             rescuer.action = 'rescue';
             rescuer.actionUntil = now + 460;
             addStat(rescuer, 'rescues');
+            if (rescuer.controlled) pendingProfileStatsRef.current.rescueTeam++;
             if (
               rescueRequest &&
               held.some((player) => player.id === rescueRequest?.requesterId)
@@ -6772,7 +6812,7 @@ export function BentenganPrototype() {
     snapshot.ultimateCasting ||
     snapshot.paused;
   const start = () => {
-    if (!selectedFaction || assetsLoading) return;
+    if (!playerProfile || !selectedFaction || assetsLoading) return;
     stopCharacterVoice();
     setRendererError('');
     playAudioCue('press-play.mp3', 0.64);
@@ -6869,6 +6909,8 @@ export function BentenganPrototype() {
     if (mode !== 'menu' || view !== 'game' || assetsLoading) return;
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+      if (!playerProfile) return;
+      if (profileOpen) return;
       if (creditsOpen) return;
       if (rulesOpen) {
         if (key === 'escape') setRulesOpen(false);
@@ -6941,6 +6983,8 @@ export function BentenganPrototype() {
     selectedFaction,
     selectedFieldId,
     selectedId,
+    playerProfile,
+    profileOpen,
     view,
   ]);
 
@@ -7019,6 +7063,18 @@ export function BentenganPrototype() {
         }
       >
         <div className="ink-noise" />
+        {playerProfile && menuStep === 'splash' && (
+          <button
+            className="profile-trigger"
+            onClick={() => {
+              keys.current.clear();
+              setProfileOpen(true);
+            }}
+            aria-label="Buka profil pemain"
+          >
+            <UserRound size={19} />
+          </button>
+        )}
         {menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />}
         {menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />}
         {menuStep === 'splash' && (
@@ -7445,6 +7501,15 @@ export function BentenganPrototype() {
             </div>
           </div>
         )}
+        {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
+        {playerProfile && profileOpen && (
+          <Suspense fallback={null}>
+            <PlayerProfilePanel
+              profile={playerProfile}
+              onClose={() => setProfileOpen(false)}
+            />
+          </Suspense>
+        )}
       </main>
     );
   }
@@ -7464,6 +7529,19 @@ export function BentenganPrototype() {
           </span>
         </div>
         <div className="top-actions">
+          {playerProfile && (
+            <button
+              className="icon-button profile-match-trigger"
+              onClick={() => {
+                keys.current.clear();
+                setProfileOpen(true);
+              }}
+              aria-label="Buka profil pemain"
+              title="Profil pemain"
+            >
+              <UserRound size={18} />
+            </button>
+          )}
           <AudioSettings onOpen={() => keys.current.clear()} />
           <button
             className={`icon-button ${musicMuted ? 'muted' : ''}`}
@@ -8473,6 +8551,14 @@ export function BentenganPrototype() {
           </div>
         </aside>
       </section>
+      {playerProfile && profileOpen && (
+        <Suspense fallback={null}>
+          <PlayerProfilePanel
+            profile={playerProfile}
+            onClose={() => setProfileOpen(false)}
+          />
+        </Suspense>
+      )}
     </main>
   );
 }
