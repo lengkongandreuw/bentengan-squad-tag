@@ -7,7 +7,9 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 - 2026-10-02: kontrol FPS 1–60 langsung di preview editor, tersinkron Advanced;
   pengali playback bersama 0,25×–4× di comparison (preview saja, tanpa mengubah
-  skala atau FPS game). Tes browser FPS 6/24 dan pengali lulus. Publikasi pending.
+  skala atau FPS game). Tes browser FPS 6/24, validasi FPS invalid dan pengali
+  lulus; 5 tes dan typecheck lulus. Commit `de8dc28` dipush, Pages run
+  `36952810037` build/deploy SUCCESS. Draft test dibatalkan; sprite pengguna utuh.
 
 - Panel perbandingan `/comparison`: seluruh animasi custom diterapkan lokal,
   common camera/zoom/pijakan, visualScale karakter seperti renderer, filter/pause,
