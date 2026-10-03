@@ -38,6 +38,64 @@ const { getLevelFromXP, getCurrentLevelProgress, getXPRequiredForLevel,
   getXPToNextLevel, calculateMatchXP } = await load('xp-engine');
 const { isCharacterUnlocked, getCharacterUnlockRequirement,
   getCharacterUnlockProgress, resolveCharacterUnlocks } = await load('character-unlocks');
+const { getArenaStats, applyArenaMatchStat } = await load('arena-stats');
+
+test('module05 played increments per call and wins only on victory, including custom IDs', () => {
+  const profile = service.createPlayerProfile('ArenaPlayer');
+  const loss = applyArenaMatchStat(profile, 'studio-map-new', false);
+  assert.deepEqual(getArenaStats(loss, 'studio-map-new'), { played: 1, wins: 0 });
+  const win = applyArenaMatchStat(loss, 'studio-map-new', true);
+  assert.deepEqual(getArenaStats(win, 'studio-map-new'), { played: 2, wins: 1 });
+  const second = applyArenaMatchStat(win, 'another-custom-map', true);
+  assert.deepEqual(getArenaStats(second, 'another-custom-map'), { played: 1, wins: 1 });
+  assert.deepEqual(getArenaStats(second, 'studio-map-new'), { played: 2, wins: 1 });
+  assert.deepEqual(parsePlayerProfile(second), second);
+});
+
+test('module05 does not mutate input, unrelated profile state or storage; legacy reads safe', () => {
+  const profile = service.createPlayerProfile('SafeArena');
+  profile.progression.xp = 450;
+  profile.progression.arenaStats.kampung = { played: 5, wins: 3 };
+  profile.progression.processedMatchIds.push('old-match');
+  const before = structuredClone(profile);
+  const stats = getArenaStats(profile, 'kampung');
+  stats.wins = 0;
+  globalThis.window = { get localStorage() { throw new Error('No storage access'); } };
+  try {
+    const updated = applyArenaMatchStat(profile, 'pasar', true);
+    assert.deepEqual(profile, before);
+    const expected = structuredClone(before);
+    expected.progression.arenaStats.pasar = { played: 1, wins: 1 };
+    assert.deepEqual(updated, expected);
+    const legacy = { ...profile };
+    delete legacy.progression;
+    assert.deepEqual(getArenaStats(legacy, 'kampung'), { played: 0, wins: 0 });
+    assert.throws(() => applyArenaMatchStat(legacy, 'kampung', true), /migrasi/);
+    assert.equal(legacy.progression, undefined);
+  } finally { delete globalThis.window; }
+});
+
+test('module05 special IDs are own entries; invalid input and overflow fail without data loss', () => {
+  const profile = service.createPlayerProfile('ArenaCheck');
+  for (const id of ['__proto__', 'constructor', 'toString']) {
+    assert.deepEqual(getArenaStats(profile, id), { played: 0, wins: 0 });
+    const updated = applyArenaMatchStat(profile, id, true);
+    assert.ok(Object.hasOwn(updated.progression.arenaStats, id));
+    assert.deepEqual(getArenaStats(updated, id), { played: 1, wins: 1 });
+    assert.deepEqual(parsePlayerProfile(updated), updated);
+  }
+  for (const id of ['', ' ', null, 42]) {
+    assert.throws(() => getArenaStats(profile, id));
+    assert.throws(() => applyArenaMatchStat(profile, id, true));
+  }
+  assert.throws(() => applyArenaMatchStat(profile, 'kampung', 'win'), /boolean/);
+  profile.progression.arenaStats.full = { played: Number.MAX_SAFE_INTEGER, wins: 1 };
+  assert.throws(() => applyArenaMatchStat(profile, 'full', false), /batas/);
+  assert.equal(profile.progression.arenaStats.full.played, Number.MAX_SAFE_INTEGER);
+  profile.progression.arenaStats.bad = { played: 1, wins: 2 };
+  assert.throws(() => applyArenaMatchStat(profile, 'bad', true), /tidak valid/);
+  assert.deepEqual(profile.progression.arenaStats.bad, { played: 1, wins: 2 });
+});
 
 test('module04 all character thresholds, starters and unknown IDs', () => {
   const profile = service.createPlayerProfile('Unlocker');

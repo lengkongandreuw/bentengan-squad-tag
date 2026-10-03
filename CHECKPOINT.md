@@ -5,6 +5,24 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 05 Arena Statistics (2026-10-03, LOCAL ONLY)
+
+- User memberi spesifikasi04+05;04 selesai lokal commit9ca2273 sebelum05.
+- arena-stats.ts menyediakan getArenaStats dan applyArenaMatchStat. ID dinamis
+  termasuk custom; played +1 setiap panggilan eksplisit, wins +1 hanya won=true.
+- Getter menghasilkan salinan/default0 tanpa insert/write. Apply menghasilkan
+  profil baru, menjaga XP/unlocks/counters/processedMatchIds dan arena lain.
+  Legacy tanpa progression aman dibaca, apply ditolak dengan pesan migration;
+  tidak membuat default progression diam-diam atau menjalankan migration09.
+- Validasi ID kosong/boolean/stat invalid/overflow; own-property lookup dan
+  computed key aman untuk __proto__/constructor/toString. Parser roundtrip PASS.
+- Validasi 17 tes progression PASS (regresi01–04 +3 arena), TypeScript PASS.
+- Tidak match integration, duplicate protection, arena unlock, UI atau storage
+  auto-write. Setiap call apply mengasumsikan satu match completed; completion
+  serta dedup menjadi tanggung jawab modul07/08. Tidak publish/fetch/merge.
+- Draft config/map-studio.json pengguna tetap utuh dan tidak di-stage.
+- STOP: jangan lanjut MODULE06 tanpa permintaan dan spesifikasi berikutnya.
+
 ### COMPLETE — MODULE 04 Character Unlock Engine (2026-10-03, LOCAL ONLY)
 
 - character-unlocks.ts: requirement, eligibility, progress dan resolver pure,

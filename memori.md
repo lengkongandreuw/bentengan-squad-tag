@@ -4,6 +4,14 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Progression MODULE05 (2026-10-03, lokal belum publish): arena-stats.ts API pure
+getArenaStats/applyArenaMatchStat, ID custom/dinamis, played tiap apply dan wins
+hanya kemenangan. Return profil baru tanpa mutasi atau storage write. Getter
+legacy0, apply menunggu migration09 bila progression belum ada. Tidak arena
+unlock/match integration/dedup;07/08 akan mengatur pemanggilan tepat satu kali.
+17 tes progression dan TypeScript PASS. STOP setelah05, jangan publish/lanjut06
+otomatis. Draft Map Studio pengguna tidak ikut commit.
+
 Progression MODULE04 (2026-10-03, lokal belum publish): character-unlocks.ts
 menyediakan requirement/eligibility/progress dan resolver immutable dari config.
 Historical unlock NEVER RELOCK; starter selalu terbuka. Resolver menghasilkan
