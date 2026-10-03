@@ -13,3 +13,4 @@ export * from './match-progression';
 export * from './match-identity';
 export * from './progression-migration';
 export * from './content-gates';
+export * from './unlock-notifications';

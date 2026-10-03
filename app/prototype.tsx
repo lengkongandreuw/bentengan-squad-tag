@@ -36,6 +36,7 @@ import { SelectionPortrait } from '../components/selection-portrait';
 import { CharacterLockBadge } from '../components/character-lock-badge';
 import { ArenaUnlockPanel } from '../components/arena-unlock-panel';
 import { MatchProgressionSummary } from '../components/match-progression-summary';
+import { UnlockNotificationPanel } from '../components/unlock-notification-panel';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
@@ -2955,6 +2956,7 @@ export function BentenganPrototype() {
   >(undefined);
   const playerProfileRef = useRef(playerProfile);
   const [matchProgressionResult, setMatchProgressionResult] = useState<ProgressionResult | null>(null);
+  const [unlockNoticeDismissed, setUnlockNoticeDismissed] = useState(false);
   playerProfileRef.current = playerProfile;
   const fieldIds = FIELD_CONFIGS.map(field => field.id);
   const selectionGate = () => validatePlayableContent(loadPlayerProfile(), selectedId, selectedFieldId,
@@ -3499,6 +3501,9 @@ export function BentenganPrototype() {
     // Identity belongs to this initialized match, not to a render or round.
     const matchId = mode === 'playing' ? createMatchId() : null;
     setMatchProgressionResult(null);
+    // Result/notice are session-only. Reload never rehydrates consumed notices;
+    // the unlocked content itself remains in the persisted player profile.
+    setUnlockNoticeDismissed(false);
     pendingProfileStatsRef.current = { ...EMPTY_KDA };
     const mainContext = canvas.getContext('2d');
     if (!mainContext) return;
@@ -7888,6 +7893,9 @@ export function BentenganPrototype() {
                   </aside>
                 )}
                 {statsBoard.final && <MatchProgressionSummary result={matchProgressionResult} />}
+                {statsBoard.final && <UnlockNotificationPanel result={matchProgressionResult}
+                  arenas={FIELD_CONFIGS} dismissed={unlockNoticeDismissed}
+                  onDismiss={() => setUnlockNoticeDismissed(true)} />}
                 <footer className="round-stats-actions">
                   {statsBoard.final ? (
                     <>

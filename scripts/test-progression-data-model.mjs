@@ -34,6 +34,8 @@ async function moduleUrl(file) {
 const load = async name => import(await moduleUrl(new URL(`../lib/player-profile/${name}.ts`, import.meta.url)));
 const { getArenaSelectionProgress } = await load('arena-selection-progress');
 const { MatchProgressionSummary } = await import(await moduleUrl(new URL('../components/match-progression-summary.tsx', import.meta.url)));
+const { UnlockNotificationPanel } = await import(await moduleUrl(new URL('../components/unlock-notification-panel.tsx', import.meta.url)));
+const { getNewUnlockNotices } = await load('unlock-notifications');
 const { createDefaultProgression, parsePlayerProgression } = await load('progression');
 const { parsePlayerProfile } = await load('migrations');
 const service = await load('profile-service');
@@ -51,6 +53,35 @@ const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
+
+test('module14 one nonblocking panel renders multiple unlocks and dismissal/duplicates never award or replay', () => {
+  const p = service.createPlayerProfile('UnlockNotice'); p.progression.xp = 180;
+  const summary = { matchId: 'unlock-event', arenaId: 'kampung', completed: true, won: true, tags: 0, rescues: 0 };
+  const result = applyMatchProgression(p, summary);
+  const arenas = [{ id: 'pasar', name: 'Pasar Senggol' }];
+  assert.deepEqual(getNewUnlockNotices(result, arenas), [
+    { kind: 'character', id: 'bebe', name: 'Bebe' },
+    { kind: 'arena', id: 'pasar', name: 'Pasar Senggol' },
+  ]);
+  const before = JSON.stringify(result);
+  const props = { result, arenas, dismissed: false, onDismiss: () => {} };
+  const markup = renderToStaticMarkup(createElement(UnlockNotificationPanel, props));
+  assert.match(markup, /NEW CHARACTER UNLOCKED/); assert.match(markup, /Bebe/);
+  assert.match(markup, /NEW ARENA UNLOCKED/); assert.match(markup, /Pasar Senggol/);
+  assert.equal((markup.match(/role="status"/g) ?? []).length, 1);
+  assert.doesNotMatch(markup, /role="dialog"|aria-modal/);
+  assert.equal(renderToStaticMarkup(createElement(UnlockNotificationPanel, { ...props, dismissed: true })), '');
+  assert.equal(JSON.stringify(result), before);
+  assert.deepEqual(getNewUnlockNotices(null, arenas), []);
+  const duplicate = applyMatchProgression(result.profile, summary);
+  assert.deepEqual(getNewUnlockNotices(duplicate, arenas), []);
+  assert.equal(renderToStaticMarkup(createElement(UnlockNotificationPanel, { ...props, result: duplicate })), '');
+  const replayed = { ...result, applied: false }; // Never trust unlock arrays on unapplied results.
+  assert.deepEqual(getNewUnlockNotices(replayed, arenas), []);
+  const repeated = { ...result, newlyUnlockedCharacters: ['bebe', 'bebe'], newlyUnlockedArenaIds: ['pasar', 'pasar', 'custom'] };
+  assert.equal(getNewUnlockNotices(repeated, arenas).length, 3);
+  assert.equal(getNewUnlockNotices(repeated, arenas).at(-1).name, 'custom');
+});
 
 test('module13 resolver snapshots capped breakdown, level, next goal and no-op rewards', () => {
   const p = service.createPlayerProfile('ResultUI'); p.progression.xp = 398;

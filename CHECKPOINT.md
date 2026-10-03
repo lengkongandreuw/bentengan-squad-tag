@@ -5,6 +5,19 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 14 Unlock Notification (2026-10-03, LOCAL ONLY)
+
+- One nonblocking result panel groups new characters and arenas by resolver
+  arrays only. Names come from existing character/arena catalog. Dismiss button;
+  result actions remain available. No requirement/reward calculation in panel.
+- Notice state is transient per match. No pending events restored from profile
+  on reload; persistent unlocks remain. Duplicate/incomplete applied=false never
+  show notices even if passed unlock arrays. New match resets dismissal/result.
+- 34 tests PASS including grouped character+arena, duplicate suppression, closed
+  panel, no render mutation, metadata fallback and no blocking dialogs. TypeScript
+  PASS. No Studio/assets changes or publish. User supplied14+15 together, continue
+  regression15 explicitly; no future retention systems.
+
 ### COMPLETE — MODULE 13 Match Result Progression UI (2026-10-03, LOCAL ONLY)
 
 - Module12 local commit32951d1. User requested12+13 together; STOP before14.
