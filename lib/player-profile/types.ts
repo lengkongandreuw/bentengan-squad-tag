@@ -18,7 +18,7 @@ export type LocalPlayerProfile = {
   kalah: number;
   featuredCharacterId: CharacterId;
   kda: PlayerKdaStats;
-  // Optional until the dedicated migration module handles legacy profiles.
+  // Optional on legacy input; storage load migrates missing/outdated progression.
   progression?: PlayerProgression;
 };
 

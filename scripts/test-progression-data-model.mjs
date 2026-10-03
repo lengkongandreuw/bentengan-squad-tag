@@ -42,6 +42,98 @@ const { getArenaStats, applyArenaMatchStat } = await load('arena-stats');
 const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await load('arena-unlocks');
 const { applyMatchProgression } = await load('match-progression');
 const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
+const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
+
+test('module09 new profile does not migrate; zero/active legacy retain identity and historical progress', () => {
+  const fresh = service.createPlayerProfile('Migration');
+  assert.equal(migratePlayerProgression(fresh).migrated, false);
+  const zero = { ...fresh }; delete zero.progression;
+  const before = structuredClone(zero);
+  const migrated = migratePlayerProgression(zero, undefined, '2026-10-03T00:00:00.000Z');
+  assert.equal(migrated.migrated, true);
+  assert.equal(migrated.profile.progression.xp, 0);
+  assert.deepEqual(migrated.profile.progression.unlockedCharacters, ['raja', 'kaka']);
+  assert.deepEqual(migrated.profile.progression.unlockedArenaIds, ['kampung']);
+  assert.deepEqual(zero, before);
+  assert.equal(migratePlayerProgression(migrated.profile).migrated, false);
+  const active = { ...zero, menang: 10, kalah: 5, kda: { tagMusuh: 20, masukPenjara: 9, rescueTeam: 8 }, legacyExtra: 'preserve-me' };
+  const result = migratePlayerProgression(active).profile;
+  assert.equal(result.progression.xp, 2380);
+  assert.equal(getLevelFromXP(result.progression.xp), 7);
+  assert.ok(result.progression.unlockedCharacters.includes('lui'));
+  assert.deepEqual(result.progression.unlockedArenaIds, ['kampung']); // Cannot infer per-arena wins.
+  const { progression, ...oldFields } = result;
+  assert.deepEqual(oldFields, active);
+  assert.deepEqual(parsePlayerProfile(result), result);
+});
+
+test('module09 high history saturates safely; outdated/partial optional data salvaged per field', () => {
+  const p = service.createPlayerProfile('HighHistory');
+  delete p.progression;
+  const high = { ...p, menang: Number.MAX_SAFE_INTEGER, kalah: Number.MAX_SAFE_INTEGER };
+  assert.equal(estimateHistoricalXP(high), Number.MAX_SAFE_INTEGER);
+  assert.equal(getLevelFromXP(migratePlayerProgression(high).profile.progression.xp), 13);
+  const old = { version: 0, xp: 6000, unlockedCharacters: ['kodo', 'unknown'],
+    unlockedArenaIds: ['studio-old-unlock'], arenaStats: {
+      kampung: { played: 5, wins: 2 }, pasar: { played: 3, wins: 3 }, bad: { played: 1, wins: 9 },
+    }, processedMatchIds: ['old-match'], migrationCompletedAt: 'broken' };
+  const before = structuredClone(old);
+  const migrated = migratePlayerProgression({ ...p, kda: { tagMusuh: 8, masukPenjara: 0, rescueTeam: 2 } }, old).profile;
+  assert.equal(migrated.progression.version, 1);
+  assert.ok(migrated.progression.unlockedCharacters.includes('kodo'));
+  assert.ok(!migrated.progression.unlockedCharacters.includes('unknown'));
+  assert.ok(migrated.progression.unlockedArenaIds.includes('studio-old-unlock'));
+  assert.ok(migrated.progression.unlockedArenaIds.includes('pasar'));
+  assert.ok(migrated.progression.unlockedArenaIds.includes('taman'));
+  assert.equal(Object.hasOwn(migrated.progression.arenaStats, 'bad'), false);
+  assert.deepEqual(migrated.progression.processedMatchIds, ['old-match']);
+  assert.deepEqual(old, before);
+  assert.deepEqual(parsePlayerProfile(migrated), migrated);
+  const malformedCurrent = { ...old, version: 1, xp: -10 };
+  assert.equal(migratePlayerProgression(p, malformedCurrent).migrated, true);
+  const future = { ...migrated, progression: { ...migrated.progression, version: 2 } };
+  assert.equal(migratePlayerProgression(future).profile, future);
+});
+
+test('module09 storage migration saves once, reload retains all fields and failed writes never erase legacy', () => {
+  const legacy = service.createPlayerProfile('LegacyLoad');
+  delete legacy.progression;
+  legacy.menang = 4;
+  legacy.extraLegacyField = 'untouched';
+  const data = new Map([[PLAYER_PROFILE_STORAGE_KEY, JSON.stringify({ ...legacy, progression: { unlockedArenaIds: ['custom-historical'], xp: -1 } })]]);
+  let writes = 0;
+  globalThis.window = { localStorage: { getItem: k => data.get(k), setItem: (k,v) => { writes++; data.set(k,v); } } };
+  try {
+    const first = storage.loadPlayerProfile();
+    assert.equal(first.progression.xp, 640);
+    assert.ok(first.progression.unlockedArenaIds.includes('custom-historical'));
+    assert.equal(first.extraLegacyField, 'untouched');
+    assert.equal(writes, 1);
+    assert.deepEqual(storage.loadPlayerProfile(), first);
+    assert.equal(writes, 1);
+    data.set(PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(legacy));
+    const original = data.get(PLAYER_PROFILE_STORAGE_KEY);
+    globalThis.window.localStorage.setItem = () => { throw new Error('quota'); };
+    const inMemory = storage.loadPlayerProfile();
+    assert.equal(inMemory.id, legacy.id);
+    assert.equal(inMemory.progression.xp, 640);
+    assert.equal(data.get(PLAYER_PROFILE_STORAGE_KEY), original);
+  } finally { delete globalThis.window; }
+});
+
+test('module09 incomplete aggregate stats preserve valid counters and identity without whole profile reset', () => {
+  const p = service.createPlayerProfile('PartialOld');
+  const raw = { ...p, progression: undefined, menang: 3, kalah: undefined,
+    kda: { tagMusuh: 7, rescueTeam: 'broken' }, extraField: 99 };
+  const parsed = parsePlayerProfile(raw);
+  assert.equal(parsed.id, p.id);
+  assert.equal(parsed.menang, 3);
+  assert.equal(parsed.kalah, 0);
+  assert.equal(parsed.kda.tagMusuh, 7);
+  assert.equal(parsed.kda.rescueTeam, 0);
+  assert.equal(parsed.extraField, 99);
+  assert.equal(migratePlayerProgression(parsed).profile.progression.xp, 536);
+});
 
 test('module08 duplicate callback/re-entry is a deterministic no-op, history bounded', () => {
   let p = service.createPlayerProfile('DedupTest');
@@ -121,6 +213,21 @@ test('module07 incomplete no-op, invalid summary and overflow never mutate profi
   p.progression.xp = Number.MAX_SAFE_INTEGER;
   assert.throws(() => applyMatchProgression(p, { ...summary, completed: true }), /batas aman/);
   assert.equal(p.progression.xp, Number.MAX_SAFE_INTEGER);
+});
+
+test('module07 arena gates use the level, victory and actions earned in this same match', () => {
+  const p = service.createPlayerProfile('SameMatch');
+  p.progression.xp = 449;
+  p.progression.arenaStats.pasar = { played: 2, wins: 2 };
+  p.kda.tagMusuh = 7;
+  p.kda.rescueTeam = 1;
+  const result = applyMatchProgression(p, { matchId: 'threshold-match', arenaId: 'pasar',
+    completed: true, won: true, tags: 1, rescues: 1 });
+  assert.ok(result.newlyUnlockedCharacters.includes('ciici'));
+  assert.ok(result.newlyUnlockedArenaIds.includes('taman'));
+  assert.equal(getArenaStats(result.profile, 'pasar').wins, 3);
+  assert.equal(result.profile.kda.tagMusuh, 8);
+  assert.equal(result.profile.kda.rescueTeam, 2);
 });
 
 test('module07 explicit storage entry persists reward once and reports storage failure', () => {
@@ -328,7 +435,7 @@ test('new profile default and independently mutable progression collections', ()
   assert.deepEqual(createDefaultProgression(), profile.progression);
 });
 
-test('legacy profile remains readable without migration or storage rewrite', () => {
+test('legacy parser remains read-only; storage now migrates once under module09', () => {
   const legacy = service.createPlayerProfile('Veteran');
   delete legacy.progression;
   legacy.menang = 12;
@@ -338,11 +445,15 @@ test('legacy profile remains readable without migration or storage rewrite', () 
   const data = new Map([[PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(legacy)]]);
   let writes = 0;
   globalThis.window = {
-    localStorage: { getItem: key => data.get(key), setItem: () => { writes++; } },
+    localStorage: { getItem: key => data.get(key), setItem: (key, value) => { writes++; data.set(key, value); } },
   };
   try {
-    assert.deepEqual(storage.loadPlayerProfile(), legacy);
-    assert.equal(writes, 0);
+    const migrated = storage.loadPlayerProfile();
+    const { progression, ...preserved } = migrated;
+    assert.deepEqual(preserved, legacy);
+    assert.equal(writes, 1);
+    assert.deepEqual(storage.loadPlayerProfile(), migrated);
+    assert.equal(writes, 1);
   } finally { delete globalThis.window; }
 });
 

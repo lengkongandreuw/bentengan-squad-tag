@@ -4,6 +4,19 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE09 lokal (2026-10-03): storage load kini migrasi progression missing/
+outdated/malformed satu kali. Profil current/new/future valid tidak migrasi ulang.
+XP historis agregat dari config, saturasi safe integer via BigInt; levelmax13.
+Identitas/stats valid/extra fields dipertahankan, optional progression diselamatkan
+per-entry (unlocks, arena stats, bounded match IDs), starter selalu tersedia.
+Tidak menebak wins per-arena dari total wins. Migration timestamp+version disimpan
+sekali; storage failure tidak menghapus legacy, retry pada load berikutnya.
+29 tes progression +TypeScript +scoped lint +diff check PASS. Semua06–09 lokal,
+draft Map Studio tidak ikut commit. STOP sebelum10, tidak publish otomatis.
+PENTING: runtime app/prototype masih writer legacy; recordMatchProgression API
+belum dihook. Integrasi berikutnya mengganti writer, bukan memanggil dua writer.
+Catatan01–05 tentang belum adanya migration adalah histori sebelum09.
+
 MODULE08 lokal: satu matchId stabil, UUID/fallback shared, processedMatchIds50
 terakhir. Duplicate no-op reason duplicate termasuk setelah reload; service
 load authoritative sebelum reward dan simpan ID+reward satu write. Window bounded,

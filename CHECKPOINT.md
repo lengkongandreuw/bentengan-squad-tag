@@ -5,6 +5,33 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 09 Existing Profile Migration (2026-10-03, LOCAL ONLY)
+
+- User meminta06–09 sekaligus. Fondasi06 67fce2a,07 aab8e70,08 1c81d31.
+- progression-migration.ts: migrasi pure; storage load memicu hanya ketika
+  progression missing/outdated/malformed. Profil current valid/new dan future
+  valid tidak dihitung ulang/downgrade. Set version1 dan migrationCompletedAt,
+  simpan sekali; reload berikutnya tidak write lagi.
+- XP agregat menggunakan reward config (match100 +win60 +tag8 +rescue15), tidak
+  mengarang cap aksi per-match. BigInt lalu clamp Number.MAX_SAFE_INTEGER (range
+  XP engine03); level tetap max13. XP valid yang lebih tinggi dipertahankan.
+- Identity, firstJoin, featured character dan stats valid tidak di-reset. Parser
+  menjaga extra legacy fields; hanya counter hilang/rusak menjadi0 per field.
+  Recovery optional progression per-entry: historical known characters/custom
+  arena unlocks, valid arena stats, bounded match IDs. Starter wajib tersedia.
+- Arena unlock hanya disimpulkan dari stats per-arena yang tersedia. Total win
+  historis bukan bukti menang di arena tertentu, jadi tidak membuat arena wins.
+- Storage gagal tidak menghapus profil lama; hasil migrasi aman tersedia di
+  memori, retry load berikutnya sampai bisa disimpan. Tidak menyatakan write
+  sukses bila gagal. Tidak regenerate identity atau membuat profil pengganti.
+- Validasi akhir29 tes progression PASS, npx tsc --noEmit PASS, scoped oxlint
+  PASS dan git diff --check PASS. Tidak rebuild sprite/map/audio atau global audit.
+- UI/bot/assets/Map Studio utuh. App/prototype match writer masih legacy;
+  recordMatchProgression belum dihook. Saat integrasi berikutnya ganti writer,
+  jangan memanggil kedua writer untuk match yang sama; ID dibuat sekali awal match.
+- Draft config/map-studio.json pengguna tidak di-stage. Semua commit lokal,
+  tidak fetch/merge/push/deploy. STOP sebelum MODULE10 sampai diminta pengguna.
+
 ### COMPLETE — MODULE 08 Duplicate Match Protection (2026-10-03, LOCAL ONLY)
 
 - match-identity.ts reuse UUID/fallback helper untuk profil dan match; ID harus
