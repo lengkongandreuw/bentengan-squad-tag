@@ -5,6 +5,30 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 03 XP & Player Level Engine (2026-10-03, LOCAL ONLY)
+
+- Sumber: 03-XP-PLAYER-LEVEL-ENGINE.md. Fondasi lokal01 ba43cdb,02 2abcb93.
+  STOP setelah03; tidak melanjutkan MODULE04.
+- File baru lib/player-profile/xp-engine.ts, export melalui index.ts. API pure:
+  getLevelFromXP, getXPRequiredForLevel (XP kumulatif), getCurrentLevelProgress,
+  getXPToNextLevel, calculateMatchXP. Angka balancing berasal dari config02.
+- MatchXPSummary: completed:boolean, result:win/loss, tags:number, rescues:number.
+  completed=false =>0 termasuk reward aksi; selesai kalah tetap100, menang160
+  dasar, maksimum224 kalah/284 menang. Cap tag64 dan rescue60 independen.
+- Progress helper: level, xp, levelStartXP, nextLevelXP, xpIntoLevel,
+  xpForNextLevel, xpToNextLevel, progress0..1, isMaxLevel. Maksimum13: nextLevelXP/
+  xpForNextLevel null, xpToNextLevel0, progress1; XP lebih6000 tetap dipertahankan.
+  XP/counter negatif, pecahan, nonfinite/unsafe integer, level di luar config
+  ditolak eksplisit. Tidak normalisasi diam-diam atau mutate input.
+- Validasi: node --test scripts/test-progression-data-model.mjs 11 PASS
+  (7 regresi01/02 +4 engine03); npx tsc --noEmit PASS; diff check PASS.
+  Tes semua threshold tepat & satu sebelum, cap tepat/melebihi, loss/incomplete,
+  max level, input malformed, repeat determinism dan tanpa akses storage.
+- Tidak persistence mutation, unlocks, arena progression, match-end integration,
+  UI atau build aset. Perubahan besar baru config/map-studio.json milik pengguna
+  tetap utuh dan tidak di-stage. Kode tetap lokal; tidak fetch/merge/push.
+- Next: review pengguna; MODULE04 hanya setelah diminta dengan spesifikasinya.
+
 ### COMPLETE — MODULE 02 Progression Rules Config (2026-10-03, LOCAL ONLY)
 
 - Sumber: 02-PROGRESSION-RULES-CONFIG.md. Modul01 lokal ba43cdb menjadi fondasi.

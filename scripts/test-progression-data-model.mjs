@@ -34,6 +34,8 @@ const service = await load('profile-service');
 const storage = await load('storage');
 const { PLAYER_PROFILE_STORAGE_KEY } = await load('defaults');
 const { progressionRules, parseProgressionRules } = await load('progression-rules');
+const { getLevelFromXP, getCurrentLevelProgress, getXPRequiredForLevel,
+  getXPToNextLevel, calculateMatchXP } = await load('xp-engine');
 
 test('new profile default and independently mutable progression collections', () => {
   const profile = service.createPlayerProfile('Tester');
@@ -143,4 +145,71 @@ test('module02 arena schema validates tier membership and stat prerequisites onl
   input.arenaProgression.unlockRequirements[0].tierId = 'test-tier';
   input.arenaProgression.unlockRequirements[0].requiredArenaStats[0].minWins = 5;
   assert.throws(() => parseProgressionRules(input), /minWins/);
+});
+
+test('module03 specified boundaries and every configured level threshold', () => {
+  for (const [xp, level] of [[0,1], [199,1], [200,2], [449,2], [450,3], [5999,12], [6000,13]])
+    assert.equal(getLevelFromXP(xp), level);
+  progressionRules.playerLevelThresholds.forEach((xp, i) => {
+    assert.equal(getLevelFromXP(xp), i + 1);
+    assert.equal(getXPRequiredForLevel(i + 1), xp);
+    if (i > 0) assert.equal(getLevelFromXP(xp - 1), i);
+  });
+});
+
+test('module03 progress resets at boundary, max level has no phantom next level', () => {
+  assert.deepEqual(getCurrentLevelProgress(325), {
+    level: 2, xp: 325, levelStartXP: 200, nextLevelXP: 450,
+    xpIntoLevel: 125, xpForNextLevel: 250, xpToNextLevel: 125,
+    progress: 0.5, isMaxLevel: false,
+  });
+  assert.equal(getCurrentLevelProgress(200).progress, 0);
+  assert.equal(getXPToNextLevel(5999), 1);
+  for (const xp of [6000, 7000, Number.MAX_SAFE_INTEGER]) {
+    const p = getCurrentLevelProgress(xp);
+    assert.equal(p.level, 13);
+    assert.equal(p.xp, xp);
+    assert.equal(p.nextLevelXP, null);
+    assert.equal(p.xpForNextLevel, null);
+    assert.equal(p.progress, 1);
+    assert.equal(p.isMaxLevel, true);
+    assert.equal(getXPToNextLevel(xp), 0);
+  }
+});
+
+test('module03 completion/win/action rewards and independent caps', () => {
+  const summary = { completed: true, result: 'loss', tags: 0, rescues: 0 };
+  assert.equal(calculateMatchXP(summary), 100);
+  assert.equal(calculateMatchXP({ ...summary, result: 'win' }), 160);
+  assert.equal(calculateMatchXP({ ...summary, tags: 2, rescues: 1 }), 131);
+  assert.equal(calculateMatchXP({ ...summary, tags: 7 }), 156);
+  assert.equal(calculateMatchXP({ ...summary, tags: 8 }), 164);
+  assert.equal(calculateMatchXP({ ...summary, tags: 9 }), 164);
+  assert.equal(calculateMatchXP({ ...summary, rescues: 3 }), 145);
+  assert.equal(calculateMatchXP({ ...summary, rescues: 4 }), 160);
+  assert.equal(calculateMatchXP({ ...summary, rescues: 5 }), 160);
+  assert.equal(calculateMatchXP({ ...summary, tags: 999, rescues: 999 }), 224);
+  assert.equal(calculateMatchXP({ ...summary, result: 'win', tags: 999, rescues: 999 }), 284);
+  assert.equal(calculateMatchXP({ ...summary, completed: false, result: 'win', tags: 999, rescues: 999 }), 0);
+});
+
+test('module03 invalid input rejected and pure helpers do not mutate data or use storage', () => {
+  for (const invalid of [-1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => getLevelFromXP(invalid));
+    assert.throws(() => getCurrentLevelProgress(invalid));
+    assert.throws(() => getXPToNextLevel(invalid));
+    assert.throws(() => calculateMatchXP({ completed: true, result: 'win', tags: invalid, rescues: 0 }));
+    assert.throws(() => calculateMatchXP({ completed: true, result: 'win', tags: 0, rescues: invalid }));
+  }
+  for (const level of [0, 14, -1, NaN, 2.5]) assert.throws(() => getXPRequiredForLevel(level));
+  assert.throws(() => calculateMatchXP({ completed: true, result: 'draw', tags: 0, rescues: 0 }));
+  const summary = Object.freeze({ completed: true, result: 'win', tags: 4, rescues: 2 });
+  const before = structuredClone(progressionRules);
+  globalThis.window = { get localStorage() { throw new Error('Engine must not access storage'); } };
+  try {
+    assert.equal(calculateMatchXP(summary), 222);
+    assert.equal(calculateMatchXP(summary), 222);
+    assert.equal(getLevelFromXP(450), 3);
+    assert.deepEqual(progressionRules, before);
+  } finally { delete globalThis.window; }
 });

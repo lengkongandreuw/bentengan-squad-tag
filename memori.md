@@ -4,6 +4,13 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Progression MODULE03 (2026-10-03, lokal belum publish): xp-engine.ts memiliki
+helper XP/level pure dari config02, tanpa integrasi match/storage/UI. XP summary
+completed/result/tags/rescues; incomplete0, loss tetap completion100, cap terpisah
+64tag/60rescue. Level13 maksimal; XP ekstra dipertahankan, next threshold null,
+sisa0, progress1. Level didapat dari XP, tidak disimpan. Input malformed ditolak.
+11 tes progression +TypeScript lulus. STOP, jangan lanjut04/publish otomatis.
+
 Progression MODULE02 (2026-10-03, lokal belum publish): aturan terpusat di
 config/progression.json; typed loader/parser di lib/player-profile/progression-rules.ts.
 Seed profil01 sekarang berasal dari config. XP reward/cap, 13 level kumulatif,
