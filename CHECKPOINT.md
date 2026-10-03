@@ -5,7 +5,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### ACTIVE — MODULE16 Custom SFX, validate and publish (2026-10-04)
+### COMPLETE — MODULE16 Custom SFX, validated and published (2026-10-04)
 
 - User authorized implementation from16-BENTENG-CUSTOM-INGAME-SFX-CODEX.md,
   then explicitly requested continue through GitHub publication; overrides its
@@ -30,9 +30,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   settings restored; no console errors. Subjective final mixing review remains
   for user. Actual local3007 Audio16Test journey: profile -> selection -> arena ->
   complete best-of3 loss, player1 tag/1 captured,108XP reward intact; no console
-  errors. Fixture/screenshots ignored. Deployment confirmation pending.
+  errors. Fixture/screenshots ignored.
 - Follow-up readiness guard: decoded countdown plays without waiting for an
   unrelated slow announcer; whole audio preload never gates gameplay.
+- Published implementation61bf0e9 and readiness fixc6bcac5 to github/main.
+  GitHub Actions run37158045886 build/deploy SUCCESS:
+  https://github.com/lengkongandreuw/bentengan-squad-tag/actions/runs/37158045886
+- Public https://lengkongandreuw.github.io/bentengan-squad-tag/ verified: bundle
+  HTTP200 contains custom audio/announcer mapping; all20 public MP3 SHA256 hashes
+  match local runtime files. Local dirty config/map-studio.json is preserved and
+  absent from both published commits. No unrelated config/asset rebuild published.
+- Screenshot evidence .preview-admin/module16-audio-proof.png (ignored browser
+  fixture, not shipped game UI). Playback subjective balance remains user review.
 
 ### PREPARED — Custom SFX and Tag Counter brief (2026-10-04, LOCAL ONLY)
 

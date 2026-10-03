@@ -13,7 +13,9 @@ existing2.8s; no gameplay changes. Ultimate and results guarded event hooks,
 successful rescue uses release. Samples compensate procedural3x gain.10 audio+
 37 progression tests/TypeScript/build PASS; actual browser20 decodes and mute
 PASS. Keep unrelated current Map Studio draft config LOCAL, not in this commit.
-Read latest CHECKPOINT for deployment verification; no subjective mix sign-off.
+PUBLISHED:61bf0e9+c6bcac5, Actions37158045886 build/deploy SUCCESS. Public bundle
+HTTP200 and all20 MP3 hashes verified at GitHub Pages. Unrelated local Map Studio
+config preserved/unpublished. No subjective mix sign-off; user should review mix.
 
 2026-10-04 PREPARATION ONLY: user supplied20 MP3s + Custom In-Game SFX/Tag Counter
 brief for saving/study, not implementation. Masters/full brief/notes preserved
