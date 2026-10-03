@@ -17,7 +17,8 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   dapat dipilih/dibuka, error console kosong. Screenshot ../map-catalog-fixed.png.
 - config/map-studio.json berisi perubahan baru pengguna, tidak ikut commit ini.
   Fitur artwork penjara tetap keterbatasan terpisah, bukan diperbaiki oleh harness.
-- Next: publish scoped kode harness; jangan simpan template QA ke manifest.
+- COMPLETE: commit dbda042 dipush; Pages run37102736839 build/deploy SUCCESS.
+  Next: pengguna gunakan tab editor baru4320; jangan simpan template QA ke manifest.
 
 ### COMPLETE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
 
