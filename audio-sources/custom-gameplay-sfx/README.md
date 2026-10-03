@@ -5,7 +5,7 @@ requested GitHub publication. Original preparation notes below are historical.
 Runtime normalized copies now live in public/audio/gameplay/ (all source hashes
 preserved). GameplayAudio routes cached decoded samples through existing master;
 3x procedural boost compensated for samples.20 actual MP3s decoded in real browser,
-durations/peaks/RMS inspected; mute tested.9 focused tests and37 progression tests
+durations/peaks/RMS inspected; mute tested.10 focused tests and37 progression tests
 pass. Countdown5.98s playback rate fits existing2.8s countdown, no timer change.
 See newest CHECKPOINT for deployment status. No subjective listening sign-off is
 claimed: final gain balance should be reviewed by the user during play.

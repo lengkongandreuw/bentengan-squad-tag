@@ -10,7 +10,7 @@ master with20 custom MP3s/cache/procedural fallback,4 tag impacts and10s local
 player announcer1–5. Cancel/reset on captured/end/restart/exit/timeout;6+ no replay.
 Special BENTENG capture -> generic -> procedural. Countdown playbackRate fits
 existing2.8s; no gameplay changes. Ultimate and results guarded event hooks,
-successful rescue uses release. Samples compensate procedural3x gain.9 audio+
+successful rescue uses release. Samples compensate procedural3x gain.10 audio+
 37 progression tests/TypeScript/build PASS; actual browser20 decodes and mute
 PASS. Keep unrelated current Map Studio draft config LOCAL, not in this commit.
 Read latest CHECKPOINT for deployment verification; no subjective mix sign-off.

@@ -35,7 +35,7 @@ export class TagStreakTracker {
   }
 }
 
-// Original procedural arcade effects: no network requests or music-mute coupling.
+// Cached custom samples and procedural fallback share the existing SFX output.
 export class GameplayAudio {
   private context: AudioContext | null = null;
   private output: GainNode | null = null;
@@ -153,7 +153,7 @@ export class GameplayAudio {
   play(sound: GameplaySound, volume = 1, confirmedTag = false, fitSeconds?: number): boolean {
     const ctx = this.context;
     if (!ctx || ctx.state !== 'running' || !this.output || this.closed) return false;
-    if (sound === 'countdown' && !this.loadingComplete) return false;
+    if (sound === 'countdown' && !this.loadingComplete && !this.buffers.has(SAMPLE_FILES.countdown)) return false;
     const now = ctx.currentTime;
     const cooldown = sound === 'step' ? .13 : sound === 'prison' ? 3.5 : .18;
     if (!(sound === 'tag' && confirmedTag) && now - (this.last.get(sound) ?? -100) < cooldown) return false;

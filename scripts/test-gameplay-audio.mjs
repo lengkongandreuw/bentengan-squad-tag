@@ -123,3 +123,8 @@ test('whole countdown sample fits existing gameplay countdown, without changing 
   const cue = f.events.find(e => e.file === f.SAMPLE_FILES.countdown);
   assert.equal(cue.node.playbackRate.value, 6 / 2.8); f.audio.close();
 });
+test('ready countdown does not wait on an unrelated slow/missing announcer preload', async () => {
+  const f = await ready(); f.audio.loadingComplete = false;
+  assert.equal(f.audio.playCountdown(2.8), true);
+  f.audio.close();
+});

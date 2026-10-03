@@ -23,7 +23,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   inside existing guarded state transition, not React render/legacy music routing.
 - Rescue start cue at action; release cue on successful freed player/rescuer.
   Procedural step/prison, music/settings/UI/balance/progression unchanged.
--9 focused audio tests,37 progression regression tests, TypeScript/lint and Pages
+-10 focused audio tests,37 progression regression tests, TypeScript/lint and Pages
   build PASS. Existing CSS/chunk warnings only; no asset generators.
 - Real browser local3007 test fixture:20/20 MP3 decoded, durations/peaks/RMS,
   cached samples/event scheduling/cleanup; SFX mute master0, music.16 unchanged,
@@ -31,6 +31,8 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   for user. Actual local3007 Audio16Test journey: profile -> selection -> arena ->
   complete best-of3 loss, player1 tag/1 captured,108XP reward intact; no console
   errors. Fixture/screenshots ignored. Deployment confirmation pending.
+- Follow-up readiness guard: decoded countdown plays without waiting for an
+  unrelated slow announcer; whole audio preload never gates gameplay.
 
 ### PREPARED — Custom SFX and Tag Counter brief (2026-10-04, LOCAL ONLY)
 
