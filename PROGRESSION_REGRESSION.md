@@ -1,6 +1,7 @@
 # Progression Core — regression 01–15
 
-Local-only implementation. No sprite/map/audio rebuild is required for this suite.
+Implementation validated locally; publication status is recorded in CHECKPOINT.md.
+No sprite/map/audio rebuild is required for this suite.
 
 ## Repeat validation
 

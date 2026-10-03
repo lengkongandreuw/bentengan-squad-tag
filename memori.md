@@ -4,6 +4,12 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-03 user explicitly requested publishing ALL local features/changes,
+overriding earlier LOCAL ONLY progression instructions. Publish01–15 and local
+Kaka Studio animations/assets plus inactive map editor drafts. Keep kampung3d
+deleted (restore missing draft marker), don't activate drafts automatically.
+Read newest CHECKPOINT publish status before relying on older local-only notes.
+
 MODULE14–15 lokal (2026-10-03): Progression Core01–15 COMPLETE. Satu panel result
 nonblocking menampilkan resolver newlyUnlockedCharacters/newlyUnlockedArenaIds,
 nama dari katalog, dismiss button. Transient notice/result reset per match dan

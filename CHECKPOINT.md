@@ -5,6 +5,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### ACTIVE — Publish all local features and Studio changes (2026-10-03)
+
+- Explicit user request overrides LOCAL ONLY for completed progression01–15.
+  Publish all15 local commits plus current Map/Sprite Studio drafts and11 new
+  Kaka atlas assets. Inactive Kampung/Pasar editor drafts remain inactive.
+- Restore builtinStates.kampung3d=deleted removed by Studio draft, honoring prior
+  explicit removal; do not resurrect experimental map. No sprites rebuilt.
+- Fetch github/main: local ahead15/behind0, no other programmer changes to merge.
+- Preflight verifies44 referenced images/dimensions (28.76MiB) and both document
+  schemas.49 tests (37progression+5sprite+7map), TypeScript/build:pages PASS.
+  Existing CSS/chunk warnings only. Push/deployment confirmation pending.
+
 ### COMPLETE — MODULE 15 Regression & Final Integration (2026-10-03, LOCAL ONLY)
 
 State: COMPLETE. Completed Modules: 01–15. Module14 commit d8866e8.
