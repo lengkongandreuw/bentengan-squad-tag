@@ -67,7 +67,14 @@ import {
   loadPlayerProfile,
   PLAYER_PROFILE_CHANGED_EVENT,
   EMPTY_KDA,
-  recordCompletedMatch,
+  recordMatchProgression,
+  createMatchId,
+  isCharacterUnlocked,
+  isArenaUnlocked,
+  getPlayableCharacterIds,
+  getPlayableArenaIds,
+  validatePlayableContent,
+  resolvePlayableContent,
   type LocalPlayerProfile,
   type PlayerKdaStats,
 } from '../lib/player-profile';
@@ -2920,8 +2927,9 @@ export function BentenganPrototype() {
   const leaderboardOpenRef = useRef(false);
   const postRoundActionRef = useRef<'next-round' | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
-  const [selectedId, setSelectedId] = useState<CharacterId>('raja');
-  const [selectedFieldId, setSelectedFieldId] = useState<FieldId>(FIELD_CONFIGS[0].id);
+  const [selectedId, setSelectedIdState] = useState<CharacterId>('raja');
+  const [selectedFieldId, setSelectedFieldIdState] = useState<FieldId>(FIELD_CONFIGS[0].id);
+  const [contentGateError, setContentGateError] = useState('');
   const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');
@@ -2940,8 +2948,49 @@ export function BentenganPrototype() {
   const [playerProfile, setPlayerProfile] = useState<
     LocalPlayerProfile | null | undefined
   >(undefined);
+  const playerProfileRef = useRef(playerProfile);
+  playerProfileRef.current = playerProfile;
+  const fieldIds = FIELD_CONFIGS.map(field => field.id);
+  const selectionGate = () => validatePlayableContent(playerProfileRef.current, selectedId, selectedFieldId,
+    selectedFaction ? FIXED_ROSTERS[selectedFaction] : [], fieldIds);
+  const setSelectedId = (id: CharacterId) => {
+    if (!playerProfileRef.current || !selectedFaction || !FIXED_ROSTERS[selectedFaction].includes(id) ||
+        !isCharacterUnlocked(playerProfileRef.current, id)) {
+      setContentGateError('Karakter belum terbuka atau tidak tersedia di tim ini.');
+      return false;
+    }
+    setContentGateError('');
+    setSelectedIdState(id);
+    return true;
+  };
+  const setSelectedFieldId = (id: FieldId) => {
+    if (!fieldIds.includes(id) || !playerProfileRef.current || !isArenaUnlocked(playerProfileRef.current, id)) {
+      setContentGateError('Arena belum terbuka atau tidak tersedia.');
+      return false;
+    }
+    setContentGateError('');
+    setSelectedFieldIdState(id);
+    return true;
+  };
+  useEffect(() => {
+    if (!playerProfile || !selectedFaction) return;
+    const valid = resolvePlayableContent(playerProfile, selectedId, selectedFieldId,
+      FIXED_ROSTERS[selectedFaction], FIELD_CONFIGS.map(field => field.id));
+    if (!valid || valid.characterId !== selectedId || valid.arenaId !== selectedFieldId) {
+      setContentGateError('Pilihan tidak tersedia. Kembali ke pilihan konten yang sudah terbuka.');
+      setMode('menu');
+      if (valid) {
+        setSelectedIdState(valid.characterId);
+        setSelectedFieldIdState(valid.arenaId as FieldId);
+      }
+    }
+  }, [playerProfile, selectedFaction, selectedId, selectedFieldId]);
   const [profileOpen, setProfileOpen] = useState(false);
-  const refreshPlayerProfile = () => setPlayerProfile(loadPlayerProfile());
+  const refreshPlayerProfile = () => {
+    const profile = loadPlayerProfile();
+    playerProfileRef.current = profile;
+    setPlayerProfile(profile);
+  };
   useEffect(() => {
     refreshPlayerProfile();
     window.addEventListener(PLAYER_PROFILE_CHANGED_EVENT, refreshPlayerProfile);
@@ -3062,6 +3111,8 @@ export function BentenganPrototype() {
       // === AKHIR PERUBAHAN ===
 
       if (gameLoading) {
+        const gate = selectionGate();
+        if (gate) throw new Error(gate);
         setGameLoading(false);
         setMode('playing');
         setRun(v => v + 1);
@@ -3074,8 +3125,8 @@ export function BentenganPrototype() {
       cancelled = true;
     });
     return () => { cancelled = true; };
-  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, loadAttempt]);
-  const selected = CHARACTER_BY_ID[selectedId];
+  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, selectedId, loadAttempt]);
+  const selected = CHARACTER_BY_ID[selectedId] ?? CHARACTER_BY_ID.raja;
   const availableCharacters = useMemo(
     () =>
       selectedFaction
@@ -3096,8 +3147,12 @@ export function BentenganPrototype() {
   );
 
   const chooseFaction = (faction: Faction) => {
+    const first = getPlayableCharacterIds(playerProfileRef.current, FIXED_ROSTERS[faction])[0];
+    if (!first) { setContentGateError('Tim ini belum memiliki karakter yang dapat dimainkan.'); return null; }
     setSelectedFaction(faction);
-    setSelectedId(FIXED_ROSTERS[faction][0]);
+    setSelectedIdState(first);
+    setContentGateError('');
+    return first;
   };
 
   const playAudioCue = (file: string, volume = 0.55) => {
@@ -3153,8 +3208,7 @@ export function BentenganPrototype() {
   };
 
   const highlightCharacterWithVoice = (id: CharacterId) => {
-    setSelectedId(id);
-    playCharacterVoice(id);
+    if (setSelectedId(id)) playCharacterVoice(id);
   };
   // === END CHARACTER SELECTION VOICE ===
 
@@ -3423,6 +3477,12 @@ export function BentenganPrototype() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    if (mode === 'playing') {
+      const gate = selectionGate();
+      if (gate) { setContentGateError(gate); setMode('menu'); return; }
+    }
+    // Identity belongs to this initialized match, not to a render or round.
+    const matchId = mode === 'playing' ? createMatchId() : null;
     pendingProfileStatsRef.current = { ...EMPTY_KDA };
     const mainContext = canvas.getContext('2d');
     if (!mainContext) return;
@@ -3993,10 +4053,14 @@ export function BentenganPrototype() {
       resultWinner = team;
       resultAnnouncementUntil = resultNow + 1500;
       if (phase === 'MATCH_OVER') {
-        recordCompletedMatch(
-          team === players[0].team ? 'win' : 'loss',
-          pendingProfileStatsRef.current,
-        );
+        try {
+          const stats = pendingProfileStatsRef.current;
+          if (matchId) recordMatchProgression({ matchId, arenaId: field.id, completed: true,
+            won: team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
+            timesCaptured: stats.masukPenjara });
+        } catch (error) {
+          setContentGateError(error instanceof Error ? error.message : 'Reward gagal disimpan.');
+        }
         pendingProfileStatsRef.current = { ...EMPTY_KDA };
         completedMatchesRef.current++;
         fieldRotationPending = completedMatchesRef.current >= 3;
@@ -6819,6 +6883,9 @@ export function BentenganPrototype() {
     snapshot.paused;
   const start = () => {
     if (!playerProfile || !selectedFaction || assetsLoading) return;
+    const gate = selectionGate();
+    if (gate) { setContentGateError(gate); return; }
+    setContentGateError('');
     stopCharacterVoice();
     setRendererError('');
     playAudioCue('press-play.mp3', 0.64);
@@ -6840,22 +6907,28 @@ export function BentenganPrototype() {
     setRulesOpen(false);
     setMissionOpen(false);
     setSelectedFaction(null);
-    setSelectedId('raja');
-    setSelectedFieldId('kampung');
+    setSelectedIdState('raja');
+    setSelectedFieldIdState('kampung');
+    setContentGateError('');
     setCameraMode('follow');
     setRun((v) => v + 1);
   };
   const applyPendingFieldRotation = () => {
     if (completedMatchesRef.current < 3) return;
+    const allowed = getPlayableArenaIds(loadPlayerProfile() ?? playerProfileRef.current,
+      FIELD_CONFIGS.filter(item => item.id !== 'kampung3d').map(item => item.id));
+    if (!allowed.length) { setContentGateError('Tidak ada arena terbuka untuk rotasi.'); return; }
     const decision = fieldCycleDecision(
       selectedFieldId,
       completedMatchesRef.current,
-      selectedFieldId === 'kampung3d' ? ['kampung3d'] : FIELD_CONFIGS.filter(item => item.id !== 'kampung3d').map((item) => item.id),
+      allowed,
     );
     completedMatchesRef.current = decision.wins;
     setSelectedFieldId(decision.fieldId);
   };
   const rematch = () => {
+    const gate = selectionGate();
+    if (gate) { setContentGateError(gate); setMode('menu'); setMenuStep('field'); return; }
     keys.current.clear();
     postRoundActionRef.current = null;
     setLeaderboardOpen(false);
@@ -6891,10 +6964,32 @@ export function BentenganPrototype() {
   };
   const cycleCharacter = (direction: -1 | 1) => {
     if (!selectedFaction) return;
-    const roster = FIXED_ROSTERS[selectedFaction];
+    const roster = getPlayableCharacterIds(playerProfileRef.current, FIXED_ROSTERS[selectedFaction]);
+    if (!roster.length) return;
     const index = roster.indexOf(selectedId);
     const nextId = roster[(index + direction + roster.length) % roster.length];
     highlightCharacterWithVoice(nextId);
+  };
+  const cycleArena = (direction: -1 | 1) => {
+    const ids = getPlayableArenaIds(playerProfileRef.current, fieldIds);
+    if (!ids.length) { setContentGateError('Tidak ada arena terbuka yang tersedia.'); return; }
+    const index = ids.indexOf(selectedFieldId);
+    setSelectedFieldId(ids[(index + direction + ids.length) % ids.length] as FieldId);
+  };
+  const confirmCharacter = () => {
+    if (!playerProfileRef.current || !selectedFaction ||
+        !FIXED_ROSTERS[selectedFaction].includes(selectedId) ||
+        !isCharacterUnlocked(playerProfileRef.current, selectedId)) {
+      setContentGateError('Karakter belum terbuka atau tidak tersedia di tim ini.'); return;
+    }
+    stopCharacterVoice();
+    setMenuStep('field');
+  };
+  const restartMatch = () => {
+    const gate = selectionGate();
+    if (gate) { setContentGateError(gate); setMode('menu'); return; }
+    keys.current.clear();
+    setRun(value => value + 1);
   };
   const goBack = () => {
     if (rulesOpen) return setRulesOpen(false);
@@ -6941,8 +7036,8 @@ export function BentenganPrototype() {
         return;
       }
       if (menuStep === 'team' && key === 'enter' && hoveredFaction) {
-        const firstId = FIXED_ROSTERS[hoveredFaction][0];
-        chooseFaction(hoveredFaction);
+        const firstId = chooseFaction(hoveredFaction);
+        if (!firstId) return;
         setMenuStep('character');
         playCharacterVoice(firstId);
         return;
@@ -6956,8 +7051,7 @@ export function BentenganPrototype() {
         return;
       }
       if (menuStep === 'character' && key === 'enter') {
-        stopCharacterVoice();
-        setMenuStep('field');
+        confirmCharacter();
         return;
       }
       if (
@@ -6965,15 +7059,7 @@ export function BentenganPrototype() {
         (key === 'arrowleft' || key === 'arrowright')
       ) {
         event.preventDefault();
-        const index = FIELD_CONFIGS.findIndex(
-          (field) => field.id === selectedFieldId,
-        );
-        setSelectedFieldId(
-          FIELD_CONFIGS[
-            (index + (key === 'arrowleft' ? -1 : 1) + FIELD_CONFIGS.length) %
-              FIELD_CONFIGS.length
-          ].id,
-        );
+        cycleArena(key === 'arrowleft' ? -1 : 1);
       }
       if (menuStep === 'field' && key === 'enter') start();
     };
@@ -7069,6 +7155,9 @@ export function BentenganPrototype() {
         }
       >
         <div className="ink-noise" />
+        {contentGateError && <div className="content-gate-notice" role="alert">
+          {contentGateError}<button onClick={() => setContentGateError('')} aria-label="Tutup pesan">×</button>
+        </div>}
         {playerProfile && menuStep === 'splash' && (
           <button
             className="profile-trigger"
@@ -7133,8 +7222,8 @@ export function BentenganPrototype() {
                 onPointerLeave={() => setHoveredFaction(null)}
                 onFocus={() => setHoveredFaction(faction)}
                 onClick={() => {
-                  const firstId = FIXED_ROSTERS[faction][0];
-                  chooseFaction(faction);
+                  const firstId = chooseFaction(faction);
+                  if (!firstId) return;
                   setMenuStep('character');
                   playCharacterVoice(firstId);
                 }}
@@ -7187,8 +7276,8 @@ export function BentenganPrototype() {
                 className="roster-team-swap"
                 onClick={() => {
                   const next = selectedFaction === 'red' ? 'green' : 'red';
-                  const nextId = FIXED_ROSTERS[next][0];
-                  chooseFaction(next);
+                  const nextId = chooseFaction(next);
+                  if (!nextId) return;
                   playCharacterVoice(nextId);
                 }}
                 aria-label="Ganti tim"
@@ -7317,10 +7406,7 @@ export function BentenganPrototype() {
               </dl>
               <button
                 className="graffiti-primary character-panel-select"
-                onClick={() => {
-                  stopCharacterVoice();
-                  setMenuStep('field');
-                }}
+                onClick={confirmCharacter}
               >
                 <span>PILIH {selected.name}</span>
               </button>
@@ -7342,16 +7428,14 @@ export function BentenganPrototype() {
               </p>
             </header>
             <div className="arena-carousel">
-            <button className="arena-nav previous" aria-label="Arena sebelumnya" onClick={() => {
-              const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
-              setSelectedFieldId(FIELD_CONFIGS[(index + FIELD_CONFIGS.length - 1) % FIELD_CONFIGS.length].id);
-            }}>‹</button>
+            <button className="arena-nav previous" aria-label="Arena sebelumnya" onClick={() => cycleArena(-1)}>‹</button>
             <div className="field-card-row" aria-label="Pilihan arena">
               {FIELD_CONFIGS.map((field, index) => (
                 <button
                   key={field.id}
                   className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''}`}
                   onClick={() => setSelectedFieldId(field.id)}
+                  disabled={!playerProfile || !isArenaUnlocked(playerProfile, field.id)}
                   aria-pressed={selectedFieldId === field.id}
                   style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + FIELD_CONFIGS.length + 1) % FIELD_CONFIGS.length) - 1 } as React.CSSProperties}
                 >
@@ -7373,10 +7457,7 @@ export function BentenganPrototype() {
                 </button>
               ))}
             </div>
-            <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => {
-              const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
-              setSelectedFieldId(FIELD_CONFIGS[(index + 1) % FIELD_CONFIGS.length].id);
-            }}>›</button>
+            <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => cycleArena(1)}>›</button>
             </div>
             <div className="match-lineup">
               <div>
@@ -7521,6 +7602,9 @@ export function BentenganPrototype() {
   }
   return (
     <main className="game-shell playing-shell">
+      {contentGateError && <div className="content-gate-notice" role="alert">
+        {contentGateError}<button onClick={() => setContentGateError('')} aria-label="Tutup pesan">×</button>
+      </div>}
       <header className="game-topbar">
         <div className="brand-lockup">
           <img
@@ -8380,7 +8464,7 @@ export function BentenganPrototype() {
                       {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
                       {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
                     </button>
-                    <button onClick={() => setRun((value) => value + 1)}>
+                    <button onClick={restartMatch}>
                       <RotateCcw size={17} /> Mulai ulang
                     </button>
                     <button onClick={quit}>

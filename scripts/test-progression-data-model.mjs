@@ -43,6 +43,33 @@ const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await l
 const { applyMatchProgression } = await load('match-progression');
 const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
+const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
+  validatePlayableContent, resolvePlayableContent } = await load('content-gates');
+
+test('module10 runtime gates reject locked/unknown/faction mismatch and absent profiles', () => {
+  const p = service.createPlayerProfile('RuntimeGate');
+  const red = ['raja', 'robot', 'jago', 'lala', 'kumis', 'tui', 'bebe'];
+  const green = ['ciici', 'kaka', 'buto', 'maria', 'boke', 'lui', 'kodo'];
+  const arenas = ['kampung', 'pasar', 'taman', 'kanal', 'kanal2', 'studio-kampung-2420b8cf'];
+  assert.equal(validatePlayableContent(p, 'raja', 'kampung', red, arenas), null);
+  assert.equal(validatePlayableContent(p, 'kaka', 'kampung', green, arenas), null);
+  for (const [id, arena, roster, profile] of [
+    ['jago','kampung',red,p], ['kaka','kampung',red,p], ['raja','pasar',red,p],
+    ['unknown','kampung',red,p], ['raja','unknown',red,p], ['raja','kampung',red,null],
+  ]) assert.ok(validatePlayableContent(profile, id, arena, roster, arenas));
+  assert.deepEqual(resolvePlayableContent(p, 'jago', 'pasar', red, arenas), { characterId: 'raja', arenaId: 'kampung' });
+  assert.equal(resolvePlayableContent(p, 'raja', 'kampung', red, ['pasar']), null);
+  assert.equal(resolvePlayableContent(null, 'raja', 'kampung', red, arenas), null);
+  assert.equal(pickUnlockedCharacter(p, red, () => 0.99), 'raja');
+  assert.deepEqual(getPlayableCharacterIds(p, green), ['kaka']);
+  assert.deepEqual(getPlayableArenaIds(p, arenas), ['kampung']);
+  assert.equal(green.length, 7); assert.equal(red.length, 7); // No bot roster mutation.
+  p.progression.xp = 200;
+  p.progression.arenaStats.kampung = { played: 1, wins: 1 };
+  assert.deepEqual(getPlayableArenaIds(p, arenas), ['kampung', 'pasar']);
+  assert.deepEqual(getPlayableCharacterIds(p, red), ['raja', 'bebe']);
+  assert.equal(pickUnlockedCharacter(p, red, () => 0.99), 'bebe');
+});
 
 test('module09 new profile does not migrate; zero/active legacy retain identity and historical progress', () => {
   const fresh = service.createPlayerProfile('Migration');

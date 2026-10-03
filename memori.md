@@ -4,6 +4,14 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE10 lokal: content-gates.ts central player-only filters/validation/fallback,
+prototype guards all selection/launch/rematch/restart/rotation/loading/init paths.
+Faction starter first unlocked (Kaka for green); full bot rosters unchanged.
+Runtime now replaces legacy match writer with recordMatchProgression, stable ID
+per initialized match. Profile refresh avoids restarting gameplay. 30 tests,
+TypeScript/build +browser smoke PASS. User requested10+11, no publish/12 yet.
+Earlier09 note that runtime was not hooked is superseded by10.
+
 MODULE09 lokal (2026-10-03): storage load kini migrasi progression missing/
 outdated/malformed satu kali. Profil current/new/future valid tidak migrasi ulang.
 XP historis agregat dari config, saturasi safe integer via BigInt; levelmax13.

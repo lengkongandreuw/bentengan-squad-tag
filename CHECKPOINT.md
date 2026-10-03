@@ -5,6 +5,27 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 10 Runtime Content Gates (2026-10-03, LOCAL ONLY)
+
+- content-gates.ts: central player filters, random unlocked choice, launch
+  validation and explicit unlocked/catalog fallback. Null profile rejects launch.
+- Prototype gates setters, faction default (green Kaka not locked Ciici),
+  pointer/focus/keyboard selection, confirmation, arena arrows, start, loading
+  completion, canvas initialization, rematch/restart and unlocked arena rotation.
+  Direct invalid selection returns menu + notice; no unknown field initialization.
+- Bot lineupFor/FIXED_ROSTERS unchanged. Locked characters remain visible;
+  visual lock treatment deferred11 (user explicitly requested10+11 together).
+- Match runtime now uses stable per-initialization matchId and ONLY new reward
+  writer. Legacy recordCompletedMatch removed from prototype. Profile event
+  refresh does not reinitialize running match. No result UI/notifications.
+- Tests30 PASS, TypeScript PASS, build:pages PASS (existing CSS/chunk warnings).
+  Browser smoke tab24 / localhost3005: locked Jago rejected, green starter Kaka,
+  locked arenas disabled, arrows exclude locked, Kampung match started, bots
+  include Boke despite player locks. No console errors during smoke.
+- Vite test server session85674 port3005; user Map Studio4320 untouched.
+- Local only; draft config/map-studio.json excluded. Continue11 as requested,
+  not12 or publish automatically.
+
 ### COMPLETE — MODULE 09 Existing Profile Migration (2026-10-03, LOCAL ONLY)
 
 - User meminta06–09 sekaligus. Fondasi06 67fce2a,07 aab8e70,08 1c81d31.
