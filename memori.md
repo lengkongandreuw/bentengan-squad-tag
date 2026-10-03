@@ -4,6 +4,13 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Progression MODULE01 (2026-10-03, lokal belum publish): lib/player-profile/
+progression.ts menyediakan type versi1, factory default baru XP0 / raja+kaka /
+kampung, validasi read-only dan koleksi independen. Profil legacy tetap boleh
+tanpa progression; parser storage menjaga progression yang valid, tanpa migrasi
+atau write-on-read. Belum ada reward/level/unlock/gates atau integrasi match
+progression. Dokumen modul01 meminta STOP dan tidak publish tanpa request eksplisit.
+
 Map Studio guard katalog (2026-10-03): katalog bawaan wajib berisi lima arena
 2D dan template replacement; server lama/tidak lengkap tidak lagi diam-diam
 menghasilkan daftar kosong. Jalankan test:map-studio untuk HTTP contract + model.

@@ -3,3 +3,4 @@ export * from './profile-service';
 export * from './statistics';
 export * from './storage';
 export * from './types';
+export * from './progression';

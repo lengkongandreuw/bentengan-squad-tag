@@ -1,6 +1,7 @@
 import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults';
 import { CHARACTERS, type CharacterId } from '../characters';
 import type { LocalPlayerProfile, PlayerKdaStats } from './types';
+import { parsePlayerProgression } from './progression';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -44,6 +45,7 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
   )
     return null;
 
+  const progression = parsePlayerProgression(value.progression);
   return {
     schemaVersion: PLAYER_PROFILE_SCHEMA_VERSION,
     id: value.id,
@@ -53,5 +55,6 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
     kalah,
     featuredCharacterId,
     kda,
+    ...(progression ? { progression } : {}),
   };
 };

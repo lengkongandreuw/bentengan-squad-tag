@@ -7,6 +7,7 @@ import {
 import { loadPlayerProfile, savePlayerProfile } from './storage';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
+import { createDefaultProgression } from './progression';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')
@@ -47,6 +48,7 @@ export const createPlayerProfile = (usernameInput: string): LocalPlayerProfile =
     kalah: 0,
     featuredCharacterId: 'raja',
     kda: { tagMusuh: 0, masukPenjara: 0, rescueTeam: 0 },
+    progression: createDefaultProgression(),
   });
 };
 

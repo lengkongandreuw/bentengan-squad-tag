@@ -5,6 +5,30 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 01 Progression Data Model (2026-10-03, LOCAL ONLY)
+
+- Sumber spesifikasi: C:/Users/lenovo/Documents/benteng/plan and features/
+  01-PROGRESSION-DATA-MODEL.md. STOP setelah MODULE01; jangan lanjut MODULE02.
+- PlayerProgression versi1: xp, unlockedCharacters, unlockedArenaIds,
+  arenaStats, processedMatchIds, migrationCompletedAt opsional. Tidak menyimpan level.
+- createDefaultProgression membuat data independen: XP0, raja/kaka, kampung,
+  statistik arena dan match IDs kosong. Profil baru memakai default ini.
+- LocalPlayerProfile.progression opsional untuk kompatibilitas profil lama.
+  Parser mempertahankan progression valid ketika reload/update profil; data
+  hilang/tidak valid tidak membatalkan profil lama. Tidak melakukan migrasi,
+  tidak memberi timestamp migrasi, tidak menulis storage saat membaca.
+- File: lib/player-profile/progression.ts (baru), types.ts, profile-service.ts,
+  migrations.ts (parser saja), index.ts; scripts/test-progression-data-model.mjs
+  (harness TS memakai dependency TypeScript yang sudah ada); memori/CHECKPOINT.
+- Validasi: npx tsc --noEmit PASS; empat tes default/reference isolation,
+  legacy read tanpa write, storage round-trip/profile update, invalid optional
+  progression PASS. Tidak menjalankan build/aset/audit global yang tidak relevan.
+- Tidak ada reward, level, unlock resolver, match integration progression,
+  UI gates, backend atau fitur tahap02+. App gameplay dan semua aset tidak disentuh.
+- Perubahan pengguna config/map-studio.json tetap dipertahankan, tidak di-stage.
+- Publikasi ditahan sesuai instruksi dokumen tahap01; implementasi lokal saja.
+  Next: review pengguna; tahap02 hanya setelah diminta dengan spesifikasinya.
+
 ### 2026-10-03 — Harness pilihan map bawaan
 
 - Root cause live port4320: server lama mengembalikan template/library tanpa

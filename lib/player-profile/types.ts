@@ -1,3 +1,6 @@
+import type { CharacterId } from '../characters';
+import type { PlayerProgression } from './progression';
+
 export type PlayerKdaStats = {
   tagMusuh: number;
   masukPenjara: number;
@@ -15,6 +18,8 @@ export type LocalPlayerProfile = {
   kalah: number;
   featuredCharacterId: CharacterId;
   kda: PlayerKdaStats;
+  // Optional until the dedicated migration module handles legacy profiles.
+  progression?: PlayerProgression;
 };
 
 export type RadarMetrics = {
@@ -29,4 +34,3 @@ export type PlayerProfileMetrics = {
   kdaRatio: number;
   radar: RadarMetrics;
 };
-import type { CharacterId } from '../characters';
