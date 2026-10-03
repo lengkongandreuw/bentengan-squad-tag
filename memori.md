@@ -4,6 +4,60 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Map Studio guard katalog (2026-10-03): katalog bawaan wajib berisi lima arena
+2D dan template replacement; server lama/tidak lengkap tidak lagi diam-diam
+menghasilkan daftar kosong. Jalankan test:map-studio untuk HTTP contract + model.
+Sesudah perubahan server harus restart proses Node; refresh browser saja tidak
+memuat ulang modul server. Port4320 telah direstart dan dibuktikan lewat browser.
+
+Map Studio lifecycle: daftar bawaan/custom, edit versi pengganti 5 arena 2D,
+Arsip/Sampah/Pulihkan, Pulihkan versi asli. Sampah recoverable, aset tidak dihapus.
+Manifest builtinStates mengatur visibilitas bawaan; map.replaces memilih sumber
+yang diganti setelah Aktifkan. archived/deleted tidak ditampilkan game.
+Import kanal membawa mask RLE air; tombol hapus mask tersedia, bridge menutup air.
+3D hanya lifecycle, bukan edit visual. Grafik baked-in tetap menyatu di terrain.
+
+Map Studio (2026-10-02): `npm run admin:maps`, localhost 4320. Editor lokal
+terpisah dari UI game, dengan map kosong/salin Kampung, PNG/GIF/WebP, collider
+rect/ellipse/polygon, layer/z/Y, terrain/icon, FPS, base/prison anchors,
+undo/redo, uji cepat, save/build/publish. Manifest config/map-studio.json;
+upload public/map-studio/*.webp, backup .preview-admin/. Map asli/sprite tidak
+diubah. Map aktif ditambahkan ke pilihan arena; mekanik shared collider, air,
+jembatan dan slow untuk pemain/bot. Publish menolak dirty non-map serta commit
+belum sinkron, tidak auto-merge/force-push. Salin Kampung memakai latar dengan
+beberapa dekorasi baked-in; terrain bersih diperlukan untuk memisahkannya.
+
+Kecepatan Sprite Studio: FPS 1–60 di preview editor, diterapkan per movement
+melalui tombol Terapkan atau batch. Pengali 0,25×–4× di panel perbandingan hanya
+mengubah playback preview bersama, bukan konfigurasi game atau skala karakter.
+
+Panel perbandingan Sprite Studio: `http://127.0.0.1:4319/comparison`, menampilkan
+semua slot custom yang sudah diterapkan lokal (bukan draft / verifikasi GitHub).
+Zoom bersama, garis pijakan, skala karakter × slot, filter, pause, dan link Edit.
+Ukuran frame termasuk area transparan; tidak ada auto-fit yang menyamakan gambar.
+
+2026-10-02 Sprite Studio: bebas menerapkan movement aktif saja atau draft yang
+dicentang. Draft lain tidak memblokir; Publish hanya slot yang sudah diterapkan.
+Setiap movement mendukung Default + 8 arah, prioritas override arah > default >
+sprite lama. PNG tunggal/sheet/kumpulan frame, GIF/WebP didukung; validasi file
+dekat upload sebelum proses, lalu validasi grid/crop/atlas saat proses.
+
+Alur Sprite Studio sederhana: pilih seri/arah, proses upload, tandai sudah sesuai,
+lalu Simpan & update karakter atau Simpan & publish ke GitHub. Batch atomik hanya
+mengubah arah yang dipilih. Draft hasil proses tersimpan di memori tab sampai
+diterapkan, bukan disk; refresh/close memberi peringatan. Opsi teknis di Advanced options.
+
+Sprite Studio memiliki preview upload langsung dan crop visual drag/resize.
+Crop diterapkan sama setelah grid dipisahkan; Proses upload & preview wajib
+sebelum menyimpan perubahan sumber/crop. File sumber dan karakter lain tetap utuh.
+
+Sprite Studio ingame (2026-10-01): `npm run admin:sprites`, port 4319, terpisah
+dari panel selection 4318. Manifest `config/sprite-studio.json` override per slot
+dan karakter; slot kosong tetap memakai renderer lama. Custom hanya visual:
+30 slot, 8 arah run/tag/parkour + idle/prisoner/ready/ultimate/victory/defeat.
+Loading pertandingan preload atlas custom. Editor tidak bergantung pada UI
+publik; petunjuk lengkap `scripts/sprite-studio/README.md`.
+
 Kontrol terbaru (2026-09-26): klik kiri menentukan tujuan tanpa boost; klik kanan
 memicu boost tanpa mengubah tujuan; WASD mengambil alih navigasi, Shift parkour.
 Navigasi klik memakai A* menghindari collider dan sungai. Tombol mobile hanya
@@ -32,6 +86,52 @@ berhenti karena limit, error eksternal, atau interupsi, checkpoint harus cukup
 lengkap agar task dapat diteruskan hanya dengan membaca repository.
 
 ## Ringkasan proyek
+
+- Publikasi diminta 2026-10-02: override enam arah lari Jago dan map aktif
+  Arena Benteng 1. Kampung Merdeka 3D dikeluarkan dari game lewat status deleted
+  pada builtinStates; kode/aset tetap tersimpan untuk pemulihan di Map Studio.
+- Rilis `c796cde` sudah di github/main; Pages run `37027823960` build/deploy
+  SUCCESS. Fitur profil upstream dan editor lifecycle ikut terpublikasi.
+
+### Sinkronisasi upstream yang diperiksa 2026-10-02
+
+- Remote `github/main` terakhir diperiksa: `a199b80`. PR #6 / commit `1a73c74`
+  menambahkan profil pemain lokal: setup username, panel profil di landing/HUD,
+  karakter unggulan, menang/kalah, tag musuh, masuk penjara, rescue dan radar
+  attack/support/survival. Data memakai localStorage, bukan akun/login server
+  atau sinkronisasi lintas perangkat. Statistik dicatat saat MATCH_OVER.
+- Modul baru: `lib/player-profile/`, `components/player-profile/`, dokumentasi
+  `FEATURE_USER_PROFILE_RADAR_CHART.md`. Panel profil dimuat lazy. Upstream juga
+  membersihkan opsi .npmrc deprecated dan meregenerasi package-lock.json.
+- Saat publikasi Jago/map berikutnya, upstream a199b80 sudah digabung ke lokal
+  tanpa konflik; tes 11 editor, typecheck dan build Pages lulus. Browser build
+  produksi berhasil setup profil dan masuk pertandingan map custom tanpa error.
+- Enam arena bawaan saat ini mencakup lima 2D (`kampung`, `pasar`, `taman`,
+  `kanal`, `kanal2`) dan satu eksperimental `kampung3d`; uraian empat/lima arena
+  di bagian historis di bawah bukan jumlah roster arena terbaru.
+- Prioritas verifikasi terbaru mengikuti CHECKPOINT.md; klaim audit lengkap
+  lulus di bagian historis tidak berlaku pada baseline sekarang (7 assertion
+  legacy diketahui gagal; jangan mengubah baseline/sprite untuk menyamarkannya).
+
+### Map buatan pengguna dan rencana optimasi (diskusi, belum diterapkan)
+
+- Manifest lokal kini berisi map aktif `studio-kampung-2420b8cf`, nama
+  `Arena Benteng 1`, ukuran 1969x1560, 84 objek: 46 visual dan 11 animasi
+  masing-masing 54 frame; perilaku 19 parkour / 45 decoration / 20 solid.
+  Ini perubahan pengguna, jangan ditimpa oleh manifest kosong dari checkpoint lama.
+- 13 file gambar unik yang dirujuk map: total sekitar 14,68 MiB di disk;
+  estimasi satu buffer RGBA dari dimensi atlas sekitar 109,48 MiB (bukan hasil
+  pengukuran memori browser/GPU; belum termasuk sprite, canvas dan buffer lain).
+- GIF upload diproses menjadi atlas WebP; runtime berbagi cache berdasarkan
+  path aset. Duplikat objek dengan aset sama tidak otomatis menggandakan download.
+  FPS lebih rendah mengubah playback, bukan jumlah frame/ukuran atlas atau
+  frekuensi render canvas. Mengecilkan w/h objek saja juga tidak mengecilkan atlas.
+- Saran awal: kurangi jumlah frame animasi sumber, resize/crop sebelum upload,
+  pakai ulang aset, batasi animasi dekorasi, sederhanakan collider tanpa menutup
+  jalur. Angka target merupakan anggaran awal untuk diuji, bukan jaminan FPS.
+- Optimasi kode opsional berikutnya: culling visual di luar kamera, cache layer
+  statis dan urutan layer; collider seluruh dunia tetap berlaku untuk AI/pemain.
+  Belum diterapkan dan belum ada pengukuran FPS pada perangkat pengguna.
 
 - Game web 2.5D Bentengan 5 lawan 5 melawan bot.
 - Framework: React 19, TypeScript, Vinext/Vite.

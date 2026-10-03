@@ -15,7 +15,7 @@ export type CharacterId =
   | 'kodo';
 
 export type CharacterRole =
-  | 'Guardian'
+  | 'Wall'
   | 'Rescuer'
   | 'Runner'
   | 'Chaser'
@@ -48,14 +48,14 @@ export const CHARACTERS: CharacterDefinition[] = [
   {
     id: 'robot',
     name: 'Robot',
-    role: 'Guardian',
+    role: 'Wall',
     speed: 198,
     boost: 118,
     agility: 0.9,
     visualScale: 1.04,
     accent: '#c99a58',
-    copy: 'Penjaga stabil untuk patroli panjang dan menahan jalur pulang.',
-    passiveName: 'Kapasitor Besar',
+    copy: 'Stabil, tahan lama, dan sulit digeser. Cocok untuk menjaga jalur saat situasi mulai hectic.',
+    passiveName: 'BIG CELL',
     passiveCopy: 'Boost terkuras 15% lebih lambat.',
     tagRange: 28,
     rescueRange: 32,
@@ -75,7 +75,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     visualScale: 0.95,
     accent: '#d45a43',
     copy: 'Spesialis menerobos penjara dan mengevakuasi seluruh rantai.',
-    passiveName: 'Tangan Cepat',
+    passiveName: 'NIGHT PULL',
     passiveCopy: 'Jangkauan rescue lebih luas; rekan kebal 2,2 detik.',
     tagRange: 28,
     rescueRange: 42,
@@ -108,7 +108,7 @@ export const CHARACTERS: CharacterDefinition[] = [
   {
     id: 'buto',
     name: 'Buto',
-    role: 'Guardian',
+    role: 'Wall',
     speed: 194,
     boost: 122,
     agility: 0.86,
@@ -208,7 +208,7 @@ export const CHARACTERS: CharacterDefinition[] = [
   {
     id: 'kumis',
     name: 'Kumis',
-    role: 'Guardian',
+    role: 'Wall',
     speed: 188,
     boost: 128,
     agility: 0.82,
@@ -308,7 +308,7 @@ export const CHARACTERS: CharacterDefinition[] = [
   {
     id: 'kodo',
     name: 'Kodo',
-    role: 'Guardian',
+    role: 'Wall',
     speed: 200,
     boost: 124,
     agility: .9,

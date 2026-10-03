@@ -5,30 +5,165 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-- State: `ACTIVE`
-- Diperbarui: 2026-09-29
+### 2026-10-03 — Harness pilihan map bawaan
+
+- Root cause live port4320: server lama mengembalikan template/library tanpa
+  builtins/builtinTemplates; frontend sebelumnya fallback [] sehingga daftar
+  bawaan hilang diam-diam. Server lama session34221 dihentikan; versi terbaru
+  berjalan port4320 session15218. Tab/draft lama tidak direfresh paksa.
+- catalog.mjs shared guard menolak katalog tidak lengkap dengan peringatan
+  restart; HTTP harness memastikan lima template bawaan + route MIME JavaScript.
+- 7 tes Map Studio PASS. Browser port4320: lima bawaan muncul, Kampung Merdeka
+  dapat dipilih/dibuka, error console kosong. Screenshot ../map-catalog-fixed.png.
+- config/map-studio.json berisi perubahan baru pengguna, tidak ikut commit ini.
+  Fitur artwork penjara tetap keterbatasan terpisah, bukan diperbaiki oleh harness.
+- COMPLETE: commit dbda042 dipush; Pages run37102736839 build/deploy SUCCESS.
+  Next: pengguna gunakan tab editor baru4320; jangan simpan template QA ke manifest.
+
+### COMPLETE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
+
+- Release `c796cde` dipush ke github/main; Pages run `37027823960`
+  build + deploy SUCCESS. URL https://lengkongandreuw.github.io/bentengan-squad-tag/.
+- 53 referensi entry aset map/Jago terverifikasi ada di dist-pages dan dimensi
+  cocok dengan manifest. Working tree clean sebelum pencatatan hasil deployment.
+- Fitur editor lifecycle `6fac739` ikut release ini. Map3D tidak muncul dalam
+  daftar aktif, tetapi data/kode tetap recoverable. Optimasi frame/resolusi belum
+  dilakukan; versi map yang pengguna simpan dipublikasikan tanpa perubahan visual.
+- Next action: feedback pengguna / profiling dan optimasi map bila diminta.
+
+- Implementasi/aset scoped `1623c1a` tersimpan; upstream `a199b80` sudah merge
+  tanpa konflik. 6 tes map + 5 tes sprite PASS, tsc --noEmit PASS,
+  build:pages PASS (warning CSS/chunk legacy masih ada).
+- Browser build produksi 4322 masuk Arena Benteng 1; console error kosong.
+  Screenshot ../release-jago-map.png. Push dan deployment sudah selesai di atas.
+
+- Pengguna mengizinkan publikasi manifest sprite Jago dan map lokal beserta
+  aset yang dirujuk. Diff sprite hanya Jago: enam arah run diagonal/kiri/kanan.
+- Arena Benteng 1 lulus mapIssues (kosong). builtinStates.kampung3d=deleted
+  menghapus arena eksperimental dari pilihan game, recoverable dari editor.
+- Optimasi ukuran/frame sumber sebelumnya masih diskusi, tidak diam-diam
+  mengurangi kualitas aset pengguna. Akan publish versi lokal yang tersimpan.
+- Next: commit scoped referenced assets, merge github/main terbaru, tes dan
+  build, push, tunggu workflow Pages; jangan stage upload yang tidak dirujuk.
+
+### Checkpoint terkini — 2026-10-02 (diskusi + pembaruan dokumentasi)
+
+- Request aktif: saran meringankan map editor dan catat fitur programmer lain.
+  Tidak mengubah aset, manifest map/sprite, dependency, atau gameplay pada turn ini.
+- HEAD implementasi lokal `2c1029c`: merge `github/main` lama `1c0977a`
+  (pemulihan baseline Nusantara 1) dengan lifecycle editor `6fac739`.
+  Enam tes Map Studio, typecheck dan build Pages sesudah merge tersebut PASS.
+  Kode lifecycle belum dipush; belum ada konfirmasi deployment untuk commit ini.
+- Fetch terbaru menghasilkan `github/main` = `a199b80`. PR #6 / `1a73c74`
+  menambah profil pemain localStorage, setup username, karakter unggulan,
+  menang/kalah, tag/penjara/rescue, KDA dan radar performa; panel lazy di menu/HUD.
+  `ac3edfb` membersihkan .npmrc; `75dc69f` meregenerasi package-lock.json.
+  Upstream ini belum di-merge, build/runtime fitur profil BELUM diuji lokal.
+  Branch `github/Refactor-Clio` ada tetapi tidak diasumsikan sudah masuk main.
+- IMPORTANT: pengguna sudah menyimpan map aktif `Arena Benteng 1` ke
+  config/map-studio.json (studio-kampung-2420b8cf, 1969x1560, 84 objek,
+  46 visual, 11 animasi @54 frame). Pernyataan manifest kosong di histori
+  setelah bagian ini SUDAH TIDAK BERLAKU. Jangan reset/replace manifest tersebut.
+- Referensi gambar map: 13 aset unik / 14,68 MiB file; perkiraan buffer RGBA
+  109,48 MiB berdasarkan dimensi (bukan profiling memori browser aktual).
+- Dirty pengguna: config/map-studio.json, config/sprite-studio.json,
+  public/map-studio/, public/sprite-studio/jago/. Semua dipertahankan.
+- Server lifecycle baru 4322; tab/server lama 4320 tetap dipertahankan agar
+  draft pengguna tidak hilang. Jangan hentikan/refresh paksa tab dengan draft.
+- Memori diperbarui berdasarkan kode remote, bukan hanya judul commit.
+  Tidak menjalankan ulang build karena perubahan turn ini dokumentasi saja.
+
+Next action jika implementasi/publikasi dilanjutkan: periksa status dan fetch
+lagi, gabungkan upstream terbaru secara aman dengan menjaga file map/sprite
+pengguna, selesaikan konflik hanya pada kode terkait, jalankan tes/typecheck/
+Pages build setelah merge, lalu publish hanya file tugas yang disetujui.
+Jangan ikut meng-commit map/sprite pengguna tanpa permintaan publish asetnya.
+
+Next action optimasi: ukur loading/memori/FPS map pengguna lebih dahulu;
+bedakan bottleneck atlas/animasi dari collider/AI, gunakan duplikat map/aset
+untuk uji kualitas sebelum menerapkan perubahan. Diskusi belum mengizinkan
+otomatis resize/reduce frame atau menghapus objek pengguna.
+
+- 2026-10-02: revisi edit existing map + Arsip/Sampah/Pulihkan. Enam tes model/API
+  lulus, typecheck lulus; browser isolated menguji edit/simpan Pasar, Arsip, Sampah,
+  Pulihkan tanpa error. Server baru 4322 (session 95860) agar tab/draft lama 4320
+  tidak ditutup. Fixture 4321 (session 45903). Sedang build dan publish kode saja.
+  config/map-studio.json aktual tetap kosong; perubahan sprite/config dan upload
+  pengguna tidak disentuh. Bawaan 3D hanya pengelolaan daftar, editor visual 2D.
+
+- 2026-10-02 Map Studio: implementasi editor/model/server/runtime sudah tersimpan
+  di commit checkpoint dda7ee0 dan 605e2ad; penyelesaian 03df919. Pengujian 5
+  model/API map, 5 Sprite Studio, TypeScript dan build Pages lulus. Uji browser
+  save GIF/FPS 6 dan aktivasi pada fixture lulus; map custom muncul di pilihan
+  arena dan masuk pertandingan tanpa error JavaScript. COMPLETE: commit
+  65426da dipush; Pages run 36978917151 build/deploy SUCCESS.
+  config/map-studio.json tetap kosong; tidak mengganti map/sprite pengguna.
+  Fixture QA dipindahkan ke sa/map-studio-test-fixture-Tv5nsZ, di luar kode game.
+  Audit lama masih gagal 7 assertion format/version/baseline; test Kampung 3D
+  lama gagal isKanalField undefined (sudah ada pada baseline sebelum perubahan).
+  Test series Maria/Boke lulus. Jangan rebuild sprite pengguna untuk mengatasinya.
+  Server Map Studio 4320 aktif (terminal session 34221). Tab editor berisi contoh
+  salinan Kampung belum disimpan; manifest aktual tetap maps:[]. Perubahan baru
+  pengguna config/sprite-studio.json dan public/sprite-studio/jago/ tidak ikut
+  commit/push Map Studio. Untuk mencoba lagi: npm run admin:maps.
+
+- 2026-10-02: kontrol FPS 1–60 langsung di preview editor, tersinkron Advanced;
+  pengali playback bersama 0,25×–4× di comparison (preview saja, tanpa mengubah
+  skala atau FPS game). Tes browser FPS 6/24, validasi FPS invalid dan pengali
+  lulus; 5 tes dan typecheck lulus. Commit `de8dc28` dipush, Pages run
+  `36952810037` build/deploy SUCCESS. Draft test dibatalkan; sprite pengguna utuh.
+
+- Panel perbandingan `/comparison`: seluruh animasi custom diterapkan lokal,
+  common camera/zoom/pijakan, visualScale karakter seperti renderer, filter/pause,
+  reload manifest, deep link edit slot. Uji browser 9 animasi Raja dan filter
+  ultimate lulus tanpa error; tes server route dan syntax lulus. Tidak mengubah
+  config/sprite-studio.json atau aset upload pengguna. Commit `4559dd2` dipush;
+  Pages run `36951628757` build/deploy SUCCESS. Panel lokal 4319 sudah direstart.
+
+- 2026-10-02: movement independen (aktif saja atau draft dicentang), 81 slot
+  (Default + 8 arah untuk setiap movement), fallback kompatibel renderer lama,
+  status file dekat upload + inspeksi metadata dan dukungan PNG tunggal/sheet/frame.
+  Uji PNG/idle diagonal/victory diagonal/draft tidak terpilih/error file di browser
+  lulus; API/unit fallback/typecheck lulus. Commit `722686a` dipush; Pages run
+  `36947108535` build/deploy SUCCESS. Server 4319 diperbarui, refresh tab untuk
+  sesi baru. Pengujian tidak menerapkan sprite test ke karakter game.
+
+- Revisi UI sederhana: seri/arah + upload/crop + tandai sesuai + update karakter
+  batch atomik. Draft hasil proses bertahan saat pindah arah/seri/karakter;
+  pengaturan teknis dipindah ke Advanced options. Tes API batch termasuk rollback
+  invalid, revision guard, dan preservasi arah/karakter lain lulus. Typecheck/syntax
+  dan uji UI draft/approval/switch karakter lulus tanpa error browser. Commit
+  `d1d3205` dipush; Pages run `36871348889` build/deploy SUCCESS. Server lokal
+  4319 dimuat ulang; pengguna perlu refresh panel. Sprite game tidak diganti.
+
+- Revisi Sprite Studio 2026-10-01: preview upload GIF/gambar langsung, crop visual
+  move/resize, koordinat per sel sheet, reset full frame dan guard sebelum Save.
+  Tidak mengubah sprite karakter maupun mekanik game. Commit `e545f1b` dipush;
+  GitHub Pages run `36861802699` build/deploy SUCCESS. Lima tes, typecheck,
+  build Pages dan uji browser GIF/crop lulus. Warning npm/CSS build lama masih ada.
+
+- State: `COMPLETE` (Sprite Studio 2026-10-01)
+- Diperbarui: 2026-10-01
 - Branch: `main`
-- Commit implementasi terakhir: `8c6502d`
-- Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
+- Commit implementasi terakhir: `d1d3205`
+- Perubahan pengguna yang dipertahankan: app/globals.css, lib/characters.ts,
+  public/fonts/ dan aset public/sprite-studio/ yang tidak dirujuk manifest.
 
 ## Tujuan aktif
 
-2026-09-29: Review plan refactor (dokumen saja, tanpa ubah kode).
-Tujuan: `Review Plan.MD` di root, bahasa Inggris, hanya temuan, tanpa tabel task,
-trace ke `BENTENG-REFACTOR-PLAN.md` 1-19, lulus `ste-lint.py` nol pelanggaran.
-Selesai: F0-F7 + F10 + S1 (prekondisi) + Appendix A (F8 turun tingkat), pin
-`673ef2a`. Ditambah pada tahap ini: inventaris fungsi per region, matriks
-baca/tulis shared state (Block A React state di luar effect, Block B closure `let`
-di dalam effect `:3247-6027`), cadence `setSnapshot` (7 situs, tulis 10 Hz di
-`:5889`, lima reset), dan part P0 data peta `:404-2578` (~2.175 baris) yang tadinya
-tidak terencana. Fakta koreksi: 24 `useState` + 8 `useRef` = 32 hook (bukan 34).
-Validasi: `ste-lint.py` 0 pelanggaran (3.524 kata), `graphify update .` jalan
-(3.237 node, 383 community, label dipasang balik ke graph.json).
-File berubah: `Review Plan.MD`, `CHECKPOINT.md`. Belum commit.
-Blokir: cabang lokal sebenarnya `Refactor-Clio`, bukan `main`. Tanya user soal
-commit/push. Next: commit + push bila user setuju.
-Catatan lama tetap berlaku: user punya perubahan `config/selection-previews.json`
-dan aset brand, jangan ikut stage.
+2026-10-01 COMPLETE: Sprite Studio ingame lokal port 4319. Manifest override per
+karakter/per slot, 30 slot (run/tag/parkour 8 arah; idle/prisoner/ready/ultimate/
+victory/defeat). Server/editor/compiler + renderer fallback dan preload dibuat.
+Input sheet PNG/GIF/WebP/multi PNG, grid/order/crop, pivot/scale/offset/FPS/mirror.
+Simpan slot, reset fallback, build+uji game, publish dengan monitoring Pages.
+Validasi: 5 tes node PASS, TypeScript PASS, build:pages PASS; browser editor dan
+Build + Uji game PASS, console error kosong. Manifest tetap kosong: tidak ada
+sprite karakter diganti. GIF berlebih ditolak dengan batas yang jelas (128 frame).
+Publikasi: implementasi 16b9e39, merge map/UI terbaru 1179d0e; Pages run
+36859336242 SUCCESS (build + deploy). Server sesi 13901 port 4319 aktif.
+Dirty milik user: globals.css, lib/characters.ts, public/fonts; sudah dikembalikan
+sesudah sync dan tidak ikut publish. Backup stash bernama 'Preserve user font and
+character edits during Sprite Studio sync' masih disimpan untuk pemulihan.
 
 2026-09-26: Kontrol mouse klik kiri HANYA tujuan, kanan boost (revisi terbaru).
 Parkour tetap Shift/tombol mobile. Route A* terhadap collider/water; keyboard

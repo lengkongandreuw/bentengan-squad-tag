@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { publicAsset } from '../lib/characters';
+import { mapArtwork } from '../lib/map-studio';
 
-const sourceArena = (id: string) => id === 'kampung3d' ? 'kampung' : id;
-export const arenaImage = (id: string) => publicAsset(`arena-ui/${sourceArena(id)}.webp?v=1`);
+const sourceArena = (id: string) => id.startsWith('studio-') || id === 'kampung3d' ? 'kampung' : id === 'kanal2' ? 'kanal' : id;
+export const arenaImage = (id: string) => mapArtwork(id) ?? publicAsset(`arena-ui/${sourceArena(id)}.webp?v=1`);
 export const arenaVideo = (id: string) => publicAsset(`arena-ui/${sourceArena(id)}.mp4?v=1`);
 
 export function ArenaBackdrop({ id, video = false, onEnded }: {
