@@ -4,6 +4,11 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE06 lokal (2026-10-03): config campaign6 tier dengan kanal2 sebagai tier5
+dan studio-kampung-2420b8cf tier6. arena-unlocks.ts mengevaluasi ALL syarat dan
+mempertahankan unlock historis, memakai tier metadata. Tidak UI/gates/bot changes.
+19 tes +TypeScript PASS. User meminta06–09 bersama, tidak publish.
+
 Progression MODULE05 (2026-10-03, lokal belum publish): arena-stats.ts API pure
 getArenaStats/applyArenaMatchStat, ID custom/dinamis, played tiap apply dan wins
 hanya kemenangan. Return profil baru tanpa mutasi atau storage write. Getter

@@ -8,3 +8,4 @@ export * from './progression-rules';
 export * from './xp-engine';
 export * from './character-unlocks';
 export * from './arena-stats';
+export * from './arena-unlocks';

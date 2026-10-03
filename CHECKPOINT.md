@@ -5,6 +5,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 06 Arena Unlock Engine (2026-10-03, LOCAL ONLY)
+
+- User meminta06–09 sekaligus; tiap modul diverifikasi sebelum modul berikutnya.
+- Config campaign tier1..6: kampung, pasar, taman, kanal, kanal2 (arena kelima
+  aktual Alun Kanal Nusantara 2), studio-kampung-2420b8cf. Semua syarat level,
+  wins tier sebelumnya, total wins/tags/rescues mengikuti dokumen06.
+- arena-unlocks.ts: requirement/progress/eligibility/merge pure, ALL syarat
+  wajib terpenuhi; NEVER RELOCK termasuk ID custom historis. Metadata tier
+  menghubungkan prasyarat, bukan chain ID di UI. Tidak Map Studio UI/runtime gates.
+- Validasi 19 tes PASS dan TypeScript PASS; draft Map Studio tidak diubah.
+- Tetap lokal. Berikut07–09 hanya karena sudah diminta eksplisit bersama06.
+
 ### COMPLETE — MODULE 05 Arena Statistics (2026-10-03, LOCAL ONLY)
 
 - User memberi spesifikasi04+05;04 selesai lokal commit9ca2273 sebelum05.

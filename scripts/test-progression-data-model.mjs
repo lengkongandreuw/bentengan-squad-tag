@@ -39,6 +39,67 @@ const { getLevelFromXP, getCurrentLevelProgress, getXPRequiredForLevel,
 const { isCharacterUnlocked, getCharacterUnlockRequirement,
   getCharacterUnlockProgress, resolveCharacterUnlocks } = await load('character-unlocks');
 const { getArenaStats, applyArenaMatchStat } = await load('arena-stats');
+const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await load('arena-unlocks');
+
+test('module06 exact campaign rules and each requirement independently blocks unlock', () => {
+  const expected = [['pasar',2,1,0,0,0], ['taman',3,3,0,8,2], ['kanal',5,4,0,15,5],
+    ['kanal2',7,5,12,25,10], ['studio-kampung-2420b8cf',9,7,20,40,15]];
+  assert.deepEqual(progressionRules.arenaProgression.unlockRequirements.map(r =>
+    [r.arenaId,r.minLevel,r.requiredTierStats[0].minWins,r.minTotalWins ?? 0,r.minTags ?? 0,r.minRescues ?? 0]), expected);
+  for (const r of progressionRules.arenaProgression.unlockRequirements) {
+    const p = service.createPlayerProfile('ArenaUnlock');
+    p.progression.xp = getXPRequiredForLevel(r.minLevel);
+    p.menang = r.minTotalWins ?? 0;
+    p.kda.tagMusuh = r.minTags ?? 0;
+    p.kda.rescueTeam = r.minRescues ?? 0;
+    const prerequisite = progressionRules.arenaProgression.tiers.find(t => t.id === r.requiredTierStats[0].tierId);
+    const id = prerequisite.arenaIds[0];
+    const wins = r.requiredTierStats[0].minWins;
+    p.progression.arenaStats[id] = { played: wins, wins };
+    assert.equal(isArenaUnlocked(p, r.arenaId), true);
+    assert.ok(resolveArenaUnlocks(p).newlyUnlockedArenaIds.includes(r.arenaId));
+    for (const change of [
+      q => { q.progression.xp--; },
+      q => { q.progression.arenaStats[id].wins--; },
+      ...(r.minTotalWins ? [q => { q.menang--; }] : []),
+      ...(r.minTags ? [q => { q.kda.tagMusuh--; }] : []),
+      ...(r.minRescues ? [q => { q.kda.rescueTeam--; }] : []),
+    ]) {
+      const q = structuredClone(p); change(q);
+      assert.equal(isArenaUnlocked(q, r.arenaId), false);
+      assert.ok(getArenaUnlockProgress(q, r.arenaId).checks.some(c => !c.met));
+    }
+  }
+});
+
+test('module06 historical/custom unlocks, legacy starter, tier membership and immutable resolver', () => {
+  const p = service.createPlayerProfile('TierHistory');
+  p.progression.unlockedArenaIds.push('studio-unknown', 'kanal2');
+  const before = structuredClone(p);
+  assert.equal(isArenaUnlocked(p, 'studio-unknown'), true);
+  assert.equal(isArenaUnlocked(p, 'kanal2'), true);
+  assert.equal(isArenaUnlocked(p, 'new-unknown'), false);
+  assert.deepEqual(resolveArenaUnlocks(p).profile, p);
+  assert.deepEqual(p, before);
+  const legacy = { ...p, progression: undefined };
+  assert.equal(isArenaUnlocked(legacy, 'kampung'), true);
+  assert.equal(isArenaUnlocked(legacy, 'pasar'), false);
+  const tier = progressionRules.arenaProgression.tiers[0];
+  tier.arenaIds.push('studio-tier-one');
+  try {
+    p.progression.xp = 200;
+    p.progression.arenaStats['studio-tier-one'] = { played: 1, wins: 1 };
+    assert.equal(isArenaUnlocked(p, 'pasar'), true);
+  } finally { tier.arenaIds.pop(); }
+  for (const mutate of [
+    r => { r.arenaProgression.tiers[0].mode = 'invalid'; },
+    r => { r.arenaProgression.unlockRequirements[0].minTags = -1; },
+    r => { r.arenaProgression.unlockRequirements[0].requiredTierStats[0].tierId = 'tier-6'; },
+  ]) {
+    const rules = structuredClone(progressionRules); mutate(rules);
+    assert.throws(() => parseProgressionRules(rules), /tidak valid/);
+  }
+});
 
 test('module05 played increments per call and wins only on victory, including custom IDs', () => {
   const profile = service.createPlayerProfile('ArenaPlayer');
@@ -225,7 +286,8 @@ test('module02 loads exact specified rewards, caps, levels and complete unlock r
   assert.deepEqual(progressionRules.characterUnlockRequirements.map(r => [r.characterId, r.minLevel]),
     [['raja',1],['kaka',1],['bebe',2],['ciici',3],['jago',4],['maria',5],['lala',6],
      ['lui',7],['robot',8],['buto',9],['tui',10],['boke',11],['kumis',12],['kodo',13]]);
-  assert.deepEqual(progressionRules.arenaProgression, { tiers: [], unlockRequirements: [] });
+  assert.equal(progressionRules.arenaProgression.tiers.length, 6);
+  assert.equal(progressionRules.arenaProgression.unlockRequirements.length, 5);
 });
 
 test('module02 malformed rules fail explicitly without changing input or player data', () => {

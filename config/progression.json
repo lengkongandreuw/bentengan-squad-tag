@@ -23,5 +23,21 @@
     { "characterId": "kumis", "minLevel": 12 },
     { "characterId": "kodo", "minLevel": 13 }
   ],
-  "arenaProgression": { "tiers": [], "unlockRequirements": [] }
+  "arenaProgression": {
+    "tiers": [
+      { "id": "tier-1", "mode": "campaign", "tier": 1, "arenaIds": ["kampung"] },
+      { "id": "tier-2", "mode": "campaign", "tier": 2, "arenaIds": ["pasar"] },
+      { "id": "tier-3", "mode": "campaign", "tier": 3, "arenaIds": ["taman"] },
+      { "id": "tier-4", "mode": "campaign", "tier": 4, "arenaIds": ["kanal"] },
+      { "id": "tier-5", "mode": "campaign", "tier": 5, "arenaIds": ["kanal2"] },
+      { "id": "tier-6", "mode": "campaign", "tier": 6, "arenaIds": ["studio-kampung-2420b8cf"] }
+    ],
+    "unlockRequirements": [
+      { "arenaId": "pasar", "tierId": "tier-2", "minLevel": 2, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-1", "minWins": 1 }] },
+      { "arenaId": "taman", "tierId": "tier-3", "minLevel": 3, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-2", "minWins": 3 }], "minTags": 8, "minRescues": 2 },
+      { "arenaId": "kanal", "tierId": "tier-4", "minLevel": 5, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-3", "minWins": 4 }], "minTags": 15, "minRescues": 5 },
+      { "arenaId": "kanal2", "tierId": "tier-5", "minLevel": 7, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-4", "minWins": 5 }], "minTotalWins": 12, "minTags": 25, "minRescues": 10 },
+      { "arenaId": "studio-kampung-2420b8cf", "tierId": "tier-6", "minLevel": 9, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-5", "minWins": 7 }], "minTotalWins": 20, "minTags": 40, "minRescues": 15 }
+    ]
+  }
 }

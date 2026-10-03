@@ -4,12 +4,18 @@ import { CHARACTERS, type CharacterId } from '../characters';
 export type ArenaProgressionTier = {
   id: string;
   arenaIds: string[];
+  mode?: 'campaign' | 'bonus' | 'free-play';
+  tier?: number;
 };
 export type ArenaUnlockRequirement = {
   arenaId: string;
   tierId: string;
   minLevel: number;
   requiredArenaStats: { arenaId: string; minPlayed: number; minWins: number }[];
+  requiredTierStats?: { tierId: string; minWins: number }[];
+  minTotalWins?: number;
+  minTags?: number;
+  minRescues?: number;
 };
 export type ProgressionRules = {
   version: 1;
@@ -82,10 +88,16 @@ export function parseProgressionRules(value: unknown): ProgressionRules {
     const r = record(v, `arenaProgression.tiers[${i}]`);
     const arenaIds = unique(array(r.arenaIds, 'tier.arenaIds').map(v => id(v, 'tier.arenaIds')), 'tier.arenaIds');
     if (!arenaIds.length) fail('tier.arenaIds');
-    return { id: id(r.id, 'tier.id'), arenaIds };
+    if (r.mode !== undefined && !['campaign', 'bonus', 'free-play'].includes(r.mode as string)) fail('tier.mode');
+    if (r.mode === 'campaign' && r.tier === undefined) fail('tier.tier');
+    return { id: id(r.id, 'tier.id'), arenaIds,
+      ...(r.mode !== undefined ? { mode: r.mode as ArenaProgressionTier['mode'] } : {}),
+      ...(r.tier !== undefined ? { tier: counter(r.tier, 'tier.tier', 1) } : {}),
+    };
   });
   unique(tiers.map(t => t.id), 'tier.id');
   unique(tiers.flatMap(t => t.arenaIds), 'tier.arenaIds (lintas tier)');
+  unique(tiers.filter(t => t.mode === 'campaign').map(t => String(t.tier)), 'tier.tier');
   const arenaUnlocks = array(arena.unlockRequirements, 'arenaProgression.unlockRequirements').map((v, i) => {
     const r = record(v, `arenaProgression.unlockRequirements[${i}]`);
     const arenaId = id(r.arenaId, 'arenaRequirement.arenaId');
@@ -102,7 +114,24 @@ export function parseProgressionRules(value: unknown): ProgressionRules {
       return { arenaId, minPlayed, minWins };
     });
     unique(requiredArenaStats.map(s => s.arenaId), 'requiredArenaStats.arenaId');
-    return { arenaId, tierId, minLevel: level(r.minLevel, 'arenaRequirement.minLevel'), requiredArenaStats };
+    const requiredTierStats = r.requiredTierStats === undefined ? undefined :
+      array(r.requiredTierStats, 'requiredTierStats').map(v => {
+        const stat = record(v, 'requiredTierStats');
+        const prerequisite = id(stat.tierId, 'requiredTierStats.tierId');
+        const target = tiers.find(t => t.id === tierId)!;
+        const source = tiers.find(t => t.id === prerequisite);
+        if (!source || prerequisite === tierId ||
+            (target.tier !== undefined && source.tier !== undefined && source.tier >= target.tier))
+          fail('requiredTierStats.tierId');
+        return { tierId: prerequisite, minWins: counter(stat.minWins, 'requiredTierStats.minWins') };
+      });
+    if (requiredTierStats) unique(requiredTierStats.map(s => s.tierId), 'requiredTierStats.tierId');
+    return { arenaId, tierId, minLevel: level(r.minLevel, 'arenaRequirement.minLevel'), requiredArenaStats,
+      ...(requiredTierStats !== undefined ? { requiredTierStats } : {}),
+      ...(r.minTotalWins !== undefined ? { minTotalWins: counter(r.minTotalWins, 'minTotalWins') } : {}),
+      ...(r.minTags !== undefined ? { minTags: counter(r.minTags, 'minTags') } : {}),
+      ...(r.minRescues !== undefined ? { minRescues: counter(r.minRescues, 'minRescues') } : {}),
+    };
   });
   unique(arenaUnlocks.map(r => r.arenaId), 'arenaRequirement.arenaId');
   return {
