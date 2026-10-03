@@ -1,4 +1,5 @@
 import { CHARACTERS, type CharacterId } from '../characters';
+import { progressionRules } from './progression-rules';
 
 export type ArenaProgressionStats = {
   played: number;
@@ -21,8 +22,8 @@ export const PLAYER_PROGRESSION_VERSION = 1 as const;
 export const createDefaultProgression = (): PlayerProgression => ({
   version: PLAYER_PROGRESSION_VERSION,
   xp: 0,
-  unlockedCharacters: ['raja', 'kaka'],
-  unlockedArenaIds: ['kampung'],
+  unlockedCharacters: [...progressionRules.initialUnlocks.characters],
+  unlockedArenaIds: [...progressionRules.initialUnlocks.arenaIds],
   arenaStats: {},
   processedMatchIds: [],
 });

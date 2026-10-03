@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "initialUnlocks": {
+    "characters": ["raja", "kaka"],
+    "arenaIds": ["kampung"]
+  },
+  "xpRewards": { "completeMatch": 100, "win": 60, "tag": 8, "rescue": 15 },
+  "xpCaps": { "tagPerMatch": 64, "rescuePerMatch": 60 },
+  "playerLevelThresholds": [0, 200, 450, 750, 1100, 1500, 1950, 2450, 3000, 3600, 4300, 5100, 6000],
+  "characterUnlockRequirements": [
+    { "characterId": "raja", "minLevel": 1 },
+    { "characterId": "kaka", "minLevel": 1 },
+    { "characterId": "bebe", "minLevel": 2 },
+    { "characterId": "ciici", "minLevel": 3 },
+    { "characterId": "jago", "minLevel": 4 },
+    { "characterId": "maria", "minLevel": 5 },
+    { "characterId": "lala", "minLevel": 6 },
+    { "characterId": "lui", "minLevel": 7 },
+    { "characterId": "robot", "minLevel": 8 },
+    { "characterId": "buto", "minLevel": 9 },
+    { "characterId": "tui", "minLevel": 10 },
+    { "characterId": "boke", "minLevel": 11 },
+    { "characterId": "kumis", "minLevel": 12 },
+    { "characterId": "kodo", "minLevel": 13 }
+  ],
+  "arenaProgression": { "tiers": [], "unlockRequirements": [] }
+}

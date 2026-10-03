@@ -9,12 +9,18 @@ const modules = new Map();
 async function moduleUrl(file) {
   const key = file.href;
   if (modules.has(key)) return modules.get(key);
+  if (file.pathname.endsWith('.json')) {
+    const code = 'export default ' + JSON.stringify(JSON.parse(await readFile(file, 'utf8'))) + ';';
+    const url = 'data:text/javascript;base64,' + Buffer.from(code).toString('base64');
+    modules.set(key, url);
+    return url;
+  }
   let code = ts.transpileModule(await readFile(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   const imports = [...code.matchAll(/from ['"](\.[^'"]+)['"]/g)];
   for (const match of imports) {
-    const dependency = new URL(match[1] + '.ts', file);
+    const dependency = new URL(match[1] + (match[1].endsWith('.json') ? '' : '.ts'), file);
     code = code.replace(match[0], `from '${await moduleUrl(dependency)}'`);
   }
   const url = 'data:text/javascript;base64,' + Buffer.from(code).toString('base64');
@@ -27,6 +33,7 @@ const { parsePlayerProfile } = await load('migrations');
 const service = await load('profile-service');
 const storage = await load('storage');
 const { PLAYER_PROFILE_STORAGE_KEY } = await load('defaults');
+const { progressionRules, parseProgressionRules } = await load('progression-rules');
 
 test('new profile default and independently mutable progression collections', () => {
   const profile = service.createPlayerProfile('Tester');
@@ -90,4 +97,50 @@ test('invalid optional progression never invalidates a valid old profile', () =>
   const parsed = parsePlayerProfile({ ...profile, progression: null });
   assert.equal(parsed.id, profile.id);
   assert.equal(parsed.progression, undefined);
+});
+
+test('module02 loads exact specified rewards, caps, levels and complete unlock roster', () => {
+  assert.deepEqual(progressionRules.xpRewards, { completeMatch: 100, win: 60, tag: 8, rescue: 15 });
+  assert.deepEqual(progressionRules.xpCaps, { tagPerMatch: 64, rescuePerMatch: 60 });
+  assert.deepEqual(progressionRules.playerLevelThresholds,
+    [0, 200, 450, 750, 1100, 1500, 1950, 2450, 3000, 3600, 4300, 5100, 6000]);
+  assert.deepEqual(progressionRules.characterUnlockRequirements.map(r => [r.characterId, r.minLevel]),
+    [['raja',1],['kaka',1],['bebe',2],['ciici',3],['jago',4],['maria',5],['lala',6],
+     ['lui',7],['robot',8],['buto',9],['tui',10],['boke',11],['kumis',12],['kodo',13]]);
+  assert.deepEqual(progressionRules.arenaProgression, { tiers: [], unlockRequirements: [] });
+});
+
+test('module02 malformed rules fail explicitly without changing input or player data', () => {
+  for (const mutate of [
+    r => { r.version = 2; },
+    r => { r.xpRewards.tag = -1; },
+    r => { r.xpCaps.rescuePerMatch = Infinity; },
+    r => { r.playerLevelThresholds[1] = 0; },
+    r => { r.characterUnlockRequirements[2].characterId = 'missing'; },
+    r => { r.characterUnlockRequirements[2].minLevel = 99; },
+    r => { r.characterUnlockRequirements.push(r.characterUnlockRequirements[0]); },
+    r => { r.initialUnlocks.characters = ['jago']; },
+    r => { r.arenaProgression.tiers = null; },
+  ]) {
+    const input = structuredClone(progressionRules);
+    mutate(input);
+    const before = structuredClone(input);
+    assert.throws(() => parseProgressionRules(input), /Konfigurasi progression tidak valid/);
+    assert.deepEqual(input, before);
+  }
+});
+
+test('module02 arena schema validates tier membership and stat prerequisites only', () => {
+  const input = structuredClone(progressionRules);
+  input.arenaProgression = {
+    tiers: [{ id: 'test-tier', arenaIds: ['studio-test'] }],
+    unlockRequirements: [{ arenaId: 'studio-test', tierId: 'test-tier', minLevel: 2,
+      requiredArenaStats: [{ arenaId: 'kampung', minPlayed: 4, minWins: 2 }] }],
+  };
+  assert.deepEqual(parseProgressionRules(input), input);
+  input.arenaProgression.unlockRequirements[0].tierId = 'missing';
+  assert.throws(() => parseProgressionRules(input), /tierId/);
+  input.arenaProgression.unlockRequirements[0].tierId = 'test-tier';
+  input.arenaProgression.unlockRequirements[0].requiredArenaStats[0].minWins = 5;
+  assert.throws(() => parseProgressionRules(input), /minWins/);
 });

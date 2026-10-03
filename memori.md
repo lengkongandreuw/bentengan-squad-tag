@@ -4,6 +4,14 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Progression MODULE02 (2026-10-03, lokal belum publish): aturan terpusat di
+config/progression.json; typed loader/parser di lib/player-profile/progression-rules.ts.
+Seed profil01 sekarang berasal dari config. XP reward/cap, 13 level kumulatif,
+14 karakter mengikuti dokumen02. Arena tiers/unlockRequirements sengaja kosong
+karena aturan belum diberikan; schema siap untuk ID arena stabil dan statistik
+prasyarat. Tidak ada engine/gates/UI, jangan lanjut03 otomatis. Pengguna menahan
+semua fitur progression di lokal sampai meminta publish.
+
 Progression MODULE01 (2026-10-03, lokal belum publish): lib/player-profile/
 progression.ts menyediakan type versi1, factory default baru XP0 / raja+kaka /
 kampung, validasi read-only dan koleksi independen. Profil legacy tetap boleh

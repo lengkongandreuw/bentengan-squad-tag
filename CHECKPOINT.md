@@ -5,6 +5,31 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 02 Progression Rules Config (2026-10-03, LOCAL ONLY)
+
+- Sumber: 02-PROGRESSION-RULES-CONFIG.md. Modul01 lokal ba43cdb menjadi fondasi.
+  STOP setelah MODULE02, jangan lanjut MODULE03 tanpa instruksi pengguna.
+- config/progression.json versi1: match100/win60/tag8/rescue15, cap tag64/
+  rescue60; ambang kumulatif 13 level 0..6000 dan tabel unlock14 karakter sesuai
+  dokumen. Seed Raja/Kaka/Kampung terpusat di initialUnlocks, factory01 menyalin
+  array seed dari config agar tidak berbagi data mutable antarprofil.
+- lib/player-profile/progression-rules.ts: type+loader/parser, validasi safe
+  integer/nonnegative, threshold monotonik, roster/duplikat/level range, seed
+  selaras level1; skema arena tiers dan unlockRequirements dengan prerequisite
+  minPlayed/minWins, ID string stabil, reference tier/arena, tidak ada resolver.
+- Dokumen belum menentukan aturan/tier arena: config tiers/unlockRequirements
+  sengaja kosong. Jangan mengarang angka/urutan map. Fixture aturan arena pada
+  tes bukan aturan balancing produksi. Pengisian menunggu spesifikasi berikutnya.
+- File berubah: config/progression.json, lib/player-profile/progression-rules.ts,
+  progression.ts, index.ts, scripts/test-progression-data-model.mjs, memori.md,
+  CHECKPOINT.md. Harness TS mendukung import JSON tanpa dependency tambahan.
+- Validasi: 7 tes progression PASS (4 regresi01 +3 config02); npx tsc --noEmit
+  PASS; diff check PASS. Tidak build/aset/global audit karena scope konfigurasi.
+- Tidak reward engine, level calculator, unlock resolver, UI, migration, storage
+  rewrite, atau match integration. config/map-studio.json milik pengguna utuh,
+  tidak di-stage. Tidak fetch/merge/push; pengguna meminta tetap lokal.
+- Next: review pengguna; MODULE03 hanya ketika diminta dengan spesifikasinya.
+
 ### COMPLETE — MODULE 01 Progression Data Model (2026-10-03, LOCAL ONLY)
 
 - Sumber spesifikasi: C:/Users/lenovo/Documents/benteng/plan and features/
