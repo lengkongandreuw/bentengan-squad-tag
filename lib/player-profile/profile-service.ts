@@ -9,6 +9,7 @@ import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
 import { createDefaultProgression } from './progression';
 import { applyMatchProgression, type MatchSummary } from './match-progression';
+import { createLocalId } from './match-identity';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')
@@ -32,17 +33,12 @@ export const usernameError = (value: string): string | null => {
   return null;
 };
 
-const profileId = () =>
-  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
 export const createPlayerProfile = (usernameInput: string): LocalPlayerProfile => {
   const error = usernameError(usernameInput);
   if (error) throw new Error(error);
   return persist({
     schemaVersion: PLAYER_PROFILE_SCHEMA_VERSION,
-    id: profileId(),
+    id: createLocalId(),
     username: normalizeUsername(usernameInput),
     firstJoin: new Date().toISOString(),
     menang: 0,

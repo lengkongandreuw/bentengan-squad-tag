@@ -2,6 +2,7 @@ import type { CharacterId } from '../characters';
 import { applyArenaMatchStat } from './arena-stats';
 import { resolveArenaUnlocks } from './arena-unlocks';
 import { resolveCharacterUnlocks } from './character-unlocks';
+import { MAX_PROCESSED_MATCH_IDS } from './match-identity';
 import type { LocalPlayerProfile } from './types';
 import { calculateMatchXP, getLevelFromXP, type MatchXPSummary } from './xp-engine';
 
@@ -16,7 +17,7 @@ export type MatchSummary = Omit<MatchXPSummary, 'result'> & {
 export type ProgressionResult = {
   profile: LocalPlayerProfile;
   applied: boolean;
-  reason: 'applied' | 'incomplete';
+  reason: 'applied' | 'incomplete' | 'duplicate';
   xpEarned: number;
   previousXP: number;
   currentXP: number;
@@ -49,6 +50,8 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
     newlyUnlockedCharacters: [], newlyUnlockedArenaIds: [],
   };
   if (!summary.completed) return unchanged;
+  if (progression.processedMatchIds.includes(summary.matchId))
+    return { ...unchanged, reason: 'duplicate' };
   const currentXP = safeCount(previousXP + earned);
   const updated = applyArenaMatchStat({
     ...profile,
@@ -59,7 +62,10 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
       rescueTeam: safeCount(profile.kda.rescueTeam + summary.rescues),
       masukPenjara: safeCount(profile.kda.masukPenjara + captured),
     },
-    progression: { ...progression, xp: currentXP },
+    progression: { ...progression, xp: currentXP,
+      processedMatchIds: [...new Set([...progression.processedMatchIds, summary.matchId])]
+        .slice(-MAX_PROCESSED_MATCH_IDS),
+    },
   }, summary.arenaId, summary.won);
   const characters = resolveCharacterUnlocks(updated);
   const arenas = resolveArenaUnlocks(characters.profile);

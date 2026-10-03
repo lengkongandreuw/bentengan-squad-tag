@@ -41,6 +41,47 @@ const { isCharacterUnlocked, getCharacterUnlockRequirement,
 const { getArenaStats, applyArenaMatchStat } = await load('arena-stats');
 const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await load('arena-unlocks');
 const { applyMatchProgression } = await load('match-progression');
+const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
+
+test('module08 duplicate callback/re-entry is a deterministic no-op, history bounded', () => {
+  let p = service.createPlayerProfile('DedupTest');
+  const summary = { matchId: createMatchId(), arenaId: 'kampung', completed: true, won: true, tags: 1, rescues: 1 };
+  assert.notEqual(createMatchId(), summary.matchId);
+  const first = applyMatchProgression(p, summary);
+  const second = applyMatchProgression(first.profile, summary);
+  assert.equal(second.profile, first.profile);
+  assert.equal(second.reason, 'duplicate');
+  assert.equal(second.xpEarned, 0);
+  assert.equal(second.previousXP, second.currentXP);
+  assert.deepEqual(second.newlyUnlockedCharacters, []);
+  assert.deepEqual(second.newlyUnlockedArenaIds, []);
+  assert.deepEqual(applyMatchProgression(second.profile, summary), second);
+  p = first.profile;
+  for (let i = 0; i < 80; i++) p = applyMatchProgression(p, { ...summary, matchId: `bounded-${i}` }).profile;
+  assert.equal(p.progression.processedMatchIds.length, MAX_PROCESSED_MATCH_IDS);
+  assert.equal(p.progression.processedMatchIds[0], 'bounded-30');
+  assert.equal(p.progression.processedMatchIds.at(-1), 'bounded-79');
+  const incomplete = applyMatchProgression(p, { ...summary, matchId: 'not-completed', completed: false });
+  assert.equal(incomplete.profile, p);
+  assert.ok(!p.progression.processedMatchIds.includes('not-completed'));
+});
+
+test('module08 storage reload and stale caller cannot award same ID again; duplicates do not write', () => {
+  const p = service.createPlayerProfile('DedupReload');
+  const data = new Map([[PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(p)]]);
+  let writes = 0;
+  globalThis.window = { localStorage: { getItem: k => data.get(k), setItem: (k,v) => { writes++; data.set(k,v); } }, dispatchEvent: () => {} };
+  const summary = { matchId: 'reload-identity', arenaId: 'custom-arena', completed: true, won: false, tags: 0, rescues: 0 };
+  try {
+    const first = service.recordMatchProgression(summary);
+    assert.equal(service.recordMatchProgression(summary).reason, 'duplicate');
+    assert.equal(writes, 1);
+    const reloaded = storage.loadPlayerProfile();
+    assert.deepEqual(reloaded, first.profile);
+    assert.equal(applyMatchProgression(reloaded, summary).reason, 'duplicate');
+    assert.deepEqual(getArenaStats(reloaded, 'custom-arena'), { played: 1, wins: 0 });
+  } finally { delete globalThis.window; }
+});
 
 test('module07 resolver updates XP/stats/totals then unlocks; result and input preserved', () => {
   const p = service.createPlayerProfile('RewardTest');

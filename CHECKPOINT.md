@@ -5,6 +5,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 08 Duplicate Match Protection (2026-10-03, LOCAL ONLY)
+
+- match-identity.ts reuse UUID/fallback helper untuk profil dan match; ID harus
+  dibuat satu kali di awal match, bukan setiap callback/result entry.
+- Resolver menyimpan ID bersama reward di satu profil, menjaga50 ID terakhir.
+  ID tersimpan => no-op reason duplicate, XP/stats/totals/unlocks tidak berubah.
+  Service load terbaru melindungi re-entry/reload dan tidak menulis ulang duplicate.
+- Jaminan dedup berlaku untuk ID dalam window50, bukan riwayat tak terbatas;
+  tidak menambah backend/multi-tab transaction. Runtime hook masih menunggu modul
+  berikutnya agar writer legacy tidak menggandakan totals.
+- 24 tes PASS +TypeScript PASS. Berikut09 diminta bersama06–08, tidak publish.
+
 ### COMPLETE — MODULE 07 Match Reward Resolver (2026-10-03, LOCAL ONLY)
 
 - match-progression.ts applyMatchProgression pure mengembalikan profil + delta

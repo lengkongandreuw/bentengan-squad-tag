@@ -4,6 +4,11 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE08 lokal: satu matchId stabil, UUID/fallback shared, processedMatchIds50
+terakhir. Duplicate no-op reason duplicate termasuk setelah reload; service
+load authoritative sebelum reward dan simpan ID+reward satu write. Window bounded,
+bukan proteksi replay histori >50 atau transaksi multi-tab. 24 tes/TypeScript PASS.
+
 MODULE07 lokal: applyMatchProgression pure + recordMatchProgression storage entry
 memperbarui XP/arena stats/aggregate totals lalu character+arena unlock, satu save.
 Result membawa profil dan delta XP/level/unlocks; incomplete no-op. Writer ini
