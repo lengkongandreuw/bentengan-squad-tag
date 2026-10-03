@@ -5,6 +5,19 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 07 Match Reward Resolver (2026-10-03, LOCAL ONLY)
+
+- match-progression.ts applyMatchProgression pure mengembalikan profil + delta
+  XP/level/unlocks. MatchSummary reuse completed/tags/rescues dari MatchXPSummary,
+  tambah matchId/arenaId/won dan timesCaptured opsional. Aggregate win/loss/KDA
+  diperbarui sebelum arena unlock, tanpa membatasi total aksi oleh cap XP.
+- recordMatchProgression di service: load terbaru, resolve, satu save+event;
+  gagal storage dilaporkan, tidak memberi hasil seolah sudah tersimpan.
+- Jangan panggil writer legacy recordCompletedMatch untuk match yang sama.
+  App/prototype belum disambungkan; tidak result UI/notifications/runtime gates.
+- Incomplete no-op; invalid/overflow ditolak sebelum commit data. 22 tes PASS,
+  TypeScript PASS. Berikut08 karena user meminta06–09 bersama; tetap lokal.
+
 ### COMPLETE — MODULE 06 Arena Unlock Engine (2026-10-03, LOCAL ONLY)
 
 - User meminta06–09 sekaligus; tiap modul diverifikasi sebelum modul berikutnya.

@@ -8,6 +8,7 @@ import { loadPlayerProfile, savePlayerProfile } from './storage';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
 import { createDefaultProgression } from './progression';
+import { applyMatchProgression, type MatchSummary } from './match-progression';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')
@@ -76,3 +77,16 @@ export const recordCompletedMatch = (
 
 export const setFeaturedCharacter = (featuredCharacterId: CharacterId) =>
   updateProfile((profile) => ({ ...profile, featuredCharacterId }));
+
+// Synchronous load/resolve/save using the latest stored profile. UI integration
+// comes later; this replaces (not supplements) the legacy match writer when used.
+export const recordMatchProgression = (summary: MatchSummary) => {
+  const profile = loadPlayerProfile();
+  if (!profile) return null;
+  const result = applyMatchProgression(profile, summary);
+  if (result.applied) {
+    if (!savePlayerProfile(result.profile)) throw new Error('Reward belum tersimpan; penyimpanan browser gagal.');
+    notifyProfileChanged();
+  }
+  return result;
+};

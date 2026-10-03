@@ -40,6 +40,64 @@ const { isCharacterUnlocked, getCharacterUnlockRequirement,
   getCharacterUnlockProgress, resolveCharacterUnlocks } = await load('character-unlocks');
 const { getArenaStats, applyArenaMatchStat } = await load('arena-stats');
 const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await load('arena-unlocks');
+const { applyMatchProgression } = await load('match-progression');
+
+test('module07 resolver updates XP/stats/totals then unlocks; result and input preserved', () => {
+  const p = service.createPlayerProfile('RewardTest');
+  p.progression.xp = 100;
+  const before = structuredClone(p);
+  const result = applyMatchProgression(p, { matchId: 'match-1', arenaId: 'kampung',
+    completed: true, won: true, tags: 2, rescues: 1, timesCaptured: 1 });
+  assert.equal(result.xpEarned, 191);
+  assert.equal(result.previousXP, 100);
+  assert.equal(result.currentXP, 291);
+  assert.equal(result.previousLevel, 1);
+  assert.equal(result.currentLevel, 2);
+  assert.deepEqual(result.newlyUnlockedCharacters, ['bebe']);
+  assert.deepEqual(result.newlyUnlockedArenaIds, ['pasar']);
+  assert.deepEqual(result.profile.kda, { tagMusuh: 2, rescueTeam: 1, masukPenjara: 1 });
+  assert.equal(result.profile.menang, 1);
+  assert.deepEqual(getArenaStats(result.profile, 'kampung'), { played: 1, wins: 1 });
+  assert.deepEqual(p, before);
+  assert.deepEqual(parsePlayerProfile(result.profile), result.profile);
+  const lost = applyMatchProgression(p, { matchId: 'loss-1', arenaId: 'custom-new',
+    completed: true, won: false, tags: 999, rescues: 999 });
+  assert.equal(lost.xpEarned, 224);
+  assert.equal(lost.profile.kalah, 1);
+  assert.equal(lost.profile.kda.tagMusuh, 999); // XP caps do not cap aggregate actions.
+  assert.deepEqual(getArenaStats(lost.profile, 'custom-new'), { played: 1, wins: 0 });
+});
+
+test('module07 incomplete no-op, invalid summary and overflow never mutate profile', () => {
+  const p = service.createPlayerProfile('NoReward');
+  const summary = { matchId: 'unfinished', arenaId: 'kampung', completed: false, won: true, tags: 2, rescues: 1 };
+  const result = applyMatchProgression(p, summary);
+  assert.equal(result.profile, p);
+  assert.equal(result.applied, false);
+  assert.equal(result.xpEarned, 0);
+  for (const change of [{ matchId: '' }, { arenaId: '' }, { won: 'yes' }, { tags: -1 }, { timesCaptured: -1 }])
+    assert.throws(() => applyMatchProgression(p, { ...summary, ...change }));
+  p.progression.xp = Number.MAX_SAFE_INTEGER;
+  assert.throws(() => applyMatchProgression(p, { ...summary, completed: true }), /batas aman/);
+  assert.equal(p.progression.xp, Number.MAX_SAFE_INTEGER);
+});
+
+test('module07 explicit storage entry persists reward once and reports storage failure', () => {
+  const p = service.createPlayerProfile('StoreReward');
+  const data = new Map([[PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(p)]]);
+  let writes = 0;
+  globalThis.window = { localStorage: { getItem: k => data.get(k), setItem: (k,v) => { writes++; data.set(k,v); } }, dispatchEvent: () => {} };
+  const summary = { matchId: 'stored-match', arenaId: 'kampung', completed: true, won: true, tags: 0, rescues: 0 };
+  try {
+    const result = service.recordMatchProgression(summary);
+    assert.equal(writes, 1);
+    assert.deepEqual(storage.loadPlayerProfile(), result.profile);
+    assert.equal(storage.loadPlayerProfile().progression.xp, 160);
+    globalThis.window.localStorage.setItem = () => { throw new Error('quota'); };
+    assert.throws(() => service.recordMatchProgression({ ...summary, matchId: 'storage-fail' }), /belum tersimpan/);
+    assert.equal(storage.loadPlayerProfile().progression.xp, 160);
+  } finally { delete globalThis.window; }
+});
 
 test('module06 exact campaign rules and each requirement independently blocks unlock', () => {
   const expected = [['pasar',2,1,0,0,0], ['taman',3,3,0,8,2], ['kanal',5,4,0,15,5],

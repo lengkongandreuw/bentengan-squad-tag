@@ -4,6 +4,12 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE07 lokal: applyMatchProgression pure + recordMatchProgression storage entry
+memperbarui XP/arena stats/aggregate totals lalu character+arena unlock, satu save.
+Result membawa profil dan delta XP/level/unlocks; incomplete no-op. Writer ini
+menggantikan, bukan melengkapi recordCompletedMatch saat integrasi runtime nanti.
+Belum disambungkan app/prototype atau notifikasi. 22 tes +TypeScript PASS.
+
 MODULE06 lokal (2026-10-03): config campaign6 tier dengan kanal2 sebagai tier5
 dan studio-kampung-2420b8cf tier6. arena-unlocks.ts mengevaluasi ALL syarat dan
 mempertahankan unlock historis, memakai tier metadata. Tidak UI/gates/bot changes.
