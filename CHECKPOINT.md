@@ -5,6 +5,20 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### 2026-10-03 — Harness pilihan map bawaan
+
+- Root cause live port4320: server lama mengembalikan template/library tanpa
+  builtins/builtinTemplates; frontend sebelumnya fallback [] sehingga daftar
+  bawaan hilang diam-diam. Server lama session34221 dihentikan; versi terbaru
+  berjalan port4320 session15218. Tab/draft lama tidak direfresh paksa.
+- catalog.mjs shared guard menolak katalog tidak lengkap dengan peringatan
+  restart; HTTP harness memastikan lima template bawaan + route MIME JavaScript.
+- 7 tes Map Studio PASS. Browser port4320: lima bawaan muncul, Kampung Merdeka
+  dapat dipilih/dibuka, error console kosong. Screenshot ../map-catalog-fixed.png.
+- config/map-studio.json berisi perubahan baru pengguna, tidak ikut commit ini.
+  Fitur artwork penjara tetap keterbatasan terpisah, bukan diperbaiki oleh harness.
+- Next: publish scoped kode harness; jangan simpan template QA ke manifest.
+
 ### COMPLETE — Publish Jago + Arena Benteng 1, hapus arena 3D dari daftar
 
 - Release `c796cde` dipush ke github/main; Pages run `37027823960`

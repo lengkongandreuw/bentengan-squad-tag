@@ -24,6 +24,7 @@ import {
   mapIssues,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
+import { validateCatalog } from './catalog.mjs';
 import { startMapStudio } from './server.mjs';
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -123,6 +124,9 @@ test('polygon, animation speed and route validation', () => {
 });
 test('Kampung template and library use normalized valid assets', async () => {
   const t = await templates(root);
+  assert.equal(validateCatalog(t), t);
+  assert.throws(() => validateCatalog({ template: t.template, library: t.library }), /Server Map Studio/);
+  assert.throws(() => validateCatalog({ ...t, builtinTemplates: t.builtinTemplates.filter(m => m.replaces !== 'pasar') }), /pasar/);
   validateMap(t.template);
   assert.ok(t.library.length > 50);
   assert.ok(t.template.objects.length > 20);
@@ -133,6 +137,23 @@ test('Kampung template and library use normalized valid assets', async () => {
   assert.equal(t.builtinTemplates.length, 5);
   t.builtinTemplates.forEach(validateMap);
   assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
+});
+
+test('HTTP harness exposes built-in catalog and browser guard from running server', async () => {
+  const {server, origin} = await startMapStudio(0, root);
+  try {
+    const response = await fetch(origin + '/api/templates');
+    assert.equal(response.status, 200);
+    const catalog = validateCatalog(await response.json());
+    assert.equal(catalog.builtinTemplates.length, 5);
+    const guard = await fetch(origin + '/catalog.mjs');
+    assert.equal(guard.status, 200);
+    assert.match(guard.headers.get('content-type'), /javascript/);
+    const editor = await (await fetch(origin + '/editor.js')).text();
+    assert.match(editor, /validateCatalog\(await api\('\/api\/templates'\)\)/);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
 });
 test('archive metadata and inherited water mask remain backwards compatible', () => {
   const m = {

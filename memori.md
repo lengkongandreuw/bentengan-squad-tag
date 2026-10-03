@@ -4,6 +4,12 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Map Studio guard katalog (2026-10-03): katalog bawaan wajib berisi lima arena
+2D dan template replacement; server lama/tidak lengkap tidak lagi diam-diam
+menghasilkan daftar kosong. Jalankan test:map-studio untuk HTTP contract + model.
+Sesudah perubahan server harus restart proses Node; refresh browser saja tidak
+memuat ulang modul server. Port4320 telah direstart dan dibuktikan lewat browser.
+
 Map Studio lifecycle: daftar bawaan/custom, edit versi pengganti 5 arena 2D,
 Arsip/Sampah/Pulihkan, Pulihkan versi asli. Sampah recoverable, aset tidak dihapus.
 Manifest builtinStates mengatur visibilitas bawaan; map.replaces memilih sumber

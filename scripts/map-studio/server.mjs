@@ -22,6 +22,7 @@ const mime = {
   '.gif': 'image/gif',
   '.jpg': 'image/jpeg',
   '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
   '.css': 'text/css',
   '.html': 'text/html',
   '.json': 'application/json',
@@ -239,6 +240,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           '/': 'index.html',
           '/editor.js': 'editor.js',
           '/editor.css': 'editor.css',
+          '/catalog.mjs': 'catalog.mjs',
         };
         let file;
         if (local[url.pathname]) file = path.join(here, local[url.pathname]);

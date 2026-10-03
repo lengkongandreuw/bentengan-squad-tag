@@ -1,3 +1,4 @@
+import { validateCatalog } from '/catalog.mjs';
 import {
   contains,
   solidAt,
@@ -1128,10 +1129,10 @@ document.querySelector('main').inert = true;
 for (const b of document.querySelectorAll('nav button')) b.disabled = true;
 safe(async () => {
   state = await api('/api/state');
-  const t = await api('/api/templates');
+  const t = validateCatalog(await api('/api/templates'));
   template = t.template;
-  builtinTemplates = t.builtinTemplates ?? [];
-  builtins = t.builtins ?? [];
+  builtinTemplates = t.builtinTemplates;
+  builtins = t.builtins;
   library = t.library;
   map = state.document.maps.find((m) => !m.archived && !m.deleted) ?? blank();
   fields();
