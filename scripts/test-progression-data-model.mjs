@@ -44,7 +44,21 @@ const { applyMatchProgression } = await load('match-progression');
 const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
-  validatePlayableContent, resolvePlayableContent } = await load('content-gates');
+  validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
+
+test('module11 character selection selector exposes required level and preserves historical unlocked state', () => {
+  const p = service.createPlayerProfile('LockUI');
+  assert.deepEqual(getCharacterSelectionState(p, 'jago'), { locked: true, requiredLevel: 4, xpRemaining: 750 });
+  assert.deepEqual(getCharacterSelectionState(p, 'raja'), { locked: false, requiredLevel: 1, xpRemaining: 0 });
+  p.progression.xp = 620;
+  assert.equal(getCharacterSelectionState(p, 'jago').xpRemaining, 130);
+  assert.equal(getCharacterSelectionState(p, 'jago').locked, true);
+  p.progression.xp = 750;
+  assert.equal(getCharacterSelectionState(p, 'jago').locked, false);
+  p.progression.xp = 0; p.progression.unlockedCharacters.push('jago');
+  assert.equal(getCharacterSelectionState(p, 'jago').locked, false);
+  assert.equal(getCharacterSelectionState(null, 'jago').locked, true);
+});
 
 test('module10 runtime gates reject locked/unknown/faction mismatch and absent profiles', () => {
   const p = service.createPlayerProfile('RuntimeGate');

@@ -1,5 +1,5 @@
 import type { CharacterId } from '../characters';
-import { isCharacterUnlocked } from './character-unlocks';
+import { isCharacterUnlocked, getCharacterUnlockRequirement, getCharacterUnlockProgress } from './character-unlocks';
 import { isArenaUnlocked } from './arena-unlocks';
 import type { LocalPlayerProfile } from './types';
 
@@ -8,6 +8,15 @@ export const getPlayableCharacterIds = (profile: LocalPlayerProfile | null | und
 
 export const getPlayableArenaIds = (profile: LocalPlayerProfile | null | undefined, arenaIds: readonly string[]) =>
   profile ? arenaIds.filter(id => isArenaUnlocked(profile, id)) : [];
+
+// UI consumes this selector, never repeats balancing thresholds in a component.
+export function getCharacterSelectionState(profile: LocalPlayerProfile | null | undefined, id: CharacterId) {
+  const requirement = getCharacterUnlockRequirement(id);
+  const progress = profile ? getCharacterUnlockProgress(profile, id) : null;
+  const locked = !profile || !isCharacterUnlocked(profile, id);
+  return { locked, requiredLevel: requirement?.minLevel ?? null,
+    xpRemaining: progress?.xpRemaining ?? requirement?.requiredXP ?? null };
+}
 
 export function pickUnlockedCharacter(
   profile: LocalPlayerProfile | null | undefined, roster: readonly CharacterId[], random = Math.random,

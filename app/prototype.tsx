@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
+import { CharacterLockBadge } from '../components/character-lock-badge';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
@@ -75,6 +76,7 @@ import {
   getPlayableArenaIds,
   validatePlayableContent,
   resolvePlayableContent,
+  getCharacterSelectionState,
   type LocalPlayerProfile,
   type PlayerKdaStats,
 } from '../lib/player-profile';
@@ -2951,7 +2953,7 @@ export function BentenganPrototype() {
   const playerProfileRef = useRef(playerProfile);
   playerProfileRef.current = playerProfile;
   const fieldIds = FIELD_CONFIGS.map(field => field.id);
-  const selectionGate = () => validatePlayableContent(playerProfileRef.current, selectedId, selectedFieldId,
+  const selectionGate = () => validatePlayableContent(loadPlayerProfile(), selectedId, selectedFieldId,
     selectedFaction ? FIXED_ROSTERS[selectedFaction] : [], fieldIds);
   const setSelectedId = (id: CharacterId) => {
     if (!playerProfileRef.current || !selectedFaction || !FIXED_ROSTERS[selectedFaction].includes(id) ||
@@ -2973,7 +2975,13 @@ export function BentenganPrototype() {
     return true;
   };
   useEffect(() => {
-    if (!playerProfile || !selectedFaction) return;
+    if (!playerProfile || !selectedFaction) {
+      if (mode === 'playing') {
+        setContentGateError('Profil atau tim tidak tersedia. Kembali ke menu.');
+        setMode('menu');
+      }
+      return;
+    }
     const valid = resolvePlayableContent(playerProfile, selectedId, selectedFieldId,
       FIXED_ROSTERS[selectedFaction], FIELD_CONFIGS.map(field => field.id));
     if (!valid || valid.characterId !== selectedId || valid.arenaId !== selectedFieldId) {
@@ -2984,7 +2992,7 @@ export function BentenganPrototype() {
         setSelectedFieldIdState(valid.arenaId as FieldId);
       }
     }
-  }, [playerProfile, selectedFaction, selectedId, selectedFieldId]);
+  }, [playerProfile, selectedFaction, selectedId, selectedFieldId, mode]);
   const [profileOpen, setProfileOpen] = useState(false);
   const refreshPlayerProfile = () => {
     const profile = loadPlayerProfile();
@@ -2994,8 +3002,11 @@ export function BentenganPrototype() {
   useEffect(() => {
     refreshPlayerProfile();
     window.addEventListener(PLAYER_PROFILE_CHANGED_EVENT, refreshPlayerProfile);
-    return () =>
+    window.addEventListener('storage', refreshPlayerProfile);
+    return () => {
       window.removeEventListener(PLAYER_PROFILE_CHANGED_EVENT, refreshPlayerProfile);
+      window.removeEventListener('storage', refreshPlayerProfile);
+    };
   }, []);
   useEffect(() => {
     setLandingArena(FIELD_CONFIGS[Math.floor(Math.random() * FIELD_CONFIGS.length)].id);
@@ -7305,7 +7316,11 @@ export function BentenganPrototype() {
                 {availableCharacters.map((character, index) => (
                   <button
                     key={character.id}
-                    className={`carousel-character ${selectedId === character.id ? 'selected' : ''}`}
+                    className={`carousel-character ${selectedId === character.id ? 'selected' : ''} ${getCharacterSelectionState(playerProfile, character.id).locked ? 'locked' : ''}`}
+                    disabled={getCharacterSelectionState(playerProfile, character.id).locked}
+                    aria-label={getCharacterSelectionState(playerProfile, character.id).locked
+                      ? `${character.name} · LOCKED · UNLOCK AT LV.${getCharacterSelectionState(playerProfile, character.id).requiredLevel}`
+                      : character.name}
                     style={
                       {
                         '--offset':
@@ -7329,6 +7344,7 @@ export function BentenganPrototype() {
                       alt={character.name}
                       active={selectedId === character.id}
                     />
+                    <CharacterLockBadge profile={playerProfile} id={character.id} />
                     {ULTIMATE_CHARACTER_IDS.has(character.id) && (
                       <strong className="ultimate-roster-badge">
                         {character.id === 'kaka' ? (
@@ -7407,10 +7423,23 @@ export function BentenganPrototype() {
               <button
                 className="graffiti-primary character-panel-select"
                 onClick={confirmCharacter}
+                disabled={getCharacterSelectionState(playerProfile, selectedId).locked}
               >
                 <span>PILIH {selected.name}</span>
               </button>
             </aside>
+            <div className="character-unlock-list" role="group" aria-label="Status unlock karakter">
+              {availableCharacters.map(character => {
+                const state = getCharacterSelectionState(playerProfile, character.id);
+                return <button key={character.id} disabled={state.locked}
+                  className={state.locked ? 'locked' : 'unlocked'}
+                  aria-pressed={selectedId === character.id}
+                  onClick={() => highlightCharacterWithVoice(character.id)}>
+                  <b>{character.name}</b>
+                  <small>{state.locked ? `LOCKED · LV.${state.requiredLevel}` : 'TERBUKA'}</small>
+                </button>;
+              })}
+            </div>
           </section>
         )}
 
@@ -7964,6 +7993,7 @@ export function BentenganPrototype() {
                         className={
                           selectedId === character.id ? 'selected' : ''
                         }
+                        disabled={getCharacterSelectionState(playerProfile, character.id).locked}
                         onPointerEnter={(event) => {
                           if (event.pointerType === 'mouse') {
                             highlightCharacterWithVoice(character.id);
@@ -7978,6 +8008,7 @@ export function BentenganPrototype() {
                           alt={`Portrait ${character.name}`}
                           eager={selectedId === character.id}
                         />
+                        <CharacterLockBadge profile={playerProfile} id={character.id} />
                         <span>
                           <b>{character.name}</b>
                           <small>{character.role}</small>

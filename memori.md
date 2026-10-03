@@ -4,6 +4,16 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE11 lokal (2026-10-03): locked character tetap terlihat, native disabled,
+badge LOCKED/UNLOCK AT LV.N +XP tooltip dari selector central. Baris status roster
+kecil scrollable menjaga semua nama/level terbaca tanpa mengubah portrait/layout.
+Confirm/keyboard/pointer tidak bisa memilih locked. Gate10 memakai storage latest
+saat launch dan mendengar storage event. 31 tes +TypeScript/scoped lint/build
+PASS; desktop/mobile smoke, live finish/rematch, clean reload console0.
+User aktif mengedit map/sprite Kaka di Studio; semua draft/upload tidak di-stage.
+Semua10–11 lokal, STOP sebelum12/publish. Preview uji localhost3005 (Vite),
+panel Map4320/Sprite4319 tidak di-restart atau diubah.
+
 MODULE10 lokal: content-gates.ts central player-only filters/validation/fallback,
 prototype guards all selection/launch/rematch/restart/rotation/loading/init paths.
 Faction starter first unlocked (Kaka for green); full bot rosters unchanged.

@@ -5,6 +5,33 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 11 Character Lock UI (2026-10-03, LOCAL ONLY)
+
+- User meminta10+11. Fondasi10 commit032f4b5. character-lock-badge.tsx dan
+  getCharacterSelectionState selector: LOCKED + UNLOCK AT LV.N; tooltip XP sisa.
+  Semua level/progress dari engine/config, tidak hardcode balancing di UI.
+- Portrait tetap terlihat/inactive grayscale. Native disabled mencegah pointer/
+  focus/keyboard memilih locked; konfirmasi juga disabled. Layout/portrait/balance
+  tidak diubah. Baris status roster kecil menampilkan semua nama+level unlock,
+  scroll horizontal bila sempit agar tidak tertutup panel kemampuan existing.
+- Gate10 diperkuat: launch membaca profil terbaru dari storage, invalid/null
+  profile kembali menu; listen storage event untuk perubahan profil lintas tab.
+- Validasi31 tes progression PASS, TypeScript PASS, scoped lint PASS,
+  build:pages PASS dan diff check PASS. Warning CSS @theme/@utility/chunk size
+  berasal dari pipeline existing, tidak gagal build dan tidak diubah di scope ini.
+- Browser: desktop +390x844 mobile, lock Jago Lv4 disabled, Raja enabled,
+  ArrowRight tidak memilih locked, green starter Kaka, arena locked disabled,
+  launch Kampung, live match selesai dan REMATCH kembali COUNTDOWN valid.
+  Bot tetap full roster. Mobile mengikuti landscape rotation existing, tidak
+  menambah horizontal overflow dokumen. Clean reload final console errors0.
+  HMR sempat memberi warning perubahan panjang dependency effect; reload final
+  bersih. Screenshot .preview-admin/progression-lock-ui.jpg (ignored, lokal).
+- Server uji Vite3005 session85674, Map Studio4320/Sprite Studio4319 pengguna
+  tidak di-restart. Perubahan baru user config/sprite-studio.json +upload Kaka
+  dan draft config/map-studio.json tidak diubah/di-stage oleh task progression.
+- STOP sebelum12. Tidak arena lock UI12/result UI13/unlock notification14,
+  tidak publish/fetch/merge/push. Semua perubahan task tetap lokal.
+
 ### COMPLETE — MODULE 10 Runtime Content Gates (2026-10-03, LOCAL ONLY)
 
 - content-gates.ts: central player filters, random unlocked choice, launch
