@@ -4,6 +4,15 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE12–13 lokal (2026-10-03): panel persyaratan semua arena menggunakan checks
+engine+nama katalog, inspect dropdown tidak memilih locked map. Carousel/gates
+tetap. Final result menambah XP breakdown, level/next-level progress dan target
+karakter dari snapshot ProgressionResult resolver (tidak award di render).
+33 tes termasuk repeated UI render PASS, TypeScript/lint/build PASS. Browser
+real match+rematch PASS, desktop/mobile tanpa overflow tambahan, console0.
+Perubahan tetap lokal; STOP sebelum14, jangan publish tanpa permintaan eksplisit.
+Draft Map/Sprite Studio dan upload Kaka user tidak diubah/di-stage.
+
 MODULE11 lokal (2026-10-03): locked character tetap terlihat, native disabled,
 badge LOCKED/UNLOCK AT LV.N +XP tooltip dari selector central. Baris status roster
 kecil scrollable menjaga semua nama/level terbaca tanpa mengubah portrait/layout.

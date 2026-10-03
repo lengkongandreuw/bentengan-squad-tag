@@ -35,6 +35,13 @@ export function getCharacterUnlockProgress(profile: LocalPlayerProfile, characte
 
 // Returns a merged profile for a future match resolver to persist. Never relock,
 // even after requirements change. Explicitly leave legacy migration to module09.
+export function getNextCharacterGoal(profile: LocalPlayerProfile) {
+  const next = [...progressionRules.characterUnlockRequirements]
+    .sort((a, b) => a.minLevel - b.minLevel)
+    .find(entry => !isCharacterUnlocked(profile, entry.characterId));
+  return next ? getCharacterUnlockProgress(profile, next.characterId) : null;
+}
+
 export function resolveCharacterUnlocks(profile: LocalPlayerProfile) {
   const progression = profile.progression;
   if (!progression) throw new Error('Profil belum memiliki progression; migrasi diperlukan sebelum resolve unlock.');

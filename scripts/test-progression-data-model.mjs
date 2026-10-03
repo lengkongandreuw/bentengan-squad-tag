@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 // Load these small TS modules using the existing TypeScript dependency;
 // no browser, production build, extra packages, or user storage is needed.
@@ -16,12 +18,14 @@ async function moduleUrl(file) {
     return url;
   }
   let code = ts.transpileModule(await readFile(file, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
-  const imports = [...code.matchAll(/from ['"](\.[^'"]+)['"]/g)];
+  const imports = [...code.matchAll(/from ['"]([^'"]+)['"]/g)];
   for (const match of imports) {
-    const dependency = new URL(match[1] + (match[1].endsWith('.json') ? '' : '.ts'), file);
-    code = code.replace(match[0], `from '${await moduleUrl(dependency)}'`);
+    const dependency = match[1].startsWith('.')
+      ? await moduleUrl(new URL(match[1] + (/\.(json|tsx?)$/.test(match[1]) ? '' : '.ts'), file))
+      : import.meta.resolve(match[1]);
+    code = code.replace(match[0], `from '${dependency}'`);
   }
   const url = 'data:text/javascript;base64,' + Buffer.from(code).toString('base64');
   modules.set(key, url);
@@ -29,6 +33,7 @@ async function moduleUrl(file) {
 }
 const load = async name => import(await moduleUrl(new URL(`../lib/player-profile/${name}.ts`, import.meta.url)));
 const { getArenaSelectionProgress } = await load('arena-selection-progress');
+const { MatchProgressionSummary } = await import(await moduleUrl(new URL('../components/match-progression-summary.tsx', import.meta.url)));
 const { createDefaultProgression, parsePlayerProgression } = await load('progression');
 const { parsePlayerProfile } = await load('migrations');
 const service = await load('profile-service');
@@ -46,6 +51,32 @@ const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
+
+test('module13 resolver snapshots capped breakdown, level, next goal and no-op rewards', () => {
+  const p = service.createPlayerProfile('ResultUI'); p.progression.xp = 398;
+  const summary = { matchId: 'result-ui', arenaId: 'kampung', completed: true, won: true, tags: 4, rescues: 2 };
+  const result = applyMatchProgression(p, summary);
+  assert.deepEqual(result.xpBreakdown, { match: 100, victory: 60, tag: 32, rescue: 30 });
+  assert.equal(result.xpEarned, 222); assert.equal(result.currentXP, 620);
+  assert.equal(result.currentLevel, 3); assert.equal(result.levelProgress.nextLevelXP, 750);
+  assert.equal(result.nextCharacter.characterId, 'jago'); assert.equal(result.nextCharacter.xpRemaining, 130);
+  const snapshot = JSON.stringify(result);
+  const markup = renderToStaticMarkup(createElement(MatchProgressionSummary, { result }));
+  assert.match(markup, /222 XP TOTAL/); assert.match(markup, /LEVEL 3/);
+  assert.match(markup, /620.*750/); assert.match(markup, /Jago/); assert.match(markup, /130 XP lagi/);
+  assert.equal(renderToStaticMarkup(createElement(MatchProgressionSummary, { result })), markup);
+  assert.equal(JSON.stringify(result), snapshot);
+  const duplicate = applyMatchProgression(result.profile, summary);
+  assert.equal(duplicate.xpEarned, 0); assert.deepEqual(Object.values(duplicate.xpBreakdown), [0, 0, 0, 0]);
+  const capped = applyMatchProgression(p, { ...summary, tags: 100, rescues: 100 });
+  assert.deepEqual(capped.xpBreakdown, { match: 100, victory: 60, tag: 64, rescue: 60 });
+  p.progression.xp = 6000;
+  const max = applyMatchProgression(p, { ...summary, won: false });
+  assert.equal(max.levelProgress.isMaxLevel, true); assert.equal(max.nextCharacter, null);
+  assert.equal(max.xpBreakdown.victory, 0);
+  const incomplete = applyMatchProgression(p, { ...summary, completed: false });
+  assert.equal(incomplete.xpEarned, 0); assert.equal(p.progression.xp, 6000);
+});
 
 test('module12 arena requirements show accurate counters and metadata without changing profile', () => {
   const p = service.createPlayerProfile('ArenaUI');

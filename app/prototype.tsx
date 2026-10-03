@@ -35,6 +35,7 @@ import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
 import { CharacterLockBadge } from '../components/character-lock-badge';
 import { ArenaUnlockPanel } from '../components/arena-unlock-panel';
+import { MatchProgressionSummary } from '../components/match-progression-summary';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
@@ -80,6 +81,7 @@ import {
   getCharacterSelectionState,
   type LocalPlayerProfile,
   type PlayerKdaStats,
+  type ProgressionResult,
 } from '../lib/player-profile';
 import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
 import {
@@ -2952,6 +2954,7 @@ export function BentenganPrototype() {
     LocalPlayerProfile | null | undefined
   >(undefined);
   const playerProfileRef = useRef(playerProfile);
+  const [matchProgressionResult, setMatchProgressionResult] = useState<ProgressionResult | null>(null);
   playerProfileRef.current = playerProfile;
   const fieldIds = FIELD_CONFIGS.map(field => field.id);
   const selectionGate = () => validatePlayableContent(loadPlayerProfile(), selectedId, selectedFieldId,
@@ -3495,6 +3498,7 @@ export function BentenganPrototype() {
     }
     // Identity belongs to this initialized match, not to a render or round.
     const matchId = mode === 'playing' ? createMatchId() : null;
+    setMatchProgressionResult(null);
     pendingProfileStatsRef.current = { ...EMPTY_KDA };
     const mainContext = canvas.getContext('2d');
     if (!mainContext) return;
@@ -4067,9 +4071,9 @@ export function BentenganPrototype() {
       if (phase === 'MATCH_OVER') {
         try {
           const stats = pendingProfileStatsRef.current;
-          if (matchId) recordMatchProgression({ matchId, arenaId: field.id, completed: true,
+          if (matchId) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
             won: team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
-            timesCaptured: stats.masukPenjara });
+            timesCaptured: stats.masukPenjara }));
         } catch (error) {
           setContentGateError(error instanceof Error ? error.message : 'Reward gagal disimpan.');
         }
@@ -7883,6 +7887,7 @@ export function BentenganPrototype() {
                     </span>
                   </aside>
                 )}
+                {statsBoard.final && <MatchProgressionSummary result={matchProgressionResult} />}
                 <footer className="round-stats-actions">
                   {statsBoard.final ? (
                     <>

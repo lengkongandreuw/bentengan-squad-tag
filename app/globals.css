@@ -608,3 +608,7 @@ button { font:inherit; }
 .arena-unlock-body{padding:10px;max-height:54cqh;overflow:auto}
 .arena-unlock-body label{display:grid;gap:6px}.arena-unlock-body select{width:100%;padding:8px;color:#fff;background:#16251c;border:1px solid #7b927b;border-radius:5px}
 .arena-unlock-body strong{display:block;margin:12px 0;color:#d0f57d}.arena-unlock-body ul{padding:0;list-style:none;margin:8px 0}.arena-unlock-body li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #ffffff26}.arena-unlock-body li b{white-space:nowrap}.arena-unlock-body p{font-size:inherit;color:#cad4c9}
+/* Result snapshot is read-only and retains the existing score/statistics board. */
+.match-progression-summary{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0 12px 12px;padding:14px;color:#e9f1e5;background:#15221a;border:1px solid #617455;border-radius:8px;font-size:13px}
+.match-progression-summary h3{margin:0 0 8px;color:#d0f57d;font-size:14px}.match-progression-summary h3:not(:first-child){margin-top:16px}.match-progression-summary p{display:flex;justify-content:space-between;gap:12px;margin:6px 0}.match-progression-summary strong{display:block;color:#d0f57d}.match-progression-summary small{display:block;margin-top:8px}.match-progression-summary progress{width:100%;accent-color:#b6e958}
+@media(max-width:620px){.match-progression-summary{gap:12px;font-size:11px}}

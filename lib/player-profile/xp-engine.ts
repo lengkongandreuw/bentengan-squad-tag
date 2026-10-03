@@ -61,17 +61,22 @@ export function getXPToNextLevel(xp: number): number {
   return getCurrentLevelProgress(xp).xpToNextLevel;
 }
 
-export function calculateMatchXP(summary: MatchXPSummary): number {
+export type MatchXPBreakdown = { match: number; victory: number; tag: number; rescue: number };
+
+export function calculateMatchXPBreakdown(summary: MatchXPSummary): MatchXPBreakdown {
   if (!summary || typeof summary.completed !== 'boolean' ||
       !['win', 'loss'].includes(summary.result))
     throw new Error('Ringkasan pertandingan XP tidak valid.');
   const tags = validCount(summary.tags, 'Tag');
   const rescues = validCount(summary.rescues, 'Rescue');
   // Abandoned/incomplete matches award nothing, including action rewards.
-  if (!summary.completed) return 0;
+  if (!summary.completed) return { match: 0, victory: 0, tag: 0, rescue: 0 };
   const { xpRewards: rewards, xpCaps: caps } = progressionRules;
-  const xp = rewards.completeMatch + (summary.result === 'win' ? rewards.win : 0) +
-    Math.min(tags * rewards.tag, caps.tagPerMatch) +
-    Math.min(rescues * rewards.rescue, caps.rescuePerMatch);
-  return validCount(xp, 'Total XP');
+  return { match: rewards.completeMatch, victory: summary.result === 'win' ? rewards.win : 0,
+    tag: Math.min(tags * rewards.tag, caps.tagPerMatch),
+    rescue: Math.min(rescues * rewards.rescue, caps.rescuePerMatch) };
+}
+
+export function calculateMatchXP(summary: MatchXPSummary): number {
+  return validCount(Object.values(calculateMatchXPBreakdown(summary)).reduce((sum, value) => sum + value, 0), 'Total XP');
 }

@@ -5,6 +5,28 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 13 Match Result Progression UI (2026-10-03, LOCAL ONLY)
+
+- Module12 local commit32951d1. User requested12+13 together; STOP before14.
+- Resolver returns capped XP breakdown, level progress and next-character goal
+  snapshots. Presentation component never reads storage/recalculates awards.
+  Incomplete/duplicate results show zero new XP; historical unlocks and max level
+  respected. Existing XP API uses the same centralized breakdown helper.
+- Runtime captures recordMatchProgression result once at MATCH_OVER, clears it
+  on new initialization/rematch. Final stats panel retains score, tables, MVP,
+  actions; adds Match/Victory/Tag/Rescue total, level and next character.
+- 33 progression tests PASS, including repeated server-render of result without
+  mutation/reward, caps, duplicates, max level. TypeScript/scoped lint/build:pages
+  PASS. Existing CSS at-rule/chunk warnings remain, not failures.
+- Browser3005: all-map requirements inspect Taman without changing Kampung
+  selection; locked still disabled. Actual match finished loss, +100XP, Lv2,
+  200/450XP, next Ciici250XP. Console errors0. Rematch resets old result.
+  Mobile390x844 inspection/result readable in existing landscape layout and
+  document scrollWidth390. Viewport reset. Screenshots .preview-admin/
+  arena-requirements.jpg and match-progression.jpg, ignored local artifacts.
+- No publish/fetch/merge/push. Map/sprite Studio user drafts/assets preserved;
+  no gameplay AI/balance/assets changes. Studios4319/4320 not restarted.
+
 ### COMPLETE — MODULE 12 Arena Lock UI (2026-10-03, LOCAL ONLY)
 
 - Panel Persyaratan semua arena memakai metadata katalog dan checks engine;
