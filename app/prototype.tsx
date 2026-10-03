@@ -3728,6 +3728,7 @@ export function BentenganPrototype() {
 
 
     const gameplayAudio = new GameplayAudio();
+    let countdownSoundPlayed = false;
     gameplayAudio.unlock();
     window.addEventListener('pointerdown', gameplayAudio.unlock);
     window.addEventListener('keydown', gameplayAudio.unlock);
@@ -4030,6 +4031,8 @@ export function BentenganPrototype() {
     };
     seedRefills();
     const resetRound = () => {
+      gameplayAudio.resetTagStreak();
+      countdownSoundPlayed = false;
       clearMouse();
       players = makePlayers();
       roundStats = makeStatsStore();
@@ -4064,6 +4067,7 @@ export function BentenganPrototype() {
     };
     const winRound = (team: Team, reason: string) => {
       if (phase !== 'PLAYING') return;
+      gameplayAudio.resetTagStreak();
       if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
       score[team]++;
       roundWinner = team;
@@ -4085,10 +4089,7 @@ export function BentenganPrototype() {
         pendingProfileStatsRef.current = { ...EMPTY_KDA };
         completedMatchesRef.current++;
         fieldRotationPending = completedMatchesRef.current >= 3;
-        playAudioCue(
-          team === players[0].team ? 'victory.mp3' : 'defeat.mp3',
-          0.68,
-        );
+        gameplayAudio.play(team === players[0].team ? 'victory' : 'defeat');
       }
       phaseUntil = resultNow + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 4500);
       announcement =
@@ -4727,8 +4728,8 @@ export function BentenganPrototype() {
       loser.fortCharge = 0;
       loser.rescueShieldUntil = 0;
       burst(loser.x, loser.y, TEAM_COLOR[winner.team]);
-      if (loser.controlled) gameplayAudio.play('caught');
-      else if (winner.controlled) gameplayAudio.play('tag');
+      if (loser.controlled) { gameplayAudio.resetTagStreak(); gameplayAudio.play('caught'); }
+      else if (winner.controlled) gameplayAudio.playerTag(now);
       else if (distance(players[0], loser) < 300) gameplayAudio.play('tag', .22);
       log(
         `${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`,
@@ -4809,6 +4810,7 @@ export function BentenganPrototype() {
             held[0] &&
             distance(rescuer, held[0]) < rescuerStats.rescueRange
           ) {
+            if (rescuer.controlled) gameplayAudio.play('rescue');
             held.forEach((p) => {
               p.state = 'RETURNING';
               p.prisonOwner = undefined;
@@ -4836,9 +4838,8 @@ export function BentenganPrototype() {
               now,
             );
             burst(held[0].x, held[0].y, '#b9ee3d', 26);
-            if (held.some(p => p.controlled)) gameplayAudio.play('rescued');
-            else if (rescuer.controlled) gameplayAudio.play('rescue');
-            else if (distance(players[0], rescuer) < 300) gameplayAudio.play('rescue', .25);
+            if (held.some(p => p.controlled) || rescuer.controlled) gameplayAudio.play('rescued');
+            else if (distance(players[0], rescuer) < 300) gameplayAudio.play('rescued', .25);
             log(`${rescuer.name} membebaskan ${held.length} rekan.`);
             registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
             chargeUltimate(rescuer, RAJA_ULTIMATE_RESCUE_BONUS);
@@ -4962,6 +4963,7 @@ export function BentenganPrototype() {
       }
     };
     const update = (dt: number, now: number) => {
+      gameplayAudio.expireTagStreak(now);
       if (keys.current.has('p')) {
         keys.current.delete('p');
         paused = !paused;
@@ -4969,6 +4971,7 @@ export function BentenganPrototype() {
       if (paused || mode !== 'playing') { clearMouse(); return; }
       if (phase !== 'PLAYING') clearMouse();
       if (phase === 'COUNTDOWN') {
+        if (!countdownSoundPlayed && now < phaseUntil) countdownSoundPlayed = gameplayAudio.playCountdown((phaseUntil - now) / 1000);
         announcement = `${Math.max(1, Math.ceil((phaseUntil - now) / 1000))}`;
         if (now >= phaseUntil) {
           phase = 'PLAYING';
@@ -5069,6 +5072,7 @@ export function BentenganPrototype() {
           ultimateImpactAt = now + castDuration;
           ultimateImpactApplied = false;
           me.action = 'ultimate';
+          gameplayAudio.play('ultimate');
           me.actionUntil = ultimateImpactAt;
           me.vx = 0;
           me.vy = 0;
@@ -5081,7 +5085,6 @@ export function BentenganPrototype() {
           );
           const isKaka = me.characterId === 'kaka';
           burst(me.x, me.y, isKaka ? '#35f477' : '#ef233c', 14);
-          beep(isKaka ? 360 : 180, 0.2);
           log(
             isKaka
               ? 'KAKA membangkitkan PERISAI HIJAU.'

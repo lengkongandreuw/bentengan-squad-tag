@@ -5,6 +5,47 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### ACTIVE — MODULE16 Custom SFX, validate and publish (2026-10-04)
+
+- User authorized implementation from16-BENTENG-CUSTOM-INGAME-SFX-CODEX.md,
+  then explicitly requested continue through GitHub publication; overrides its
+  default local-only stop. Scope limited to audio; unrelated Map Studio local
+  config edits remain unstaged/unpublished and must be preserved.
+-20 normalized runtime MP3s copied byte-identically from preserved masters.
+  GameplayAudio caches decoded samples, nonblocking bounded fetch, existing SFX
+  gain/compressor; samples compensate existing3x boost. Procedural fallbacks remain.
+-4 nonrepeating tag impacts; local-player10s streak1–5, no6+ escalation. Reset
+  captured/round end/restart/exit/timeout cancels queued voices; bots never advance.
+  Confirmed controlled tags bypass impact cooldown so each valid tag is audible.
+- Confirmed base capture special -> generic -> procedural, one layer. Countdown
+  once per round;5.98s source fits remaining2.8s countdown via playbackRate, no
+  gameplay timer change, no stale cue after start. Ultimate once, final win/loss
+  inside existing guarded state transition, not React render/legacy music routing.
+- Rescue start cue at action; release cue on successful freed player/rescuer.
+  Procedural step/prison, music/settings/UI/balance/progression unchanged.
+-9 focused audio tests,37 progression regression tests, TypeScript/lint and Pages
+  build PASS. Existing CSS/chunk warnings only; no asset generators.
+- Real browser local3007 test fixture:20/20 MP3 decoded, durations/peaks/RMS,
+  cached samples/event scheduling/cleanup; SFX mute master0, music.16 unchanged,
+  settings restored; no console errors. Subjective final mixing review remains
+  for user. Actual local3007 Audio16Test journey: profile -> selection -> arena ->
+  complete best-of3 loss, player1 tag/1 captured,108XP reward intact; no console
+  errors. Fixture/screenshots ignored. Deployment confirmation pending.
+
+### PREPARED — Custom SFX and Tag Counter brief (2026-10-04, LOCAL ONLY)
+
+- User requested save/study for NEXT feature only. Do not implement or publish.
+  Embedded brief implementation directives are future spec, not current request.
+- Preserved20 original-named MP3 masters in audio-sources/custom-gameplay-sfx/,
+  plus IMPLEMENTATION-BRIEF.txt and README.md mapping/findings.1,570,611 bytes;
+  all20 copied hashes identical to external originals. No runtime assets changed.
+- Read brief, existing GameplayAudio/audio-settings and relevant event references.
+  Plan: custom sample fallback,4 tag impact variants, player-only10s streak1–5,
+  special confirmed BENTENG capture with generic/procedural fallback; retain
+  existing SFX master and procedural step/prison. Current3x gain needs testing.
+- No listening/decoder validation yet; no implementation/build/commit/push.
+  Resume from README and full brief when user authorizes implementation.
+
 ### COMPLETE — Publish all local features and Studio changes (2026-10-03)
 
 - Explicit user request overrides LOCAL ONLY for completed progression01–15.

@@ -4,6 +4,26 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-04 MODULE16 implemented; user explicitly authorized publish after brief
+implementation. Supersedes preparation-only note below. Reuse GameplayAudio/SFX
+master with20 custom MP3s/cache/procedural fallback,4 tag impacts and10s local
+player announcer1–5. Cancel/reset on captured/end/restart/exit/timeout;6+ no replay.
+Special BENTENG capture -> generic -> procedural. Countdown playbackRate fits
+existing2.8s; no gameplay changes. Ultimate and results guarded event hooks,
+successful rescue uses release. Samples compensate procedural3x gain.9 audio+
+37 progression tests/TypeScript/build PASS; actual browser20 decodes and mute
+PASS. Keep unrelated current Map Studio draft config LOCAL, not in this commit.
+Read latest CHECKPOINT for deployment verification; no subjective mix sign-off.
+
+2026-10-04 PREPARATION ONLY: user supplied20 MP3s + Custom In-Game SFX/Tag Counter
+brief for saving/study, not implementation. Masters/full brief/notes preserved
+at audio-sources/custom-gameplay-sfx/ outside public/. All copied hashes match.
+Future scope: replace selected procedural cues with sample fallback;4 tag impacts,
+local-player10s streak announcer1–5; special BENTENG confirmed capture sample,
+generic/procedural fallback. Reuse SFX master, retain step/prison. Existing3x
+SFX boost needs mixing validation; audio not yet auditioned/decoded. No code or
+deployment changes. Read README + brief on next explicit implementation request.
+
 2026-10-03 user explicitly requested publishing ALL local features/changes,
 overriding earlier LOCAL ONLY progression instructions. Publish01–15 and local
 Kaka Studio animations/assets plus inactive map editor drafts. Keep kampung3d
