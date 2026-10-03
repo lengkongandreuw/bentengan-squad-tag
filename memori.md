@@ -10,6 +10,13 @@ Kaka Studio animations/assets plus inactive map editor drafts. Keep kampung3d
 deleted (restore missing draft marker), don't activate drafts automatically.
 Read newest CHECKPOINT publish status before relying on older local-only notes.
 
+PUBLISHED2026-10-03: progression01–15 and all validated local Studio changes
+are live at https://lengkongandreuw.github.io/bentengan-squad-tag/ . Code commit
+6f97ce4; Actions run37131424947 build/deploy SUCCESS. Public bundle exactly matches
+validated build; public Kaka atlas200.49 tests/TypeScript/build PASS. Editor map
+drafts remain inactive; kampung3d remains deleted. Prior LOCAL ONLY/STOP publishing
+notes below are historical and superseded by this explicit user publication.
+
 MODULE14–15 lokal (2026-10-03): Progression Core01–15 COMPLETE. Satu panel result
 nonblocking menampilkan resolver newlyUnlockedCharacters/newlyUnlockedArenaIds,
 nama dari katalog, dismiss button. Transient notice/result reset per match dan

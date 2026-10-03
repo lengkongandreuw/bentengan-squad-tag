@@ -5,7 +5,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### ACTIVE — Publish all local features and Studio changes (2026-10-03)
+### COMPLETE — Publish all local features and Studio changes (2026-10-03)
 
 - Explicit user request overrides LOCAL ONLY for completed progression01–15.
   Publish all15 local commits plus current Map/Sprite Studio drafts and11 new
@@ -15,7 +15,14 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 - Fetch github/main: local ahead15/behind0, no other programmer changes to merge.
 - Preflight verifies44 referenced images/dimensions (28.76MiB) and both document
   schemas.49 tests (37progression+5sprite+7map), TypeScript/build:pages PASS.
-  Existing CSS/chunk warnings only. Push/deployment confirmation pending.
+  Existing CSS/chunk warnings only.
+- Published code commit6f97ce47ee2b35d419f9f0a6b6288d9017580471 to github/main.
+  GitHub Actions run37131424947: build and deploy SUCCESS.
+  https://github.com/lengkongandreuw/bentengan-squad-tag/actions/runs/37131424947
+- Public https://lengkongandreuw.github.io/bentengan-squad-tag/ returns200.
+  Published assets/app.js exactly matches validated local dist-pages build;
+  Kaka Studio atlas fetched successfully (200). Progression01–15 is PUBLIC.
+  Older LOCAL ONLY records below are historical, superseded by this publication.
 
 ### COMPLETE — MODULE 15 Regression & Final Integration (2026-10-03, LOCAL ONLY)
 
