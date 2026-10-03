@@ -28,6 +28,7 @@ async function moduleUrl(file) {
   return url;
 }
 const load = async name => import(await moduleUrl(new URL(`../lib/player-profile/${name}.ts`, import.meta.url)));
+const { getArenaSelectionProgress } = await load('arena-selection-progress');
 const { createDefaultProgression, parsePlayerProgression } = await load('progression');
 const { parsePlayerProfile } = await load('migrations');
 const service = await load('profile-service');
@@ -45,6 +46,23 @@ const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
+
+test('module12 arena requirements show accurate counters and metadata without changing profile', () => {
+  const p = service.createPlayerProfile('ArenaUI');
+  p.progression.xp = 450;
+  p.progression.arenaStats.pasar = { played: 3, wins: 2 };
+  p.kda.tagMusuh = 8; p.kda.rescueTeam = 1;
+  const before = JSON.stringify(p);
+  const result = getArenaSelectionProgress(p, 'taman', [{ id: 'pasar', name: 'Pasar Senggol' }]);
+  assert.equal(result.unlocked, false);
+  assert.deepEqual(result.checks.map(c => [c.current, c.required, c.met]),
+    [[3, 3, true], [8, 8, true], [1, 2, false], [2, 3, false]]);
+  assert.equal(result.checks.at(-1).label, 'Menang di Pasar Senggol');
+  assert.equal(JSON.stringify(p), before);
+  p.progression.unlockedArenaIds.push('taman');
+  assert.equal(getArenaSelectionProgress(p, 'taman', []).unlocked, true);
+  assert.equal(getArenaSelectionProgress(p, 'unknown', []).configured, false);
+});
 
 test('module11 character selection selector exposes required level and preserves historical unlocked state', () => {
   const p = service.createPlayerProfile('LockUI');

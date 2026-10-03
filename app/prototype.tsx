@@ -34,6 +34,7 @@ import {
 import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
 import { CharacterLockBadge } from '../components/character-lock-badge';
+import { ArenaUnlockPanel } from '../components/arena-unlock-panel';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
@@ -7481,13 +7482,16 @@ export function BentenganPrototype() {
                   <i>
                     {selectedFieldId === field.id
                       ? 'ARENA AKTIF'
-                      : 'PILIH ARENA'}
+                      : !playerProfile || !isArenaUnlocked(playerProfile, field.id)
+                        ? 'TERKUNCI · LIHAT PERSYARATAN' : 'PILIH ARENA'}
                   </i>
                 </button>
               ))}
             </div>
             <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => cycleArena(1)}>›</button>
             </div>
+            {playerProfile && <ArenaUnlockPanel key={selectedFieldId} profile={playerProfile}
+              catalog={FIELD_CONFIGS} selectedId={selectedFieldId} />}
             <div className="match-lineup">
               <div>
                 {squad.map((id, index) => (

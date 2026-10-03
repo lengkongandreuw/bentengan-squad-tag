@@ -5,6 +5,16 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 12 Arena Lock UI (2026-10-03, LOCAL ONLY)
+
+- Panel Persyaratan semua arena memakai metadata katalog dan checks engine;
+  menampilkan level, kemenangan arena/tier, tags/rescues beserta progres aktual.
+  Dropdown inspeksi mencakup semua arena tanpa mengubah pilihan match/gates.
+- Carousel, locked native disabled, pilihan unlocked, aset dan data Studio tetap.
+  Panel scroll bounded menggunakan unit container untuk desktop/mobile landscape.
+- 32 tes progression PASS. Lanjut13 karena user melampirkan12+13 sekaligus;
+  tidak publish. Draft map/sprite milik user tidak di-stage.
+
 ### COMPLETE — MODULE 11 Character Lock UI (2026-10-03, LOCAL ONLY)
 
 - User meminta10+11. Fondasi10 commit032f4b5. character-lock-badge.tsx dan
