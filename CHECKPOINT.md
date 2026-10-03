@@ -6,12 +6,29 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 ## Status
 
 - State: `ACTIVE`
-- Diperbarui: 2026-09-26
+- Diperbarui: 2026-09-29
 - Branch: `main`
 - Commit implementasi terakhir: `8c6502d`
 - Working tree yang diharapkan setelah checkpoint dipublikasikan: bersih
 
 ## Tujuan aktif
+
+2026-09-29: Review plan refactor (dokumen saja, tanpa ubah kode).
+Tujuan: `Review Plan.MD` di root, bahasa Inggris, hanya temuan, tanpa tabel task,
+trace ke `BENTENG-REFACTOR-PLAN.md` 1-19, lulus `ste-lint.py` nol pelanggaran.
+Selesai: F0-F7 + F10 + S1 (prekondisi) + Appendix A (F8 turun tingkat), pin
+`673ef2a`. Ditambah pada tahap ini: inventaris fungsi per region, matriks
+baca/tulis shared state (Block A React state di luar effect, Block B closure `let`
+di dalam effect `:3247-6027`), cadence `setSnapshot` (7 situs, tulis 10 Hz di
+`:5889`, lima reset), dan part P0 data peta `:404-2578` (~2.175 baris) yang tadinya
+tidak terencana. Fakta koreksi: 24 `useState` + 8 `useRef` = 32 hook (bukan 34).
+Validasi: `ste-lint.py` 0 pelanggaran (3.524 kata), `graphify update .` jalan
+(3.237 node, 383 community, label dipasang balik ke graph.json).
+File berubah: `Review Plan.MD`, `CHECKPOINT.md`. Belum commit.
+Blokir: cabang lokal sebenarnya `Refactor-Clio`, bukan `main`. Tanya user soal
+commit/push. Next: commit + push bila user setuju.
+Catatan lama tetap berlaku: user punya perubahan `config/selection-previews.json`
+dan aset brand, jangan ikut stage.
 
 2026-09-26: Kontrol mouse klik kiri HANYA tujuan, kanan boost (revisi terbaru).
 Parkour tetap Shift/tombol mobile. Route A* terhadap collider/water; keyboard

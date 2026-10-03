@@ -1,0 +1,2712 @@
+{
+  ".openai/hosting.json": {
+    "mtime": 1790654983.0595672,
+    "ast_hash": "19c4494331340403366630aef429de5d",
+    "semantic_hash": "19c4494331340403366630aef429de5d"
+  },
+  ".oxfmtrc.json": {
+    "mtime": 1790654983.0600672,
+    "ast_hash": "31bf381bb1a498b152010664276cc12c",
+    "semantic_hash": "31bf381bb1a498b152010664276cc12c"
+  },
+  ".oxlintrc.json": {
+    "mtime": 1790654983.0605676,
+    "ast_hash": "663e3ef2bbe4ad9c97c9cedd7084e84a",
+    "semantic_hash": "663e3ef2bbe4ad9c97c9cedd7084e84a"
+  },
+  "app/layout.tsx": {
+    "mtime": 1790654983.5106468,
+    "ast_hash": "7a81b3ed218b2ac699428468ed8f2638",
+    "semantic_hash": "7a81b3ed218b2ac699428468ed8f2638"
+  },
+  "app/page.tsx": {
+    "mtime": 1790654983.5111468,
+    "ast_hash": "300fea70d71302ea6ef22f9d20cfb2dc",
+    "semantic_hash": "300fea70d71302ea6ef22f9d20cfb2dc"
+  },
+  "app/prototype.tsx": {
+    "mtime": 1790654983.5131478,
+    "ast_hash": "040557c0be2fdb42f4f9def3ec5a5015",
+    "semantic_hash": "040557c0be2fdb42f4f9def3ec5a5015"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/inventory.json": {
+    "mtime": 1790654983.5471537,
+    "ast_hash": "f796053a84c4be16b15b8c1915b5fbe1",
+    "semantic_hash": "f796053a84c4be16b15b8c1915b5fbe1"
+  },
+  "components.json": {
+    "mtime": 1790654983.8016994,
+    "ast_hash": "02016e740b7b0e6a3b00a3441ac0bda7",
+    "semantic_hash": "02016e740b7b0e6a3b00a3441ac0bda7"
+  },
+  "components/arena-backdrop.tsx": {
+    "mtime": 1790654983.8026984,
+    "ast_hash": "708e6b1c3dd6ec04f4343f6e314331fd",
+    "semantic_hash": "708e6b1c3dd6ec04f4343f6e314331fd"
+  },
+  "components/audio-settings.tsx": {
+    "mtime": 1790654983.8036976,
+    "ast_hash": "408248e10188e9adc149b7494aab192b",
+    "semantic_hash": "408248e10188e9adc149b7494aab192b"
+  },
+  "components/character-workshop.tsx": {
+    "mtime": 1790654983.8041966,
+    "ast_hash": "aa98316158bde7b41c89f4d235dae3ea",
+    "semantic_hash": "aa98316158bde7b41c89f4d235dae3ea"
+  },
+  "components/developer-credits.tsx": {
+    "mtime": 1790654983.8046975,
+    "ast_hash": "a24eaa041ca4ca3b4c6b285310e99461",
+    "semantic_hash": "a24eaa041ca4ca3b4c6b285310e99461"
+  },
+  "components/selection-portrait.tsx": {
+    "mtime": 1790654983.8051975,
+    "ast_hash": "926fe96a19c375c980217b83a4f34469",
+    "semantic_hash": "926fe96a19c375c980217b83a4f34469"
+  },
+  "components/ui/accordion.tsx": {
+    "mtime": 1790654983.8066976,
+    "ast_hash": "3e52dc259a3fa9cb38f29edfa3de01d3",
+    "semantic_hash": "3e52dc259a3fa9cb38f29edfa3de01d3"
+  },
+  "components/ui/alert-dialog.tsx": {
+    "mtime": 1790654983.8071973,
+    "ast_hash": "5f2b0e4b4be01c01a52a3f69a4bdcd73",
+    "semantic_hash": "5f2b0e4b4be01c01a52a3f69a4bdcd73"
+  },
+  "components/ui/alert.tsx": {
+    "mtime": 1790654983.807698,
+    "ast_hash": "160bc33813bd40e347fba982a3a464bf",
+    "semantic_hash": "160bc33813bd40e347fba982a3a464bf"
+  },
+  "components/ui/aspect-ratio.tsx": {
+    "mtime": 1790654983.8086977,
+    "ast_hash": "0bce1d5ad43ee90d352afe7981b21c8c",
+    "semantic_hash": "0bce1d5ad43ee90d352afe7981b21c8c"
+  },
+  "components/ui/attachment.tsx": {
+    "mtime": 1790654983.809198,
+    "ast_hash": "a97da46240c4ab44d447bc5ac551647c",
+    "semantic_hash": "a97da46240c4ab44d447bc5ac551647c"
+  },
+  "components/ui/avatar.tsx": {
+    "mtime": 1790654983.8096983,
+    "ast_hash": "587c0dd05ddcb7b359b7848e7dc62bb7",
+    "semantic_hash": "587c0dd05ddcb7b359b7848e7dc62bb7"
+  },
+  "components/ui/badge.tsx": {
+    "mtime": 1790654983.810699,
+    "ast_hash": "5a003d86f34f08958b955022acc55137",
+    "semantic_hash": "5a003d86f34f08958b955022acc55137"
+  },
+  "components/ui/breadcrumb.tsx": {
+    "mtime": 1790654983.811199,
+    "ast_hash": "ca4d2bee08f3e90eb6acb5cd43d61752",
+    "semantic_hash": "ca4d2bee08f3e90eb6acb5cd43d61752"
+  },
+  "components/ui/bubble.tsx": {
+    "mtime": 1790654983.811699,
+    "ast_hash": "bb6afd9efb1cde139c7c7015c24a5538",
+    "semantic_hash": "bb6afd9efb1cde139c7c7015c24a5538"
+  },
+  "components/ui/button-group.tsx": {
+    "mtime": 1790654983.8121984,
+    "ast_hash": "4c32b89f9ff3b792d93f41089978fe3e",
+    "semantic_hash": "4c32b89f9ff3b792d93f41089978fe3e"
+  },
+  "components/ui/button.tsx": {
+    "mtime": 1790654983.8131993,
+    "ast_hash": "cd1679dde99bd34cb957e90a54bab49c",
+    "semantic_hash": "cd1679dde99bd34cb957e90a54bab49c"
+  },
+  "components/ui/calendar.tsx": {
+    "mtime": 1790654983.8136988,
+    "ast_hash": "a90b05fa3aa9f7eb5335b62a16453129",
+    "semantic_hash": "a90b05fa3aa9f7eb5335b62a16453129"
+  },
+  "components/ui/card.tsx": {
+    "mtime": 1790654983.8146987,
+    "ast_hash": "6dd4f4357d7da3349e7fc76781206612",
+    "semantic_hash": "6dd4f4357d7da3349e7fc76781206612"
+  },
+  "components/ui/carousel.tsx": {
+    "mtime": 1790654983.8151991,
+    "ast_hash": "7534e2c2c0b3c00c0cf98c75df252669",
+    "semantic_hash": "7534e2c2c0b3c00c0cf98c75df252669"
+  },
+  "components/ui/chart.tsx": {
+    "mtime": 1790654983.815699,
+    "ast_hash": "d26566054bbfde5e5c62eaec35cef05e",
+    "semantic_hash": "d26566054bbfde5e5c62eaec35cef05e"
+  },
+  "components/ui/checkbox.tsx": {
+    "mtime": 1790654983.8162,
+    "ast_hash": "9244647e205bbbdf3557349e061627a8",
+    "semantic_hash": "9244647e205bbbdf3557349e061627a8"
+  },
+  "components/ui/collapsible.tsx": {
+    "mtime": 1790654983.8166988,
+    "ast_hash": "3ba081527b15993fb8dd290aa481f929",
+    "semantic_hash": "3ba081527b15993fb8dd290aa481f929"
+  },
+  "components/ui/combobox.tsx": {
+    "mtime": 1790654983.8176997,
+    "ast_hash": "ca49505956359f94044435209ea2fc7a",
+    "semantic_hash": "ca49505956359f94044435209ea2fc7a"
+  },
+  "components/ui/command.tsx": {
+    "mtime": 1790654983.8182,
+    "ast_hash": "0d70a19767fb6d65d04ebb2484737a01",
+    "semantic_hash": "0d70a19767fb6d65d04ebb2484737a01"
+  },
+  "components/ui/context-menu.tsx": {
+    "mtime": 1790654983.8187003,
+    "ast_hash": "6ffd804e1c518edc96b57fe54afaa58c",
+    "semantic_hash": "6ffd804e1c518edc96b57fe54afaa58c"
+  },
+  "components/ui/dialog.tsx": {
+    "mtime": 1790654983.8192,
+    "ast_hash": "8fc56fd51cc1ca966813eaf78b2d0889",
+    "semantic_hash": "8fc56fd51cc1ca966813eaf78b2d0889"
+  },
+  "components/ui/direction.tsx": {
+    "mtime": 1790654983.8197,
+    "ast_hash": "414fbd0286d47f632d5310755cec781f",
+    "semantic_hash": "414fbd0286d47f632d5310755cec781f"
+  },
+  "components/ui/drawer.tsx": {
+    "mtime": 1790654983.8202002,
+    "ast_hash": "310556d855ef9a48060ef0ce884bc77c",
+    "semantic_hash": "310556d855ef9a48060ef0ce884bc77c"
+  },
+  "components/ui/dropdown-menu.tsx": {
+    "mtime": 1790654983.8212001,
+    "ast_hash": "0e4eea807e60826ed6208402c8558b9a",
+    "semantic_hash": "0e4eea807e60826ed6208402c8558b9a"
+  },
+  "components/ui/empty.tsx": {
+    "mtime": 1790654983.8217,
+    "ast_hash": "404df735c170ec8234023f396d03caf3",
+    "semantic_hash": "404df735c170ec8234023f396d03caf3"
+  },
+  "components/ui/field.tsx": {
+    "mtime": 1790654983.8222003,
+    "ast_hash": "3b6819c6c5d68ddb71cc530f0df7d66c",
+    "semantic_hash": "3b6819c6c5d68ddb71cc530f0df7d66c"
+  },
+  "components/ui/hover-card.tsx": {
+    "mtime": 1790654983.822702,
+    "ast_hash": "81c7f43328041432533f89a6a39962a7",
+    "semantic_hash": "81c7f43328041432533f89a6a39962a7"
+  },
+  "components/ui/input-group.tsx": {
+    "mtime": 1790654983.8232021,
+    "ast_hash": "bc7df0fd69cf2199edc1fd5746a0571e",
+    "semantic_hash": "bc7df0fd69cf2199edc1fd5746a0571e"
+  },
+  "components/ui/input-otp.tsx": {
+    "mtime": 1790654983.823701,
+    "ast_hash": "1f115d4c1c313265626680ca871e0817",
+    "semantic_hash": "1f115d4c1c313265626680ca871e0817"
+  },
+  "components/ui/input.tsx": {
+    "mtime": 1790654983.8242004,
+    "ast_hash": "40226b4d9e4fc096f417acf47c5085c4",
+    "semantic_hash": "40226b4d9e4fc096f417acf47c5085c4"
+  },
+  "components/ui/item.tsx": {
+    "mtime": 1790654983.8252008,
+    "ast_hash": "6c9d40847b0ccf24de2d5e95946dfe37",
+    "semantic_hash": "6c9d40847b0ccf24de2d5e95946dfe37"
+  },
+  "components/ui/kbd.tsx": {
+    "mtime": 1790654983.825701,
+    "ast_hash": "4ac5b17984f9a05a04465bd3dc1240cb",
+    "semantic_hash": "4ac5b17984f9a05a04465bd3dc1240cb"
+  },
+  "components/ui/label.tsx": {
+    "mtime": 1790654983.8262005,
+    "ast_hash": "de9b33a9f87f43f8096e4d8246c40a70",
+    "semantic_hash": "de9b33a9f87f43f8096e4d8246c40a70"
+  },
+  "components/ui/marker.tsx": {
+    "mtime": 1790654983.8267007,
+    "ast_hash": "f0390d253f1c980ec1e28aaa55f5a067",
+    "semantic_hash": "f0390d253f1c980ec1e28aaa55f5a067"
+  },
+  "components/ui/menubar.tsx": {
+    "mtime": 1790654983.8277016,
+    "ast_hash": "eadf406117f1b0bf1f964c90a8d0f188",
+    "semantic_hash": "eadf406117f1b0bf1f964c90a8d0f188"
+  },
+  "components/ui/message-scroller.tsx": {
+    "mtime": 1790654983.8282013,
+    "ast_hash": "1ef4f184daeafd4c26e72cbb52758253",
+    "semantic_hash": "1ef4f184daeafd4c26e72cbb52758253"
+  },
+  "components/ui/message.tsx": {
+    "mtime": 1790654983.8292024,
+    "ast_hash": "00779870b4f94e45ba21fdee440e40d0",
+    "semantic_hash": "00779870b4f94e45ba21fdee440e40d0"
+  },
+  "components/ui/native-select.tsx": {
+    "mtime": 1790654983.8297017,
+    "ast_hash": "8d11978e8c0e52e39909b8183eeee092",
+    "semantic_hash": "8d11978e8c0e52e39909b8183eeee092"
+  },
+  "components/ui/navigation-menu.tsx": {
+    "mtime": 1790654983.8302026,
+    "ast_hash": "4968b99263ffdbfe7dab5e3d6ace1569",
+    "semantic_hash": "4968b99263ffdbfe7dab5e3d6ace1569"
+  },
+  "components/ui/pagination.tsx": {
+    "mtime": 1790654983.8307016,
+    "ast_hash": "d84a72d142fd4f32789b24b23de44484",
+    "semantic_hash": "d84a72d142fd4f32789b24b23de44484"
+  },
+  "components/ui/popover.tsx": {
+    "mtime": 1790654983.8317025,
+    "ast_hash": "78cc80a98efab4a04b2b9ae2accd59da",
+    "semantic_hash": "78cc80a98efab4a04b2b9ae2accd59da"
+  },
+  "components/ui/progress.tsx": {
+    "mtime": 1790654983.832702,
+    "ast_hash": "b0e2071008b1279c9928d330177eb103",
+    "semantic_hash": "b0e2071008b1279c9928d330177eb103"
+  },
+  "components/ui/radio-group.tsx": {
+    "mtime": 1790654983.8332024,
+    "ast_hash": "26280b14c416b3798c7747702f52b5b6",
+    "semantic_hash": "26280b14c416b3798c7747702f52b5b6"
+  },
+  "components/ui/resizable.tsx": {
+    "mtime": 1790654983.8337026,
+    "ast_hash": "69d01481bc9def32aa22a35b4419f039",
+    "semantic_hash": "69d01481bc9def32aa22a35b4419f039"
+  },
+  "components/ui/scroll-area.tsx": {
+    "mtime": 1790654983.8342028,
+    "ast_hash": "c87da41a53f237e710b37f143b289b5a",
+    "semantic_hash": "c87da41a53f237e710b37f143b289b5a"
+  },
+  "components/ui/select.tsx": {
+    "mtime": 1790654983.8347037,
+    "ast_hash": "a10f313c3b9aef0739e92088f3c40696",
+    "semantic_hash": "a10f313c3b9aef0739e92088f3c40696"
+  },
+  "components/ui/separator.tsx": {
+    "mtime": 1790654983.8352041,
+    "ast_hash": "9a6ba10c25ff95a49d3d784edc225d15",
+    "semantic_hash": "9a6ba10c25ff95a49d3d784edc225d15"
+  },
+  "components/ui/sheet.tsx": {
+    "mtime": 1790654983.8362029,
+    "ast_hash": "e5a5cecaa7c608a24dc9a3996e43c4b0",
+    "semantic_hash": "e5a5cecaa7c608a24dc9a3996e43c4b0"
+  },
+  "components/ui/sidebar.tsx": {
+    "mtime": 1790654983.836704,
+    "ast_hash": "62729737287e7d3682475660e34b6d77",
+    "semantic_hash": "62729737287e7d3682475660e34b6d77"
+  },
+  "components/ui/skeleton.tsx": {
+    "mtime": 1790654983.8377037,
+    "ast_hash": "cc4e9f731c2ab35b4367c9a5ef48b949",
+    "semantic_hash": "cc4e9f731c2ab35b4367c9a5ef48b949"
+  },
+  "components/ui/slider.tsx": {
+    "mtime": 1790654983.838204,
+    "ast_hash": "ba5a21175518d5a9e33e56c78456a9e9",
+    "semantic_hash": "ba5a21175518d5a9e33e56c78456a9e9"
+  },
+  "components/ui/spinner.tsx": {
+    "mtime": 1790654983.8387034,
+    "ast_hash": "2dd5e498fe7435284396771c62090617",
+    "semantic_hash": "2dd5e498fe7435284396771c62090617"
+  },
+  "components/ui/switch.tsx": {
+    "mtime": 1790654983.8397033,
+    "ast_hash": "a0c6923a3e37dc2f2268a03b3de4bba9",
+    "semantic_hash": "a0c6923a3e37dc2f2268a03b3de4bba9"
+  },
+  "components/ui/table.tsx": {
+    "mtime": 1790654983.8402042,
+    "ast_hash": "dd785df0455be81612f68f68f233f952",
+    "semantic_hash": "dd785df0455be81612f68f68f233f952"
+  },
+  "components/ui/tabs.tsx": {
+    "mtime": 1790654983.8407032,
+    "ast_hash": "f6e42174b1432e8be4a51066a65ee421",
+    "semantic_hash": "f6e42174b1432e8be4a51066a65ee421"
+  },
+  "components/ui/textarea.tsx": {
+    "mtime": 1790654983.841704,
+    "ast_hash": "bd02b4d8a80b4226b542ea0d745dbfff",
+    "semantic_hash": "bd02b4d8a80b4226b542ea0d745dbfff"
+  },
+  "components/ui/toast.tsx": {
+    "mtime": 1790654983.8422036,
+    "ast_hash": "ba0cdac061ff561fa864368bd78c7426",
+    "semantic_hash": "ba0cdac061ff561fa864368bd78c7426"
+  },
+  "components/ui/toggle-group.tsx": {
+    "mtime": 1790654983.8427036,
+    "ast_hash": "2088752974fa69d0fb3643050198ad08",
+    "semantic_hash": "2088752974fa69d0fb3643050198ad08"
+  },
+  "components/ui/toggle.tsx": {
+    "mtime": 1790654983.8432038,
+    "ast_hash": "7b5a6723d7a2cc0d71c15a924cb87e39",
+    "semantic_hash": "7b5a6723d7a2cc0d71c15a924cb87e39"
+  },
+  "components/ui/tooltip.tsx": {
+    "mtime": 1790654983.844204,
+    "ast_hash": "8ef238a43e57b44aab2380fb8021803a",
+    "semantic_hash": "8ef238a43e57b44aab2380fb8021803a"
+  },
+  "config/field-baseline.json": {
+    "mtime": 1790654983.8452046,
+    "ast_hash": "b4ab85efd80849407292ffbcc976ff97",
+    "semantic_hash": "b4ab85efd80849407292ffbcc976ff97"
+  },
+  "config/game-rules.json": {
+    "mtime": 1790654983.8457046,
+    "ast_hash": "e502f67e5077cd52c5c4eb70ff8bbe31",
+    "semantic_hash": "e502f67e5077cd52c5c4eb70ff8bbe31"
+  },
+  "config/selection-previews.json": {
+    "mtime": 1790654983.8467045,
+    "ast_hash": "fb2ea8a87bc4a58ce02cdf8cf39c308f",
+    "semantic_hash": "fb2ea8a87bc4a58ce02cdf8cf39c308f"
+  },
+  "config/sprite-baseline.json": {
+    "mtime": 1790654983.8472047,
+    "ast_hash": "145e730a3372cc003068bf100e889e78",
+    "semantic_hash": "145e730a3372cc003068bf100e889e78"
+  },
+  "github-pages/main.tsx": {
+    "mtime": 1790654984.3727975,
+    "ast_hash": "34680f7baf8623f11b5ea15ce9cf9394",
+    "semantic_hash": "34680f7baf8623f11b5ea15ce9cf9394"
+  },
+  "hooks/use-mobile.ts": {
+    "mtime": 1790654984.3747964,
+    "ast_hash": "e6216e38463181f71d2ee0c93aec1f93",
+    "semantic_hash": "e6216e38463181f71d2ee0c93aec1f93"
+  },
+  "lib/asset-ready.ts": {
+    "mtime": 1790654984.3762972,
+    "ast_hash": "7ec6505c94403a40688bcd2942f0ac89",
+    "semantic_hash": "7ec6505c94403a40688bcd2942f0ac89"
+  },
+  "lib/audio-settings.ts": {
+    "mtime": 1790654984.3767965,
+    "ast_hash": "7fa7fd3cc5a28c46097b743fbd41cf41",
+    "semantic_hash": "7fa7fd3cc5a28c46097b743fbd41cf41"
+  },
+  "lib/branding.ts": {
+    "mtime": 1790654984.3777978,
+    "ast_hash": "b2168a3c61cce2becb475cab0435d764",
+    "semantic_hash": "b2168a3c61cce2becb475cab0435d764"
+  },
+  "lib/character-animation.js": {
+    "mtime": 1790654984.3782976,
+    "ast_hash": "f20802f201d03e933e5550c6d66a0651",
+    "semantic_hash": "f20802f201d03e933e5550c6d66a0651"
+  },
+  "lib/characters.ts": {
+    "mtime": 1790654984.378797,
+    "ast_hash": "2acb3ddebf3866b56e373259f809e7a0",
+    "semantic_hash": "2acb3ddebf3866b56e373259f809e7a0"
+  },
+  "lib/click-navigation.js": {
+    "mtime": 1790654984.379297,
+    "ast_hash": "2ec7ed780822d8edf1bbfc4db16834ad",
+    "semantic_hash": "2ec7ed780822d8edf1bbfc4db16834ad"
+  },
+  "lib/collision-navigation.js": {
+    "mtime": 1790654984.3802977,
+    "ast_hash": "625e3630e158e47fb977fb1533042f2a",
+    "semantic_hash": "625e3630e158e47fb977fb1533042f2a"
+  },
+  "lib/field-assets.generated.ts": {
+    "mtime": 1790654984.3807976,
+    "ast_hash": "ee0080869be38c2b975b81b848c7bc60",
+    "semantic_hash": "ee0080869be38c2b975b81b848c7bc60"
+  },
+  "lib/field-cycle.js": {
+    "mtime": 1790654984.3817985,
+    "ast_hash": "3577b79a9fca3c2dd2721b0d2d43deba",
+    "semantic_hash": "3577b79a9fca3c2dd2721b0d2d43deba"
+  },
+  "lib/gameplay-audio.ts": {
+    "mtime": 1790654984.3822985,
+    "ast_hash": "e81d9cf6c24067751d80adbb9ffbc9a0",
+    "semantic_hash": "e81d9cf6c24067751d80adbb9ffbc9a0"
+  },
+  "lib/kampung-3d.ts": {
+    "mtime": 1790654984.3832984,
+    "ast_hash": "033074f097406232bd9f1d7fa65166b4",
+    "semantic_hash": "033074f097406232bd9f1d7fa65166b4"
+  },
+  "lib/selection-preview-assets.ts": {
+    "mtime": 1790654984.3837988,
+    "ast_hash": "b8d87cfc3c83f3732dd7f3e4b512c83e",
+    "semantic_hash": "b8d87cfc3c83f3732dd7f3e4b512c83e"
+  },
+  "lib/selection-preview-model.js": {
+    "mtime": 1790654984.3842976,
+    "ast_hash": "90c585c635e987366bc8b483676d4258",
+    "semantic_hash": "90c585c635e987366bc8b483676d4258"
+  },
+  "lib/series-animation.js": {
+    "mtime": 1790654984.3852987,
+    "ast_hash": "7e9ac0cc48bfa43710df96e821b88c8e",
+    "semantic_hash": "7e9ac0cc48bfa43710df96e821b88c8e"
+  },
+  "lib/sprite-motion.js": {
+    "mtime": 1790654984.3857982,
+    "ast_hash": "d18ebd7e460d9e0aba46888e8e4ddca2",
+    "semantic_hash": "d18ebd7e460d9e0aba46888e8e4ddca2"
+  },
+  "lib/tag-contact.js": {
+    "mtime": 1790654984.3862982,
+    "ast_hash": "d9142c036d6c273a4391c93e24f5e5fc",
+    "semantic_hash": "d9142c036d6c273a4391c93e24f5e5fc"
+  },
+  "lib/team-combo.js": {
+    "mtime": 1790654984.387298,
+    "ast_hash": "813145a7f1850c7c60d402d73a4bd4f6",
+    "semantic_hash": "813145a7f1850c7c60d402d73a4bd4f6"
+  },
+  "lib/utils.ts": {
+    "mtime": 1790654984.3877988,
+    "ast_hash": "0a3d688a6c4a897d87fc887b5e421c60",
+    "semantic_hash": "0a3d688a6c4a897d87fc887b5e421c60"
+  },
+  "next.config.ts": {
+    "mtime": 1790654984.3892984,
+    "ast_hash": "315c6958a2cdf2b1a6110448e1ba254f",
+    "semantic_hash": "315c6958a2cdf2b1a6110448e1ba254f"
+  },
+  "package.json": {
+    "mtime": 1790654984.3928003,
+    "ast_hash": "62cf5478f83cb105c3bdd0f949391154",
+    "semantic_hash": "62cf5478f83cb105c3bdd0f949391154"
+  },
+  "public/characters/bebe/animations.json": {
+    "mtime": 1790654984.5468266,
+    "ast_hash": "753163623b069776b43b28363b5fe759",
+    "semantic_hash": "753163623b069776b43b28363b5fe759"
+  },
+  "public/characters/boke/animations.json": {
+    "mtime": 1790654984.5568283,
+    "ast_hash": "a9b09d6f600298010c1d75444b542c77",
+    "semantic_hash": "a9b09d6f600298010c1d75444b542c77"
+  },
+  "public/characters/boke/series.json": {
+    "mtime": 1790654984.5678296,
+    "ast_hash": "8726c8bcbc044db9f5f08f18bdc135ff",
+    "semantic_hash": "8726c8bcbc044db9f5f08f18bdc135ff"
+  },
+  "public/characters/buto/animations.json": {
+    "mtime": 1790654984.5693307,
+    "ast_hash": "48c0c0125ee00ba17aa99d84e8b8d51b",
+    "semantic_hash": "48c0c0125ee00ba17aa99d84e8b8d51b"
+  },
+  "public/characters/ciici/animations.json": {
+    "mtime": 1790654984.5778322,
+    "ast_hash": "251110f2713e74066a6dd8badaf4bb2d",
+    "semantic_hash": "251110f2713e74066a6dd8badaf4bb2d"
+  },
+  "public/characters/jago/animations.json": {
+    "mtime": 1790654984.5858333,
+    "ast_hash": "92dc00120574dfb73676dcaee29b7ca7",
+    "semantic_hash": "92dc00120574dfb73676dcaee29b7ca7"
+  },
+  "public/characters/kaka/animations.json": {
+    "mtime": 1790654984.5953348,
+    "ast_hash": "7d4668777b2b69231701f11861e15a46",
+    "semantic_hash": "7d4668777b2b69231701f11861e15a46"
+  },
+  "public/characters/kaka/ultimate.json": {
+    "mtime": 1790654984.6053374,
+    "ast_hash": "1c03b6454d4c6e873be28a93d56c19f2",
+    "semantic_hash": "1c03b6454d4c6e873be28a93d56c19f2"
+  },
+  "public/characters/kodo/animations.json": {
+    "mtime": 1790654984.6068375,
+    "ast_hash": "5608921c2766fdc8e272197c2c79f229",
+    "semantic_hash": "5608921c2766fdc8e272197c2c79f229"
+  },
+  "public/characters/kumis/animations.json": {
+    "mtime": 1790654984.6168394,
+    "ast_hash": "51f2ca3e359616c37f33f2f43a336c49",
+    "semantic_hash": "51f2ca3e359616c37f33f2f43a336c49"
+  },
+  "public/characters/lala/animations.json": {
+    "mtime": 1790654984.6248395,
+    "ast_hash": "8239727462529d9d0c2c3b68df373b3c",
+    "semantic_hash": "8239727462529d9d0c2c3b68df373b3c"
+  },
+  "public/characters/lui/animations.json": {
+    "mtime": 1790654984.6348424,
+    "ast_hash": "1725a97a70a537f55c0c665286d699c4",
+    "semantic_hash": "1725a97a70a537f55c0c665286d699c4"
+  },
+  "public/characters/manifest.json": {
+    "mtime": 1790654984.6418457,
+    "ast_hash": "eb7feaa2d945fd92ffad7bf37db30dba",
+    "semantic_hash": "eb7feaa2d945fd92ffad7bf37db30dba"
+  },
+  "public/characters/maria/animations.json": {
+    "mtime": 1790654984.642844,
+    "ast_hash": "0d97cb25dd4b6221f60c74cf0c9b9464",
+    "semantic_hash": "0d97cb25dd4b6221f60c74cf0c9b9464"
+  },
+  "public/characters/maria/series.json": {
+    "mtime": 1790654984.655345,
+    "ast_hash": "87a67f48b57c0aadbbfd1fff12a8849f",
+    "semantic_hash": "87a67f48b57c0aadbbfd1fff12a8849f"
+  },
+  "public/characters/raja/animations.json": {
+    "mtime": 1790654984.6568475,
+    "ast_hash": "ae47fd6b8d9d5edefb02f4be00711a7d",
+    "semantic_hash": "ae47fd6b8d9d5edefb02f4be00711a7d"
+  },
+  "public/characters/robot/animations.json": {
+    "mtime": 1790654984.666348,
+    "ast_hash": "d7298a53ea0a6b86fff58a35771440a7",
+    "semantic_hash": "d7298a53ea0a6b86fff58a35771440a7"
+  },
+  "public/characters/tui/animations.json": {
+    "mtime": 1790654984.6743493,
+    "ast_hash": "22f5c47ceb9fd64919ab7b9ef39387ce",
+    "semantic_hash": "22f5c47ceb9fd64919ab7b9ef39387ce"
+  },
+  "public/field/manifest.json": {
+    "mtime": 1790654984.6933517,
+    "ast_hash": "63ebd3533e4324c2655acb65092f4c59",
+    "semantic_hash": "63ebd3533e4324c2655acb65092f4c59"
+  },
+  "public/ui-v2/manifest.json": {
+    "mtime": 1790654985.8415523,
+    "ast_hash": "167c1211a21292177d2654bbb85e6713",
+    "semantic_hash": "167c1211a21292177d2654bbb85e6713"
+  },
+  "scripts/audit-game.mjs": {
+    "mtime": 1790654985.914065,
+    "ast_hash": "699e509a8931d469937bef02b463e2ca",
+    "semantic_hash": "699e509a8931d469937bef02b463e2ca"
+  },
+  "scripts/build-arena-ui.mjs": {
+    "mtime": 1790654985.9150646,
+    "ast_hash": "ee6cb3ba3f3447be5826cca2902a7d86",
+    "semantic_hash": "ee6cb3ba3f3447be5826cca2902a7d86"
+  },
+  "scripts/build-credits.mjs": {
+    "mtime": 1790654985.9155645,
+    "ast_hash": "539a5170735a54e0508d0b438c9de52d",
+    "semantic_hash": "539a5170735a54e0508d0b438c9de52d"
+  },
+  "scripts/build-field-assets.mjs": {
+    "mtime": 1790654985.9165647,
+    "ast_hash": "e0b9981beca9295ac272da97c5146cdf",
+    "semantic_hash": "e0b9981beca9295ac272da97c5146cdf"
+  },
+  "scripts/build-jago-source.mjs": {
+    "mtime": 1790654985.9170647,
+    "ast_hash": "16d2fa2ecbdabe2014facc20e729a50c",
+    "semantic_hash": "16d2fa2ecbdabe2014facc20e729a50c"
+  },
+  "scripts/build-kaka-ultimate.mjs": {
+    "mtime": 1790654985.918565,
+    "ast_hash": "a0f9487806b6f3496ced46ecfc9e9c7a",
+    "semantic_hash": "a0f9487806b6f3496ced46ecfc9e9c7a"
+  },
+  "scripts/build-preview-refresh.mjs": {
+    "mtime": 1790654985.919065,
+    "ast_hash": "80a528898bfead20ffd0df3c63fa3056",
+    "semantic_hash": "80a528898bfead20ffd0df3c63fa3056"
+  },
+  "scripts/build-series-sprites.mjs": {
+    "mtime": 1790654985.9200647,
+    "ast_hash": "b4ddda5eb0a24f2ed7d26fb4bbe25303",
+    "semantic_hash": "b4ddda5eb0a24f2ed7d26fb4bbe25303"
+  },
+  "scripts/build-sprites.mjs": {
+    "mtime": 1790654985.9205656,
+    "ast_hash": "539a3eee243243dfafea8b57b1a321ed",
+    "semantic_hash": "539a3eee243243dfafea8b57b1a321ed"
+  },
+  "scripts/build-ui-assets.mjs": {
+    "mtime": 1790654985.921065,
+    "ast_hash": "fa42fccc326a8170b33bf6c31adced92",
+    "semantic_hash": "fa42fccc326a8170b33bf6c31adced92"
+  },
+  "scripts/build-vfx.mjs": {
+    "mtime": 1790654985.9220655,
+    "ast_hash": "caa003b6681b14335c2055fd48172cab",
+    "semantic_hash": "caa003b6681b14335c2055fd48172cab"
+  },
+  "scripts/build-web-assets.mjs": {
+    "mtime": 1790654985.9225655,
+    "ast_hash": "bf23cc40805687257c1819798015ff08",
+    "semantic_hash": "bf23cc40805687257c1819798015ff08"
+  },
+  "scripts/character-admin/editor.js": {
+    "mtime": 1790654985.9255655,
+    "ast_hash": "4e002f5a6904b8aed6399b2436b140df",
+    "semantic_hash": "4e002f5a6904b8aed6399b2436b140df"
+  },
+  "scripts/character-admin/server.mjs": {
+    "mtime": 1790654985.9265673,
+    "ast_hash": "cba598bd9659010b732895631789d013",
+    "semantic_hash": "cba598bd9659010b732895631789d013"
+  },
+  "scripts/character-admin/test.mjs": {
+    "mtime": 1790654985.9275665,
+    "ast_hash": "dd936b0c0ef3f0051f1420defdc31ea7",
+    "semantic_hash": "dd936b0c0ef3f0051f1420defdc31ea7"
+  },
+  "scripts/test-click-navigation.mjs": {
+    "mtime": 1790654985.9280663,
+    "ast_hash": "52a5b2dd9059c89192a820a869528a1b",
+    "semantic_hash": "52a5b2dd9059c89192a820a869528a1b"
+  },
+  "scripts/test-kampung3d.mjs": {
+    "mtime": 1790654985.928568,
+    "ast_hash": "4487fa4796abd2cec3ef9292e90dcd05",
+    "semantic_hash": "4487fa4796abd2cec3ef9292e90dcd05"
+  },
+  "scripts/test-series-sprites.mjs": {
+    "mtime": 1790654985.9295678,
+    "ast_hash": "b5e924125110aefb703283e032708d16",
+    "semantic_hash": "b5e924125110aefb703283e032708d16"
+  },
+  "scripts/update-field-baseline.mjs": {
+    "mtime": 1790654985.9300687,
+    "ast_hash": "4276199ab75b7a5efa394d9c1d51dcbd",
+    "semantic_hash": "4276199ab75b7a5efa394d9c1d51dcbd"
+  },
+  "scripts/update-sprite-baseline.mjs": {
+    "mtime": 1790654985.931067,
+    "ast_hash": "07bb2d3db09ff22d49610b9d4bb08867",
+    "semantic_hash": "07bb2d3db09ff22d49610b9d4bb08867"
+  },
+  "scripts/verify-runtime-build.mjs": {
+    "mtime": 1790654985.9320676,
+    "ast_hash": "54df755ee717797930d2c7ce1fe9fff2",
+    "semantic_hash": "54df755ee717797930d2c7ce1fe9fff2"
+  },
+  "tsconfig.json": {
+    "mtime": 1790654986.322637,
+    "ast_hash": "fdc1e0b5ea04e1776d32c263c70a97bc",
+    "semantic_hash": "fdc1e0b5ea04e1776d32c263c70a97bc"
+  },
+  "vite.config.ts": {
+    "mtime": 1790654986.3276374,
+    "ast_hash": "32223bae934a99e0a35fe31071e140d6",
+    "semantic_hash": "32223bae934a99e0a35fe31071e140d6"
+  },
+  "vite.github.config.ts": {
+    "mtime": 1790654986.3286393,
+    "ast_hash": "3093fbe89b6cbc6a119222de4c0c6fcf",
+    "semantic_hash": "3093fbe89b6cbc6a119222de4c0c6fcf"
+  },
+  ".github/workflows/pages.yml": {
+    "mtime": 1790654983.0575674,
+    "ast_hash": "08864ea7c05670dfdff51671e5ce82af",
+    "semantic_hash": "08864ea7c05670dfdff51671e5ce82af"
+  },
+  "AGENTS.md": {
+    "mtime": 1790668696.7800355,
+    "ast_hash": "4d4b2b16523c9de6e8c1160873eb0cd5",
+    "semantic_hash": ""
+  },
+  "CHECKPOINT.md": {
+    "mtime": 1790654983.5046446,
+    "ast_hash": "a54298494c62c1c149adfd7c7180f77c",
+    "semantic_hash": "a54298494c62c1c149adfd7c7180f77c"
+  },
+  "FEATURE_MATCH_EVENT_NOTIFICATIONS.md": {
+    "mtime": 1790654983.505646,
+    "ast_hash": "0316af25b0e022773f25a088bf45c37a",
+    "semantic_hash": "0316af25b0e022773f25a088bf45c37a"
+  },
+  "FEATURE_RESCUE_REQUEST.md": {
+    "mtime": 1790654983.5061462,
+    "ast_hash": "15d3b03d60c0fb3e355fb68d2b529f31",
+    "semantic_hash": "15d3b03d60c0fb3e355fb68d2b529f31"
+  },
+  "FEATURE_ROUND_STATS_LEADERBOARD.md": {
+    "mtime": 1790654983.5071454,
+    "ast_hash": "83bc4e139ebdcf67bea6ef33610ef70a",
+    "semantic_hash": "83bc4e139ebdcf67bea6ef33610ef70a"
+  },
+  "README.md": {
+    "mtime": 1790654983.5076456,
+    "ast_hash": "cbf170919e3bcfc74d6a8cb039232012",
+    "semantic_hash": "cbf170919e3bcfc74d6a8cb039232012"
+  },
+  "TASK_TEMPLATE.md": {
+    "mtime": 1790654983.5081458,
+    "ast_hash": "b544ec25c3719cd8e0e4d35fd9225793",
+    "semantic_hash": "b544ec25c3719cd8e0e4d35fd9225793"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/README.md": {
+    "mtime": 1790654983.5146492,
+    "ast_hash": "7407b34c65b4c3d24240f9c27c72cf1e",
+    "semantic_hash": "7407b34c65b4c3d24240f9c27c72cf1e"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/README.md": {
+    "mtime": 1790654983.5876625,
+    "ast_hash": "b189fa1e107a7f9e232097154c09c3ae",
+    "semantic_hash": "b189fa1e107a7f9e232097154c09c3ae"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/README.md": {
+    "mtime": 1790654983.729186,
+    "ast_hash": "ca40c5dfb032138f1ead30e65a13402c",
+    "semantic_hash": "ca40c5dfb032138f1ead30e65a13402c"
+  },
+  "index.html": {
+    "mtime": 1790654984.3752973,
+    "ast_hash": "867237121fe421b237a0ef70671cee4f",
+    "semantic_hash": "867237121fe421b237a0ef70671cee4f"
+  },
+  "memori.md": {
+    "mtime": 1790654984.3887987,
+    "ast_hash": "736ca39d433ae21a5c73a188d3d93fe1",
+    "semantic_hash": "736ca39d433ae21a5c73a188d3d93fe1"
+  },
+  "scripts/character-admin/README.md": {
+    "mtime": 1790654985.924066,
+    "ast_hash": "8cf60033134d5283524a7e3887ac6b88",
+    "semantic_hash": "8cf60033134d5283524a7e3887ac6b88"
+  },
+  "scripts/character-admin/index.html": {
+    "mtime": 1790654985.9260664,
+    "ast_hash": "311d33933bb36880050517402145e982",
+    "semantic_hash": "311d33933bb36880050517402145e982"
+  },
+  "Assets/Video and GIFs/background field map selection/map 1.png": {
+    "mtime": 1790654983.1850903,
+    "ast_hash": "d7d0df62002bdb89d14195bc4a310d06",
+    "semantic_hash": "d7d0df62002bdb89d14195bc4a310d06"
+  },
+  "Assets/Video and GIFs/background field map selection/map 2.png": {
+    "mtime": 1790654983.1975918,
+    "ast_hash": "3fd49170a07725b89ec413d91295ab0c",
+    "semantic_hash": "3fd49170a07725b89ec413d91295ab0c"
+  },
+  "Assets/Video and GIFs/background field map selection/map 3.png": {
+    "mtime": 1790654983.2110941,
+    "ast_hash": "bce17176a4fb72683886b83d93dd08b9",
+    "semantic_hash": "bce17176a4fb72683886b83d93dd08b9"
+  },
+  "Assets/Video and GIFs/background field map selection/map 4.png": {
+    "mtime": 1790654983.2260962,
+    "ast_hash": "af54f9b99e9e783964dfd92be5764681",
+    "semantic_hash": "af54f9b99e9e783964dfd92be5764681"
+  },
+  "Assets/Video and GIFs/hijauload1.jpg": {
+    "mtime": 1790654983.2350988,
+    "ast_hash": "ac6db0d040c9db02ee35a69af95c948c",
+    "semantic_hash": "ac6db0d040c9db02ee35a69af95c948c"
+  },
+  "Assets/Video and GIFs/merahload1.jpg": {
+    "mtime": 1790654983.3481188,
+    "ast_hash": "8c310ab39986f12da7ca04f164277359",
+    "semantic_hash": "8c310ab39986f12da7ca04f164277359"
+  },
+  "Assets/map/1x1_map1.png": {
+    "mtime": 1790654983.349618,
+    "ast_hash": "26031c902ebc8419d01dd680e4112849",
+    "semantic_hash": "26031c902ebc8419d01dd680e4112849"
+  },
+  "Assets/map/1x2_map1.png": {
+    "mtime": 1790654983.3506186,
+    "ast_hash": "94a8acd82a6f624839df8081f528c8d0",
+    "semantic_hash": "94a8acd82a6f624839df8081f528c8d0"
+  },
+  "Assets/map/1x3_map1.png": {
+    "mtime": 1790654983.3511176,
+    "ast_hash": "ed14fc36430f878b007a94188ddb284e",
+    "semantic_hash": "ed14fc36430f878b007a94188ddb284e"
+  },
+  "Assets/map/2x1_map1.png": {
+    "mtime": 1790654983.3526182,
+    "ast_hash": "8d56ad6314a52225dcb919a836ef860e",
+    "semantic_hash": "8d56ad6314a52225dcb919a836ef860e"
+  },
+  "Assets/map/2x2_map1.png": {
+    "mtime": 1790654983.35362,
+    "ast_hash": "406d2c514359d30679d4a9fd61be11db",
+    "semantic_hash": "406d2c514359d30679d4a9fd61be11db"
+  },
+  "Assets/map/2x3_map1.png": {
+    "mtime": 1790654983.3546193,
+    "ast_hash": "e6b4f8809185d6988e71c655f2cedaa4",
+    "semantic_hash": "e6b4f8809185d6988e71c655f2cedaa4"
+  },
+  "Assets/map/3x1 map1.png": {
+    "mtime": 1790654983.3566194,
+    "ast_hash": "f7ba79978b0e50e77ca7a656b7db1bf4",
+    "semantic_hash": "f7ba79978b0e50e77ca7a656b7db1bf4"
+  },
+  "Assets/map/3x2_map1.png": {
+    "mtime": 1790654983.3576193,
+    "ast_hash": "d9e7130ecbd9c7f7296fba05c5060811",
+    "semantic_hash": "d9e7130ecbd9c7f7296fba05c5060811"
+  },
+  "Assets/map/3x3_map1.png": {
+    "mtime": 1790654983.3586197,
+    "ast_hash": "68b4729db0b3c92e9a2101c680fa1f75",
+    "semantic_hash": "68b4729db0b3c92e9a2101c680fa1f75"
+  },
+  "Assets/map/map2/border-bottom-left.png": {
+    "mtime": 1790654983.3626213,
+    "ast_hash": "bb45b5f8f1d447339a7cc30425ae0e58",
+    "semantic_hash": "bb45b5f8f1d447339a7cc30425ae0e58"
+  },
+  "Assets/map/map2/border-bottom-right.png": {
+    "mtime": 1790654983.3656209,
+    "ast_hash": "b92de605da78cd2f9d732f062a73c013",
+    "semantic_hash": "b92de605da78cd2f9d732f062a73c013"
+  },
+  "Assets/map/map2/border-top-center.png": {
+    "mtime": 1790654983.3666224,
+    "ast_hash": "5864f606187e864d742c553a408bcee2",
+    "semantic_hash": "5864f606187e864d742c553a408bcee2"
+  },
+  "Assets/map/map2/border-top-left.png": {
+    "mtime": 1790654983.3691213,
+    "ast_hash": "3555cbd556ceec0bcaee7400e07804c4",
+    "semantic_hash": "3555cbd556ceec0bcaee7400e07804c4"
+  },
+  "Assets/map/map2/border-top-right.png": {
+    "mtime": 1790654983.3716218,
+    "ast_hash": "fe62fdc0c3963f55f23037d16a5a52d7",
+    "semantic_hash": "fe62fdc0c3963f55f23037d16a5a52d7"
+  },
+  "Assets/map/map2/guide-pasar-senggol.png": {
+    "mtime": 1790654983.3876257,
+    "ast_hash": "543168b192a47d4a13791627a11f0a79",
+    "semantic_hash": "543168b192a47d4a13791627a11f0a79"
+  },
+  "Assets/map/map2/objects-layout.png": {
+    "mtime": 1790654983.393627,
+    "ast_hash": "044d5449db7e47ff1f817d1684ee12ba",
+    "semantic_hash": "044d5449db7e47ff1f817d1684ee12ba"
+  },
+  "Assets/map/map2/terrain-1x1.png": {
+    "mtime": 1790654983.3951263,
+    "ast_hash": "dbd53ff757fa098362de7247b0be2e7f",
+    "semantic_hash": "dbd53ff757fa098362de7247b0be2e7f"
+  },
+  "Assets/map/map2/terrain-1x2.png": {
+    "mtime": 1790654983.3966258,
+    "ast_hash": "392f45a0993a5037e6da62ec4297f6f0",
+    "semantic_hash": "392f45a0993a5037e6da62ec4297f6f0"
+  },
+  "Assets/map/map2/terrain-2x1.png": {
+    "mtime": 1790654983.3981261,
+    "ast_hash": "4f851834385a34c58ba2c458f6e181f2",
+    "semantic_hash": "4f851834385a34c58ba2c458f6e181f2"
+  },
+  "Assets/map/map2/terrain-2x2.png": {
+    "mtime": 1790654983.399126,
+    "ast_hash": "2c6647c2fc0347b0f8fff961bce2908d",
+    "semantic_hash": "2c6647c2fc0347b0f8fff961bce2908d"
+  },
+  "Assets/map/map3/objects-layout.png": {
+    "mtime": 1790654983.4091296,
+    "ast_hash": "3bbf5e0cd1ffc2f75bc470a79710dc7e",
+    "semantic_hash": "3bbf5e0cd1ffc2f75bc470a79710dc7e"
+  },
+  "Assets/map/map3/terrain.png": {
+    "mtime": 1790654983.4211316,
+    "ast_hash": "022c5fb85f462c5bb7b3a01ec2e6a516",
+    "semantic_hash": "022c5fb85f462c5bb7b3a01ec2e6a516"
+  },
+  "Assets/map/map4/border-margin.png": {
+    "mtime": 1790654983.4386353,
+    "ast_hash": "fc82b290019c05f45c79a5ca64153e7c",
+    "semantic_hash": "fc82b290019c05f45c79a5ca64153e7c"
+  },
+  "Assets/map/map4/center-barriers.png": {
+    "mtime": 1790654983.4401343,
+    "ast_hash": "8d2826dd93c6a5a6bcc9698699d038ce",
+    "semantic_hash": "8d2826dd93c6a5a6bcc9698699d038ce"
+  },
+  "Assets/map/map4/guide-final.png": {
+    "mtime": 1790654983.4571369,
+    "ast_hash": "aaae9ce96bfc9c7dc9517b2b3baf25e1",
+    "semantic_hash": "aaae9ce96bfc9c7dc9517b2b3baf25e1"
+  },
+  "Assets/map/map4/objects-colliders.png": {
+    "mtime": 1790654983.4636388,
+    "ast_hash": "7d055a8b68204c4e9899ae780566933c",
+    "semantic_hash": "7d055a8b68204c4e9899ae780566933c"
+  },
+  "Assets/map/map4/terrain.png": {
+    "mtime": 1790654983.482141,
+    "ast_hash": "aeb50e3cecfeeaee681700932b56b360",
+    "semantic_hash": "aeb50e3cecfeeaee681700932b56b360"
+  },
+  "Assets/pictures/bebe icon.png": {
+    "mtime": 1790654983.4841425,
+    "ast_hash": "b19da034cb24a91cd674ec34ae4b7a7f",
+    "semantic_hash": "b19da034cb24a91cd674ec34ae4b7a7f"
+  },
+  "Assets/pictures/boke icon.png": {
+    "mtime": 1790654983.4851418,
+    "ast_hash": "4fc482cb446df027f2474b499922b5aa",
+    "semantic_hash": "4fc482cb446df027f2474b499922b5aa"
+  },
+  "Assets/pictures/buto icon.png": {
+    "mtime": 1790654983.4861417,
+    "ast_hash": "2689565e03154cc98969af1768827358",
+    "semantic_hash": "2689565e03154cc98969af1768827358"
+  },
+  "Assets/pictures/ciici icon.png": {
+    "mtime": 1790654983.4871418,
+    "ast_hash": "eba1c222800a9eabb7d2b33bbde440a2",
+    "semantic_hash": "eba1c222800a9eabb7d2b33bbde440a2"
+  },
+  "Assets/pictures/jago icon.png": {
+    "mtime": 1790654983.488142,
+    "ast_hash": "99db7d198d8105a458d359e64ee2cd6f",
+    "semantic_hash": "99db7d198d8105a458d359e64ee2cd6f"
+  },
+  "Assets/pictures/kaka icon.png": {
+    "mtime": 1790654983.4891417,
+    "ast_hash": "93003f7d8137c2c47b9168b76dbd7b38",
+    "semantic_hash": "93003f7d8137c2c47b9168b76dbd7b38"
+  },
+  "Assets/pictures/kaka ultimate skill banner view.png": {
+    "mtime": 1790654983.4926438,
+    "ast_hash": "bff6f948af68f05b4f8b8643cb3997e6",
+    "semantic_hash": "bff6f948af68f05b4f8b8643cb3997e6"
+  },
+  "Assets/pictures/kodo icon.png": {
+    "mtime": 1790654983.4936447,
+    "ast_hash": "f914a743b2a4a422e1cc10c191c0df0d",
+    "semantic_hash": "f914a743b2a4a422e1cc10c191c0df0d"
+  },
+  "Assets/pictures/kumis icon.png": {
+    "mtime": 1790654983.4946437,
+    "ast_hash": "cc11a83df945a4fe6212cff3b02dbedd",
+    "semantic_hash": "cc11a83df945a4fe6212cff3b02dbedd"
+  },
+  "Assets/pictures/lala icon.png": {
+    "mtime": 1790654983.4956434,
+    "ast_hash": "96f2e8f02612d9541ce328f866721c2f",
+    "semantic_hash": "96f2e8f02612d9541ce328f866721c2f"
+  },
+  "Assets/pictures/lui icon.png": {
+    "mtime": 1790654983.4966445,
+    "ast_hash": "46e26b84653c774a6878473a3b2c3712",
+    "semantic_hash": "46e26b84653c774a6878473a3b2c3712"
+  },
+  "Assets/pictures/maria icon.png": {
+    "mtime": 1790654983.4976435,
+    "ast_hash": "9dafdf8511b78109c412382437df8f10",
+    "semantic_hash": "9dafdf8511b78109c412382437df8f10"
+  },
+  "Assets/pictures/raja icon.png": {
+    "mtime": 1790654983.499144,
+    "ast_hash": "1803dcbb8d76517bcda20da619790f91",
+    "semantic_hash": "1803dcbb8d76517bcda20da619790f91"
+  },
+  "Assets/pictures/raja ultimate skill banner view.png": {
+    "mtime": 1790654983.5011444,
+    "ast_hash": "d49ec8fef79ed1d2487579e8d5bbf4e0",
+    "semantic_hash": "d49ec8fef79ed1d2487579e8d5bbf4e0"
+  },
+  "Assets/pictures/robot icon.png": {
+    "mtime": 1790654983.5021448,
+    "ast_hash": "9b373575a4e3fd47a87642843d0bc6d6",
+    "semantic_hash": "9b373575a4e3fd47a87642843d0bc6d6"
+  },
+  "Assets/pictures/tui icon.png": {
+    "mtime": 1790654983.503145,
+    "ast_hash": "d49ec742cae4d76057b9a2ec099f20b4",
+    "semantic_hash": "d49ec742cae4d76057b9a2ec099f20b4"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/buttons/backbutton.png": {
+    "mtime": 1790654983.516147,
+    "ast_hash": "ee59fef199f72a8a41d69db32d971dd7",
+    "semantic_hash": "ee59fef199f72a8a41d69db32d971dd7"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/buttons/button primary hover state.png": {
+    "mtime": 1790654983.5171473,
+    "ast_hash": "2b16a0db0052fa3bc26b8723e8e8f9a2",
+    "semantic_hash": "2b16a0db0052fa3bc26b8723e8e8f9a2"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/buttons/button primary normal state.png": {
+    "mtime": 1790654983.5186477,
+    "ast_hash": "e9539b4403759c0d30ef1b431b0ec1a5",
+    "semantic_hash": "e9539b4403759c0d30ef1b431b0ec1a5"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/hiijau buto.png": {
+    "mtime": 1790654983.5211477,
+    "ast_hash": "f1895ddde8d9feca062dd382dc6445a6",
+    "semantic_hash": "f1895ddde8d9feca062dd382dc6445a6"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/hiijau ciici.png": {
+    "mtime": 1790654983.5231495,
+    "ast_hash": "972c9f41985f9fca726d7c2e930b27a2",
+    "semantic_hash": "972c9f41985f9fca726d7c2e930b27a2"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/hijau boke.png": {
+    "mtime": 1790654983.52615,
+    "ast_hash": "95f7b141e4b0020603f3c0492b209157",
+    "semantic_hash": "95f7b141e4b0020603f3c0492b209157"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/hijau kaka.png": {
+    "mtime": 1790654983.5291498,
+    "ast_hash": "400ce8c5ba25a7affd7b41f207f92c75",
+    "semantic_hash": "400ce8c5ba25a7affd7b41f207f92c75"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/hijau maria.png": {
+    "mtime": 1790654983.5311499,
+    "ast_hash": "c914bcf2de37fd03485c8dfd55708ea1",
+    "semantic_hash": "c914bcf2de37fd03485c8dfd55708ea1"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/merah jago.png": {
+    "mtime": 1790654983.535151,
+    "ast_hash": "eabca14646078ea9cefc594079350a3e",
+    "semantic_hash": "eabca14646078ea9cefc594079350a3e"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/merah kumis.png": {
+    "mtime": 1790654983.538651,
+    "ast_hash": "13b2ecaddc5040f203225ec9099ae145",
+    "semantic_hash": "13b2ecaddc5040f203225ec9099ae145"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/merah lala.png": {
+    "mtime": 1790654983.5421524,
+    "ast_hash": "1cc2cae219aa4b739531a888b2774256",
+    "semantic_hash": "1cc2cae219aa4b739531a888b2774256"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/merah raja.png": {
+    "mtime": 1790654983.5446534,
+    "ast_hash": "85a50aff385e57cfea5f3d8afad80beb",
+    "semantic_hash": "85a50aff385e57cfea5f3d8afad80beb"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/characters/merah robot.png": {
+    "mtime": 1790654983.5466535,
+    "ast_hash": "9cbe4349fedb4150c25566c8aa75cf15",
+    "semantic_hash": "9cbe4349fedb4150c25566c8aa75cf15"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/ui-states/char hijau inactive.png": {
+    "mtime": 1790654983.5531552,
+    "ast_hash": "c60c841c93b8e733da482c0636174101",
+    "semantic_hash": "c60c841c93b8e733da482c0636174101"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/ui-states/char merah inactive.png": {
+    "mtime": 1790654983.5581546,
+    "ast_hash": "07cdc06e535b9de38a2b4cd9d63629e6",
+    "semantic_hash": "07cdc06e535b9de38a2b4cd9d63629e6"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/ui-states/char tim hijau active.png": {
+    "mtime": 1790654983.5731604,
+    "ast_hash": "9f3278e66ebba43e9eeaf4580100426d",
+    "semantic_hash": "9f3278e66ebba43e9eeaf4580100426d"
+  },
+  "asset-inbox/2026-08-31-character-select-v1/ui-states/char tim merah active.png": {
+    "mtime": 1790654983.586161,
+    "ast_hash": "f937e208794e7b602240c157ebf5a727",
+    "semantic_hash": "f937e208794e7b602240c157ebf5a727"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/portraits/hijau kodo.png": {
+    "mtime": 1790654983.6001635,
+    "ast_hash": "0cce481a96c898516db4e734b5226177",
+    "semantic_hash": "0cce481a96c898516db4e734b5226177"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/portraits/hijau lui.png": {
+    "mtime": 1790654983.6096644,
+    "ast_hash": "e788b8d5660f77917eb427b240248a45",
+    "semantic_hash": "e788b8d5660f77917eb427b240248a45"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/portraits/merah bebe.png": {
+    "mtime": 1790654983.6206667,
+    "ast_hash": "3d079d66c976fdd6dda3f4d2a490d64f",
+    "semantic_hash": "3d079d66c976fdd6dda3f4d2a490d64f"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/portraits/merah tui.png": {
+    "mtime": 1790654983.6301682,
+    "ast_hash": "7954d1850aaa15636988cb9a17ae1a52",
+    "semantic_hash": "7954d1850aaa15636988cb9a17ae1a52"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/sprites/bebe sprite v4.png": {
+    "mtime": 1790654983.6406705,
+    "ast_hash": "1a6c13900b798f930284eebbd80b74b4",
+    "semantic_hash": "1a6c13900b798f930284eebbd80b74b4"
+  },
+  "asset-inbox/2026-09-01-roster-expansion-v1/sprites/kodo sprite v4.png": {
+    "mtime": 1790654983.654172,
+    "ast_hash": "93cf3a8dd6810f1acb699972a37d2f85",
+    "semantic_hash": "93cf3a8dd6810f1acb699972a37d2f85"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/15(1).png": {
+    "mtime": 1790654983.6651738,
+    "ast_hash": "e800a92545defa6bb7c40ccb5f0f5d75",
+    "semantic_hash": "e800a92545defa6bb7c40ccb5f0f5d75"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/16(1).png": {
+    "mtime": 1790654983.6766748,
+    "ast_hash": "72f7469393d3ad953d089803b3a5890b",
+    "semantic_hash": "72f7469393d3ad953d089803b3a5890b"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/17(1).png": {
+    "mtime": 1790654983.6921778,
+    "ast_hash": "1e96144e7c6750fcbfef1b09d3da5af6",
+    "semantic_hash": "1e96144e7c6750fcbfef1b09d3da5af6"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/18(1).png": {
+    "mtime": 1790654983.70768,
+    "ast_hash": "e08bd657cbe2f7d7364b4df500585ac7",
+    "semantic_hash": "e08bd657cbe2f7d7364b4df500585ac7"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/19(1).png": {
+    "mtime": 1790654983.718184,
+    "ast_hash": "bd2776135169397101b1c63c716044d3",
+    "semantic_hash": "bd2776135169397101b1c63c716044d3"
+  },
+  "asset-inbox/2026-09-01-ui-mockups/20(1).png": {
+    "mtime": 1790654983.7281852,
+    "ast_hash": "a57704f6975623c3851f72dce7c7f284",
+    "semantic_hash": "a57704f6975623c3851f72dce7c7f284"
+  },
+  "asset-inbox/2026-09-01-ui-refresh-v3/brand/benteng-tag-logo.png": {
+    "mtime": 1790654983.7446866,
+    "ast_hash": "ab81c4dbbed29890f50a8a3707eb08f7",
+    "semantic_hash": "ab81c4dbbed29890f50a8a3707eb08f7"
+  },
+  "asset-inbox/2026-09-01-ui-refresh-v3/buttons/button tim hijau.png": {
+    "mtime": 1790654983.7491875,
+    "ast_hash": "b98f9ccced2074d9010ec4b2163fb999",
+    "semantic_hash": "b98f9ccced2074d9010ec4b2163fb999"
+  },
+  "asset-inbox/2026-09-01-ui-refresh-v3/buttons/button tim merah.png": {
+    "mtime": 1790654983.7536893,
+    "ast_hash": "807a443231e66e4b55801ce678b33d22",
+    "semantic_hash": "807a443231e66e4b55801ce678b33d22"
+  },
+  "asset-inbox/2026-09-02-field-cards-v1/field-cards.png": {
+    "mtime": 1790654983.7711914,
+    "ast_hash": "44a555f406d0392379026ac753920a34",
+    "semantic_hash": "44a555f406d0392379026ac753920a34"
+  },
+  "asset-inbox/2026-09-20-credits/background.png": {
+    "mtime": 1790654983.7831962,
+    "ast_hash": "abbbaff1edea977fb8960a0e37111d8d",
+    "semantic_hash": "abbbaff1edea977fb8960a0e37111d8d"
+  },
+  "asset-inbox/2026-09-20-preview-refresh/boke.png": {
+    "mtime": 1790654983.7941985,
+    "ast_hash": "902056b0b91b0397409816c0383c3863",
+    "semantic_hash": "902056b0b91b0397409816c0383c3863"
+  },
+  "asset-inbox/2026-09-20-preview-refresh/kodo.png": {
+    "mtime": 1790654983.801198,
+    "ast_hash": "c60416afaa8efda2d98785f52a14e701",
+    "semantic_hash": "c60416afaa8efda2d98785f52a14e701"
+  },
+  "field-sources/air mancur.png": {
+    "mtime": 1790654983.8542068,
+    "ast_hash": "e50bed87d820a1715dc9b934cc223ca4",
+    "semantic_hash": "e50bed87d820a1715dc9b934cc223ca4"
+  },
+  "field-sources/balai.png": {
+    "mtime": 1790654983.8627083,
+    "ast_hash": "dbc320f9226fe70ab166291bddc62399",
+    "semantic_hash": "dbc320f9226fe70ab166291bddc62399"
+  },
+  "field-sources/benteng tim hijau.png": {
+    "mtime": 1790654983.8717089,
+    "ast_hash": "0fa779a2cfdc8e93d3e1b8d0548e1c0b",
+    "semantic_hash": "0fa779a2cfdc8e93d3e1b8d0548e1c0b"
+  },
+  "field-sources/benteng tim merah.png": {
+    "mtime": 1790654983.8797114,
+    "ast_hash": "63e76269a72fe215f11343fa8fae7ccb",
+    "semantic_hash": "63e76269a72fe215f11343fa8fae7ccb"
+  },
+  "field-sources/boost package 25.png": {
+    "mtime": 1790654983.8887136,
+    "ast_hash": "c4b9aab0731a40a6080f43e1201817eb",
+    "semantic_hash": "c4b9aab0731a40a6080f43e1201817eb"
+  },
+  "field-sources/crates.png": {
+    "mtime": 1790654983.8957126,
+    "ast_hash": "1e2dcc06dafcc6b2abe3aa6ec9cbf64b",
+    "semantic_hash": "1e2dcc06dafcc6b2abe3aa6ec9cbf64b"
+  },
+  "field-sources/ember.png": {
+    "mtime": 1790654983.9027143,
+    "ast_hash": "3e4c53d5c8a261cfab677805e4f6dfda",
+    "semantic_hash": "3e4c53d5c8a261cfab677805e4f6dfda"
+  },
+  "field-sources/gerobak 2 statis.png": {
+    "mtime": 1790654983.9127162,
+    "ast_hash": "7952c689e0507ce57be4a1cfe1449fcc",
+    "semantic_hash": "7952c689e0507ce57be4a1cfe1449fcc"
+  },
+  "field-sources/gerobak statis.png": {
+    "mtime": 1790654983.9237182,
+    "ast_hash": "9786742012815e8f73c5b569bf4dff2c",
+    "semantic_hash": "9786742012815e8f73c5b569bf4dff2c"
+  },
+  "field-sources/gif object bendera indonesia.png": {
+    "mtime": 1790654983.9327197,
+    "ast_hash": "4eaba9488fe8d44dbbb5597455525a28",
+    "semantic_hash": "4eaba9488fe8d44dbbb5597455525a28"
+  },
+  "field-sources/got.png": {
+    "mtime": 1790654983.9367216,
+    "ast_hash": "27c73242e44ea6239edeb89fd7cf707f",
+    "semantic_hash": "27c73242e44ea6239edeb89fd7cf707f"
+  },
+  "field-sources/jemuran.png": {
+    "mtime": 1790654983.9442227,
+    "ast_hash": "bf0cde84c3d138c350bbcef69598ac78",
+    "semantic_hash": "bf0cde84c3d138c350bbcef69598ac78"
+  },
+  "field-sources/kedai statis.png": {
+    "mtime": 1790654983.9542234,
+    "ast_hash": "65670275febf9ac8ee08c667c53f3eca",
+    "semantic_hash": "65670275febf9ac8ee08c667c53f3eca"
+  },
+  "field-sources/lampu.png": {
+    "mtime": 1790654983.959226,
+    "ast_hash": "bb7d519ced4f656dc69c258b46f2902f",
+    "semantic_hash": "bb7d519ced4f656dc69c258b46f2902f"
+  },
+  "field-sources/lines.png": {
+    "mtime": 1790654983.964226,
+    "ast_hash": "731e2588ac002fa74782869980f66de0",
+    "semantic_hash": "731e2588ac002fa74782869980f66de0"
+  },
+  "field-sources/mas sayur sprite object.png": {
+    "mtime": 1790654983.9727266,
+    "ast_hash": "b4c5a75240274d4564a57c2663fdbfd3",
+    "semantic_hash": "b4c5a75240274d4564a57c2663fdbfd3"
+  },
+  "field-sources/pagar bunga.png": {
+    "mtime": 1790654983.9792268,
+    "ast_hash": "e46b9dc7f1a477d1b86f64322ffb8fdf",
+    "semantic_hash": "e46b9dc7f1a477d1b86f64322ffb8fdf"
+  },
+  "field-sources/pagar tanaman.png": {
+    "mtime": 1790654983.984728,
+    "ast_hash": "a9deb3d2c4bc1b8f2fc5900c727064f4",
+    "semantic_hash": "a9deb3d2c4bc1b8f2fc5900c727064f4"
+  },
+  "field-sources/paketboost.png": {
+    "mtime": 1790654983.9952314,
+    "ast_hash": "a22253c87bc2511ed9a84a57f8d65f3f",
+    "semantic_hash": "a22253c87bc2511ed9a84a57f8d65f3f"
+  },
+  "field-sources/panjara latar.png": {
+    "mtime": 1790654984.003733,
+    "ast_hash": "c9e21b7af20da354b64690167912adb9",
+    "semantic_hash": "c9e21b7af20da354b64690167912adb9"
+  },
+  "field-sources/penjara overlay.png": {
+    "mtime": 1790654984.0137336,
+    "ast_hash": "f7f1fc8b22b5741540045c81047a2694",
+    "semantic_hash": "f7f1fc8b22b5741540045c81047a2694"
+  },
+  "field-sources/pohon untuk taman.png": {
+    "mtime": 1790654984.0232356,
+    "ast_hash": "cda606eeba1ae2d9369e4fab2ae83955",
+    "semantic_hash": "cda606eeba1ae2d9369e4fab2ae83955"
+  },
+  "field-sources/pohon.png": {
+    "mtime": 1790654984.0312378,
+    "ast_hash": "ac3d759b37db7d2383ed90c6b79d53d6",
+    "semantic_hash": "ac3d759b37db7d2383ed90c6b79d53d6"
+  },
+  "field-sources/pos ronda.png": {
+    "mtime": 1790654984.0397394,
+    "ast_hash": "3d0e2d7327e21e6c23abd239a332e907",
+    "semantic_hash": "3d0e2d7327e21e6c23abd239a332e907"
+  },
+  "field-sources/pot bunga.png": {
+    "mtime": 1790654984.0482397,
+    "ast_hash": "978a080b9f534d889ca9d37bb7815a0e",
+    "semantic_hash": "978a080b9f534d889ca9d37bb7815a0e"
+  },
+  "field-sources/replace balai desa.png": {
+    "mtime": 1790654984.0572448,
+    "ast_hash": "d384c6693b442512bc004d508db691ac",
+    "semantic_hash": "d384c6693b442512bc004d508db691ac"
+  },
+  "field-sources/replace crate minuman.png": {
+    "mtime": 1790654984.0657437,
+    "ast_hash": "4f272fd417806dc2560b8e7bb09c3ad4",
+    "semantic_hash": "4f272fd417806dc2560b8e7bb09c3ad4"
+  },
+  "field-sources/replace ember.png": {
+    "mtime": 1790654984.0727441,
+    "ast_hash": "d707b3c27d4d32126ac7a46faf6c0a55",
+    "semantic_hash": "d707b3c27d4d32126ac7a46faf6c0a55"
+  },
+  "field-sources/replace pos ronda.png": {
+    "mtime": 1790654984.0822456,
+    "ast_hash": "8f579501b3319cf560ce6580110325d0",
+    "semantic_hash": "8f579501b3319cf560ce6580110325d0"
+  },
+  "field-sources/semak.png": {
+    "mtime": 1790654984.0892465,
+    "ast_hash": "cbdb5f9423441369509cf88405a266bc",
+    "semantic_hash": "cbdb5f9423441369509cf88405a266bc"
+  },
+  "field-sources/super boost 100 package spriite.png": {
+    "mtime": 1790654984.0997503,
+    "ast_hash": "8ee0941376d798ccc053a116d92b076d",
+    "semantic_hash": "8ee0941376d798ccc053a116d92b076d"
+  },
+  "field-sources/super boost 75 package spriite.png": {
+    "mtime": 1790654984.1112535,
+    "ast_hash": "a9c842f7a04655a787ac33e48eb25871",
+    "semantic_hash": "a9c842f7a04655a787ac33e48eb25871"
+  },
+  "field-sources/superboost package 40.png": {
+    "mtime": 1790654984.1222525,
+    "ast_hash": "9e3b84bad41c006ca2df421e20983f5c",
+    "semantic_hash": "9e3b84bad41c006ca2df421e20983f5c"
+  },
+  "field-sources/taman petak kecil.png": {
+    "mtime": 1790654984.129255,
+    "ast_hash": "73df9be4790a3ebec36c4bd4643e0825",
+    "semantic_hash": "73df9be4790a3ebec36c4bd4643e0825"
+  },
+  "field-sources/taman petak sedang.png": {
+    "mtime": 1790654984.1377568,
+    "ast_hash": "493160dba982840d949c972af5dbff55",
+    "semantic_hash": "493160dba982840d949c972af5dbff55"
+  },
+  "field-sources/tempat sampaj.png": {
+    "mtime": 1790654984.1442587,
+    "ast_hash": "867efe317b8fd60fae58fc05e2acb123",
+    "semantic_hash": "867efe317b8fd60fae58fc05e2acb123"
+  },
+  "field-sources/tiles latar.png": {
+    "mtime": 1790654984.1572587,
+    "ast_hash": "8a56d4fae692e949f018fe5deb82410b",
+    "semantic_hash": "8a56d4fae692e949f018fe5deb82410b"
+  },
+  "field-sources/v3-canal-barriers.png": {
+    "mtime": 1790654984.16376,
+    "ast_hash": "0889627aae9f410365e57ac675ff1182",
+    "semantic_hash": "0889627aae9f410365e57ac675ff1182"
+  },
+  "field-sources/v3-canal-bridges.png": {
+    "mtime": 1790654984.1712615,
+    "ast_hash": "5828b8a17ae4f52d152e019667b29f80",
+    "semantic_hash": "5828b8a17ae4f52d152e019667b29f80"
+  },
+  "field-sources/v3-canals.png": {
+    "mtime": 1790654984.1797626,
+    "ast_hash": "824368160ed71db1bc8041f8ef67fd6a",
+    "semantic_hash": "824368160ed71db1bc8041f8ef67fd6a"
+  },
+  "field-sources/v3-edge-ne.png": {
+    "mtime": 1790654984.1937678,
+    "ast_hash": "136e6b6ecdba39ea9b4d8d78e89b16e3",
+    "semantic_hash": "136e6b6ecdba39ea9b4d8d78e89b16e3"
+  },
+  "field-sources/v3-edge-nw.png": {
+    "mtime": 1790654984.2077687,
+    "ast_hash": "bee9444b0063f75b1b1d9ea329261a0a",
+    "semantic_hash": "bee9444b0063f75b1b1d9ea329261a0a"
+  },
+  "field-sources/v3-edge-se.png": {
+    "mtime": 1790654984.2202725,
+    "ast_hash": "2e345fb772498b4798881832690ca281",
+    "semantic_hash": "2e345fb772498b4798881832690ca281"
+  },
+  "field-sources/v3-edge-sw.png": {
+    "mtime": 1790654984.2337725,
+    "ast_hash": "d3eeeb4c35df0db2783b0f7101ac374c",
+    "semantic_hash": "d3eeeb4c35df0db2783b0f7101ac374c"
+  },
+  "field-sources/v3-ground-canal.png": {
+    "mtime": 1790654984.2482755,
+    "ast_hash": "02a7563380a40b614c0e7b78cb4fb6df",
+    "semantic_hash": "02a7563380a40b614c0e7b78cb4fb6df"
+  },
+  "field-sources/v3-ground-kampung.png": {
+    "mtime": 1790654984.2577763,
+    "ast_hash": "01806615f29057d3d899ec622de83470",
+    "semantic_hash": "01806615f29057d3d899ec622de83470"
+  },
+  "field-sources/v3-ground-park-grass.png": {
+    "mtime": 1790654984.270778,
+    "ast_hash": "b8c54030c258f939a5f05b9c186bdce4",
+    "semantic_hash": "b8c54030c258f939a5f05b9c186bdce4"
+  },
+  "field-sources/v3-ground-park-paving.png": {
+    "mtime": 1790654984.2827814,
+    "ast_hash": "e4a4262d20783334d6886835ec8545f4",
+    "semantic_hash": "e4a4262d20783334d6886835ec8545f4"
+  },
+  "field-sources/v3-park-corners.png": {
+    "mtime": 1790654984.2927823,
+    "ast_hash": "8e0da2a0f2972cd4cfc396ed5a1b53b1",
+    "semantic_hash": "8e0da2a0f2972cd4cfc396ed5a1b53b1"
+  },
+  "field-sources/v3-park-objects.png": {
+    "mtime": 1790654984.3012836,
+    "ast_hash": "5d166d0532cd59c803d41f96c5d9f77e",
+    "semantic_hash": "5d166d0532cd59c803d41f96c5d9f77e"
+  },
+  "field-sources/v3-park-prison-blue.png": {
+    "mtime": 1790654984.3107855,
+    "ast_hash": "eca3462556b83a0203f107c6ba4c51cb",
+    "semantic_hash": "eca3462556b83a0203f107c6ba4c51cb"
+  },
+  "field-sources/v3-park-prison-red.png": {
+    "mtime": 1790654984.3202875,
+    "ast_hash": "d073f48298995cac178835c7bc075e87",
+    "semantic_hash": "d073f48298995cac178835c7bc075e87"
+  },
+  "field-sources/v3-prison-industrial-blue.png": {
+    "mtime": 1790654984.3302913,
+    "ast_hash": "93c8c8aa8bbc8a2bbaa4f5083cc1d419",
+    "semantic_hash": "93c8c8aa8bbc8a2bbaa4f5083cc1d419"
+  },
+  "field-sources/v3-prison-industrial-red.png": {
+    "mtime": 1790654984.3417912,
+    "ast_hash": "b15eb3ad4912d20b7e5b149f7e6323bc",
+    "semantic_hash": "b15eb3ad4912d20b7e5b149f7e6323bc"
+  },
+  "field-sources/variasi lapak.png": {
+    "mtime": 1790654984.3532922,
+    "ast_hash": "87d7c371495397de93edb6c2ebe1c542",
+    "semantic_hash": "87d7c371495397de93edb6c2ebe1c542"
+  },
+  "field-sources/warung v2.png": {
+    "mtime": 1790654984.3627956,
+    "ast_hash": "4ec2e9f55253ecc1a8865e792dca0e5a",
+    "semantic_hash": "4ec2e9f55253ecc1a8865e792dca0e5a"
+  },
+  "field-sources/warung.png": {
+    "mtime": 1790654984.3712957,
+    "ast_hash": "6e4b3296da971c6a12ebfd4a083947cf",
+    "semantic_hash": "6e4b3296da971c6a12ebfd4a083947cf"
+  },
+  "public/arena-ui/green-loading.webp": {
+    "mtime": 1790654984.3958,
+    "ast_hash": "a5f1cedb339aabe4f44c5646d6249ceb",
+    "semantic_hash": "a5f1cedb339aabe4f44c5646d6249ceb"
+  },
+  "public/arena-ui/kampung.webp": {
+    "mtime": 1790654984.4228046,
+    "ast_hash": "f0724f4bd31f1ac99e8f694f0a8c5cbe",
+    "semantic_hash": "f0724f4bd31f1ac99e8f694f0a8c5cbe"
+  },
+  "public/arena-ui/kanal.webp": {
+    "mtime": 1790654984.455811,
+    "ast_hash": "2c17a132cbfaec5e70e558850d682200",
+    "semantic_hash": "2c17a132cbfaec5e70e558850d682200"
+  },
+  "public/arena-ui/match-events/hijau-menang.png": {
+    "mtime": 1790654984.4633129,
+    "ast_hash": "05b8d5b15e87f387271b98f1eee7a270",
+    "semantic_hash": "05b8d5b15e87f387271b98f1eee7a270"
+  },
+  "public/arena-ui/match-events/merah-menang.png": {
+    "mtime": 1790654984.4698126,
+    "ast_hash": "ccf03f04d5b7c9a3a96669159be2e29c",
+    "semantic_hash": "ccf03f04d5b7c9a3a96669159be2e29c"
+  },
+  "public/arena-ui/match-events/notification-rescue.png.PNG": {
+    "mtime": 1790654984.4758153,
+    "ast_hash": "7cdfad3513dad2f4c1bdfbf6ded8fb44",
+    "semantic_hash": "7cdfad3513dad2f4c1bdfbf6ded8fb44"
+  },
+  "public/arena-ui/match-events/notification-tag.png.PNG": {
+    "mtime": 1790654984.4813151,
+    "ast_hash": "6b4c11e03e4a90de50f8b6ca81e724ff",
+    "semantic_hash": "6b4c11e03e4a90de50f8b6ca81e724ff"
+  },
+  "public/arena-ui/pasar.webp": {
+    "mtime": 1790654984.5048203,
+    "ast_hash": "4745799e7c9c44addb437bfb321bf789",
+    "semantic_hash": "4745799e7c9c44addb437bfb321bf789"
+  },
+  "public/arena-ui/red-loading.webp": {
+    "mtime": 1790654984.5068195,
+    "ast_hash": "ef377e8eddd87bd66c489fbafccdbacb",
+    "semantic_hash": "ef377e8eddd87bd66c489fbafccdbacb"
+  },
+  "public/arena-ui/taman.webp": {
+    "mtime": 1790654984.5318248,
+    "ast_hash": "d97ea3dc382ce5c1ccc0cd1d16e92bf8",
+    "semantic_hash": "d97ea3dc382ce5c1ccc0cd1d16e92bf8"
+  },
+  "public/arena-ui/unit-hud/energy-crest.png": {
+    "mtime": 1790654984.5358243,
+    "ast_hash": "572e5e7e913699375810dfd19ccdf201",
+    "semantic_hash": "572e5e7e913699375810dfd19ccdf201"
+  },
+  "public/brand/benteng-tag-logo.webp": {
+    "mtime": 1790654984.5378263,
+    "ast_hash": "0f8ad6d8b9b4b11a7824c785aeb79f0a",
+    "semantic_hash": "0f8ad6d8b9b4b11a7824c785aeb79f0a"
+  },
+  "public/characters.png": {
+    "mtime": 1790654984.542827,
+    "ast_hash": "0aef3406226474813be420f9f8bda8fd",
+    "semantic_hash": "0aef3406226474813be420f9f8bda8fd"
+  },
+  "public/characters.webp": {
+    "mtime": 1790654984.5443273,
+    "ast_hash": "1c3c33422f425b2dd5b4c9159cceedf1",
+    "semantic_hash": "1c3c33422f425b2dd5b4c9159cceedf1"
+  },
+  "public/characters/bebe/atlas-runtime.webp": {
+    "mtime": 1790654984.5493276,
+    "ast_hash": "e55cc5ca32148b252d2b9461d2046e92",
+    "semantic_hash": "e55cc5ca32148b252d2b9461d2046e92"
+  },
+  "public/characters/bebe/atlas.webp": {
+    "mtime": 1790654984.554329,
+    "ast_hash": "8250ab703a65b0a4d65b1ce74192ffba",
+    "semantic_hash": "8250ab703a65b0a4d65b1ce74192ffba"
+  },
+  "public/characters/bebe/portrait.webp": {
+    "mtime": 1790654984.5553288,
+    "ast_hash": "4ccd87e695af3a37dba888b3c509f518",
+    "semantic_hash": "4ccd87e695af3a37dba888b3c509f518"
+  },
+  "public/characters/boke/atlas-runtime.webp": {
+    "mtime": 1790654984.5588284,
+    "ast_hash": "cf9dfc7ead6ef497feaedd16f2382961",
+    "semantic_hash": "cf9dfc7ead6ef497feaedd16f2382961"
+  },
+  "public/characters/boke/atlas.webp": {
+    "mtime": 1790654984.5633318,
+    "ast_hash": "1110d3bbb0a27069e091744121b99d0d",
+    "semantic_hash": "1110d3bbb0a27069e091744121b99d0d"
+  },
+  "public/characters/boke/portrait.webp": {
+    "mtime": 1790654984.5643303,
+    "ast_hash": "b139fbc2b11e0be0e734886c1f77cbdb",
+    "semantic_hash": "b139fbc2b11e0be0e734886c1f77cbdb"
+  },
+  "public/characters/boke/series-runtime.webp": {
+    "mtime": 1790654984.56733,
+    "ast_hash": "8f18ece251aaad59782d9f54cb2dc4ac",
+    "semantic_hash": "8f18ece251aaad59782d9f54cb2dc4ac"
+  },
+  "public/characters/buto/atlas-runtime.webp": {
+    "mtime": 1790654984.5713305,
+    "ast_hash": "c74db2a5c87b41a52d9bfbc422b813b4",
+    "semantic_hash": "c74db2a5c87b41a52d9bfbc422b813b4"
+  },
+  "public/characters/buto/atlas.webp": {
+    "mtime": 1790654984.5758314,
+    "ast_hash": "869474ff8ad0ec27b59bc47f1c597436",
+    "semantic_hash": "869474ff8ad0ec27b59bc47f1c597436"
+  },
+  "public/characters/buto/portrait.webp": {
+    "mtime": 1790654984.576833,
+    "ast_hash": "d282ceba7d152364d02639415dcced0c",
+    "semantic_hash": "d282ceba7d152364d02639415dcced0c"
+  },
+  "public/characters/ciici/atlas-runtime.webp": {
+    "mtime": 1790654984.5798323,
+    "ast_hash": "9382667d8cca8415539018de4545f8c9",
+    "semantic_hash": "9382667d8cca8415539018de4545f8c9"
+  },
+  "public/characters/ciici/atlas.webp": {
+    "mtime": 1790654984.5838337,
+    "ast_hash": "be95a25bb9e63827f29d5c76040dd7b0",
+    "semantic_hash": "be95a25bb9e63827f29d5c76040dd7b0"
+  },
+  "public/characters/ciici/portrait.webp": {
+    "mtime": 1790654984.5848343,
+    "ast_hash": "a95cbfd10adbb584066c59b26b52d36a",
+    "semantic_hash": "a95cbfd10adbb584066c59b26b52d36a"
+  },
+  "public/characters/jago/atlas-runtime.webp": {
+    "mtime": 1790654984.5878332,
+    "ast_hash": "0757d3d07b710a80de2a45dc7cf2ee41",
+    "semantic_hash": "0757d3d07b710a80de2a45dc7cf2ee41"
+  },
+  "public/characters/jago/atlas.webp": {
+    "mtime": 1790654984.5923343,
+    "ast_hash": "74647500ba2a6d3dd2becc7d94631d56",
+    "semantic_hash": "74647500ba2a6d3dd2becc7d94631d56"
+  },
+  "public/characters/jago/portrait.webp": {
+    "mtime": 1790654984.5938346,
+    "ast_hash": "b05cb88298b30f5609027d8781a320e0",
+    "semantic_hash": "b05cb88298b30f5609027d8781a320e0"
+  },
+  "public/characters/kaka/atlas-runtime.webp": {
+    "mtime": 1790654984.5973346,
+    "ast_hash": "aa1cdebf7af6447cac5819e8e1dfa302",
+    "semantic_hash": "aa1cdebf7af6447cac5819e8e1dfa302"
+  },
+  "public/characters/kaka/atlas.webp": {
+    "mtime": 1790654984.6003382,
+    "ast_hash": "56c1eb2d01517d4ef37cb75d0f2765d7",
+    "semantic_hash": "56c1eb2d01517d4ef37cb75d0f2765d7"
+  },
+  "public/characters/kaka/portrait.webp": {
+    "mtime": 1790654984.6013355,
+    "ast_hash": "88cd799e7497e5a4bff9a976740303c8",
+    "semantic_hash": "88cd799e7497e5a4bff9a976740303c8"
+  },
+  "public/characters/kaka/ultimate-runtime.webp": {
+    "mtime": 1790654984.6043365,
+    "ast_hash": "df72c44a6a7b31eda48ab16dfad3076c",
+    "semantic_hash": "df72c44a6a7b31eda48ab16dfad3076c"
+  },
+  "public/characters/kodo/atlas-runtime.webp": {
+    "mtime": 1790654984.6093378,
+    "ast_hash": "b90203bce1249de414b68364307d31a7",
+    "semantic_hash": "b90203bce1249de414b68364307d31a7"
+  },
+  "public/characters/kodo/atlas.webp": {
+    "mtime": 1790654984.6143396,
+    "ast_hash": "f7fb1b5c75b2c4dcfc5ad40308a23a3b",
+    "semantic_hash": "f7fb1b5c75b2c4dcfc5ad40308a23a3b"
+  },
+  "public/characters/kodo/portrait.webp": {
+    "mtime": 1790654984.615338,
+    "ast_hash": "d601c8494911c19ad3aac7a497d478b3",
+    "semantic_hash": "d601c8494911c19ad3aac7a497d478b3"
+  },
+  "public/characters/kumis/atlas-runtime.webp": {
+    "mtime": 1790654984.618339,
+    "ast_hash": "194b5e3752b50d67fe71b6a2050ce3fa",
+    "semantic_hash": "194b5e3752b50d67fe71b6a2050ce3fa"
+  },
+  "public/characters/kumis/atlas.webp": {
+    "mtime": 1790654984.6228397,
+    "ast_hash": "e5d678956a8b81f25a1a12303c980394",
+    "semantic_hash": "e5d678956a8b81f25a1a12303c980394"
+  },
+  "public/characters/kumis/portrait.webp": {
+    "mtime": 1790654984.6238408,
+    "ast_hash": "64b5e52dd575437bdb9e25e61eb3122d",
+    "semantic_hash": "64b5e52dd575437bdb9e25e61eb3122d"
+  },
+  "public/characters/lala/atlas-runtime.webp": {
+    "mtime": 1790654984.6273408,
+    "ast_hash": "e7c555043eb8acedb47e9c898490eab5",
+    "semantic_hash": "e7c555043eb8acedb47e9c898490eab5"
+  },
+  "public/characters/lala/atlas.webp": {
+    "mtime": 1790654984.6318426,
+    "ast_hash": "df4c7f57d2ff8ed81ae280b6959ebde2",
+    "semantic_hash": "df4c7f57d2ff8ed81ae280b6959ebde2"
+  },
+  "public/characters/lala/portrait.webp": {
+    "mtime": 1790654984.633343,
+    "ast_hash": "dfcd9025edc0b1de441763b6b45711d4",
+    "semantic_hash": "dfcd9025edc0b1de441763b6b45711d4"
+  },
+  "public/characters/lui/atlas-runtime.webp": {
+    "mtime": 1790654984.636342,
+    "ast_hash": "46a7c47a4da92886cec37db5c41df543",
+    "semantic_hash": "46a7c47a4da92886cec37db5c41df543"
+  },
+  "public/characters/lui/atlas.webp": {
+    "mtime": 1790654984.6398425,
+    "ast_hash": "52640c97b4f055676a9199985b461add",
+    "semantic_hash": "52640c97b4f055676a9199985b461add"
+  },
+  "public/characters/lui/portrait.webp": {
+    "mtime": 1790654984.6408424,
+    "ast_hash": "a09e277756c65f7039e371a39daf7eac",
+    "semantic_hash": "a09e277756c65f7039e371a39daf7eac"
+  },
+  "public/characters/maria/atlas-runtime.webp": {
+    "mtime": 1790654984.645344,
+    "ast_hash": "b19d3285dcb3924c357acd119c775f61",
+    "semantic_hash": "b19d3285dcb3924c357acd119c775f61"
+  },
+  "public/characters/maria/atlas.webp": {
+    "mtime": 1790654984.6508448,
+    "ast_hash": "e42ace70bfc9bd39d542a73da68607c6",
+    "semantic_hash": "e42ace70bfc9bd39d542a73da68607c6"
+  },
+  "public/characters/maria/portrait.webp": {
+    "mtime": 1790654984.6518464,
+    "ast_hash": "10a7e476d75c62c758b216987b68580e",
+    "semantic_hash": "10a7e476d75c62c758b216987b68580e"
+  },
+  "public/characters/maria/series-runtime.webp": {
+    "mtime": 1790654984.654345,
+    "ast_hash": "8c771c775f3e92a41e29602c2ae63482",
+    "semantic_hash": "8c771c775f3e92a41e29602c2ae63482"
+  },
+  "public/characters/raja/atlas-runtime.webp": {
+    "mtime": 1790654984.6588457,
+    "ast_hash": "a8b6f864bacfb78742ce37c7aad4213c",
+    "semantic_hash": "a8b6f864bacfb78742ce37c7aad4213c"
+  },
+  "public/characters/raja/atlas.webp": {
+    "mtime": 1790654984.663847,
+    "ast_hash": "fff412bcee1ce2a618e30b8cecb880e0",
+    "semantic_hash": "fff412bcee1ce2a618e30b8cecb880e0"
+  },
+  "public/characters/raja/portrait.webp": {
+    "mtime": 1790654984.6648474,
+    "ast_hash": "237d21b1a09adedfd870e6d2bef47c3b",
+    "semantic_hash": "237d21b1a09adedfd870e6d2bef47c3b"
+  },
+  "public/characters/robot/atlas-runtime.webp": {
+    "mtime": 1790654984.6683476,
+    "ast_hash": "a446fef56577e6b2f96f0fbadbbc9f60",
+    "semantic_hash": "a446fef56577e6b2f96f0fbadbbc9f60"
+  },
+  "public/characters/robot/atlas.webp": {
+    "mtime": 1790654984.671848,
+    "ast_hash": "2184b57f108566cea81c022cb90c610d",
+    "semantic_hash": "2184b57f108566cea81c022cb90c610d"
+  },
+  "public/characters/robot/portrait.webp": {
+    "mtime": 1790654984.6728482,
+    "ast_hash": "add4b8037b2ddaa891ff2ab5cce50cb7",
+    "semantic_hash": "add4b8037b2ddaa891ff2ab5cce50cb7"
+  },
+  "public/characters/tui/atlas-runtime.webp": {
+    "mtime": 1790654984.676349,
+    "ast_hash": "ba254d0016e6f50afcd31635524f57ea",
+    "semantic_hash": "ba254d0016e6f50afcd31635524f57ea"
+  },
+  "public/characters/tui/atlas.webp": {
+    "mtime": 1790654984.6798496,
+    "ast_hash": "cb859d35914c6313569ac95a31faedc5",
+    "semantic_hash": "cb859d35914c6313569ac95a31faedc5"
+  },
+  "public/characters/tui/portrait.webp": {
+    "mtime": 1790654984.6808517,
+    "ast_hash": "415ae6dbc41246562190f8a9ec506882",
+    "semantic_hash": "415ae6dbc41246562190f8a9ec506882"
+  },
+  "public/favicon-bst.png": {
+    "mtime": 1790654984.68235,
+    "ast_hash": "afa015533e04de5e63be11149ee481f7",
+    "semantic_hash": "afa015533e04de5e63be11149ee481f7"
+  },
+  "public/favicon.svg": {
+    "mtime": 1790654984.6833508,
+    "ast_hash": "c61e0e78dc93ca669418b9315a7bc9ba",
+    "semantic_hash": "c61e0e78dc93ca669418b9315a7bc9ba"
+  },
+  "public/field/animated.webp": {
+    "mtime": 1790654984.6848502,
+    "ast_hash": "9d89c28fb8805b1fee5e44cddf012215",
+    "semantic_hash": "9d89c28fb8805b1fee5e44cddf012215"
+  },
+  "public/field/grounds.webp": {
+    "mtime": 1790654984.685851,
+    "ast_hash": "30fa804a6ae418e2a8131c08bd01d0bb",
+    "semantic_hash": "30fa804a6ae418e2a8131c08bd01d0bb"
+  },
+  "public/field/kampung-map.webp": {
+    "mtime": 1790654984.6883514,
+    "ast_hash": "b1113638f1ac7ecdb39d50cf376fa84e",
+    "semantic_hash": "b1113638f1ac7ecdb39d50cf376fa84e"
+  },
+  "public/field/kanal-map.webp": {
+    "mtime": 1790654984.6918528,
+    "ast_hash": "160a4bf1d30c903b937d43b4a9ef405a",
+    "semantic_hash": "160a4bf1d30c903b937d43b4a9ef405a"
+  },
+  "public/field/kanal-water-mask.png": {
+    "mtime": 1790654984.692352,
+    "ast_hash": "50dd21b3510d2dbed93e8488ea176bb4",
+    "semantic_hash": "50dd21b3510d2dbed93e8488ea176bb4"
+  },
+  "public/field/objects.webp": {
+    "mtime": 1790654984.7013538,
+    "ast_hash": "0a1b25d7fe8d5ae75475f6ee9a360e85",
+    "semantic_hash": "0a1b25d7fe8d5ae75475f6ee9a360e85"
+  },
+  "public/field/pasar-map.webp": {
+    "mtime": 1790654984.7038534,
+    "ast_hash": "13cbc2527ac63e77b8d879107f6ae202",
+    "semantic_hash": "13cbc2527ac63e77b8d879107f6ae202"
+  },
+  "public/field/taman-map.webp": {
+    "mtime": 1790654984.707356,
+    "ast_hash": "ac26b5036cae895a6401cc613483da68",
+    "semantic_hash": "ac26b5036cae895a6401cc613483da68"
+  },
+  "public/loading-ui/TEAM HIJAU LOADING 100_.png": {
+    "mtime": 1790654984.7108557,
+    "ast_hash": "a5764611cec3a7e60229344380092331",
+    "semantic_hash": "a5764611cec3a7e60229344380092331"
+  },
+  "public/loading-ui/TEAM HIJAU LOADING 20_.png": {
+    "mtime": 1790654984.7128553,
+    "ast_hash": "f8a780c6bcba9aa7bd73ae0e4d3ab793",
+    "semantic_hash": "f8a780c6bcba9aa7bd73ae0e4d3ab793"
+  },
+  "public/loading-ui/TEAM HIJAU LOADING 40_.png": {
+    "mtime": 1790654984.7148557,
+    "ast_hash": "52ce73123233d1e30a477c40a86a701f",
+    "semantic_hash": "52ce73123233d1e30a477c40a86a701f"
+  },
+  "public/loading-ui/TEAM HIJAU LOADING 60_.png": {
+    "mtime": 1790654984.7168572,
+    "ast_hash": "37d54acb24245d7ec5da00dc9c63487f",
+    "semantic_hash": "37d54acb24245d7ec5da00dc9c63487f"
+  },
+  "public/loading-ui/TEAM HIJAU LOADING 80_.png": {
+    "mtime": 1790654984.718856,
+    "ast_hash": "f5872d12e97b1e914d58c2034435fae4",
+    "semantic_hash": "f5872d12e97b1e914d58c2034435fae4"
+  },
+  "public/loading-ui/TEAM MERAH LOADING 00_.png": {
+    "mtime": 1790654984.7218568,
+    "ast_hash": "4961c5db73a2810c2010838a34abce50",
+    "semantic_hash": "4961c5db73a2810c2010838a34abce50"
+  },
+  "public/loading-ui/TEAM MERAH LOADING 100_.png": {
+    "mtime": 1790654984.7243571,
+    "ast_hash": "103f345ef332c51ebffa25fd786cf73a",
+    "semantic_hash": "103f345ef332c51ebffa25fd786cf73a"
+  },
+  "public/loading-ui/TEAM MERAH LOADING 20_.png": {
+    "mtime": 1790654984.7268574,
+    "ast_hash": "c0c0bf11ccf7a1d2f304cb3126fda570",
+    "semantic_hash": "c0c0bf11ccf7a1d2f304cb3126fda570"
+  },
+  "public/loading-ui/TEAM MERAH LOADING 40_.png": {
+    "mtime": 1790654984.7298577,
+    "ast_hash": "d2769c38af9cf39bc5d4e70f2937ec5b",
+    "semantic_hash": "d2769c38af9cf39bc5d4e70f2937ec5b"
+  },
+  "public/loading-ui/TEAM MERAH LOADING 60_.png": {
+    "mtime": 1790654984.731358,
+    "ast_hash": "68d1cb1a8e72b196ddeb9363b3891427",
+    "semantic_hash": "68d1cb1a8e72b196ddeb9363b3891427"
+  },
+  "public/loading-ui/TEAM MERAH LOADING 80_.png": {
+    "mtime": 1790654984.7333584,
+    "ast_hash": "7f6a0977f3030042b934de540c5574d7",
+    "semantic_hash": "7f6a0977f3030042b934de540c5574d7"
+  },
+  "public/selection-previews/bebe/aefe7d183652174f6af3f25400a8b3f0d99e89509f8b83508a1172516edca7c7.gif": {
+    "mtime": 1790654984.8228745,
+    "ast_hash": "f316b4f55052a0701633c2796cdf1bf9",
+    "semantic_hash": "f316b4f55052a0701633c2796cdf1bf9"
+  },
+  "public/selection-previews/boke/59edd66e264ba4d334024ae6784f373f0d0dcc87b378706020cad396db1f32aa.gif": {
+    "mtime": 1790654984.910893,
+    "ast_hash": "a1dc547f9826ec267ebeda0795808882",
+    "semantic_hash": "a1dc547f9826ec267ebeda0795808882"
+  },
+  "public/selection-previews/buto/fa2b3619cb6eb3ab76299f0143441fa4fa899ea3582931f3fcb08c87b72f2ec2.gif": {
+    "mtime": 1790654984.9839017,
+    "ast_hash": "2e48cb635eb90aebe7eaf2812c55fb08",
+    "semantic_hash": "2e48cb635eb90aebe7eaf2812c55fb08"
+  },
+  "public/selection-previews/ciici/9078ee00f078b0da47e2785ad0d201d9c84664b3458d35c2638535b11696ebfa.gif": {
+    "mtime": 1790654985.0309138,
+    "ast_hash": "acb18c2ca8d713c77d391c503d8e471c",
+    "semantic_hash": "acb18c2ca8d713c77d391c503d8e471c"
+  },
+  "public/selection-previews/jago/ec1f5a182ac34a77efb5bb1859e834aae016b95075b70848b0dea99c906e99c7.gif": {
+    "mtime": 1790654985.091922,
+    "ast_hash": "c80802c16f3aad1f603ef66583568fa3",
+    "semantic_hash": "c80802c16f3aad1f603ef66583568fa3"
+  },
+  "public/selection-previews/kaka/23a443d81960581c09e1b3ed736f3ed3ac906ea3fa2936aefea65ae26106272e.gif": {
+    "mtime": 1790654985.1239269,
+    "ast_hash": "5a76a82b1c47ccc8187c8be4ced2f8d8",
+    "semantic_hash": "5a76a82b1c47ccc8187c8be4ced2f8d8"
+  },
+  "public/selection-previews/kodo/c95e76746dd2d65790ebeb2458565489aa601e6181f49c4d148cdd9764928709.gif": {
+    "mtime": 1790654985.2354462,
+    "ast_hash": "8b8154ed382383cf202b26dee065a148",
+    "semantic_hash": "8b8154ed382383cf202b26dee065a148"
+  },
+  "public/selection-previews/kumis/fde7e7092111ecaaca7d48a00375277539f98f5d7a7877492cb9f9625a70205a.gif": {
+    "mtime": 1790654985.2889555,
+    "ast_hash": "7a63bde246c7939ae1bb618a2322bd79",
+    "semantic_hash": "7a63bde246c7939ae1bb618a2322bd79"
+  },
+  "public/selection-previews/lala/76386965f38b969c744ffdc5a4df97422341d8836693be658ea1a3cd6dbb61e6.gif": {
+    "mtime": 1790654985.3919733,
+    "ast_hash": "6a704146dd3f333d828621ac0b49f1e9",
+    "semantic_hash": "6a704146dd3f333d828621ac0b49f1e9"
+  },
+  "public/selection-previews/lui/711b599405d63257e3f1258c912485caa11bdab12179326a4bb73dbf44efc164.gif": {
+    "mtime": 1790654985.4494846,
+    "ast_hash": "995ffdf8446ad66555495969b309e86d",
+    "semantic_hash": "995ffdf8446ad66555495969b309e86d"
+  },
+  "public/selection-previews/maria/c0aa575399aa09e01b8d9d3133a69d699bf62262959438c09a5c72301f65a32e.gif": {
+    "mtime": 1790654985.4914925,
+    "ast_hash": "c7206ceda4582106df8502e3952f866d",
+    "semantic_hash": "c7206ceda4582106df8502e3952f866d"
+  },
+  "public/selection-previews/raja/71aa5d79f16bbdcf234a7c8fbce099439778fd85936486b393af7d2752bf5acd.gif": {
+    "mtime": 1790654985.5339985,
+    "ast_hash": "f7801a15b192d8880d0f7845cf5e9633",
+    "semantic_hash": "f7801a15b192d8880d0f7845cf5e9633"
+  },
+  "public/selection-previews/robot/1b2c77824813e6738ec32b9e17680dd3e6eb511b376d830cca5917e004b3b9f3.gif": {
+    "mtime": 1790654985.6055107,
+    "ast_hash": "9ebc0bb8a7e779faab0c3f916f61186f",
+    "semantic_hash": "9ebc0bb8a7e779faab0c3f916f61186f"
+  },
+  "public/selection-previews/tui/1d4012f84b3b8f257352952f71d7421440f08c12187a63b36ccd5ea3d2e1204e.gif": {
+    "mtime": 1790654985.6740239,
+    "ast_hash": "e6a14a7550eced81c6549316974e4d56",
+    "semantic_hash": "e6a14a7550eced81c6549316974e4d56"
+  },
+  "public/ui-v2/character-icons/bebe.webp": {
+    "mtime": 1790654985.7900434,
+    "ast_hash": "c5226719ab06d4d2b2fccf0950a7b9b1",
+    "semantic_hash": "c5226719ab06d4d2b2fccf0950a7b9b1"
+  },
+  "public/ui-v2/character-icons/boke.webp": {
+    "mtime": 1790654985.7915432,
+    "ast_hash": "dc32eb172aa1185b4a0b088e3bdf809b",
+    "semantic_hash": "dc32eb172aa1185b4a0b088e3bdf809b"
+  },
+  "public/ui-v2/character-icons/buto.webp": {
+    "mtime": 1790654985.792044,
+    "ast_hash": "857e4ab0e6e8b1b7758e2bf0351f4b9f",
+    "semantic_hash": "857e4ab0e6e8b1b7758e2bf0351f4b9f"
+  },
+  "public/ui-v2/character-icons/ciici.webp": {
+    "mtime": 1790654985.7930431,
+    "ast_hash": "8df806f9883fbd79d4962bef0e3848e9",
+    "semantic_hash": "8df806f9883fbd79d4962bef0e3848e9"
+  },
+  "public/ui-v2/character-icons/jago.webp": {
+    "mtime": 1790654985.7935436,
+    "ast_hash": "454630739c5b016c0a27d9aafcbc181a",
+    "semantic_hash": "454630739c5b016c0a27d9aafcbc181a"
+  },
+  "public/ui-v2/character-icons/kaka.webp": {
+    "mtime": 1790654985.794543,
+    "ast_hash": "b932329543756cb33e53ffd6e7c07af9",
+    "semantic_hash": "b932329543756cb33e53ffd6e7c07af9"
+  },
+  "public/ui-v2/character-icons/kodo.webp": {
+    "mtime": 1790654985.7955449,
+    "ast_hash": "460b601308523767ac477fb3886a4f6d",
+    "semantic_hash": "460b601308523767ac477fb3886a4f6d"
+  },
+  "public/ui-v2/character-icons/kumis.webp": {
+    "mtime": 1790654985.796544,
+    "ast_hash": "2ea449a25cf9613b4f0e404fe6367602",
+    "semantic_hash": "2ea449a25cf9613b4f0e404fe6367602"
+  },
+  "public/ui-v2/character-icons/lala.webp": {
+    "mtime": 1790654985.7975438,
+    "ast_hash": "ffac18fb716f2c265f4bf93c30279da4",
+    "semantic_hash": "ffac18fb716f2c265f4bf93c30279da4"
+  },
+  "public/ui-v2/character-icons/lui.webp": {
+    "mtime": 1790654985.7985463,
+    "ast_hash": "02cf8379353be02f5a1f85f777bce240",
+    "semantic_hash": "02cf8379353be02f5a1f85f777bce240"
+  },
+  "public/ui-v2/character-icons/maria.webp": {
+    "mtime": 1790654985.7990446,
+    "ast_hash": "421ec6d8a440e08ce520a44c817e4fdd",
+    "semantic_hash": "421ec6d8a440e08ce520a44c817e4fdd"
+  },
+  "public/ui-v2/character-icons/raja.webp": {
+    "mtime": 1790654985.800045,
+    "ast_hash": "e7514c5c0ca80610243ea0d1a94ce230",
+    "semantic_hash": "e7514c5c0ca80610243ea0d1a94ce230"
+  },
+  "public/ui-v2/character-icons/robot.webp": {
+    "mtime": 1790654985.800545,
+    "ast_hash": "099fc47736929ce79a6a044514073b5a",
+    "semantic_hash": "099fc47736929ce79a6a044514073b5a"
+  },
+  "public/ui-v2/character-icons/tui.webp": {
+    "mtime": 1790654985.8015482,
+    "ast_hash": "2494a996fe3d9591e245b698e30a6bc5",
+    "semantic_hash": "2494a996fe3d9591e245b698e30a6bc5"
+  },
+  "public/ui-v2/controls/back.webp": {
+    "mtime": 1790654985.8025453,
+    "ast_hash": "2367ff97b406464caf4c9c4392e42220",
+    "semantic_hash": "2367ff97b406464caf4c9c4392e42220"
+  },
+  "public/ui-v2/controls/primary-hover.webp": {
+    "mtime": 1790654985.803545,
+    "ast_hash": "f8b401cdd908f107e5caed63eafb1255",
+    "semantic_hash": "f8b401cdd908f107e5caed63eafb1255"
+  },
+  "public/ui-v2/controls/primary.webp": {
+    "mtime": 1790654985.8045454,
+    "ast_hash": "e80a43aca14d1441a22f7a0e91c75768",
+    "semantic_hash": "e80a43aca14d1441a22f7a0e91c75768"
+  },
+  "public/ui-v2/controls/settings-button.png": {
+    "mtime": 1790654985.8100464,
+    "ast_hash": "d96fefb826d1365d4165673e9ad7638f",
+    "semantic_hash": "d96fefb826d1365d4165673e9ad7638f"
+  },
+  "public/ui-v2/controls/sound-trigger-off.png": {
+    "mtime": 1790654985.8165474,
+    "ast_hash": "a1b27796b9a062fbff8b2dfd76ac40a6",
+    "semantic_hash": "a1b27796b9a062fbff8b2dfd76ac40a6"
+  },
+  "public/ui-v2/controls/sound-trigger-on.png": {
+    "mtime": 1790654985.824049,
+    "ast_hash": "3391a39299278b89abf7156b23800765",
+    "semantic_hash": "3391a39299278b89abf7156b23800765"
+  },
+  "public/ui-v2/controls/team-green-active.webp": {
+    "mtime": 1790654985.825049,
+    "ast_hash": "65dea6dfc63d31e09d3acd868f41edf0",
+    "semantic_hash": "65dea6dfc63d31e09d3acd868f41edf0"
+  },
+  "public/ui-v2/controls/team-green-normal.webp": {
+    "mtime": 1790654985.826051,
+    "ast_hash": "9ae95007fae21d4cce4ecb3526152431",
+    "semantic_hash": "9ae95007fae21d4cce4ecb3526152431"
+  },
+  "public/ui-v2/controls/team-red-active.webp": {
+    "mtime": 1790654985.827549,
+    "ast_hash": "cb6f44d99f2f0993cb1c16fe10589158",
+    "semantic_hash": "cb6f44d99f2f0993cb1c16fe10589158"
+  },
+  "public/ui-v2/controls/team-red-normal.webp": {
+    "mtime": 1790654985.8285496,
+    "ast_hash": "1430dcce77ea783b9d5ec348b0357abb",
+    "semantic_hash": "1430dcce77ea783b9d5ec348b0357abb"
+  },
+  "public/ui-v2/credits/background.webp": {
+    "mtime": 1790654985.8305519,
+    "ast_hash": "5731879eb6cfcb0993d834368fef18f7",
+    "semantic_hash": "5731879eb6cfcb0993d834368fef18f7"
+  },
+  "public/ui-v2/fields/kampung.webp": {
+    "mtime": 1790654985.8325505,
+    "ast_hash": "ba03cf557281076aa15d55f713ea55ff",
+    "semantic_hash": "ba03cf557281076aa15d55f713ea55ff"
+  },
+  "public/ui-v2/fields/kanal.webp": {
+    "mtime": 1790654985.8340507,
+    "ast_hash": "cfbaed9efa8b5a53460ebd34a46d2e10",
+    "semantic_hash": "cfbaed9efa8b5a53460ebd34a46d2e10"
+  },
+  "public/ui-v2/fields/pasar.webp": {
+    "mtime": 1790654985.8350506,
+    "ast_hash": "23fe4edfeb5317cb1329cda5b0b170e3",
+    "semantic_hash": "23fe4edfeb5317cb1329cda5b0b170e3"
+  },
+  "public/ui-v2/fields/taman.webp": {
+    "mtime": 1790654985.8360517,
+    "ast_hash": "3975f80464ed43aba1d828d6703b8f64",
+    "semantic_hash": "3975f80464ed43aba1d828d6703b8f64"
+  },
+  "public/ui-v2/heroes/green-active.webp": {
+    "mtime": 1790654985.8375509,
+    "ast_hash": "bd4cebac5a0d2687081a847b02c6a269",
+    "semantic_hash": "bd4cebac5a0d2687081a847b02c6a269"
+  },
+  "public/ui-v2/heroes/green-inactive.webp": {
+    "mtime": 1790654985.8385513,
+    "ast_hash": "f3a1287f7484ffed75626232e317e4e4",
+    "semantic_hash": "f3a1287f7484ffed75626232e317e4e4"
+  },
+  "public/ui-v2/heroes/red-active.webp": {
+    "mtime": 1790654985.8395512,
+    "ast_hash": "03fa1e3c06a242d1ebf75eb9b74cf22a",
+    "semantic_hash": "03fa1e3c06a242d1ebf75eb9b74cf22a"
+  },
+  "public/ui-v2/heroes/red-inactive.webp": {
+    "mtime": 1790654985.8410523,
+    "ast_hash": "8b2615a01fe5204ce917ead3954936b5",
+    "semantic_hash": "8b2615a01fe5204ce917ead3954936b5"
+  },
+  "public/ui-v2/panels/character-panel-green.png": {
+    "mtime": 1790654985.8510537,
+    "ast_hash": "0652f56e8836194906b1cc2a026d8a4b",
+    "semantic_hash": "0652f56e8836194906b1cc2a026d8a4b"
+  },
+  "public/ui-v2/panels/character-panel-red.png": {
+    "mtime": 1790654985.861555,
+    "ast_hash": "482b3beb1e6d3f9eb1eb4cee73b98b28",
+    "semantic_hash": "482b3beb1e6d3f9eb1eb4cee73b98b28"
+  },
+  "public/ui-v2/panels/stat-bar-mask.png": {
+    "mtime": 1790654985.862555,
+    "ast_hash": "69525e202e0575b6b0bea536b7308e78",
+    "semantic_hash": "69525e202e0575b6b0bea536b7308e78"
+  },
+  "public/ui-v2/portraits/bebe.webp": {
+    "mtime": 1790654985.8645556,
+    "ast_hash": "ca7597bb71abe0e1fe31bff0e45e5be6",
+    "semantic_hash": "ca7597bb71abe0e1fe31bff0e45e5be6"
+  },
+  "public/ui-v2/portraits/boke.webp": {
+    "mtime": 1790654985.865056,
+    "ast_hash": "3b703ce4bb0e4026011587379357787c",
+    "semantic_hash": "3b703ce4bb0e4026011587379357787c"
+  },
+  "public/ui-v2/portraits/buto.webp": {
+    "mtime": 1790654985.8660574,
+    "ast_hash": "3cda330d307a55befc863ce5bf0740a2",
+    "semantic_hash": "3cda330d307a55befc863ce5bf0740a2"
+  },
+  "public/ui-v2/portraits/ciici.webp": {
+    "mtime": 1790654985.8665562,
+    "ast_hash": "0f62ae29a5ade26fd2b36b722506e159",
+    "semantic_hash": "0f62ae29a5ade26fd2b36b722506e159"
+  },
+  "public/ui-v2/portraits/jago.webp": {
+    "mtime": 1790654985.8675563,
+    "ast_hash": "bc73bd8c24c727c082bb7ba7a184551f",
+    "semantic_hash": "bc73bd8c24c727c082bb7ba7a184551f"
+  },
+  "public/ui-v2/portraits/kaka.webp": {
+    "mtime": 1790654985.8685572,
+    "ast_hash": "0a7333e0c31cca54f0555b88ebc1c331",
+    "semantic_hash": "0a7333e0c31cca54f0555b88ebc1c331"
+  },
+  "public/ui-v2/portraits/kodo.webp": {
+    "mtime": 1790654985.8695567,
+    "ast_hash": "e320b1e904f35e8d1b6c600df742cc04",
+    "semantic_hash": "e320b1e904f35e8d1b6c600df742cc04"
+  },
+  "public/ui-v2/portraits/kumis.webp": {
+    "mtime": 1790654985.8705583,
+    "ast_hash": "ca3f965a7fb7cdbd0514b7c32dd248b0",
+    "semantic_hash": "ca3f965a7fb7cdbd0514b7c32dd248b0"
+  },
+  "public/ui-v2/portraits/lala.webp": {
+    "mtime": 1790654985.871557,
+    "ast_hash": "17fdf8f267469aef19b0733cd300f7c0",
+    "semantic_hash": "17fdf8f267469aef19b0733cd300f7c0"
+  },
+  "public/ui-v2/portraits/lui.webp": {
+    "mtime": 1790654985.8720572,
+    "ast_hash": "f079992a0203871f4324e52a9283da2d",
+    "semantic_hash": "f079992a0203871f4324e52a9283da2d"
+  },
+  "public/ui-v2/portraits/maria.webp": {
+    "mtime": 1790654985.873058,
+    "ast_hash": "31054aa51e9f863a26ae27d78ec49c08",
+    "semantic_hash": "31054aa51e9f863a26ae27d78ec49c08"
+  },
+  "public/ui-v2/portraits/raja.webp": {
+    "mtime": 1790654985.874057,
+    "ast_hash": "a6263a3e13f76e90d2cd749b6a89f0ae",
+    "semantic_hash": "a6263a3e13f76e90d2cd749b6a89f0ae"
+  },
+  "public/ui-v2/portraits/robot.webp": {
+    "mtime": 1790654985.875058,
+    "ast_hash": "f7ad1ef29dd3d676ec5947b554ee6940",
+    "semantic_hash": "f7ad1ef29dd3d676ec5947b554ee6940"
+  },
+  "public/ui-v2/portraits/tui.webp": {
+    "mtime": 1790654985.876058,
+    "ast_hash": "2db159e1e65eb919917a0fb64537bcd6",
+    "semantic_hash": "2db159e1e65eb919917a0fb64537bcd6"
+  },
+  "public/ui-v2/skills/kaka-perisai-hijau.webp": {
+    "mtime": 1790654985.8780582,
+    "ast_hash": "320cf96f90368d914d8afecbc80e5018",
+    "semantic_hash": "320cf96f90368d914d8afecbc80e5018"
+  },
+  "public/ui-v2/skills/raja-titah-halilintar.webp": {
+    "mtime": 1790654985.8790581,
+    "ast_hash": "734748d99e7c8a9b6681b54b731d1e62",
+    "semantic_hash": "734748d99e7c8a9b6681b54b731d1e62"
+  },
+  "public/vfx/sprint-dust.webp": {
+    "mtime": 1790654985.9125643,
+    "ast_hash": "e83617efd99eb98257b4222d1256c134",
+    "semantic_hash": "e83617efd99eb98257b4222d1256c134"
+  },
+  "sprite-sources/bebe.png": {
+    "mtime": 1790654985.9390688,
+    "ast_hash": "f37f9e5c4575cbdeff4c2f05db851dbb",
+    "semantic_hash": "f37f9e5c4575cbdeff4c2f05db851dbb"
+  },
+  "sprite-sources/boke.png": {
+    "mtime": 1790654985.9485714,
+    "ast_hash": "9d87aafb9fc1d7e8c493cf6679e4c2a0",
+    "semantic_hash": "9d87aafb9fc1d7e8c493cf6679e4c2a0"
+  },
+  "sprite-sources/boke/boke kanan atas.png": {
+    "mtime": 1790654985.9545715,
+    "ast_hash": "20d7763788a934370b47c5fe6c67d5bf",
+    "semantic_hash": "20d7763788a934370b47c5fe6c67d5bf"
+  },
+  "sprite-sources/boke/boke kanan bawah.png": {
+    "mtime": 1790654985.9615731,
+    "ast_hash": "07b06034a6ee7a9c92c012ba52a6d389",
+    "semantic_hash": "07b06034a6ee7a9c92c012ba52a6d389"
+  },
+  "sprite-sources/boke/boke kiri atas.png": {
+    "mtime": 1790654985.9665737,
+    "ast_hash": "ab6532a86723b0e0d845d22ff6b7a446",
+    "semantic_hash": "ab6532a86723b0e0d845d22ff6b7a446"
+  },
+  "sprite-sources/boke/boke kiri bawah.png": {
+    "mtime": 1790654985.973576,
+    "ast_hash": "74656c8e48082c7427899000aa3fd622",
+    "semantic_hash": "74656c8e48082c7427899000aa3fd622"
+  },
+  "sprite-sources/boke/boke lari belakang.png": {
+    "mtime": 1790654985.9810755,
+    "ast_hash": "361b9f19a052950b82ee7e55cd788498",
+    "semantic_hash": "361b9f19a052950b82ee7e55cd788498"
+  },
+  "sprite-sources/boke/boke lari depan.png": {
+    "mtime": 1790654985.9900773,
+    "ast_hash": "aef718b8a3c4c67c5bc20a452dde25c7",
+    "semantic_hash": "aef718b8a3c4c67c5bc20a452dde25c7"
+  },
+  "sprite-sources/boke/boke lari samping 2.png": {
+    "mtime": 1790654986.0055802,
+    "ast_hash": "19ac18492ce401f252b1a98db09fab33",
+    "semantic_hash": "19ac18492ce401f252b1a98db09fab33"
+  },
+  "sprite-sources/boke/boke lari samping.png": {
+    "mtime": 1790654986.0205834,
+    "ast_hash": "ee57a95663d57ebaab2ea0656b0fea8b",
+    "semantic_hash": "ee57a95663d57ebaab2ea0656b0fea8b"
+  },
+  "sprite-sources/boke/boke_idle.png": {
+    "mtime": 1790654986.0295844,
+    "ast_hash": "a8eed5d910d82516563c1ef85a5e0ebf",
+    "semantic_hash": "a8eed5d910d82516563c1ef85a5e0ebf"
+  },
+  "sprite-sources/boke/boke_pose tertangkap_menang_kalah.png": {
+    "mtime": 1790654986.0395873,
+    "ast_hash": "4ca21244798ab9dd0680474c2034b67f",
+    "semantic_hash": "4ca21244798ab9dd0680474c2034b67f"
+  },
+  "sprite-sources/boke/boke_tag.png": {
+    "mtime": 1790654986.0535884,
+    "ast_hash": "554b1629c13a2f968ba2c14a791e1569",
+    "semantic_hash": "554b1629c13a2f968ba2c14a791e1569"
+  },
+  "sprite-sources/buto.png": {
+    "mtime": 1790654986.0610917,
+    "ast_hash": "2d5819a6d38c282db3151a06b06d031b",
+    "semantic_hash": "2d5819a6d38c282db3151a06b06d031b"
+  },
+  "sprite-sources/ciici.png": {
+    "mtime": 1790654986.0675929,
+    "ast_hash": "c985fde1bfeb42e58d49d28c98ee4eed",
+    "semantic_hash": "c985fde1bfeb42e58d49d28c98ee4eed"
+  },
+  "sprite-sources/jago-parts/idle.png": {
+    "mtime": 1790654986.0800939,
+    "ast_hash": "a4db9f6fa3455c6ee1890c2e4937569a",
+    "semantic_hash": "a4db9f6fa3455c6ee1890c2e4937569a"
+  },
+  "sprite-sources/jago-parts/parkour-north.png": {
+    "mtime": 1790654986.0885966,
+    "ast_hash": "97cfeb5e6e91fdeca5bd335a755546e5",
+    "semantic_hash": "97cfeb5e6e91fdeca5bd335a755546e5"
+  },
+  "sprite-sources/jago-parts/parkour-side.png": {
+    "mtime": 1790654986.0980976,
+    "ast_hash": "cc108c41839aed5e018f335a3c6fa764",
+    "semantic_hash": "cc108c41839aed5e018f335a3c6fa764"
+  },
+  "sprite-sources/jago-parts/parkour-south.png": {
+    "mtime": 1790654986.1075985,
+    "ast_hash": "b7313e83cd73f423d40a6e0bfca78829",
+    "semantic_hash": "b7313e83cd73f423d40a6e0bfca78829"
+  },
+  "sprite-sources/jago-parts/prisoner.png": {
+    "mtime": 1790654986.1115987,
+    "ast_hash": "0aef9db9614769e7555b78388067b0f5",
+    "semantic_hash": "0aef9db9614769e7555b78388067b0f5"
+  },
+  "sprite-sources/jago-parts/result.png": {
+    "mtime": 1790654986.1231008,
+    "ast_hash": "c461e368850bbed9380e12e6458bbaf0",
+    "semantic_hash": "c461e368850bbed9380e12e6458bbaf0"
+  },
+  "sprite-sources/jago-parts/run-north.png": {
+    "mtime": 1790654986.129603,
+    "ast_hash": "6e758d2820802c0fd82edf5c9ed70225",
+    "semantic_hash": "6e758d2820802c0fd82edf5c9ed70225"
+  },
+  "sprite-sources/jago-parts/run-side.png": {
+    "mtime": 1790654986.1326022,
+    "ast_hash": "4d65a40a31bf6f2487d074d1dd91c2de",
+    "semantic_hash": "4d65a40a31bf6f2487d074d1dd91c2de"
+  },
+  "sprite-sources/jago-parts/run-south.png": {
+    "mtime": 1790654986.1401045,
+    "ast_hash": "5b273bd265fd2425f7b915e099231e40",
+    "semantic_hash": "5b273bd265fd2425f7b915e099231e40"
+  },
+  "sprite-sources/jago.png": {
+    "mtime": 1790654986.1521058,
+    "ast_hash": "f7b23ce906428aa02657fc072b841e21",
+    "semantic_hash": "f7b23ce906428aa02657fc072b841e21"
+  },
+  "sprite-sources/kaka ultimate sprites.png": {
+    "mtime": 1790654986.1606088,
+    "ast_hash": "755e36119292fd8ec571512bc49743e9",
+    "semantic_hash": "755e36119292fd8ec571512bc49743e9"
+  },
+  "sprite-sources/kaka.png": {
+    "mtime": 1790654986.1656108,
+    "ast_hash": "5410a43fadd1d90729502f393f18de77",
+    "semantic_hash": "5410a43fadd1d90729502f393f18de77"
+  },
+  "sprite-sources/kodo.png": {
+    "mtime": 1790654986.17411,
+    "ast_hash": "3f75f4e991a2c307aee86875e3e58802",
+    "semantic_hash": "3f75f4e991a2c307aee86875e3e58802"
+  },
+  "sprite-sources/kumis.png": {
+    "mtime": 1790654986.181611,
+    "ast_hash": "874faa3612c8f77e82e3717e78ced99a",
+    "semantic_hash": "874faa3612c8f77e82e3717e78ced99a"
+  },
+  "sprite-sources/lala.png": {
+    "mtime": 1790654986.1896124,
+    "ast_hash": "6e87077f60fed7536ff930eb982ed22e",
+    "semantic_hash": "6e87077f60fed7536ff930eb982ed22e"
+  },
+  "sprite-sources/lui.png": {
+    "mtime": 1790654986.194614,
+    "ast_hash": "156901459ff9ff733e61b979938d61fe",
+    "semantic_hash": "156901459ff9ff733e61b979938d61fe"
+  },
+  "sprite-sources/maria.png": {
+    "mtime": 1790654986.204115,
+    "ast_hash": "c2210fe881c23a82fd777be0e5cda101",
+    "semantic_hash": "c2210fe881c23a82fd777be0e5cda101"
+  },
+  "sprite-sources/maria/82b69b12-02a5-4716-a5c5-56c96810bd82.png": {
+    "mtime": 1790654986.2141166,
+    "ast_hash": "2e852cc555cbb73efb952e822ae77633",
+    "semantic_hash": "2e852cc555cbb73efb952e822ae77633"
+  },
+  "sprite-sources/maria/Maria_lari hadap belakang sprites.png": {
+    "mtime": 1790654986.2196193,
+    "ast_hash": "20400b8442e9710e8203c905b775f657",
+    "semantic_hash": "20400b8442e9710e8203c905b775f657"
+  },
+  "sprite-sources/maria/Maria_lari hadap depan sprites.png": {
+    "mtime": 1790654986.225618,
+    "ast_hash": "63085557a95f193f6157e7403312e4b7",
+    "semantic_hash": "63085557a95f193f6157e7403312e4b7"
+  },
+  "sprite-sources/maria/Maria_run_left.png": {
+    "mtime": 1790654986.232621,
+    "ast_hash": "b237b13966ce229dc95da04389633d9b",
+    "semantic_hash": "b237b13966ce229dc95da04389633d9b"
+  },
+  "sprite-sources/maria/lari serong kanan atas belakang.png": {
+    "mtime": 1790654986.2361214,
+    "ast_hash": "f04b8b7ea61534958ce59df04854c8a2",
+    "semantic_hash": "f04b8b7ea61534958ce59df04854c8a2"
+  },
+  "sprite-sources/maria/lari serong kanan bawah.png": {
+    "mtime": 1790654986.2416217,
+    "ast_hash": "f2b0152dde5e0bba8238eb5d999d78c6",
+    "semantic_hash": "f2b0152dde5e0bba8238eb5d999d78c6"
+  },
+  "sprite-sources/maria/lari serong kiri atas belakang.png": {
+    "mtime": 1790654986.245122,
+    "ast_hash": "05bdbf87d630a07b216377ca2e9871db",
+    "semantic_hash": "05bdbf87d630a07b216377ca2e9871db"
+  },
+  "sprite-sources/maria/lari serong kiri bawah.png": {
+    "mtime": 1790654986.2506247,
+    "ast_hash": "a9aafb699597ed20fbbf37d2ede24595",
+    "semantic_hash": "a9aafb699597ed20fbbf37d2ede24595"
+  },
+  "sprite-sources/maria/maria pose idle.png": {
+    "mtime": 1790654986.259626,
+    "ast_hash": "0f72ea3081027949cea53583176d6ca5",
+    "semantic_hash": "0f72ea3081027949cea53583176d6ca5"
+  },
+  "sprite-sources/maria/maria pose menang dan kalah.png": {
+    "mtime": 1790654986.268127,
+    "ast_hash": "2e852cc555cbb73efb952e822ae77633",
+    "semantic_hash": "2e852cc555cbb73efb952e822ae77633"
+  },
+  "sprite-sources/maria/maria tag pose.png": {
+    "mtime": 1790654986.2781284,
+    "ast_hash": "ca6a80281e955992c67d14d2604795b4",
+    "semantic_hash": "ca6a80281e955992c67d14d2604795b4"
+  },
+  "sprite-sources/maria/maria_pose tertangkap.png": {
+    "mtime": 1790654986.2861302,
+    "ast_hash": "e87c7faa8a5d0538eb4595e620270747",
+    "semantic_hash": "e87c7faa8a5d0538eb4595e620270747"
+  },
+  "sprite-sources/maria/maria_run_right.png": {
+    "mtime": 1790654986.29213,
+    "ast_hash": "3cb18873965ffa92c2fbb5cbd3c9ec0f",
+    "semantic_hash": "3cb18873965ffa92c2fbb5cbd3c9ec0f"
+  },
+  "sprite-sources/raja new sprites.png": {
+    "mtime": 1790654986.3001337,
+    "ast_hash": "0f98e224f2b57a596453c3fd3a0f9393",
+    "semantic_hash": "0f98e224f2b57a596453c3fd3a0f9393"
+  },
+  "sprite-sources/raja.png": {
+    "mtime": 1790654986.3106344,
+    "ast_hash": "eca6bc7648c98aec770cb4d4f942aed3",
+    "semantic_hash": "eca6bc7648c98aec770cb4d4f942aed3"
+  },
+  "sprite-sources/robot.png": {
+    "mtime": 1790654986.3166356,
+    "ast_hash": "c74d5f4796045a1e9b0321ee80a03b98",
+    "semantic_hash": "c74d5f4796045a1e9b0321ee80a03b98"
+  },
+  "sprite-sources/tui.png": {
+    "mtime": 1790654986.3216355,
+    "ast_hash": "037fa78631542261ed684eb7bb3a28b4",
+    "semantic_hash": "037fa78631542261ed684eb7bb3a28b4"
+  },
+  "vfx-sources/sprint-dust.png": {
+    "mtime": 1790654986.327137,
+    "ast_hash": "c10fa0204d2d4dbcf9688446dc1db270",
+    "semantic_hash": "c10fa0204d2d4dbcf9688446dc1db270"
+  },
+  "Assets/Audio/Defeat_Music.mp3": {
+    "mtime": 1790654983.062068,
+    "ast_hash": "1d0b0ed9c6c8a694f0ef5ffca23653e4",
+    "semantic_hash": "1d0b0ed9c6c8a694f0ef5ffca23653e4"
+  },
+  "Assets/Audio/Music_WhenUserPressPlay.mp3": {
+    "mtime": 1790654983.063569,
+    "ast_hash": "62d2c1f52b05300280a069ae6cd5db9c",
+    "semantic_hash": "62d2c1f52b05300280a069ae6cd5db9c"
+  },
+  "Assets/Audio/UI_back or Cancel.mp3": {
+    "mtime": 1790654983.0645692,
+    "ast_hash": "6e064aea7f90a7eb4e8afca38e942a64",
+    "semantic_hash": "6e064aea7f90a7eb4e8afca38e942a64"
+  },
+  "Assets/Audio/UI_select or Next.mp3": {
+    "mtime": 1790654983.0655687,
+    "ast_hash": "4fc5d51623f4402ccff77b60886566fb",
+    "semantic_hash": "4fc5d51623f4402ccff77b60886566fb"
+  },
+  "Assets/Audio/Winning_Music.mp3": {
+    "mtime": 1790654983.0670688,
+    "ast_hash": "f66e0ec817413c264e4ce2e53ffca6e1",
+    "semantic_hash": "f66e0ec817413c264e4ce2e53ffca6e1"
+  },
+  "Assets/Audio/ambienceingame1.mp3": {
+    "mtime": 1790654983.0705702,
+    "ast_hash": "4f285701ff663a1efadc2e47ab385639",
+    "semantic_hash": "4f285701ff663a1efadc2e47ab385639"
+  },
+  "Assets/Audio/ingameMusic.mp3": {
+    "mtime": 1790654983.1100774,
+    "ast_hash": "a7d0f7c813e76a8c6fa58a2b75ba8968",
+    "semantic_hash": "a7d0f7c813e76a8c6fa58a2b75ba8968"
+  },
+  "Assets/Audio/opening_title_music.MP3": {
+    "mtime": 1790654983.1395826,
+    "ast_hash": "cec2ccd646a57f4f6eea909688b98eac",
+    "semantic_hash": "cec2ccd646a57f4f6eea909688b98eac"
+  },
+  "Assets/Video and GIFs/TimHijau_loop_animation_char_selection.mp4": {
+    "mtime": 1790654983.1540866,
+    "ast_hash": "e3c77872cd126c5f65af4ad8c685441d",
+    "semantic_hash": "e3c77872cd126c5f65af4ad8c685441d"
+  },
+  "Assets/Video and GIFs/TimMerah_loop_animation_char_selection.mp4": {
+    "mtime": 1790654983.172587,
+    "ast_hash": "c84739baa35306cb617371bf628981a3",
+    "semantic_hash": "c84739baa35306cb617371bf628981a3"
+  },
+  "Assets/Video and GIFs/loading/map 1 loading animation .mp4": {
+    "mtime": 1790654983.2616026,
+    "ast_hash": "ace11546d0f1af70c59baf44462907d2",
+    "semantic_hash": "ace11546d0f1af70c59baf44462907d2"
+  },
+  "Assets/Video and GIFs/loading/map 2 loading animation .mp4": {
+    "mtime": 1790654983.2841077,
+    "ast_hash": "15a4ceb92123eda1e2865f83e49bc8af",
+    "semantic_hash": "15a4ceb92123eda1e2865f83e49bc8af"
+  },
+  "Assets/Video and GIFs/loading/map 3 loading animation .mp4": {
+    "mtime": 1790654983.309112,
+    "ast_hash": "d340eb942e6b61635a20056ad1778b08",
+    "semantic_hash": "d340eb942e6b61635a20056ad1778b08"
+  },
+  "Assets/Video and GIFs/loading/map 4 loading animation .mp4": {
+    "mtime": 1790654983.3396177,
+    "ast_hash": "83c33e68329a4c01bc99e4d349f140e7",
+    "semantic_hash": "83c33e68329a4c01bc99e4d349f140e7"
+  },
+  "public/arena-ui/kampung.mp4": {
+    "mtime": 1790654984.4208043,
+    "ast_hash": "ace11546d0f1af70c59baf44462907d2",
+    "semantic_hash": "ace11546d0f1af70c59baf44462907d2"
+  },
+  "public/arena-ui/kanal.mp4": {
+    "mtime": 1790654984.4508102,
+    "ast_hash": "83c33e68329a4c01bc99e4d349f140e7",
+    "semantic_hash": "83c33e68329a4c01bc99e4d349f140e7"
+  },
+  "public/arena-ui/pasar.mp4": {
+    "mtime": 1790654984.5023184,
+    "ast_hash": "15a4ceb92123eda1e2865f83e49bc8af",
+    "semantic_hash": "15a4ceb92123eda1e2865f83e49bc8af"
+  },
+  "public/arena-ui/taman.mp4": {
+    "mtime": 1790654984.5298233,
+    "ast_hash": "d340eb942e6b61635a20056ad1778b08",
+    "semantic_hash": "d340eb942e6b61635a20056ad1778b08"
+  },
+  "public/ui-v2/audio/characters/bebe.mp3": {
+    "mtime": 1790654985.6785233,
+    "ast_hash": "d9f5f7fb8b1be44a2c7d941c9f3e63ea",
+    "semantic_hash": "d9f5f7fb8b1be44a2c7d941c9f3e63ea"
+  },
+  "public/ui-v2/audio/characters/boke.mp3": {
+    "mtime": 1790654985.6815248,
+    "ast_hash": "acc8bf6cc5cbe56a2081b10c243256dd",
+    "semantic_hash": "acc8bf6cc5cbe56a2081b10c243256dd"
+  },
+  "public/ui-v2/audio/characters/buto.mp3": {
+    "mtime": 1790654985.6840243,
+    "ast_hash": "4a2e9c40972f9edd709abfbf03eabe1e",
+    "semantic_hash": "4a2e9c40972f9edd709abfbf03eabe1e"
+  },
+  "public/ui-v2/audio/characters/ciici.mp3": {
+    "mtime": 1790654985.6865282,
+    "ast_hash": "845c7ba1d186c5642fdba65b211b0761",
+    "semantic_hash": "845c7ba1d186c5642fdba65b211b0761"
+  },
+  "public/ui-v2/audio/characters/jago.mp3": {
+    "mtime": 1790654985.6890254,
+    "ast_hash": "19dd2475e1662aa64f880c3ee173288a",
+    "semantic_hash": "19dd2475e1662aa64f880c3ee173288a"
+  },
+  "public/ui-v2/audio/characters/kaka.mp3": {
+    "mtime": 1790654985.691026,
+    "ast_hash": "6abd729e4bbc0a6b8d02a50ac2dc4355",
+    "semantic_hash": "6abd729e4bbc0a6b8d02a50ac2dc4355"
+  },
+  "public/ui-v2/audio/characters/kodo.mp3": {
+    "mtime": 1790654985.6940258,
+    "ast_hash": "e2cf5e8959bb7c2719b536024da9bfe9",
+    "semantic_hash": "e2cf5e8959bb7c2719b536024da9bfe9"
+  },
+  "public/ui-v2/audio/characters/kumis.mp3": {
+    "mtime": 1790654985.6960263,
+    "ast_hash": "ac601c05139d399e84da12ed4b211cb7",
+    "semantic_hash": "ac601c05139d399e84da12ed4b211cb7"
+  },
+  "public/ui-v2/audio/characters/lala.mp3": {
+    "mtime": 1790654985.6985261,
+    "ast_hash": "05c7943570ef88374f9d0d367b2e4652",
+    "semantic_hash": "05c7943570ef88374f9d0d367b2e4652"
+  },
+  "public/ui-v2/audio/characters/lui.mp3": {
+    "mtime": 1790654985.7010298,
+    "ast_hash": "5deb1b283f051a62f75201a53d2347a1",
+    "semantic_hash": "5deb1b283f051a62f75201a53d2347a1"
+  },
+  "public/ui-v2/audio/characters/maria.mp3": {
+    "mtime": 1790654985.703027,
+    "ast_hash": "795a69ad1237077c8ce9ae2a1646eb6b",
+    "semantic_hash": "795a69ad1237077c8ce9ae2a1646eb6b"
+  },
+  "public/ui-v2/audio/characters/raja.mp3": {
+    "mtime": 1790654985.7055273,
+    "ast_hash": "9f1ca97c5f4bacf72dbeed44cd8c1c73",
+    "semantic_hash": "9f1ca97c5f4bacf72dbeed44cd8c1c73"
+  },
+  "public/ui-v2/audio/characters/robot.mp3": {
+    "mtime": 1790654985.7075276,
+    "ast_hash": "16dde927938a05beec084128e4ce046a",
+    "semantic_hash": "16dde927938a05beec084128e4ce046a"
+  },
+  "public/ui-v2/audio/characters/tui.mp3": {
+    "mtime": 1790654985.7095282,
+    "ast_hash": "e24f8c011fe0907ca5b75f6c0f94bf0b",
+    "semantic_hash": "e24f8c011fe0907ca5b75f6c0f94bf0b"
+  },
+  "public/ui-v2/audio/defeat.mp3": {
+    "mtime": 1790654985.7110286,
+    "ast_hash": "1d0b0ed9c6c8a694f0ef5ffca23653e4",
+    "semantic_hash": "1d0b0ed9c6c8a694f0ef5ffca23653e4"
+  },
+  "public/ui-v2/audio/ingame-ambience.mp3": {
+    "mtime": 1790654985.7150292,
+    "ast_hash": "4f285701ff663a1efadc2e47ab385639",
+    "semantic_hash": "4f285701ff663a1efadc2e47ab385639"
+  },
+  "public/ui-v2/audio/ingame-music.mp3": {
+    "mtime": 1790654985.7525363,
+    "ast_hash": "a7d0f7c813e76a8c6fa58a2b75ba8968",
+    "semantic_hash": "a7d0f7c813e76a8c6fa58a2b75ba8968"
+  },
+  "public/ui-v2/audio/opening-title.mp3": {
+    "mtime": 1790654985.7820423,
+    "ast_hash": "cec2ccd646a57f4f6eea909688b98eac",
+    "semantic_hash": "cec2ccd646a57f4f6eea909688b98eac"
+  },
+  "public/ui-v2/audio/press-play.mp3": {
+    "mtime": 1790654985.7840421,
+    "ast_hash": "62d2c1f52b05300280a069ae6cd5db9c",
+    "semantic_hash": "62d2c1f52b05300280a069ae6cd5db9c"
+  },
+  "public/ui-v2/audio/ui-back.mp3": {
+    "mtime": 1790654985.7855418,
+    "ast_hash": "6e064aea7f90a7eb4e8afca38e942a64",
+    "semantic_hash": "6e064aea7f90a7eb4e8afca38e942a64"
+  },
+  "public/ui-v2/audio/ui-select.mp3": {
+    "mtime": 1790654985.7870424,
+    "ast_hash": "4fc5d51623f4402ccff77b60886566fb",
+    "semantic_hash": "4fc5d51623f4402ccff77b60886566fb"
+  },
+  "public/ui-v2/audio/victory.mp3": {
+    "mtime": 1790654985.7885427,
+    "ast_hash": "f66e0ec817413c264e4ce2e53ffca6e1",
+    "semantic_hash": "f66e0ec817413c264e4ce2e53ffca6e1"
+  },
+  "public/ui-v2/videos/team-green.mp4": {
+    "mtime": 1790654985.893564,
+    "ast_hash": "e3c77872cd126c5f65af4ad8c685441d",
+    "semantic_hash": "e3c77872cd126c5f65af4ad8c685441d"
+  },
+  "public/ui-v2/videos/team-red.mp4": {
+    "mtime": 1790654985.911065,
+    "ast_hash": "c84739baa35306cb617371bf628981a3",
+    "semantic_hash": "c84739baa35306cb617371bf628981a3"
+  },
+  ".opencode/opencode.json": {
+    "mtime": 1790668696.7840238,
+    "ast_hash": "f2ae21510d07365eb2bce8159272c7a0",
+    "semantic_hash": ""
+  },
+  ".opencode/plugins/graphify.js": {
+    "mtime": 1790668696.7830377,
+    "ast_hash": "b33d000860642c6f4907a877e0387a21",
+    "semantic_hash": ""
+  },
+  "Review Plan.MD": {
+    "mtime": 1790669066.7126677,
+    "ast_hash": "6a89afac77db558e5259a2ccdd40e866",
+    "semantic_hash": ""
+  }
+}
