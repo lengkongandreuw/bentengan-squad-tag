@@ -5,6 +5,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 04 Character Unlock Engine (2026-10-03, LOCAL ONLY)
+
+- character-unlocks.ts: requirement, eligibility, progress dan resolver pure,
+  export melalui index.ts. Aturan berasal dari config02 dan level engine03.
+- Starter selalu terbuka; historical unlock dipertahankan meski aturan berubah.
+  Resolver mengembalikan {profile, newlyUnlockedCharacters}, tanpa storage write.
+- Legacy dibaca level1; resolver menolak progression yang belum ada dengan pesan
+  migrasi. Tidak melakukan migration09, selection UI, random gate atau bot changes.
+- Validasi 14 tes progression PASS, TypeScript PASS. Map draft pengguna utuh.
+- Pengguna memberikan spesifikasi04 dan05 sekaligus;04 selesai sebelum mulai05.
+  Tidak publish dan tidak melanjutkan06.
+
 ### COMPLETE — MODULE 03 XP & Player Level Engine (2026-10-03, LOCAL ONLY)
 
 - Sumber: 03-XP-PLAYER-LEVEL-ENGINE.md. Fondasi lokal01 ba43cdb,02 2abcb93.

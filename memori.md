@@ -4,6 +4,13 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+Progression MODULE04 (2026-10-03, lokal belum publish): character-unlocks.ts
+menyediakan requirement/eligibility/progress dan resolver immutable dari config.
+Historical unlock NEVER RELOCK; starter selalu terbuka. Resolver menghasilkan
+profil baru dan daftar unlock baru, bukan otomatis menyimpan. Legacy tanpa
+progression aman dibaca level1, write resolver menunggu migration09. Bot/UI/match
+tidak berubah. 14 tes dan TypeScript PASS. User meminta04+05 sekaligus.
+
 Progression MODULE03 (2026-10-03, lokal belum publish): xp-engine.ts memiliki
 helper XP/level pure dari config02, tanpa integrasi match/storage/UI. XP summary
 completed/result/tags/rescues; incomplete0, loss tetap completion100, cap terpisah

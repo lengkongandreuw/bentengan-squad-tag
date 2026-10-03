@@ -6,3 +6,4 @@ export * from './types';
 export * from './progression';
 export * from './progression-rules';
 export * from './xp-engine';
+export * from './character-unlocks';

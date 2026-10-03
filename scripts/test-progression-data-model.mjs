@@ -36,6 +36,64 @@ const { PLAYER_PROFILE_STORAGE_KEY } = await load('defaults');
 const { progressionRules, parseProgressionRules } = await load('progression-rules');
 const { getLevelFromXP, getCurrentLevelProgress, getXPRequiredForLevel,
   getXPToNextLevel, calculateMatchXP } = await load('xp-engine');
+const { isCharacterUnlocked, getCharacterUnlockRequirement,
+  getCharacterUnlockProgress, resolveCharacterUnlocks } = await load('character-unlocks');
+
+test('module04 all character thresholds, starters and unknown IDs', () => {
+  const profile = service.createPlayerProfile('Unlocker');
+  for (const { characterId, minLevel } of progressionRules.characterUnlockRequirements) {
+    const xp = getXPRequiredForLevel(minLevel);
+    profile.progression.xp = xp;
+    assert.equal(isCharacterUnlocked(profile, characterId), true);
+    assert.equal(getCharacterUnlockRequirement(characterId).requiredXP, xp);
+    assert.ok(resolveCharacterUnlocks(profile).profile.progression.unlockedCharacters.includes(characterId));
+    if (minLevel > 1) {
+      profile.progression.xp = xp - 1;
+      assert.equal(isCharacterUnlocked(profile, characterId), false);
+      assert.ok(!resolveCharacterUnlocks(profile).profile.progression.unlockedCharacters.includes(characterId));
+      assert.equal(getCharacterUnlockProgress(profile, characterId).xpRemaining, 1);
+    }
+  }
+  delete profile.progression;
+  assert.equal(isCharacterUnlocked(profile, 'raja'), true);
+  assert.equal(isCharacterUnlocked(profile, 'kaka'), true);
+  assert.equal(isCharacterUnlocked(profile, 'jago'), false);
+  assert.throws(() => resolveCharacterUnlocks(profile), /migrasi/);
+  assert.equal(getCharacterUnlockRequirement('missing'), null);
+  assert.equal(getCharacterUnlockProgress(profile, 'missing'), null);
+  assert.equal(isCharacterUnlocked(profile, 'missing'), false);
+});
+
+test('module04 historical unlocks never relock after config change; resolver is immutable/idempotent', () => {
+  const profile = service.createPlayerProfile('Historian');
+  profile.progression.unlockedCharacters.push('bebe', 'kodo');
+  profile.progression.xp = 450;
+  const before = structuredClone(profile);
+  const requirement = progressionRules.characterUnlockRequirements.find(r => r.characterId === 'bebe');
+  const originalLevel = requirement.minLevel;
+  requirement.minLevel = 13;
+  try {
+    const result = resolveCharacterUnlocks(profile);
+    assert.deepEqual(result.newlyUnlockedCharacters, ['ciici']);
+    assert.equal(isCharacterUnlocked(result.profile, 'bebe'), true);
+    assert.equal(getCharacterUnlockProgress(result.profile, 'kodo').progress, 1);
+    assert.equal(getCharacterUnlockProgress(result.profile, 'kodo').xpRemaining, 0);
+    assert.deepEqual(resolveCharacterUnlocks(result.profile).newlyUnlockedCharacters, []);
+    assert.deepEqual(profile, before);
+    assert.deepEqual(parsePlayerProfile(result.profile), result.profile);
+  } finally { requirement.minLevel = originalLevel; }
+});
+
+test('module04 progress helper and resolver never access persistence', () => {
+  const profile = service.createPlayerProfile('PureUnlock');
+  profile.progression.xp = 100;
+  globalThis.window = { get localStorage() { throw new Error('No storage access'); } };
+  try {
+    assert.equal(getCharacterUnlockProgress(profile, 'bebe').progress, 0.5);
+    assert.equal(getCharacterUnlockProgress(profile, 'raja').progress, 1);
+    assert.deepEqual(resolveCharacterUnlocks(profile).newlyUnlockedCharacters, []);
+  } finally { delete globalThis.window; }
+});
 
 test('new profile default and independently mutable progression collections', () => {
   const profile = service.createPlayerProfile('Tester');
