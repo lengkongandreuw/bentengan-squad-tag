@@ -4,6 +4,24 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+MODULE14–15 lokal (2026-10-03): Progression Core01–15 COMPLETE. Satu panel result
+nonblocking menampilkan resolver newlyUnlockedCharacters/newlyUnlockedArenaIds,
+nama dari katalog, dismiss button. Transient notice/result reset per match dan
+tidak direhydrate dari profil; reload tidak replay, unlock tetap persisted.
+Duplicate/incomplete tidak memberi notice/reward. 37 tests PASS (full persisted
+journey all14chars/Lv13/six arena tiers, migration/gates/random/rotation/wiring,
+no render awards, multiunlock incl20 entries). TypeScript/lint/build PASS.
+Real isolated3006: loss100XP lalu win168XP =>268/Lv2, Bebe+Pasar notified together;
+dismiss keeps reward; reload retains stats/unlocks, rematch resets result. UI
+fixture tests duplicate/reload/mobile390x844, no overflow/errors. Hash kedua
+Studio configs unchanged; user drafts/upload Kaka not staged; no assets rebuilt.
+Test command npm run test:progression. Coverage/limits in PROGRESSION_REGRESSION.md.
+Known limits: localStorage only;50-ID duplicate window/no multi-tab transactions;
+reload can skip unread notice; aggregate legacy migration not per-arena wins;
+new custom maps need rules. Three-completed-match rotation unchanged.
+STOP after15; no achievement/daily mission/cloud save; do not publish until asked.
+Earlier STOP notes01–13 below are historical and superseded by completion01–15.
+
 MODULE12–13 lokal (2026-10-03): panel persyaratan semua arena menggunakan checks
 engine+nama katalog, inspect dropdown tidak memilih locked map. Carousel/gates
 tetap. Final result menambah XP breakdown, level/next-level progress dan target

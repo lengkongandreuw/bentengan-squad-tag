@@ -5,6 +5,59 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### COMPLETE — MODULE 15 Regression & Final Integration (2026-10-03, LOCAL ONLY)
+
+State: COMPLETE. Completed Modules: 01–15. Module14 commit d8866e8.
+
+Files changed in14–15:
+- app/prototype.tsx, app/globals.css: result notification/dismissal integration.
+- components/unlock-notification-panel.tsx: one nonblocking, polite live panel.
+- lib/player-profile/unlock-notifications.ts, index.ts: fresh event selector.
+- scripts/test-progression-data-model.mjs, package.json: integrated regression
+  journey/rotation/wiring/UI tests and npm run test:progression command.
+- PROGRESSION_REGRESSION.md, CHECKPOINT.md, memori.md: coverage, limitations,
+  validation/checkpoint; local ignored UI fixture/screenshots not production files.
+
+Validation:
+- 37 tests PASS: persistence after every match, all14 characters toLv13, all six
+  arena tiers, aggregate/per-arena counters, migration, exact XP/caps, duplicate
+  after reload/no extra write, incomplete no reward, historical never relock,
+  player-only gates/random/rotation, full bot wiring, result/render purity,
+  grouped unlock panel incl20 notices/no modal stack, dismissal/duplicate/reset.
+- npx tsc --noEmit PASS; scoped oxlint PASS after replacing redundant status role
+  with polite aria-live region; npm run build:pages PASS; diff check PASS.
+  Existing CSS at-rule and chunk-size warnings remain. No full verify or rebuild
+  of sprites/map/audio/fonts was needed/performed.
+- Real browser localhost3006 isolated Regress15: starter Raja/Kaka, locked cards
+  and keyboard gates; only Kampung initially. Bots include locked player content.
+  First loss100XP, profile stats retained after reload; rematch resets result.
+  Second real win+168XP (1tag), total268/Lv2, Bebe+Pasar notices together.
+  Dismiss removes notice without changing XP/result; reload drops old event.
+  After reload Bebe can be selected and Pasar becomes selected via arena arrow;
+  notice count0. No loss of unlocks or selection functionality.
+- Local ignored fixture tests production components/resolver: Bebe+Pasar grouped,
+  dismiss retains284XP; duplicate0XP/no notice, reload no old notice. Desktop+
+  390x844 mobile no horizontal overflow. Earlier10–13 real desktop/mobile
+  result/rematch tests remain relevant. Screenshot .preview-admin/
+  unlock-notification-ingame.jpg is actual match; fixture screenshot explicitly
+  separate. Temporary viewport overrides reset. No browser console errors observed.
+- Config Map/Sprite Studio SHA256 before/after identical; user draft/upload
+  changes remain unstaged. No protected assets/audio/bot balance changed.
+  User Studio4319/4320 not restarted; isolated test Vite3006 session82877.
+
+Known limitations:
+- LocalStorage only, not authenticated/tamper-proof/cloud synced. Reward storage
+  failure reports error. Duplicate protection latest50IDs, not infinite history
+  or transactional multi-tab ledger. Reload drops unread notices, not unlocks.
+- Migration estimates aggregate XP, never fabricates historical per-arena wins.
+  Custom/unconfigured arenas need rules unless historically unlocked.
+- Existing rotation counts three completed matches, unchanged by this feature.
+- Automated journey covers every arena tier; full live playthrough of all maps
+  is not required/performed. Live and isolated UI checks are distinguished above.
+
+Future candidates only: Achievement, Daily Mission, Cloud Save. NOT implemented.
+No publish/fetch/merge/push. All01–15 remain local until explicitly requested.
+
 ### COMPLETE — MODULE 14 Unlock Notification (2026-10-03, LOCAL ONLY)
 
 - One nonblocking result panel groups new characters and arenas by resolver

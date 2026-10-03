@@ -6,6 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "test:progression": "node scripts/test-progression-data-model.mjs",
     "admin:maps": "node scripts/map-studio/server.mjs",
     "test:map-studio": "node --test scripts/map-studio/test.mjs",
     "admin:sprites": "node scripts/sprite-studio/server.mjs",

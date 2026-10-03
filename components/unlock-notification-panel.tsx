@@ -10,7 +10,7 @@ export function UnlockNotificationPanel({ result, arenas, dismissed, onDismiss }
   const notices = getNewUnlockNotices(result, arenas);
   if (dismissed || !notices.length) return null;
   return <section className="unlock-notification-panel" aria-label="Konten baru terbuka">
-    <div role="status" aria-live="polite" aria-atomic="true">
+    <div aria-live="polite" aria-atomic="true">
       <h3>KONTEN BARU TERBUKA!</h3>
       <ul>{notices.map(notice => <li key={`${notice.kind}:${notice.id}`}>
         <span>{notice.kind === 'character' ? 'NEW CHARACTER UNLOCKED' : 'NEW ARENA UNLOCKED'}</span>

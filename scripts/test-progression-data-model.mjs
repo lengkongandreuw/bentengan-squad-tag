@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { fieldCycleDecision } from '../lib/field-cycle.js';
 
 // Load these small TS modules using the existing TypeScript dependency;
 // no browser, production build, extra packages, or user storage is needed.
@@ -54,6 +55,108 @@ const { migratePlayerProgression, estimateHistoricalXP } = await load('progressi
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
 
+test('module15 full persisted player journey reaches all characters/arenas with exactly-once rewards', () => {
+  const data = new Map(); let writes = 0;
+  globalThis.window = { localStorage: { getItem: key => data.get(key), setItem: (key, value) => {
+    writes++; data.set(key, value);
+  } }, dispatchEvent: () => {} };
+  try {
+    let p = service.createPlayerProfile('Journey15');
+    assert.equal(p.progression.xp, 0); assert.equal(getLevelFromXP(p.progression.xp), 1);
+    assert.deepEqual(p.progression.unlockedCharacters, ['raja', 'kaka']);
+    assert.deepEqual(p.progression.unlockedArenaIds, ['kampung']);
+    const catalog = progressionRules.arenaProgression.tiers.flatMap(t => t.arenaIds);
+    const allCharacters = progressionRules.characterUnlockRequirements.map(r => r.characterId);
+    let matches = 0; const counts = new Map();
+    const play = arenaId => {
+      assert.equal(isArenaUnlocked(p, arenaId), true);
+      const summary = { matchId: `journey-${++matches}`, arenaId, completed: true, won: true,
+        tags: 4, rescues: 1, timesCaptured: 2 };
+      const result = service.recordMatchProgression(summary);
+      assert.equal(result.applied, true); assert.equal(result.xpEarned, 207);
+      assert.equal(result.currentXP, matches * 207);
+      assert.equal(result.currentLevel, getLevelFromXP(result.currentXP));
+      assert.equal(result.xpEarned, Object.values(result.xpBreakdown).reduce((a,b) => a+b, 0));
+      p = storage.loadPlayerProfile(); // Simulate reload after each saved reward.
+      assert.deepEqual(p, result.profile);
+      counts.set(arenaId, (counts.get(arenaId) ?? 0) + 1);
+      assert.equal(p.menang, matches); assert.equal(p.kalah, 0);
+      assert.deepEqual(p.kda, { tagMusuh: matches * 4, rescueTeam: matches, masukPenjara: matches * 2 });
+      for (const [id, count] of counts) assert.deepEqual(getArenaStats(p, id), { played: count, wins: count });
+      const before = writes;
+      const duplicate = service.recordMatchProgression(summary);
+      assert.equal(duplicate.reason, 'duplicate'); assert.equal(duplicate.xpEarned, 0);
+      assert.deepEqual(getNewUnlockNotices(duplicate, []), []); assert.equal(writes, before);
+      // Opening/rerendering the result and notices cannot persist another reward.
+      renderToStaticMarkup(createElement(MatchProgressionSummary, { result }));
+      renderToStaticMarkup(createElement(UnlockNotificationPanel, { result, arenas: [], dismissed: false, onDismiss: () => {} }));
+      assert.equal(writes, before);
+      return result;
+    };
+    const first = play('kampung');
+    assert.deepEqual(first.newlyUnlockedCharacters, ['bebe']);
+    assert.deepEqual(first.newlyUnlockedArenaIds, ['pasar']);
+    for (const [arenaId, wins, next] of [
+      ['pasar', 3, 'taman'], ['taman', 4, 'kanal'], ['kanal', 5, 'kanal2'],
+      ['kanal2', 7, 'studio-kampung-2420b8cf'],
+    ]) {
+      assert.equal(isArenaUnlocked(p, next), false);
+      for (let i = 0; i < wins; i++) {
+        const result = play(arenaId);
+        assert.equal(result.newlyUnlockedArenaIds.includes(next), i === wins - 1);
+      }
+      assert.ok(p.progression.unlockedArenaIds.includes(next));
+    }
+    while (getLevelFromXP(p.progression.xp) < 13) play('studio-kampung-2420b8cf');
+    assert.deepEqual(new Set(p.progression.unlockedCharacters), new Set(allCharacters));
+    assert.deepEqual(new Set(p.progression.unlockedArenaIds), new Set(catalog));
+    assert.equal(writes, matches + 1);
+    const before = writes;
+    const incomplete = service.recordMatchProgression({ matchId: 'abandoned', arenaId: 'kampung',
+      completed: false, won: false, tags: 2, rescues: 1 });
+    assert.equal(incomplete.applied, false); assert.equal(writes, before);
+    assert.deepEqual(storage.loadPlayerProfile(), p);
+    // Reload alone has no event/result to notify; unlocks are durable.
+    assert.deepEqual(getNewUnlockNotices(null, []), []);
+    assert.equal(migratePlayerProgression(p).migrated, false);
+  } finally { delete globalThis.window; }
+});
+
+test('module15 rotation uses only unlocked catalog entries and preserves three-match/rematch cycle', () => {
+  const p = service.createPlayerProfile('Rotate15');
+  const catalog = ['kampung', 'pasar', 'taman'];
+  const available = getPlayableArenaIds(p, catalog);
+  assert.deepEqual(fieldCycleDecision('kampung', 2, available), { fieldId: 'kampung', wins: 2, rotated: false });
+  assert.deepEqual(fieldCycleDecision('kampung', 3, available), { fieldId: 'kampung', wins: 0, rotated: true });
+  const earned = applyMatchProgression(p, { matchId: 'rotation-win', arenaId: 'kampung', completed: true,
+    won: true, tags: 8, rescues: 4 }).profile;
+  const unlocked = getPlayableArenaIds(earned, catalog);
+  assert.deepEqual(unlocked, ['kampung', 'pasar']);
+  assert.deepEqual(fieldCycleDecision('kampung', 3, unlocked), { fieldId: 'pasar', wins: 0, rotated: true });
+  assert.equal(fieldCycleDecision('pasar', 3, unlocked).fieldId, 'kampung');
+  assert.equal(validatePlayableContent(earned, 'bebe', 'pasar', ['raja', 'bebe'], catalog), null);
+  assert.ok(validatePlayableContent(earned, 'jago', 'pasar', ['raja', 'jago'], catalog));
+  assert.ok(validatePlayableContent(earned, 'raja', 'taman', ['raja'], catalog));
+  for (const value of [0, 0.2, 0.5, 0.99])
+    assert.ok(['raja', 'bebe'].includes(pickUnlockedCharacter(earned, ['raja', 'jago', 'bebe'], () => value)));
+});
+
+test('module15 runtime wiring uses one writer, stable match identity and unrestricted bot lineup', async () => {
+  const code = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
+  assert.equal((code.match(/recordMatchProgression\(\{/g) ?? []).length, 1);
+  assert.doesNotMatch(code, /recordCompletedMatch/);
+  assert.match(code, /const matchId = mode === 'playing' \? createMatchId\(\) : null/);
+  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId\]/);
+  const lineup = code.slice(code.indexOf('const lineupFor ='), code.indexOf('const RAW_FIELD_CONFIGS'));
+  assert.doesNotMatch(lineup, /getPlayable|isCharacterUnlocked|playerProfile/);
+  assert.match(lineup, /roster\.slice\(0, GAME_RULES.matchSize\)/);
+  assert.match(code, /const userRoster = lineupFor\(faction, selectedId\)/);
+  assert.match(code, /const opponentRoster = lineupFor\(opponentFaction\)/);
+  assert.match(code, /setMatchProgressionResult\(null\)/);
+  assert.match(code, /setUnlockNoticeDismissed\(false\)/);
+  assert.match(code, /onDismiss=\{\(\) => setUnlockNoticeDismissed\(true\)\}/);
+});
+
 test('module14 one nonblocking panel renders multiple unlocks and dismissal/duplicates never award or replay', () => {
   const p = service.createPlayerProfile('UnlockNotice'); p.progression.xp = 180;
   const summary = { matchId: 'unlock-event', arenaId: 'kampung', completed: true, won: true, tags: 0, rescues: 0 };
@@ -68,7 +171,7 @@ test('module14 one nonblocking panel renders multiple unlocks and dismissal/dupl
   const markup = renderToStaticMarkup(createElement(UnlockNotificationPanel, props));
   assert.match(markup, /NEW CHARACTER UNLOCKED/); assert.match(markup, /Bebe/);
   assert.match(markup, /NEW ARENA UNLOCKED/); assert.match(markup, /Pasar Senggol/);
-  assert.equal((markup.match(/role="status"/g) ?? []).length, 1);
+  assert.equal((markup.match(/aria-live="polite"/g) ?? []).length, 1);
   assert.doesNotMatch(markup, /role="dialog"|aria-modal/);
   assert.equal(renderToStaticMarkup(createElement(UnlockNotificationPanel, { ...props, dismissed: true })), '');
   assert.equal(JSON.stringify(result), before);
@@ -81,6 +184,13 @@ test('module14 one nonblocking panel renders multiple unlocks and dismissal/dupl
   const repeated = { ...result, newlyUnlockedCharacters: ['bebe', 'bebe'], newlyUnlockedArenaIds: ['pasar', 'pasar', 'custom'] };
   assert.equal(getNewUnlockNotices(repeated, arenas).length, 3);
   assert.equal(getNewUnlockNotices(repeated, arenas).at(-1).name, 'custom');
+  const many = { ...result,
+    newlyUnlockedCharacters: progressionRules.characterUnlockRequirements.map(entry => entry.characterId),
+    newlyUnlockedArenaIds: progressionRules.arenaProgression.tiers.flatMap(entry => entry.arenaIds) };
+  const manyMarkup = renderToStaticMarkup(createElement(UnlockNotificationPanel, { ...props, result: many }));
+  assert.equal((manyMarkup.match(/<li>/g) ?? []).length, 20);
+  assert.equal((manyMarkup.match(/aria-live="polite"/g) ?? []).length, 1);
+  assert.doesNotMatch(manyMarkup, /role="dialog"|aria-modal/);
 });
 
 test('module13 resolver snapshots capped breakdown, level, next goal and no-op rewards', () => {
