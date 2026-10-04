@@ -33,7 +33,11 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   builtins are disabled drafts; do not activate or include in this code commit.
   That file must remain modified locally, absent from this publication.
 - Screenshot evidence .preview-admin/map-editor-dummy.png (ignored, not shipped).
-  GitHub publication verification follows below when deployment completes.
+- Published code d7f2f1e to github/main. Pages run37174063423 succeeded;
+  public build-info commit and canonical map revision verified, hashed entry
+  assets/app-mR9RvKaA.js responds200. Targeted lint/TS/Pages build pass, cache
+  harness verifies aliases+hashed HTML+canonical metadata. Only remaining dirty
+  file is USER config/map-studio.json (SHA256 b2738bd2c43d0396fc8a4b02222f39b2326e65ba1e715986c6ed6d31d539c615).
 
 ### COMPLETE — MODULE16 Custom SFX, validated and published (2026-10-04)
 
