@@ -17,13 +17,12 @@ export const studioMapById = Object.fromEntries(
 );
 const cache = new Map<string, HTMLImageElement>();
 export function mapImage(a: MapAsset) {
-  const src = publicAsset(a.asset);
-  if (!cache.has(src)) {
+  if (!cache.has(a.asset)) {
     const image = new Image();
-    image.src = src;
-    cache.set(src, image);
+    image.src = publicAsset(a.asset);
+    cache.set(a.asset, image);
   }
-  return cache.get(src)!;
+  return cache.get(a.asset)!;
 }
 export function mapImages(m: StudioMap) {
   return [
@@ -48,7 +47,7 @@ function drawAsset(
   const f = frameAt(a, now);
   ctx.drawImage(image, f.x, f.y, f.width, f.height, x, y, w, h);
 }
-let terrainTile: { key: string; canvas: HTMLCanvasElement } | null = null;
+let terrainTile: { key: string; canvas: HTMLCanvasElement; patterns:WeakMap<CanvasRenderingContext2D,CanvasPattern> } | null = null;
 export function drawMapTerrain(
   ctx: CanvasRenderingContext2D,
   m: StudioMap,
@@ -59,7 +58,7 @@ export function drawMapTerrain(
   if (!m.terrain) return;
   if (m.terrainMode === 'tile') {
     const f = frameAt(m.terrain, now),
-      key = [m.terrain.asset, f.x, f.y, m.tileSize].join('/');
+      key = [m.terrain.asset, f.x, f.y, f.width, f.height, m.tileSize].join('/');
     if (terrainTile?.key !== key) {
       const tile = document.createElement('canvas');
       tile.width = tile.height = m.tileSize;
@@ -72,9 +71,13 @@ export function drawMapTerrain(
         m.tileSize,
         now,
       );
-      terrainTile = { key, canvas: tile };
+      // Never cache a blank tile while its source image is still loading.
+      const source=mapImage(m.terrain);
+      if(!source.complete||!source.naturalWidth)return;
+      terrainTile = { key, canvas: tile, patterns:new WeakMap() };
     }
-    const pattern = ctx.createPattern(terrainTile.canvas, 'repeat');
+    let pattern=terrainTile.patterns.get(ctx);
+    if(!pattern){pattern=ctx.createPattern(terrainTile.canvas,'repeat')??undefined;if(pattern)terrainTile.patterns.set(ctx,pattern);}
     if (pattern) {
       ctx.fillStyle = pattern;
       ctx.fillRect(0, 0, m.width, m.height);

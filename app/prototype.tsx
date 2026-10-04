@@ -40,10 +40,11 @@ import { UnlockNotificationPanel } from '../components/unlock-notification-panel
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
-import { studioImages, createStudioResolver } from '../lib/sprite-studio';
+import { studioImages, retainStudioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
-import { solidAt as studioSolidAt, waterAt as studioWaterAt, speedAt as studioSpeedAt, contains as studioContains } from '../lib/map-studio-model.js';
+import { contains as studioContains } from '../lib/map-studio-model.js';
+import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
 import { flightConfig, startFlight, advanceFlight, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, safeFlightLanding, flightPassesObstacle } from '../lib/flight-ultimate.js';
 import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
@@ -3055,7 +3056,10 @@ export function BentenganPrototype() {
         uiAsset('controls/back.webp'), ...LOADING_UI_FRAMES];
       for (const field of FIELD_CONFIGS) urls.push(arenaImage(field.id));
       if (gameLoading) {
-        for (const id of Object.keys(CHARACTER_BY_ID) as CharacterId[]) {
+        const faction=selectedFaction??'red';
+        const matchCharacters=[...lineupFor(faction,selectedId),...lineupFor(faction==='red'?'green':'red')];
+        retainStudioImages(matchCharacters);
+        for (const id of matchCharacters) {
           images.push(getSpriteImage(id));
           images.push(...studioImages(id));
           if (hasSpriteSeries(id)) images.push(getSeriesImage(id));
@@ -3589,6 +3593,15 @@ export function BentenganPrototype() {
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
     const studioMap = studioMapById[selectedFieldId];
+    const studioQueries = studioMap ? createMapQueries(studioMap) : null;
+    const studioLayers = {
+      background:studioMap?.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z)??[],
+      world:studioMap?.objects.filter(o=>o.layer==='world')??[],
+      foreground:studioMap?.objects.filter(o=>o.layer==='foreground').sort((a,b)=>a.z-b.z)??[],
+    };
+    const studioBounds=new Map(studioMap?.objects.map(o=>[o,objectBounds(o)])??[]);
+    let visibleWorld={left:0,right:0,top:0,bottom:0};
+    const objectVisible=(o:typeof studioMap.objects[number])=>visibleBounds(studioBounds.get(o)!,visibleWorld);
     const development = process.env.NODE_ENV !== 'production';
     let debugColliders = development && new URLSearchParams(window.location.search).has('debugColliders');
     const worldWidth = field.width ?? W;
@@ -4015,7 +4028,7 @@ export function BentenganPrototype() {
             laneBounds[lane][0] +
             Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
         if (
-          (!studioMap || (!studioSolidAt(studioMap, x, y, 28) && !studioWaterAt(studioMap, x, y))) &&
+          (!studioQueries || (!studioQueries.solidAt(x, y, 28) && !studioQueries.waterAt(x, y))) &&
           obstacles.every(
             (o) =>
               x < o.x - 28 ||
@@ -4185,13 +4198,13 @@ export function BentenganPrototype() {
       if (studioMap) {
         const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 4));
         for (let i = 0; i <= steps; i++) {
-          if (studioSolidAt(studioMap, a.x + (b.x - a.x) * i / steps, a.y + (b.y - a.y) * i / steps, 2)) return false;
+          if (studioQueries!.solidAt(a.x + (b.x - a.x) * i / steps, a.y + (b.y - a.y) * i / steps, 2)) return false;
         }
       }
       return true;
     };
     const hitsObstacle = (x: number, y: number) =>
-      (studioMap ? studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS) : false) || solidObstacles.some((o) =>
+      (studioQueries ? studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS) : false) || solidObstacles.some((o) =>
         pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS),
       );
     // The fort core is solid while its capture circle remains walkable. This
@@ -4204,7 +4217,7 @@ export function BentenganPrototype() {
         (base) => Math.hypot(x - base.x, y - base.y) < Math.max(48, fortWidth * (isKanalField(field.id) ? 0.48 : 0.38)),
       );
     const isWaterAt = (x: number, y: number) => {
-      if (studioMap) return studioWaterAt(studioMap, x, y);
+      if (studioQueries) return studioQueries.waterAt(x, y);
       if (!waterMaskPixels) return false;
       const maskX = clamp(
         Math.round((x / worldWidth) * (waterMaskCanvas.width - 1)),
@@ -4299,12 +4312,12 @@ export function BentenganPrototype() {
       if (isFlying(p)) {
         // Flight is not a global collision disable. Only authored low/parkour
         // obstacles and jumpable water are bypassed; structures remain solid.
-        if (studioMap && studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, true)) return true;
+        if (studioQueries && studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS, true)) return true;
         if (solidObstacles.some(o => !flightPassesObstacle(o) && pointHitsExpandedRect(x,y,o,PLAYER_COLLISION_RADIUS))) return true;
         if (isInsideFortCore(x,y)) return true;
         return false;
       }
-      if (studioMap && studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
+      if (studioQueries && studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
       // The canal's actual water mask is the collision source for its stone
       // banks. This blocks the visible canal instead of inventing rectangles
       // on clear ground, and bridges remain open because they are not water.
@@ -4353,7 +4366,7 @@ export function BentenganPrototype() {
         return;
       }
       const len = Math.hypot(dx, dy) || 1;
-      if (studioMap && !isFlying(p)) speed *= studioSpeedAt(studioMap, p.x, p.y);
+      if (studioQueries && !isFlying(p)) speed *= studioQueries.speedAt(p.x, p.y);
       p.vx = (dx / len) * speed;
       p.vy = (dy / len) * speed;
       if(isFlying(p)) {
@@ -4448,7 +4461,7 @@ export function BentenganPrototype() {
     ) => {
       if (studioMap) {
         const target = { x: clamp(p.x + desired.x, 34, worldWidth - 34), y: clamp(p.y + desired.y, 58, worldHeight - 32) };
-        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !studioSolidAt(studioMap,x,y,PLAYER_COLLISION_RADIUS) && !studioWaterAt(studioMap,x,y);
+        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !studioQueries!.solidAt(x,y,PLAYER_COLLISION_RADIUS) && !studioQueries!.waterAt(x,y);
         const cached = studioRoutes.get(p.id);
         if (!cached || now > cached.until || distance(target,cached.target)>100) {
           const route = clickRoute(p,target,worldWidth,worldHeight,passable,40);
@@ -4788,9 +4801,9 @@ export function BentenganPrototype() {
           if (
             a.team === b.team ||
             (field.id === 'kanal2' && (a.waterEnteredAt || b.waterEnteredAt)) ||
-            !hasLineOfSight(a, b) ||
             now < a.parkourUntil ||
-            now < b.parkourUntil
+            now < b.parkourUntil ||
+            contactDistance > Math.max(CHARACTER_BY_ID[a.characterId].tagRange,CHARACTER_BY_ID[b.characterId].tagRange)+4
           )
             continue;
           const aTargetable =
@@ -4806,15 +4819,17 @@ export function BentenganPrototype() {
             bTargetable &&
             a.exitOrder > b.exitOrder &&
             contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange + 4
-          )
-            contacts.push({ attacker: a, target: b });
+          ) {
+            if(hasLineOfSight(a,b))contacts.push({ attacker: a, target: b });
+          }
           else if (
             b.state === 'ACTIVE' &&
             aTargetable &&
             b.exitOrder > a.exitOrder &&
             contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange + 4
-          )
-            contacts.push({ attacker: b, target: a });
+          ) {
+            if(hasLineOfSight(a,b))contacts.push({ attacker: b, target: a });
+          }
         }
       contacts.sort(
         (a, b) =>
@@ -5092,7 +5107,7 @@ export function BentenganPrototype() {
       };
       if (me.flight && config) {
         const slot=flightSlot(me.flight,config)!;
-        const completion=sequenceComplete(studioFlightClip(me.characterId,slot), (me.flight.elapsed+dt)*1000, me.flight.stage==='FLIGHT_TAKEOFF'?config.takeoffSeconds:config.landingSeconds);
+        const completion=sequenceComplete(studioFlightClip(me.characterId,slot,me.flight.direction), (me.flight.elapsed+dt)*1000, me.flight.stage==='FLIGHT_TAKEOFF'?config.takeoffSeconds:config.landingSeconds);
         me.flight=advanceFlight(me.flight,config,dt,completion,{
           onFlightStart:()=>{flightHook('onFlightStart');flightHook('flight_loop_sfx');},
           onFlightWarning:()=>flightHook('flight_warning_sfx'),
@@ -5837,7 +5852,7 @@ export function BentenganPrototype() {
     };
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
       if (studioMap) {
-        studioMap.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z).forEach(o=>drawMapObject(ctx,o,performance.now()));
+        studioLayers.background.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,performance.now());});
       }
       if (mode !== 'playing' && !isKanalField(field.id)) return;
       // Kanal has few props, so draw every one at native atlas resolution in
@@ -6273,7 +6288,7 @@ export function BentenganPrototype() {
         action: now < p.actionUntil ? p.action ?? null : null,
         parkour: now < p.parkourUntil,
         tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
-        flightSlot:flightSlot(p.flight,flightConfig(p.characterId)??undefined),flightElapsed:(p.flight?.elapsed??0)*1000,
+        flightSlot:flightSlot(p.flight,flightConfig(p.characterId)??undefined),flightDirection:p.flight?.direction,flightElapsed:(p.flight?.elapsed??0)*1000,
       });
       if (studio) { renderImage = studio.image; frame = studio.frame; mirror = studio.clip.mirror; }
 
@@ -6638,6 +6653,7 @@ export function BentenganPrototype() {
         ? clamp(me.y, halfH, worldHeight - halfH)
         : worldHeight / 2;
       view = { x: camX, y: camY, width: cw, height: ch, scale };
+      visibleWorld={left:camX-halfW,right:camX+halfW,top:camY-halfH,bottom:camY+halfH};
       if (isKanalField(field.id) && !followsPlayer) {
         // Contain-fitting is already correct. Letterboxing is necessary when
         // the viewport and map ratios differ; give it an intentional matte.
@@ -6684,7 +6700,7 @@ export function BentenganPrototype() {
         if (!scene3d && studioMap) {
           const entries = [
             ...players.map(p=>({y:p.y,z:0,draw:()=>drawPlayer(p,me,now)})),
-            ...studioMap.objects.filter(o=>o.layer==='world').map(o=>({y:o.y+o.h,z:o.z,draw:()=>drawMapObject(ctx,o,now)})),
+            ...studioLayers.world.filter(objectVisible).map(o=>({y:o.y+o.h,z:o.z,draw:()=>drawMapObject(ctx,o,now)})),
           ];
           entries.sort((a,b)=>a.z-b.z||a.y-b.y).forEach(item=>item.draw());
         }
@@ -6693,7 +6709,7 @@ export function BentenganPrototype() {
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now));
         if (selectedFieldId !== 'kampung3d') drawPrisonOverlays(now);
-        if (studioMap) studioMap.objects.filter(o=>o.layer==='foreground').sort((a,b)=>a.z-b.z).forEach(o=>drawMapObject(ctx,o,now));
+        if (studioMap) studioLayers.foreground.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,now);});
         const rescueRequester = rescueRequest
           ? players.find((player) => player.id === rescueRequest?.requesterId)
           : undefined;

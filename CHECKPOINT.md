@@ -5,7 +5,28 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### IMPLEMENTED — Ultimate Flight Batch01 Bebe/Ciici (2026-10-04)
+### IMPLEMENTED — Directional Flight + runtime efficiency (2026-10-04)
+
+- User revision overrides original default-only spec: all3 flight actions now
+  support default+8 optional directions for Bebe/Ciici only. Default/legacy
+  fallbacks retained; one-shot timing and renderer resolve same phase direction.
+- Editor/server JSON/Save/compile all accept directional keys, force correct
+  loop modes. Capability list + useful old-server warning. User GIF rejected on
+ 4319 because running pre-Flight server;4331 old default-only Flight server.
+  Confirmed via empty compile probe (no assets created); do not kill servers
+  while user drafts/uploads are open. Save/restart npm run admin:sprites needed.
+- Runtime broad-phase collider index retains exact rotated/polygon/mask/bridge/
+  slow/jump tests. No global collider disable; tag LOS only after range/eligibility.
+- Preload active10-character lineup only,release unused custom image references;
+  map layer lists sorted once,offscreen objects culled by rotated visual bounds;
+  terrain patterns cached by context. Original pixels/FPS/high smoothing unchanged.
+- Tests:25 Flight/Studio/Map/performance,37 progression,10 audio PASS; TS,
+  scoped lint and Pages build PASS. Benchmark1600 colliders/2000 queries ~99.64%
+  fewer candidates; NOT an FPS measurement or proof of eliminating every lag.
+- Preserve user config/map-studio.json,config/sprite-studio.json and untracked
+  Bebe/Ciici atlases; Economy01 LOCAL ONLY. Scoped publish pending.
+
+### PUBLISHED — Ultimate Flight Batch01 Bebe/Ciici (2026-10-04)
 
 - Shared lib/flight-ultimate.js controller: complete takeoff sequence,4 seconds
   actual flight,complete landing sequence. Bebe speed1.25/turn0.85; Ciici1.20/1.15.
@@ -20,7 +41,15 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   fallback only. User local configs/assets preserved and not included in publish.
 - Tests:11 Flight/Studio,37 progression,10 audio PASS; TS/build Pages PASS.
   Scoped publication excludes local-only Economy Module01 and user Studio drafts.
-  Deployment confirmation pending.
+  Implementation d31316d; reliable one-shot desktop/mobile button fix7763061.
+- Pages Actions37192971785 SUCCESS; public build-info commit7763061 confirmed.
+  Both public PNGs match original SHA256; public hashed JS contains Flight states
+  and both character ultimate names. User configs remain unchanged/unstaged.
+- Browser QA used isolated profiles and static test builds; test-only fast recharge
+  never committed. Observed Bebe takeoff/elevation and action lock. Full realtime
+  flight/landing browser walkthrough not completed (background RAF throttling,
+  then usage-limit approval review failure). Automated stage/4s/collision tests
+  PASS. Do not describe this as a complete manual regression of every arena.
 
 ### COMPLETE — Economy MODULE01 Wallet Model (2026-10-04, LOCAL ONLY)
 

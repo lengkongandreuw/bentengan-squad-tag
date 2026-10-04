@@ -4,13 +4,23 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-04 user revision: Ultimate Bebe/Ciici now default+8 optional directions
+for all3 Flight phases,overrides original default-only brief. Default fallback
+stays; phase facing matches sequence completion. Performance optimization:
+exact broad-phase Studio collider queries,range-first tag LOS,active-lineup sprite
+preload,offscreen rotated-object culling and cached terrain patterns. Original
+assets/FPS/quality untouched. Running4319/4331 editor servers old; restart needed
+after saving user drafts. Do not kill them automatically. See checkpoint.
+
 2026-10-04 Ultimate Flight Batch01: Bebe/Ciici shared controller,4sec actual
 FLYING only tag immunity,locked interactions,takeoff/landing vulnerable,selective
 colliders and safe landing. Bebe speed1.25 turn0.85; Ciici1.20/1.15. Existing
 Raja/Kaka unchanged. Sprite Studio adds exactly3 default-only slots for these
 two: ultimate_takeoff,ultimate_fly,ultimate_land. Canonical artwork missing,
 generic ultimate/idle fallback temporary. Icons use user's originals. Preserve
-user local map/sprite drafts; Economy01 still LOCAL ONLY. See checkpoint.
+user local map/sprite drafts; Economy01 still LOCAL ONLY. Published7763061,
+Pages37192971785 SUCCESS and public commit/icons verified. Complete realtime
+browser flight walkthrough remains unverified; automated tests pass. See checkpoint.
 
 2026-10-04 Economy MODULE01 complete LOCAL ONLY. economy.ts version1 wallet/
 signed transactions/default0/strict safe parsing/latest50 ledger. Optional

@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {flightConfig,startFlight,advanceFlight,isFlying,flightBusy,flightSlot,sequenceComplete,steerFlight,safeFlightLanding,flightPassesObstacle} from '../lib/flight-ultimate.js';
-import {actionsForCharacter,slotAllowed,slotLoop,spriteSlot,validateSpriteDocument} from '../lib/sprite-studio-model.js';
+import {DIRECTIONS,actionsForCharacter,slotAllowed,slotLoop,spriteSlot,studioFlightSlot,validateSpriteDocument} from '../lib/sprite-studio-model.js';
 import {solidAt} from '../lib/map-studio-model.js';
 
 test('shared config, complete-sequence gating and exact actual flight duration',()=>{
@@ -44,15 +44,21 @@ test('filtered low obstacles, solid buildings/boundaries and nearest safe landin
   assert.deepEqual(safeFlightLanding({x:500,y:500},{x:0,y:0},valid),{x:0,y:0});
   assert.equal(safeFlightLanding({x:0,y:0},{x:0,y:0},()=>false),null);
 });
-test('three canonical editor slots only for Bebe/Ciici, no forced eight-direction slots',()=>{
-  for(const id of ['bebe','ciici'])for(const s of ['ultimate_takeoff','ultimate_fly','ultimate_land']){assert.ok(actionsForCharacter(id).includes(s));assert.ok(slotAllowed(id,s));assert.equal(slotAllowed(id,s+'.east'),false);}
+test('three flight actions support optional eight directions with backward-compatible defaults',()=>{
+  for(const id of ['bebe','ciici'])for(const s of ['ultimate_takeoff','ultimate_fly','ultimate_land']){assert.ok(actionsForCharacter(id).includes(s));assert.ok(slotAllowed(id,s));for(const d of DIRECTIONS){assert.equal(slotAllowed(id,s+'.'+d),true);assert.equal(slotAllowed('raja',s+'.'+d),false);}}
   assert.equal(slotAllowed('raja','ultimate_fly'),false);assert.equal(slotLoop('ultimate_fly'),true);assert.equal(slotLoop('ultimate_takeoff'),false);assert.equal(slotLoop('ultimate_land'),false);
   assert.equal(spriteSlot({state:'ACTIVE',vx:20,vy:0,flightSlot:'ultimate_fly'}),'ultimate_fly');
   assert.equal(spriteSlot({state:'PRISONER',flightSlot:'ultimate_fly'}),'prisoner');
   assert.deepEqual(validateSpriteDocument({version:1,characters:{}},['bebe','ciici']),{version:1,characters:{}});
+  assert.equal(studioFlightSlot({'ultimate_fly.east':true,ultimate_fly:true},'ultimate_fly','east'),'ultimate_fly.east');
+  assert.equal(studioFlightSlot({'ultimate_fly.east':true,ultimate_fly:true},'ultimate_fly','northwest'),'ultimate_fly');
+  assert.equal(studioFlightSlot({'ultimate_fly.east':true,idle:true},'ultimate_fly','northwest'),'idle');
+  const f=startFlight({x:0,y:0,vx:-20,vy:-20});assert.equal(f.direction,'northwest');
+  steerFlight(f,1,1,1,1);assert.equal(f.direction,'southeast');
+  steerFlight(f,0,0,1,1);assert.equal(f.direction,'southeast','stop retains facing for landing sequence');
 });
 test('runtime retains existing team ultimates and gates all flight interactions',()=>{
   const code=fs.readFileSync('app/prototype.tsx','utf8');
-  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','flightBusy(winner) || isFlying(loser)','!flightBusy(p) && p.state','flightBusy(p) || p.state','playerMovementLocked','studioFlightClip(me.characterId,slot)'])assert.ok(code.includes(pattern),pattern);
+  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','flightBusy(winner) || isFlying(loser)','!flightBusy(p) && p.state','flightBusy(p) || p.state','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)'])assert.ok(code.includes(pattern),pattern);
   assert.equal(code.split("onClick={() => keys.current.add('capslock')}").length-1,2,'desktop/mobile ultimate queues a one-shot until consumed');
 });

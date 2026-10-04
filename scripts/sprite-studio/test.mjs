@@ -9,7 +9,7 @@ import {startSpriteStudio} from './server.mjs';
 import {SLOTS,validateClip,validateSpriteDocument,spriteSlot,frameAt,spriteDirection,studioSlotFallback} from '../../lib/sprite-studio-model.js';
 const png=()=>sharp({create:{width:64,height:32,channels:4,background:'#dd303080'}}).png().toBuffer();
 test('all movements support default plus eight directions, preserving legacy slot keys',()=>{
-  assert.equal(SLOTS.length,84);assert.equal(new Set(SLOTS).size,84);
+  assert.equal(SLOTS.length,108);assert.equal(new Set(SLOTS).size,108);
   for(const action of ['run','tag','parkour','idle','prisoner','ready','ultimate','victory','defeat'])assert.ok(SLOTS.includes(`${action}.northeast`));
   assert.equal(studioSlotFallback({idle:true},'idle','northwest'),'idle');
   assert.equal(studioSlotFallback({idle:true,'idle.northwest':true},'idle','northwest'),'idle.northwest');
@@ -58,6 +58,8 @@ test('local API: token, revision guard, per-slot save/delete and untouched chara
     await writeFile(path.join(root,'config/sprite-studio.json'),JSON.stringify({version:1,characters:{}}));
     const started=await startSpriteStudio(0,root);server=started.server;const origin=started.origin;
     const state=await fetch(origin+'/api/state').then(r=>r.json());
+    assert.ok(state.supportedSlots.bebe.includes('ultimate_fly.northwest'));
+    assert.ok(!state.supportedSlots.lala.includes('ultimate_fly.northwest'));
     assert.equal(state.roster[0].visualScale,1);assert.equal((await fetch(origin+'/comparison')).status,200);assert.equal((await fetch(origin+'/comparison.js')).status,200);
     const post=(route,body,token=state.token)=>fetch(origin+'/api/'+route,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'x-admin-token':token},body:JSON.stringify({revision:state.revision,...body})});
     assert.equal((await post('save',{},'wrong')).status,403);
@@ -88,14 +90,18 @@ test('local API: token, revision guard, per-slot save/delete and untouched chara
     for(const id of ['bebe','ciici']) {
       const result=await post('compile',{revision,id,slot:'ultimate_fly',files:[{data:(await png()).toString('base64')}],options:{}}).then(r=>r.json());
       assert.equal(result.clip.loop,true);
-      const flight=await post('save-character',{revision,id,clips:{ultimate_takeoff:result.clip,ultimate_fly:{...result.clip,loop:false},ultimate_land:result.clip}}).then(r=>r.json());
+      const flight=await post('save-character',{revision,id,clips:{ultimate_takeoff:result.clip,ultimate_fly:{...result.clip,loop:false},ultimate_land:result.clip,'ultimate_fly.northwest':{...result.clip,loop:false},'ultimate_takeoff.southeast':result.clip,'ultimate_land.east':result.clip}}).then(r=>r.json());
       assert.equal(flight.document.characters[id].ultimate_takeoff.loop,false);
       assert.equal(flight.document.characters[id].ultimate_fly.loop,true);
       assert.equal(flight.document.characters[id].ultimate_land.loop,false);
+      assert.equal(flight.document.characters[id]['ultimate_fly.northwest'].loop,true);
+      assert.equal(flight.document.characters[id]['ultimate_takeoff.southeast'].loop,false);
+      assert.equal(flight.document.characters[id]['ultimate_land.east'].loop,false);
       assert.deepEqual(flight.document.characters.lala,diagonal.document.characters.lala);
       revision=flight.revision;
     }
     assert.equal((await post('save',{revision,id:'lala',slot:'ultimate_fly',clip:compiled.clip})).status,400);
+    assert.equal((await post('save',{revision,id:'lala',slot:'ultimate_fly.northwest',clip:compiled.clip})).status,400);
     const reload=await fetch(origin+'/api/state').then(r=>r.json());
     assert.ok(reload.document.characters.bebe.ultimate_land);assert.ok(reload.document.characters.ciici.ultimate_fly);
     assert.equal((await fetch(origin+'/.git/config')).status,404);

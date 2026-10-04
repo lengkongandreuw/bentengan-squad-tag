@@ -1,4 +1,4 @@
-import {DIRECTIONS,SLOTS,FLIGHT_ACTIONS,actionsForCharacter,slotAllowed,slotLoop,validateClip,frameAt,spritePlacement} from '/model.js';
+import {DIRECTIONS,SLOTS,FLIGHT_ACTIONS,isFlightSlot,actionsForCharacter,slotAllowed,slotLoop,validateClip,frameAt,spritePlacement} from '/model.js';
 const $=id=>document.getElementById(id),names={run:'Lari',tag:'Tag / menangkap',parkour:'Lompat / parkour',idle:'Idle',prisoner:'Idle tertangkap',ready:'Bersiap awal',ultimate:'Ultimate (opsional)',victory:'Menang',defeat:'Kalah',south:'Depan / bawah ↓',north:'Belakang / atas ↑',west:'Kiri ←',east:'Kanan →',northwest:'Kiri atas ↖',northeast:'Kanan atas ↗',southwest:'Kiri bawah ↙',southeast:'Kanan bawah ↘'};
 let state,clip=null,image=null,legacy=null,dirty=false,playing=true,frame=0,start=performance.now(),uploaded=[],selection='',requestId=0,drag=null;
 const numeric=['fps','scale','x','y','pivotX','pivotY'];
@@ -45,7 +45,7 @@ const slot=()=>$('direction').value==='default'?$('action').value:`${$('action')
 const id=()=>$('character').value;
 const message=s=>{$('status').textContent=s;};
 const mark=()=>{dirty=true;stageCurrent(false);$('origin').textContent='Draft · belum diperiksa';refreshSlots();};
-async function api(route,body){const res=await fetch(`/api/${route}`,body?{method:'POST',headers:{'Content-Type':'application/json','x-admin-token':state.token},body:JSON.stringify({...body,revision:state.revision})}:{});const data=await res.json();if(!res.ok)throw new Error(data.error);return data;}
+async function api(route,body){const res=await fetch(`/api/${route}`,body?{method:'POST',headers:{'Content-Type':'application/json','x-admin-token':state.token},body:JSON.stringify({...body,revision:state.revision})}:{});const data=await res.json();if(!res.ok)throw new Error(data.error==='Karakter/slot tidak valid.'?'Server Sprite Studio masih versi lama atau slot tidak cocok. Untuk ultimate baru: simpan draft yang sudah diproses, restart npm run admin:sprites, lalu buka ulang panel dan pilih GIF kembali. GIF belum diproses/dibatalkan, bukan berarti file rusak.':data.error);return data;}
 function options(select,values,label){select.replaceChildren(...values.map(value=>{const o=document.createElement('option');o.value=value;o.textContent=label(value);return o;}));}
 function refreshSlots(){
   const a=$('action').value,slots=SLOTS.filter(s=>s.split('.')[0]===a);
@@ -59,7 +59,7 @@ const exportButton=document.createElement('button');exportButton.textContent='Ex
 exportButton.onclick=()=>safe(async()=>{const blob=new Blob([JSON.stringify({version:1,id:id(),clips:state.document.characters[id()]??{}},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${id()}-sprites.json`;a.click();URL.revokeObjectURL(url);})();
 const importLabel=document.createElement('label');importLabel.textContent='Import JSON karakter (atlas harus tersedia di repo)';
 const importInput=document.createElement('input');importInput.type='file';importInput.accept='.json,application/json';importLabel.append(importInput);
-importInput.onchange=async()=>{try{if(importInput.files[0].size>2*1024*1024)throw new Error('JSON maksimal 2 MB.');const data=JSON.parse(await importInput.files[0].text());if(data.version!==1||data.id!==id()||!data.clips||typeof data.clips!=='object'||Array.isArray(data.clips))throw new Error('JSON karakter tidak cocok.');const changes={};for(const [s,c]of Object.entries(data.clips)){if(!slotAllowed(id(),s))throw new Error(`Slot ${s} tidak diterima.`);changes[s]=validateClip(c,id());if(FLIGHT_ACTIONS.includes(s))changes[s].loop=slotLoop(s);}drafts[id()]??={};for(const [s,c]of Object.entries(changes))drafts[id()][s]={clip:c,reviewed:false};refreshSlots();message('Import menjadi draft. Periksa dan centang movement sebelum menerapkan. Atlas divalidasi server saat Save.');}catch(e){message(e.message);}};
+importInput.onchange=async()=>{try{if(importInput.files[0].size>2*1024*1024)throw new Error('JSON maksimal 2 MB.');const data=JSON.parse(await importInput.files[0].text());if(data.version!==1||data.id!==id()||!data.clips||typeof data.clips!=='object'||Array.isArray(data.clips))throw new Error('JSON karakter tidak cocok.');const changes={};for(const [s,c]of Object.entries(data.clips)){if(!slotAllowed(id(),s))throw new Error(`Slot ${s} tidak diterima.`);changes[s]=validateClip(c,id());if(isFlightSlot(s))changes[s].loop=slotLoop(s);}drafts[id()]??={};for(const [s,c]of Object.entries(changes))drafts[id()][s]={clip:c,reviewed:false};refreshSlots();message('Import menjadi draft. Periksa dan centang movement sebelum menerapkan. Atlas divalidasi server saat Save.');}catch(e){message(e.message);}};
 $('advanced').append(exportButton,importLabel);
 function settings(){numeric.forEach(k=>{$(k).value=clip?.[k]??'';});$('quickFps').value=clip?.fps??'';$('quickFps').disabled=!clip||processing;['loop','mirror'].forEach(k=>{$(k).checked=clip?.[k]??false;});$('settings').disabled=!clip||processing;$('save').disabled=!clip||pendingUpload||processing;$('frame').max=String((clip??legacy)?.frames.length-1||0);refreshBatch();}
 async function loadImage(src){const i=new Image();i.src=src;try{await i.decode();}catch{throw new Error('Gambar tidak bisa dibaca atau ditampilkan. Periksa file PNG/GIF/WebP, lalu pilih ulang.');}return i;}
@@ -79,8 +79,7 @@ async function loadSlot(){
   selection=next;dirty=false;clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';
   for(const k of ['columns','rows','count'])$(k).value=1;$('order').value='';
   const flight=FLIGHT_ACTIONS.includes($('action').value);
-  if(flight)$('direction').value='default';
-  $('direction').disabled=flight;uploadValid=false;fileNotice('PNG tunggal, PNG sheet, kumpulan PNG, GIF dan WebP didukung.');refreshSlots();
+  $('direction').disabled=false;uploadValid=false;fileNotice('PNG tunggal, PNG sheet, kumpulan PNG, GIF dan WebP didukung.');refreshSlots();
   $('title').textContent=`${state.roster.find(r=>r.id===id()).name} · ${names[$('action').value]} ${$('direction').disabled?'':names[$('direction').value]}`;
   const draft=drafts[id()]?.[slot()];dirty=Boolean(draft&&!draft.reviewed);
   clip=structuredClone(draft?draft.clip:state.document.characters[id()]?.[slot()]??state.document.characters[id()]?.[$('action').value]??null);legacy=null;image=null;frame=0;start=performance.now();settings();
@@ -92,8 +91,9 @@ async function loadSlot(){
     const source=clip??fallback,loaded=await loadImage('/'+source.asset);
     if(ticket!==requestId)return;legacy=fallback;image=loaded;settings();
     $('origin').textContent=draft?(draft.reviewed?'Draft · sudah sesuai':'Draft · belum diperiksa'):clip?'Sprite custom tersimpan':'Sprite lama · ilustrasi atlas';
-    const missing=actionsForCharacter(id()).filter(s=>FLIGHT_ACTIONS.includes(s)&&!state.document.characters[id()]?.[s]);
-    message((clip?'Siap mengedit slot ini.':'Slot ini memakai fallback sementara; preview atlas lama hanya referensi.')+(missing.length?` WARNING: ${missing.map(s=>names[s]).join(', ')} belum diisi. Save movement lain tetap diizinkan.`:''));
+    const missing=actionsForCharacter(id()).filter(s=>FLIGHT_ACTIONS.includes(s)&&!Object.keys(state.document.characters[id()]??{}).some(key=>key.split('.')[0]===s));
+    const outdated=flight&&!state.supportedSlots?.[id()]?.includes(slot());
+    message((outdated?'WARNING: Server editor belum mendukung slot ultimate ini. Simpan draft yang sudah diproses, restart npm run admin:sprites, lalu buka ulang panel. ': '')+(clip?'Siap mengedit slot ini.':'Slot ini memakai fallback sementara; preview atlas lama hanya referensi.')+(missing.length?` WARNING: ${missing.map(s=>names[s]).join(', ')} belum diisi. Save movement lain tetap diizinkan.`:''));
   }catch(e){if(ticket===requestId)message(e.message);}
 }
 async function save(){if(pendingUpload)throw new Error('Proses & lihat hasil dahulu sebelum menyatakan arah sudah sesuai.');if(!clip)throw new Error('Proses upload atau salin animasi terlebih dahulu.');stageCurrent(true);dirty=false;refreshSlots();$('origin').textContent='Draft · sudah sesuai';message('Arah ini sudah sesuai. Periksa arah berikutnya, lalu Simpan & update karakter sekaligus.');}
@@ -146,7 +146,7 @@ $('compile').onclick=safe(async()=>{
   if($('cropWidth').value||$('cropHeight').value)options.crop={left:+$('cropLeft').value,top:+$('cropTop').value,width:+$('cropWidth').value,height:+$('cropHeight').value};
   const result=await api('compile',{id:id(),slot:slot(),files,options});const previous=clip;
   clip=result.clip;if(previous)for(const k of [...numeric,'loop','mirror'])clip[k]=previous[k];
-  if(FLIGHT_ACTIONS.includes(slot()))clip.loop=slotLoop(slot());
+  if(isFlightSlot(slot()))clip.loop=slotLoop(slot());
   image=await loadImage('/'+clip.asset);pendingUpload=false;frame=0;start=performance.now();settings();mark();fileNotice(`Siap digunakan: ${clip.frames.length} frame. Klik Terapkan movement ini saja, atau centang draft untuk update pilihan.`);message('Pemrosesan berhasil. Movement lain tidak wajib diganti.');
   } finally {processingState(false);settings();}
 });
@@ -159,7 +159,7 @@ $('discard').onclick=safe(async()=>{if(drafts[id()])delete drafts[id()][slot()];
 $('discardAll').onclick=safe(async()=>{if(!confirm('Buang seluruh draft karakter ini? Sprite game yang tersimpan tidak berubah.'))return;delete drafts[id()];dirty=false;clearSource();await loadSlot();});
 $('remove').onclick=safe(async()=>{drafts[id()]??={};drafts[id()][slot()]={clip:null,reviewed:true};dirty=false;clearSource();await loadSlot();message('Reset arah ini masuk daftar perubahan. Simpan & update karakter untuk menerapkannya.');});
 $('publish').onclick=safe(()=>job(true));$('build').onclick=safe(()=>job(false));
-for(const k of ['character','action','direction'])$(k).onchange=safe(async()=>{if(k==='character')refreshActions();if(FLIGHT_ACTIONS.includes($('action').value))$('direction').value='default';await loadSlot();});
+for(const k of ['character','action','direction'])$(k).onchange=safe(async()=>{if(k==='character')refreshActions();await loadSlot();});
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';const c=clip??legacy;if(c)start=performance.now()-frame*1000/c.fps;};
 $('restart').onclick=()=>{frame=0;start=performance.now();};
 const step=n=>{playing=false;$('play').textContent='Play';const c=clip??legacy;if(c)frame=(frame+n+c.frames.length)%c.frames.length;};
@@ -174,7 +174,7 @@ function draw(now){
   const c=clip??legacy,zoom=+$('zoom').value,baseX=450,baseY=360;
   ctx.strokeStyle='#b9ed77';ctx.beginPath();ctx.moveTo(0,baseY);ctx.lineTo(900,baseY);ctx.stroke();
   if(c&&image?.complete){
-    if(playing) {const mode=FLIGHT_ACTIONS.includes(slot())?{...c,loop:slotLoop(slot())}:c;const f=frameAt(mode,now-start);frame=c.frames.indexOf(f);}
+    if(playing) {const mode=isFlightSlot(slot())?{...c,loop:slotLoop(slot())}:c;const f=frameAt(mode,now-start);frame=c.frames.indexOf(f);}
     const f=c.frames[frame],p=spritePlacement(c,f,74*(state.roster.find(r=>r.id===id())?.visualScale??1));ctx.save();ctx.translate(baseX,baseY);ctx.scale(zoom,zoom);
     ctx.strokeStyle='#69dfff';ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(6,0);ctx.moveTo(0,-6);ctx.lineTo(0,6);ctx.stroke();
     ctx.translate(c.x,c.y);if(c.mirror)ctx.scale(-1,1);
