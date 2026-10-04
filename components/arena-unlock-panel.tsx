@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getArenaSelectionProgress } from '../lib/player-profile/arena-selection-progress';
 import type { LocalPlayerProfile } from '../lib/player-profile/types';
 
@@ -6,9 +6,10 @@ export function ArenaUnlockPanel({ profile, catalog, selectedId }: {
   profile: LocalPlayerProfile; catalog: readonly { id: string; name: string }[]; selectedId: string;
 }) {
   const [inspectId, setInspectId] = useState(selectedId);
+  useEffect(() => setInspectId(selectedId), [selectedId]);
   const progress = getArenaSelectionProgress(profile, inspectId, catalog);
-  return <details className="arena-unlock-panel">
-    <summary>Persyaratan semua arena</summary>
+  return <details className="arena-unlock-panel" open>
+    <summary>SYARAT ARENA</summary>
     <div className="arena-unlock-body">
       <label>Periksa arena (tidak mengubah pilihan match)
         <select value={inspectId} onChange={event => setInspectId(event.target.value)}>
