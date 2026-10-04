@@ -22,12 +22,23 @@ test('shared config, complete-sequence gating and exact actual flight duration',
   const clip={frames:[{}, {}, {}],fps:10};
   assert.equal(sequenceComplete(clip,299,.7),false);assert.equal(sequenceComplete(clip,300,.7),true);
 });
-test('only flying is immune; cancellation clears derived modifiers and warning once',()=>{
+test('all ultimate phases stay busy until completion or cancellation; warning once',()=>{
   const p={flight:startFlight({x:0,y:0})},c=flightConfig('bebe');let warnings=0;
   assert.equal(isFlying(p),false);advanceFlight(p.flight,c,1,true);
   advanceFlight(p.flight,c,3.5,false,{onFlightWarning:()=>warnings++});
   advanceFlight(p.flight,c,.1,false,{onFlightWarning:()=>warnings++});assert.equal(warnings,1);
   p.flight=null;assert.equal(isFlying(p),false);assert.equal(flightBusy(p),false);
+  for(const id of ['bebe','ciici']) {
+    const actor={flight:startFlight({x:0,y:0})},config=flightConfig(id);
+    assert.equal(flightBusy(actor),true,'takeoff is protected');
+    actor.flight=advanceFlight(actor.flight,config,1,true);
+    assert.equal(flightBusy(actor),true,'flying is protected');
+    actor.flight=advanceFlight(actor.flight,config,4,false);
+    assert.equal(actor.flight.stage,'FLIGHT_LANDING');
+    assert.equal(flightBusy(actor),true,'landing is protected');
+    actor.flight=advanceFlight(actor.flight,config,1,true);
+    assert.equal(flightBusy(actor),false,'completion restores targeting');
+  }
 });
 test('Ciici steering is faster than Bebe; finite movement, stop input',()=>{
   const headings=[];
@@ -59,6 +70,6 @@ test('three flight actions support optional eight directions with backward-compa
 });
 test('runtime retains existing team ultimates and gates all flight interactions',()=>{
   const code=fs.readFileSync('app/prototype.tsx','utf8');
-  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','flightBusy(winner) || isFlying(loser)','!flightBusy(p) && p.state','flightBusy(p) || p.state','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)'])assert.ok(code.includes(pattern),pattern);
+  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','flightBusy(winner) || flightBusy(loser)','flightBusy(a) || flightBusy(b)','!flightBusy(p) && p.state','flightBusy(p) || p.state','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)'])assert.ok(code.includes(pattern),pattern);
   assert.equal(code.split("onClick={() => keys.current.add('capslock')}").length-1,2,'desktop/mobile ultimate queues a one-shot until consumed');
 });

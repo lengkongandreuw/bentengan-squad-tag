@@ -4735,7 +4735,7 @@ export function BentenganPrototype() {
       }
     };
     const capture = (winner: Player, loser: Player, now: number) => {
-      if (flightBusy(winner) || isFlying(loser) || now < loser.ultimateShieldUntil) return;
+      if (flightBusy(winner) || flightBusy(loser) || now < loser.ultimateShieldUntil) return;
       const targetable =
         loser.state === 'ACTIVE' ||
         (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
@@ -4800,6 +4800,7 @@ export function BentenganPrototype() {
             );
           if (
             a.team === b.team ||
+            flightBusy(a) || flightBusy(b) ||
             (field.id === 'kanal2' && (a.waterEnteredAt || b.waterEnteredAt)) ||
             now < a.parkourUntil ||
             now < b.parkourUntil ||
@@ -6885,7 +6886,7 @@ export function BentenganPrototype() {
             me.action === 'ultimate' &&
             now < me.actionUntil,
           flightFlying:isFlying(me),
-          flightDebug:development && me.flight ? `${me.name} · ${me.flight.stage} · ${me.flight.remaining.toFixed(2)}s · Tag immune ${isFlying(me)} · Parkour ignore ${isFlying(me)} · Interaction lock true · Speed x${isFlying(me)?flightConfig(me.characterId)?.speedMultiplier:1} · Turn x${isFlying(me)?flightConfig(me.characterId)?.turnMultiplier:1}` : '',
+          flightDebug:development && me.flight ? `${me.name} · ${me.flight.stage} · ${me.flight.remaining.toFixed(2)}s · Tag immune ${flightBusy(me)} · Parkour ignore ${isFlying(me)} · Interaction lock true · Speed x${isFlying(me)?flightConfig(me.characterId)?.speedMultiplier:1} · Turn x${isFlying(me)?flightConfig(me.characterId)?.turnMultiplier:1}` : '',
           matchEvents: matchEvents.filter((event) => event.expiresAt > now),
           rescueRequestActive:
             rescueRequest?.requesterId === me.id && now < rescueRequest.expiresAt,
