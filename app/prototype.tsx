@@ -13,6 +13,8 @@ import {
   BatteryCharging,
   BellRing,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Flag,
   Gauge,
   Lock,
@@ -34,7 +36,6 @@ import {
 import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
 import { CharacterLockBadge } from '../components/character-lock-badge';
-import { ArenaUnlockPanel } from '../components/arena-unlock-panel';
 import { MatchProgressionSummary } from '../components/match-progression-summary';
 import { UnlockNotificationPanel } from '../components/unlock-notification-panel';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
@@ -88,6 +89,7 @@ import {
   type PlayerKdaStats,
   type ProgressionResult,
 } from '../lib/player-profile';
+import { getArenaSelectionProgress } from '../lib/player-profile/arena-selection-progress';
 import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
 import {
   FIELD_ANIMATED_ATLAS,
@@ -499,7 +501,7 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'kampung',
     name: 'Kampung Merdeka',
-    kicker: 'Lapangan terbuka · ramah pemula',
+    kicker: 'Lapangan terbuka dengan area luas, jalur sederhana, dan banyak ruang untuk belajar rotasi, rescue, serta kerja sama tim.',
     difficulty: 'easy',
     aiIntensity: 1,
     ground: 'dirt',
@@ -788,7 +790,7 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'pasar',
     name: 'Pasar Senggol',
-    kicker: 'Beton · jalur rapat',
+    kicker: 'Arena beton dengan jalur rapat, sudut sempit, dan banyak peluang untuk mengecoh lawan.',
     difficulty: 'normal',
     aiIntensity: 1,
     ground: 'concrete',
@@ -1108,7 +1110,7 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'taman',
     name: 'Taman Kota',
-    kicker: 'Rumput · ruang terbuka',
+    kicker: 'Area rumput terbuka dengan ruang lebar untuk rotasi cepat dan duel antar tim.',
     difficulty: 'hard',
     aiIntensity: 1,
     ground: 'grass',
@@ -1396,7 +1398,7 @@ const RAW_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'kanal',
     name: 'Alun Kanal Nusantara',
-    kicker: 'Kanal cincin · parkour silang',
+    kicker: 'Kanal melingkar dengan jalur parkour silang untuk flank cepat dan perebutan jalur tengah.',
     difficulty: 'hard',
     aiIntensity: 1.03,
     ground: 'grass',
@@ -2087,7 +2089,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'kampung',
     name: 'Kampung Merdeka',
-    kicker: 'Lapangan terbuka · ramah pemula',
+    kicker: 'Lapangan terbuka dengan area luas, jalur sederhana, dan banyak ruang untuk belajar rotasi, rescue, serta kerja sama tim.',
     difficulty: 'easy',
     aiIntensity: 1,
     ground: 'kampungGround',
@@ -2186,7 +2188,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'pasar',
     name: 'Pasar Senggol',
-    kicker: 'Lorong pasar · jalur rapat',
+    kicker: 'Lorong pasar yang rapat dengan banyak sudut sempit untuk rotasi cepat dan penyergapan.',
     difficulty: 'normal',
     aiIntensity: 1,
     ground: 'kampungGround',
@@ -2272,7 +2274,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'taman',
     name: 'Taman Kota',
-    kicker: 'Taman simetris · parkour teknis',
+    kicker: 'Taman simetris dengan rute parkour teknis yang memberi banyak pilihan flank.',
     difficulty: 'hard',
     aiIntensity: 1,
     ground: 'parkGrass',
@@ -2358,7 +2360,7 @@ const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
   {
     id: 'kanal',
     name: 'Alun Kanal Nusantara',
-    kicker: 'Kanal cincin · jembatan dan parkour',
+    kicker: 'Kanal melingkar dengan jembatan silang dan jalur parkour untuk perebutan area tengah.',
     difficulty: 'hard',
     aiIntensity: 1.03,
     ground: 'canalGrass',
@@ -2523,7 +2525,7 @@ GUIDE_FIELD_CONFIGS.push({
   ...structuredClone(kanalGuide),
   id: 'kanal2',
   name: 'Alun Kanal Nusantara 2',
-  kicker: 'Kanal panjang · ruang tengah 2×',
+  kicker: 'Kanal panjang dengan ruang tengah dua kali lebih lebar untuk rotasi dan duel terbuka.',
   background: 'kanal2-ground.webp',
   waterMask: 'kanal2-water-mask.png',
   waterMaskWidth: Math.round(MAP4_2_GUIDE_WIDTH / 2),
@@ -2624,7 +2626,7 @@ FIELD_CONFIGS.push({
   ...structuredClone(FIELD_CONFIGS[0]),
   id: 'kampung3d',
   name: 'Kampung Merdeka 3D',
-  kicker: 'EKSPERIMENTAL · low-poly / gameplay 2D',
+  kicker: 'Arena eksperimental bergaya low-poly dengan gameplay dua dimensi dan jalur terbuka.',
 });
 const prisonClearance = 12;
 const arenaValidationErrors: string[] = [];
@@ -2983,8 +2985,8 @@ export function BentenganPrototype() {
     return true;
   };
   const setSelectedFieldId = (id: FieldId) => {
-    if (!fieldIds.includes(id) || !playerProfileRef.current || !isArenaUnlocked(playerProfileRef.current, id)) {
-      setContentGateError('Arena belum terbuka atau tidak tersedia.');
+    if (!fieldIds.includes(id)) {
+      setContentGateError('Arena tidak tersedia.');
       return false;
     }
     setContentGateError('');
@@ -2992,11 +2994,10 @@ export function BentenganPrototype() {
     return true;
   };
   useEffect(() => {
+    if (mode !== 'playing') return;
     if (!playerProfile || !selectedFaction) {
-      if (mode === 'playing') {
-        setContentGateError('Profil atau tim tidak tersedia. Kembali ke menu.');
-        setMode('menu');
-      }
+      setContentGateError('Profil atau tim tidak tersedia. Kembali ke menu.');
+      setMode('menu');
       return;
     }
     const valid = resolvePlayableContent(playerProfile, selectedId, selectedFieldId,
@@ -3171,6 +3172,34 @@ export function BentenganPrototype() {
     () => (selectedFaction ? lineupFor(selectedFaction, selectedId) : []),
     [selectedFaction, selectedId],
   );
+  const selectedArena =
+    FIELD_CONFIGS.find((field) => field.id === selectedFieldId) ??
+    FIELD_CONFIGS[0];
+  const selectedArenaUnlock = useMemo(() => {
+    if (!playerProfile) {
+      return { unlocked: false, requirement: 'Buat profil pemain untuk melihat progres pembukaan arena.' };
+    }
+    const progress = getArenaSelectionProgress(playerProfile, selectedArena.id, FIELD_CONFIGS);
+    if (progress.unlocked) return { unlocked: true, requirement: '' };
+    const requirements = progress.checks
+      .filter(check => !check.met)
+      .map(check => {
+        if (check.kind === 'level') return `Level ${check.required}`;
+        if (check.kind === 'totalWins') return `${check.required} kemenangan total`;
+        if (check.kind === 'tags') return `${check.required} tag lawan`;
+        if (check.kind === 'rescues') return `${check.required} rescue tim`;
+        if (check.kind === 'arenaPlayed') return `${check.required} pertandingan di ${check.label.replace('Main di ', '')}`;
+        if (check.kind === 'arenaWins' || check.kind === 'tierWins')
+          return `${check.required} kemenangan di ${check.label.replace('Menang di ', '')}`;
+        return check.label;
+      });
+    return {
+      unlocked: false,
+      requirement: requirements.length
+        ? `Selesaikan syarat: ${requirements.join(', ')}.`
+        : 'Arena ini belum dapat dimainkan.',
+    };
+  }, [playerProfile, selectedArena.id]);
   const opponentSquad = useMemo(
     () =>
       selectedFaction
@@ -7143,10 +7172,8 @@ export function BentenganPrototype() {
     highlightCharacterWithVoice(nextId);
   };
   const cycleArena = (direction: -1 | 1) => {
-    const ids = getPlayableArenaIds(playerProfileRef.current, fieldIds);
-    if (!ids.length) { setContentGateError('Tidak ada arena terbuka yang tersedia.'); return; }
-    const index = ids.indexOf(selectedFieldId);
-    setSelectedFieldId(ids[(index + direction + ids.length) % ids.length] as FieldId);
+    const index = fieldIds.indexOf(selectedFieldId);
+    setSelectedFieldId(fieldIds[(index + direction + fieldIds.length) % fieldIds.length] as FieldId);
   };
   const confirmCharacter = () => {
     if (!playerProfileRef.current || !selectedFaction ||
@@ -7233,7 +7260,7 @@ export function BentenganPrototype() {
         event.preventDefault();
         cycleArena(key === 'arrowleft' ? -1 : 1);
       }
-      if (menuStep === 'field' && key === 'enter') start();
+      if (menuStep === 'field' && key === 'enter' && selectedArenaUnlock.unlocked) start();
     };
     window.addEventListener('keydown', navigate);
     return () => window.removeEventListener('keydown', navigate);
@@ -7246,6 +7273,7 @@ export function BentenganPrototype() {
     creditsOpen,
     selectedFaction,
     selectedFieldId,
+    selectedArenaUnlock.unlocked,
     selectedId,
     playerProfile,
     profileOpen,
@@ -7606,9 +7634,71 @@ export function BentenganPrototype() {
 
         {menuStep === 'field' && selectedFaction && (
           <section
-            className={`field-select-screen faction-${selectedFaction}`}
+            className={`field-select-screen map-selection-screen faction-${selectedFaction}`}
             aria-labelledby="field-title"
           >
+            <div className="map-selection-stage">
+              <div className="map-selection-main">
+                <img
+                  className="map-selection-frame"
+                  src={uiAsset('map-selection/map-selection-frame.png')}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <img
+                  className="map-selection-preview"
+                  src={uiAsset(`fields/${selectedArena.id}.webp`)}
+                  alt={`Preview arena ${selectedArena.name}`}
+                />
+                {!selectedArenaUnlock.unlocked && (
+                  <div className="map-selection-lock-overlay" aria-label="Arena terkunci">
+                    <Lock aria-hidden="true" />
+                    <span>ARENA TERKUNCI</span>
+                  </div>
+                )}
+                <div className="map-selection-roster" aria-label="Skuad yang akan bermain">
+                  {squad.map((id, index) => (
+                    <figure key={id} className={index === 0 ? 'controlled' : ''}>
+                      <CharacterPreview
+                        id={id}
+                        alt={CHARACTER_BY_ID[id].name}
+                        eager={index === 0}
+                      />
+                      <figcaption>{CHARACTER_BY_ID[id].name}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+              <button
+                className="map-selection-nav previous"
+                aria-label="Arena sebelumnya"
+                onClick={() => cycleArena(-1)}
+              >
+                <ChevronLeft aria-hidden="true" />
+              </button>
+              <button
+                className="map-selection-nav next"
+                aria-label="Arena berikutnya"
+                onClick={() => cycleArena(1)}
+              >
+                <ChevronRight aria-hidden="true" />
+              </button>
+              <div className="map-selection-info">
+                <img
+                  className="map-selection-info-frame"
+                  src={uiAsset('map-selection/map-selection-info-frame.png')}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <section className="map-selection-details" aria-live="polite">
+                  <span>{selectedArena.difficulty}</span>
+                  <h1 id="field-title">{selectedArena.name}</h1>
+                  <p className={selectedArenaUnlock.unlocked ? undefined : 'map-unlock-requirement'}>
+                    {selectedArenaUnlock.unlocked ? selectedArena.kicker : selectedArenaUnlock.requirement}
+                  </p>
+                </section>
+              </div>
+            </div>
             <header>
               <span>LANGKAH TERAKHIR</span>
               <h1 id="field-title">Pilih arena pertarungan</h1>
@@ -7623,9 +7713,8 @@ export function BentenganPrototype() {
               {FIELD_CONFIGS.map((field, index) => (
                 <button
                   key={field.id}
-                  className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''}`}
+                  className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''} ${!playerProfile || !isArenaUnlocked(playerProfile, field.id) ? 'locked' : ''}`}
                   onClick={() => setSelectedFieldId(field.id)}
-                  disabled={!playerProfile || !isArenaUnlocked(playerProfile, field.id)}
                   aria-pressed={selectedFieldId === field.id}
                   style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + FIELD_CONFIGS.length + 1) % FIELD_CONFIGS.length) - 1 } as React.CSSProperties}
                 >
@@ -7650,8 +7739,6 @@ export function BentenganPrototype() {
             </div>
             <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => cycleArena(1)}>›</button>
             </div>
-            {playerProfile && <ArenaUnlockPanel key={selectedFieldId} profile={playerProfile}
-              catalog={FIELD_CONFIGS} selectedId={selectedFieldId} />}
             <div className="match-lineup">
               <div>
                 {squad.map((id, index) => (
@@ -7669,11 +7756,15 @@ export function BentenganPrototype() {
               </div>
             </div>
             <button
-              className={`graffiti-primary launch-${selectedFaction}`}
-              onClick={start}
+              className={`map-selection-start launch-${selectedFaction}`}
+              disabled={!selectedArenaUnlock.unlocked}
+              aria-disabled={!selectedArenaUnlock.unlocked}
+              onClick={selectedArenaUnlock.unlocked ? start : undefined}
             >
               <span>
-                <Play size={19} fill="currentColor" /> MULAI MATCH
+                {selectedArenaUnlock.unlocked
+                  ? <><Play size={19} fill="currentColor" /> MULAI MATCH</>
+                  : <><Lock size={19} /> ARENA TERKUNCI</>}
               </span>
             </button>
           </section>
