@@ -54,4 +54,5 @@ test('three canonical editor slots only for Bebe/Ciici, no forced eight-directio
 test('runtime retains existing team ultimates and gates all flight interactions',()=>{
   const code=fs.readFileSync('app/prototype.tsx','utf8');
   for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','flightBusy(winner) || isFlying(loser)','!flightBusy(p) && p.state','flightBusy(p) || p.state','playerMovementLocked','studioFlightClip(me.characterId,slot)'])assert.ok(code.includes(pattern),pattern);
+  assert.equal(code.split("onClick={() => keys.current.add('capslock')}").length-1,2,'desktop/mobile ultimate queues a one-shot until consumed');
 });

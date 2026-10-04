@@ -8492,7 +8492,7 @@ export function BentenganPrototype() {
                 {ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
                   <button
                     className={`ultimate-action ${selectedId === 'kaka' ? 'kaka-ultimate' : ''} ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
-                    onClick={() => tapKey('capslock')}
+                    onClick={() => keys.current.add('capslock')}
                     disabled={
                       snapshot.ultimateMeter < 100 || playerMechanicsLocked
                     }
@@ -8591,7 +8591,7 @@ export function BentenganPrototype() {
                       disabled={
                         snapshot.ultimateMeter < 100 || playerMechanicsLocked
                       }
-                      {...touchControl('capslock')}
+                      onClick={() => keys.current.add('capslock')}
                     >
                       ULT {Math.floor(snapshot.ultimateMeter)}%
                     </button>
