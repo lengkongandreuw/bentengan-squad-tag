@@ -5,6 +5,66 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### PUBLISH REQUESTED — MODULE17 (2026-10-04)
+
+- User now explicitly requests implementation on GitHub Pages, overriding the
+  earlier brief's local-only STOP. Publish only reviewed audio UI/typography,
+  seven runtime PNGs, original reference masters and relevant documentation.
+- Exclude unrelated USER config/map-studio.json. No other contributor commits
+  pending at preflight (HEAD and github/main aligned at187fe16).
+
+### IMPLEMENTED — MODULE17 Audio Settings UI + typography (2026-10-04, LOCAL ONLY)
+
+- Read full17-BENTENG-AUDIO-SETTINGS-UI-TYPOGRAPHY-CODEX.md. User requested
+  implementation according to brief; its explicit final STOP/do-not-publish
+  instruction applies. No commit/push/deployment in this turn.
+- Seven supplied transparent PNGs copied unchanged to public/ui-v2/audio-settings/
+  with normalized filenames; original masters remain asset-inbox/2026-10-04-audio-settings-ui/.
+  No artwork cropping, recolor, generation or font binaries added.
+- AudioSettings uses existing details trigger plus native dialog in body portal
+  (avoids pregame transforms/overflow), header/card PNGs, reusable art sliders,
+  SAVE/CANCEL and collapsed Preview Audio. Header Impact400, labels/values and
+  buttons Poppins700; keyboard/pointer native ranges remain transparent above
+  calibrated track. Fill clips without image stretching;0 hidden,100 complete.
+- Live saveAudioLevels/events/storage remain unchanged; opening snapshots levels,
+  SAVE retains values, CANCEL/Escape restores snapshot. Close stops music timer
+  and GameplayAudio sources; late SFX unlock does not play after closing.
+  Summary/dialog keyboard events isolated from gameplay; native modal focus.
+- Controlled font variables + major H1 selectors, targeted explicit H2/paragraph
+  overrides. Existing next/font/google method now loads Poppins; standalone Pages
+  index loads same weights from official Google Fonts (network-dependent, sans
+  fallback). Pages' old Impact/Arial override removed. No Bungee/Creato/benteng
+  activated. app/layout.tsx + index.html + github-pages/pages.css required for
+  actual entrypoint/font availability, not unrelated UI redesign.
+- Browser dedicated local3008:0/100 visual state, Home/End/arrows, pointer50%,
+  SAVE/reopen retention, CANCEL/Escape rollback, music preview state + SFX preview,
+  console clean. Viewports1024x768,390x844,844x390 checked; mobile artwork keeps
+  ratio, scrollable control/preview content and external button row; short screens
+  whole panel scrolls within85dvh. Actual physical touchscreen not tested.
+- TypeScript/targeted lint/Pages build +10 audio regression tests pass; pre-existing
+  Tailwind/CSS and chunk-size build warnings only. No sprites/fields/ui generators.
+- No edits to audio engine/settings storage, gameplay/progression/character data,
+  sprites, editor code, arena config or audio files. USER config/map-studio.json
+  remains local/unpublished; never include it in this feature's future commit.
+- Preview http://127.0.0.1:3008/bentengan-squad-tag/ (Vite session15157).
+  Browser screenshot .preview-admin/module17-audio-settings.png ignored/local.
+
+### PREPARED — Sound Settings UI artwork (2026-10-04, LOCAL ONLY)
+
+- User requested analysis/storage only for the next UI revision. No runtime
+  implementation or publication authorized for this turn.
+- Seven original PNGs copied byte-identically to
+  asset-inbox/2026-10-04-audio-settings-ui/; README records dimensions, hashes,
+  visual roles, existing audio behavior, responsive/accessibility constraints.
+  Total1,285,988 bytes; all have transparency, black outlines must be retained.
+- Header/card, secondary gray button, primary purple button, filled/empty
+  slider and knob. Filled1742x238 vs empty1738x198 need track/anchor alignment,
+  not direct100% stacking or horizontal stretch. Review export edge fragments
+  before making future cropped runtime derivatives; masters unchanged.
+- Existing live-save16% music /85% SFX,5s music preview, SFX selection/preview,
+  cleanup/mute/gameplay event isolation must survive presentation changes.
+- No game/map changes, no commit/push. Existing USER map config left untouched.
+
 ### IMPLEMENTED — Map Editor polygons, structures, dummy test and deployment readiness (2026-10-04)
 
 - User requested visual empty colliders with more than4 nodes, dummy traversal,

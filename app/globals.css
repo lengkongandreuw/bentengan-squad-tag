@@ -18,7 +18,8 @@
   --green:#42d875;
   --acid:#d6f04b;
 
-  --font-heading:'Bungee', sans-serif;
+  --font-display:Impact, 'Arial Narrow', sans-serif;
+  --font-heading:var(--font-body);
   --font-body:'Poppins', sans-serif;
 }
 * { box-sizing:border-box; }
@@ -31,7 +32,11 @@ body {
   font-family:var(--font-body);
   font-size:16px;
 }
+button,input,select,textarea { font-family:var(--font-body); }
 button { font:inherit; }
+h1 { font-family:var(--font-display); font-weight:400; }
+h2,h3,h4,h5,h6 { font-family:var(--font-heading); font-weight:700; }
+p { font-family:var(--font-body); font-weight:400; }
 .profile-trigger{position:absolute;z-index:30;top:18px;right:18px;display:grid;place-items:center;width:44px;height:44px;padding:0;color:#e2e2de;background:#141a15;border:1px solid #697369;border-radius:9px;cursor:pointer}.profile-trigger:hover{border-color:#c6c7c1;color:#edede8}
 .player-profile-overlay{position:fixed;z-index:9999;inset:0;display:grid;place-items:center;padding:16px;background:rgba(4,7,5,.78)}
 .player-profile-panel{width:min(100%,620px);max-height:calc(100dvh - 32px);overflow:auto;padding:22px;color:#edf0e9;background:#151b16;border:1px solid #586458;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
@@ -351,7 +356,7 @@ button { font:inherit; }
   .asset-loading-card p { margin:6px 0; }
 }
 @media(prefers-reduced-motion:reduce) { .arena-backdrop>img { animation:none; } .step-field .field-card { transition:none; } }
-.audio-settings { position:relative; z-index:100; color:#fff4d1; font:600 13px Arial,sans-serif; }
+.audio-settings { position:relative; z-index:100; color:#fff4d1; font:600 13px var(--font-body); }
 .audio-settings summary { cursor:pointer; padding:10px; min-height:38px; border:1px solid #72876b; border-radius:8px; background:#16211c; white-space:nowrap; }
 .audio-settings-panel { position:absolute; right:0; top:calc(100% + 8px); width:290px; max-width:85vw; padding:16px; display:grid; gap:10px; background:#111d17fa; border:1px solid #8cad77; border-radius:12px; box-shadow:0 8px 30px #0009; max-height:70cqh; overflow:auto; text-align:left; }
 .pregame-actions:not(.step-field) .audio-settings-panel { top:auto; bottom:calc(100% + 8px); }
@@ -360,6 +365,59 @@ button { font:inherit; }
 .audio-settings-panel input { display:block; width:100%; height:30px; accent-color:#d6f04b; }
 .audio-settings-panel button,.audio-settings-panel select { min-height:36px; padding:7px; border:1px solid #66845d; background:#24382b; color:#fff; border-radius:6px; width:100%; }
 .audio-settings-panel small { font-size:11px; line-height:1.4; color:#bdcbb8; }
+/* Module17: art-only presentation; native controls and live audio remain intact. */
+body :is(.ability-panel,.credits-copy,.rules-dialog,.pause-overlay,.round-stats-head,.round-team-card) :is(h2,h3) { font-family:var(--font-heading); font-weight:700; }
+body :is(.rules-dialog,.round-stats-head,.framed-character-panel .character-panel-skill) p { font-family:var(--font-body); font-weight:400; }
+.start-panel h1,.workshop-head h1,.field-select-screen h1,.asset-loading-card h1 { font-family:var(--font-display); font-weight:400; }
+.audio-settings-art-panel { width:min(90vw,700px); max-width:700px; max-height:85dvh; padding:0; border:0; margin:auto; background:transparent; color:#19151e; overflow:auto; overscroll-behavior:contain; font:400 14px/1.4 var(--font-body); }
+.audio-settings-art-panel::backdrop { background:rgba(0,0,0,.35); }
+.audio-settings-art-header { position:relative; width:72%; margin:0 auto -7%; z-index:1; }
+.audio-settings-art-header img { display:block; width:100%; height:auto; }
+.audio-settings-art-header h1 { position:absolute; inset:34% 10% 27%; display:grid; place-items:center; margin:0; color:#fff; font:400 clamp(24px,5vw,42px)/1 var(--font-display); white-space:nowrap; }
+.audio-settings-art-card { position:relative; aspect-ratio:1011/555; }
+.audio-art-card-image { display:block; width:100%; height:auto; pointer-events:none; }
+.audio-art-content { position:absolute; inset:25% 10% 26%; overflow-y:auto; overflow-x:hidden; padding:2px 4px; scrollbar-width:thin; }
+.audio-art-row>label { display:flex; justify-content:space-between; gap:12px; align-items:center; font:700 16px/1.3 var(--font-heading); }
+.audio-art-row output { font-weight:700; font-variant-numeric:tabular-nums; }
+.audio-art-slider { position:relative; width:min(100%,400px); margin:0 auto; aspect-ratio:1742/238; min-height:44px; }
+.audio-art-slider img { position:absolute; pointer-events:none; height:auto; user-select:none; }
+.audio-art-empty { width:99.77%; left:.23%; top:13.03%; }
+.audio-art-fill { width:100%; left:0; top:0; clip-path:inset(0 calc(84.7% - var(--volume) * 80%) 0 0); }
+.audio-art-slider[data-value="0"] .audio-art-fill { visibility:hidden; }
+.audio-art-slider[data-value="100"] .audio-art-fill { clip-path:none; }
+.audio-art-knob { width:9%; left:calc(15.3% + var(--volume) * 80%); top:56.3%; transform:translate(-46.4%,-57.6%); }
+.audio-art-slider input { appearance:none; -webkit-appearance:none; position:absolute; left:15.3%; top:56.3%; transform:translateY(-50%); width:80%; height:44px; margin:0; padding:0; border:0; background:transparent; color:transparent; cursor:pointer; touch-action:pan-y; }
+.audio-art-slider input::-webkit-slider-runnable-track { height:44px; background:transparent; }
+.audio-art-slider input::-webkit-slider-thumb { appearance:none; -webkit-appearance:none; width:1px; height:44px; border:0; background:transparent; }
+.audio-art-slider input::-moz-range-track { height:44px; background:transparent; border:0; }
+.audio-art-slider input::-moz-range-thumb { width:1px; height:44px; border:0; background:transparent; }
+.audio-art-slider:focus-within { outline:2px solid #8621b7; outline-offset:2px; }
+.audio-art-preview { margin:2px 0; font:400 12px/1.4 var(--font-body); }
+.audio-art-preview summary { min-height:24px; cursor:pointer; font-weight:600; padding:2px 0; }
+.audio-art-preview>div { display:grid; gap:7px; max-height:130px; overflow:auto; padding:4px 2px; }
+.audio-art-preview button,.audio-art-preview select { width:100%; min-height:44px; padding:7px; color:#23182c; background:#fff; border:1px solid #555; font:500 12px var(--font-body); }
+.audio-settings-art-actions { position:absolute; bottom:11%; left:10%; right:10%; display:flex; gap:10%; justify-content:center; margin:0; }
+.audio-settings-art-actions button { position:relative; display:grid; place-items:center; flex:0 1 25%; min-height:44px; padding:0; border:0; background:transparent; color:#fff; cursor:pointer; font:700 15px var(--font-body); }
+.audio-settings-art-actions button img { display:block; width:100%; height:auto; }
+.audio-settings-art-actions button span { position:absolute; left:16%; right:12%; top:26%; bottom:25%; display:grid; place-items:center; }
+.audio-settings-art-actions button:last-child { color:#17141b; }
+.audio-settings-art-actions button:focus-visible,.audio-art-preview :focus-visible { outline:2px solid #8621b7; outline-offset:2px; }
+.audio-art-helper { display:block; text-align:center; font:400 10px/1.4 var(--font-body); }
+@media(max-width:620px) {
+  .audio-settings-art-header { width:90%; margin-bottom:-9%; }
+  .audio-settings-art-card { margin-bottom:76px; }
+  .audio-art-content { inset:25% 10% 2%; }
+  .audio-art-row>label { font-size:14px; }
+  .audio-art-slider { min-height:44px; }
+  .audio-art-slider img:not(.audio-art-knob) { top:50%; transform:translateY(-56.3%); }
+  .audio-art-slider .audio-art-empty { transform:translateY(-51.5%); }
+  .audio-art-slider .audio-art-knob,.audio-art-slider input { top:50%; }
+  .audio-art-knob { width:12%; }
+  .audio-settings-art-actions { top:100%; bottom:auto; gap:4%; }
+  .audio-settings-art-actions button { flex-basis:48%; font-size:12px; }
+  .audio-art-helper { font-size:11px; }
+  .audio-art-preview summary { min-height:44px; display:flex; align-items:center; }
+}
 .playing-shell .game-topbar { z-index:120; }
 /* Experimental renderer errors must never leave an unresponsive black screen. */
 .renderer-error { position: absolute; inset: 15%; z-index: 120; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; background: #17231af5; border: 2px solid #d4b965; color: #fff4d1; }

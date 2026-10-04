@@ -4,6 +4,24 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-04 MODULE17 publication now explicitly authorized by user. Supersedes
+local-only instruction below; publish audio UI/typography/assets/docs only.
+Unrelated USER config/map-studio.json must remain local and unstaged.
+
+2026-10-04 MODULE17 UI audio/typography implemented LOCAL ONLY. Full brief read;
+explicit do-not-publish/STOP overrides standing auto-publish for this task. Seven
+original PNGs preserved and copied to public/ui-v2/audio-settings/. Impact400
+display/H1, Poppins headings/body/controls; next/font/google and Pages official
+Google Fonts loading aligned (network required, sans fallback). No font binaries.
+Existing live-save remains; snapshot on open, SAVE keeps, CANCEL/Escape restores.
+Native range overlay on art, calibrated endpoints,0/100, collapsible previews,
+cleanup/hotkey isolation. Native dialog/portal prevents transformed menu clipping.
+Mobile scroll and reachable SAVE/CANCEL, no artwork distortion. TS/lint/Pages
+build +10 audio tests passed; browser desktop/portrait/landscape/pointer/keyboard
+checked; physical touchscreen pending. No audio/gameplay/editor/map/sprite changes.
+Preview local3008/bentengan-squad-tag/. Do not publish until user explicitly asks;
+preserve/exclude unrelated dirty config/map-studio.json when publishing later.
+
 2026-10-04 MODULE16 implemented; user explicitly authorized publish after brief
 implementation. Supersedes preparation-only note below. Reuse GameplayAudio/SFX
 master with20 custom MP3s/cache/procedural fallback,4 tag impacts and10s local

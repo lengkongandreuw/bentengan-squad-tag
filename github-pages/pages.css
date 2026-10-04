@@ -1,6 +1,7 @@
 :root {
-  --font-body: Arial, Helvetica, sans-serif;
-  --font-heading: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  --font-body: 'Poppins', sans-serif;
+  --font-heading: 'Poppins', sans-serif;
+  --font-display: Impact, 'Arial Narrow', sans-serif;
 }
 
 html,
