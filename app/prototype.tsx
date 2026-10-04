@@ -40,6 +40,7 @@ import { UnlockNotificationPanel } from '../components/unlock-notification-panel
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
+import { createRouteScheduler } from '../lib/route-scheduler';
 import { studioImages, retainStudioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
@@ -4452,6 +4453,7 @@ export function BentenganPrototype() {
       return true;
     };
     const studioRoutes = new Map<string,{target:{x:number;y:number};route:Array<{x:number;y:number}>;until:number}>();
+    const routeScheduler = createRouteScheduler();
     const navigateAroundHazards = (
       p: Player,
       desired: { x: number; y: number },
@@ -4464,12 +4466,17 @@ export function BentenganPrototype() {
         const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !studioQueries!.solidAt(x,y,PLAYER_COLLISION_RADIUS) && !studioQueries!.waterAt(x,y);
         const cached = studioRoutes.get(p.id);
         if (!cached || now > cached.until || distance(target,cached.target)>100) {
-          const route = clickRoute(p,target,worldWidth,worldHeight,passable,40);
-          studioRoutes.set(p.id,{target,route,until:now+1800});
+          routeScheduler.request(p.id,()=>{
+            if(p.state==='PRISONER' || flightBusy(p)) {studioRoutes.delete(p.id);return;}
+            const route = clickRoute(p,target,worldWidth,worldHeight,passable,40);
+            studioRoutes.set(p.id,{target,route,until:performance.now()+1800});
+          });
+        } else {
+          routeScheduler.cancel(p.id);
         }
-        const route = studioRoutes.get(p.id)!.route;
-        while(route.length && distance(p,route[0])<18) route.shift();
-        if(route[0]) return {x:route[0].x-p.x,y:route[0].y-p.y};
+        const route = studioRoutes.get(p.id)?.route;
+        while(route?.length && distance(p,route[0])<18) route.shift();
+        if(route?.[0]) return {x:route[0].x-p.x,y:route[0].y-p.y};
       }
       const magnitude = Math.hypot(desired.x, desired.y);
       if (magnitude < 0.01) return desired;
@@ -6784,11 +6791,19 @@ export function BentenganPrototype() {
         ctx.fillText(announcement, cw / 2, ch / 2);
       }
     };
+    let cachedStatsBoard = initialSnapshot.statsBoard;
+    const profileRuntime = new URLSearchParams(window.location.search).get('performance') === '1';
+    let profileFrames=0,profileUpdate=0,profileDraw=0,profileHud=0,profileWorst=0,profileStart=performance.now();
     const loop = (now: number) => {
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
+      const updateStart=profileRuntime?performance.now():0;
+      if(!paused && phase==='PLAYING') routeScheduler.run();
+      else routeScheduler.clear();
       update(dt, now);
+      const drawStart=profileRuntime?performance.now():0;
       draw(now);
+      const hudStart=profileRuntime?performance.now():0;
       if (now - lastHud > 100) {
         lastHud = now;
         const me = players[0],
@@ -6814,6 +6829,13 @@ export function BentenganPrototype() {
         );
         canvas.dataset.teamCombo = `${teamCombos[me.team].step}:${teamComboSeconds(teamCombos[me.team], now)}`;
         const playerCombo = teamCombos[me.team];
+        // The closed scoreboard has no visible consumers. Avoid sorting/building
+        // twenty rows every HUD tick; rebuild immediately when opened/results show.
+        if(leaderboardOpenRef.current || phase==='ROUND_OVER' || phase==='MATCH_OVER') {
+          cachedStatsBoard=buildStatsBoard(now);
+        } else if(cachedStatsBoard.visible) {
+          cachedStatsBoard={...cachedStatsBoard,visible:false};
+        }
         setSnapshot({
           blue: score.blue,
           red: score.red,
@@ -6903,8 +6925,17 @@ export function BentenganPrototype() {
             winner: resultWinner,
             final: phase === 'MATCH_OVER',
           },
-          statsBoard: buildStatsBoard(now),
+          statsBoard: cachedStatsBoard,
         });
+      }
+      if(profileRuntime) {
+        const end=performance.now();profileFrames++;
+        profileUpdate+=drawStart-updateStart;profileDraw+=hudStart-drawStart;profileHud+=end-hudStart;
+        profileWorst=Math.max(profileWorst,end-updateStart);
+        if(end-profileStart>=1000) {
+          canvas.dataset.runtimePerformance=JSON.stringify({frames:profileFrames,updateMs:+(profileUpdate/profileFrames).toFixed(2),drawMs:+(profileDraw/profileFrames).toFixed(2),hudMs:+(profileHud/profileFrames).toFixed(2),worstWorkMs:+profileWorst.toFixed(2),routeQueue:routeScheduler.size});
+          profileFrames=0;profileUpdate=0;profileDraw=0;profileHud=0;profileWorst=0;profileStart=end;
+        }
       }
       raf = requestAnimationFrame(loop);
     };
