@@ -5,7 +5,17 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### PUBLISH REQUESTED — MODULE17 (2026-10-04)
+### PUBLISHED — MODULE17 (2026-10-04)
+
+- Implementation commit d1d15fdf7efdc16b3a5abf28aba0362b3beb7381 pushed to main.
+- GitHub Pages Actions run37177521084 completed SUCCESS. Public build-info.json
+  matches implementation commit and committed map revision; hashed JS serves
+  PREVIEW AUDIO and all seven public PNGs match local/reference bytes exactly.
+- Unrelated USER config/map-studio.json remains unstaged, unchanged SHA256
+  b2738bd2c43d0396fc8a4b02222f39b2326e65ba1e715986c6ed6d31d539c615.
+- No new public interactive browser test; prior local responsive/audio tests pass.
+
+### Publication authorization — MODULE17 (2026-10-04)
 
 - User now explicitly requests implementation on GitHub Pages, overriding the
   earlier brief's local-only STOP. Publish only reviewed audio UI/typography,

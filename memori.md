@@ -4,6 +4,10 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-04 MODULE17 PUBLISHED d1d15fd. Actions37177521084 SUCCESS; public build
+commit/map revision, hashed JS and seven unchanged PNG hashes verified. Draft
+USER config/map-studio.json untouched and excluded. Publication complete.
+
 2026-10-04 MODULE17 publication now explicitly authorized by user. Supersedes
 local-only instruction below; publish audio UI/typography/assets/docs only.
 Unrelated USER config/map-studio.json must remain local and unstaged.
