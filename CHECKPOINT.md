@@ -5,6 +5,36 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### IMPLEMENTED — Map Editor polygons, structures, dummy test and deployment readiness (2026-10-04)
+
+- User requested visual empty colliders with more than4 nodes, dummy traversal,
+  visible forts/prisons, and investigation of slow/missing published edits.
+- Free polygon drawing and numbered node editor support3–64 points, midpoint
+  insertion, drag/delete, undo; solid empty collider tools and self-intersection
+  checks. Original existing map configs and art are preserved.
+- Editor renders fort sprites, prison floor/overlay with editable gameplay
+  markers and a visibility toggle. Dummy humanoid uses shared solid/parkour,
+  slow/water/bridge predicates, world margins, movement substeps; WASD/arrows,
+  jump/boost/reset controls and status. This is traversal/overlay testing,
+  NOT a complete match/capture simulator.
+- Saved/unsaved/disabled draft status is explicit. Publish waits for Pages Actions
+  success AND public build-info commit/canonical map revision; push alone is no
+  longer reported as deployed. Content-hashed bundles/CSS with legacy aliases
+  avoid stable-filename cache; public result link has build query cache buster.
+-10 Map Studio harness tests,37 progression tests and10 audio tests pass.
+  TypeScript, targeted lint, Pages build checked; existing CSS/chunk warnings.
+- Browser verifies existing Arena Benteng1 structures, dummy safe relocation,
+  and arbitrary nodes beyond4 in an UNSAVED disposable browser draft. No saves,
+  uploads, activations or actual map publication during browser tests.
+- Dedicated updated local editor http://127.0.0.1:4330/ (old4320 process left
+  untouched to preserve user's open work); normal start remains npm run admin:maps.
+  Restart old server after saving work to use new module route/deployment backend.
+- IMPORTANT: config/map-studio.json is pre-existing USER local work. Five edited
+  builtins are disabled drafts; do not activate or include in this code commit.
+  That file must remain modified locally, absent from this publication.
+- Screenshot evidence .preview-admin/map-editor-dummy.png (ignored, not shipped).
+  GitHub publication verification follows below when deployment completes.
+
 ### COMPLETE — MODULE16 Custom SFX, validated and published (2026-10-04)
 
 - User authorized implementation from16-BENTENG-CUSTOM-INGAME-SFX-CODEX.md,

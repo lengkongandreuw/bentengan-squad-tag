@@ -163,6 +163,54 @@ p {
   background: #51272a;
   color: #ffd1cd;
 }
+.publish-strip {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px 24px;
+  background: #102d22;
+  font-size: 12px;
+  border-bottom: 1px solid #44644d;
+}
+.warning {
+  color: #ffdb89;
+}
+.context-panel {
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #72965c;
+  border-radius: 8px;
+  background: #203b28;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.context-panel p,
+.context-panel output,
+.node-list {
+  width: 100%;
+  margin: 0;
+}
+.node-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 130px;
+  overflow: auto;
+}
+.node-list .selected {
+  background: #aee87e;
+  color: #0d2013;
+}
+.quick-tools {
+  margin-top: 10px;
+}
+#testingTools output {
+  font-weight: 600;
+  color: #d9f890;
+}
 #library,
 #objects {
   max-height: 320px;

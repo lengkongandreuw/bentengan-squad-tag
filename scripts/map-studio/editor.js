@@ -1,9 +1,14 @@
 import { validateCatalog } from '/catalog.mjs';
 import {
+  closestEdge,
+  polygonBounds,
+  moveDummy,
+  MAX_POLYGON_NODES,
+} from '/editor-tools.js';
+import {
   contains,
   solidAt,
   waterAt,
-  speedAt,
   frameAt,
   mapIssues,
   validateMap,
@@ -32,15 +37,20 @@ let state,
   future = [],
   drag = null,
   pointsMode = false,
+  selectedNode = -1,
+  drawing = null,
+  pointer = null,
+  falls = 0,
+  dummyStatus = '',
   testing = false,
   player,
   last = 0,
   jumpUntil = 0,
-  keys = new Set(),
   loading = false,
   uploadUrl,
   tileCache;
-const cache = new Map(),
+const keys = new Set(),
+  cache = new Map(),
   uid = () => crypto.randomUUID().replaceAll('-', ''),
   zoom = () =>
     Math.min(+$('zoom').value / 100, 4096 / Math.max(map.width, map.height)),
@@ -80,12 +90,24 @@ function remember() {
   if (history.length > 40) history.shift();
   future = [];
   dirty = true;
+  publishSummary();
+}
+function publishSummary() {
+  if (!map) return;
+  $('saveState').textContent = dirty ? '● Belum disimpan' : '✓ Tersimpan lokal';
+  $('saveState').className = dirty ? 'warning' : '';
+  $('activationState').textContent =
+    map.enabled && !map.archived && !map.deleted
+      ? 'Aktif: versi ini akan tampil setelah deployment selesai.'
+      : 'DRAFT NONAKTIF: perubahan ini tidak akan tampil di game. Centang Aktifkan, lalu Simpan.';
 }
 const object = () => map.objects.find((o) => o.id === selected),
   marker = () => {
     const [k, t] = selected.split(':');
     return k === 'base' ? map.bases[t] : k === 'prison' ? map.prisons[t] : null;
   };
+const baseRadius = () =>
+  builtins.find((b) => b.id === map.replaces)?.baseRadius ?? 118;
 function image(a) {
   if (!a) return null;
   if (!cache.has(a.asset)) {
@@ -130,10 +152,35 @@ function propertyFields() {
   $('editPoints').textContent = pointsMode
     ? 'Selesai edit titik'
     : 'Edit titik polygon';
+  nodeFields();
+}
+function nodeFields() {
+  const o = object();
+  $('polygonTools').hidden = !pointsMode || !o;
+  if (!pointsMode || !o) return;
+  $('nodeCount').textContent =
+    `${o.points.length} / ${MAX_POLYGON_NODES} titik`;
+  $('deleteNode').disabled =
+    selectedNode < 0 || o.points.length <= 3 || o.locked;
+  $('addNode').disabled = o.points.length >= MAX_POLYGON_NODES || o.locked;
+  $('nodes').replaceChildren();
+  o.points.forEach((p, index) => {
+    const b = document.createElement('button');
+    b.textContent = String(index + 1);
+    b.title = `Titik${index + 1}: ${Math.round(p.x * o.w)}, ${Math.round(p.y * o.h)}`;
+    b.className = index === selectedNode ? 'selected' : '';
+    b.onclick = () => {
+      selectedNode = index;
+      nodeFields();
+    };
+    $('nodes').append(b);
+  });
 }
 function select(id) {
   selected = id;
   pointsMode = false;
+  selectedNode = -1;
+  $('polygonTools').hidden = true;
   propertyFields();
   list();
 }
@@ -187,6 +234,7 @@ function fields() {
   propertyFields();
   list();
   resize();
+  publishSummary();
 }
 function blank() {
   return {
@@ -213,7 +261,10 @@ function open(m) {
     notice('Tunggu upload selesai.', true);
     return;
   }
-  if (dirty && !confirm('Tinggalkan perubahan map yang belum disimpan?')) {
+  if (
+    (dirty || drawing?.length) &&
+    !confirm('Tinggalkan perubahan map yang belum disimpan?')
+  ) {
     mapChoices();
     return;
   }
@@ -230,6 +281,9 @@ function open(m) {
   history = [];
   future = [];
   testing = false;
+  drawing = null;
+  $('drawingTools').hidden = true;
+  $('testingTools').hidden = true;
   keys.clear();
   $('test').textContent = '▶ Uji cepat';
   fields();
@@ -271,6 +325,7 @@ function add(asset, name = 'Area baru') {
     };
   map.objects.push(o);
   select(o.id);
+  return o;
 }
 function check() {
   const issues = mapIssues(map);
@@ -346,15 +401,34 @@ function drawObject(o, now) {
   }
   ctx.restore();
   if (o.id === selected && !testing)
-    for (const p of pointsMode ? o.points : [{ x: 1, y: 1 }]) {
+    for (const [index, p] of (pointsMode
+      ? o.points
+      : [{ x: 1, y: 1 }]
+    ).entries()) {
       const q = world(o, p);
-      ctx.fillStyle = '#bdff81';
+      ctx.fillStyle =
+        selectedNode === index && pointsMode ? '#fff08b' : '#bdff81';
       ctx.fillRect(
         q.x - 5 / zoom(),
         q.y - 5 / zoom(),
         10 / zoom(),
         10 / zoom(),
       );
+      if (pointsMode) {
+        ctx.font = `${12 / zoom()}px system-ui`;
+        ctx.fillText(String(index + 1), q.x + 8 / zoom(), q.y - 7 / zoom());
+        const next = o.points[(index + 1) % o.points.length],
+          mid = world(o, { x: (p.x + next.x) / 2, y: (p.y + next.y) / 2 });
+        if (o.points.length < MAX_POLYGON_NODES) {
+          ctx.fillStyle = '#102519';
+          ctx.beginPath();
+          ctx.arc(mid.x, mid.y, 7 / zoom(), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#b5ed82';
+          ctx.font = `${16 / zoom()}px system-ui`;
+          ctx.fillText('+', mid.x - 5 / zoom(), mid.y + 5 / zoom());
+        }
+      }
     }
 }
 function terrain(now) {
@@ -387,23 +461,142 @@ function testStep(now, dt) {
     dy =
       (keys.has('s') || keys.has('arrowdown') ? 1 : 0) -
       (keys.has('w') || keys.has('arrowup') ? 1 : 0),
-    len = Math.hypot(dx, dy) || 1,
-    speed = 210 * speedAt(map, player.x, player.y) * (keys.has(' ') ? 1.7 : 1),
     jumping = now < jumpUntil;
-  for (let n = 0; n < 4; n++) {
-    const x = clamp(
-        player.x + ((dx / len) * speed * dt) / 4,
-        20,
-        map.width - 20,
-      ),
-      y = clamp(player.y + ((dy / len) * speed * dt) / 4, 20, map.height - 20);
-    if (!solidAt(map, x, player.y, 13, jumping)) player.x = x;
-    if (!solidAt(map, player.x, y, 13, jumping)) player.y = y;
-  }
-  if (!jumping && waterAt(map, player.x, player.y)) {
+  const result = moveDummy(map, player, dx, dy, dt, jumping, keys.has(' '));
+  player = {
+    ...player,
+    x: result.x,
+    y: result.y,
+    moving: !!(dx || dy),
+    facing: dx || player.facing || 1,
+  };
+  if (result.fallen) {
     player = { ...map.bases.blue };
+    falls++;
     notice(
       'Terjatuh! Kembali ke benteng Merah. Shift untuk lompat; jembatan aman.',
+    );
+  }
+  const atBase = Object.entries(map.bases).find(
+    ([, b]) => Math.hypot(player.x - b.x, player.y - b.y) < baseRadius(),
+  );
+  const atPrison = Object.entries(map.prisons).find(
+    ([, p]) =>
+      player.x >= p.x &&
+      player.x <= p.x + p.w &&
+      player.y >= p.y &&
+      player.y <= p.y + p.h,
+  );
+  dummyStatus = result.fallen
+    ? 'Jatuh → kembali ke benteng'
+    : jumping
+      ? 'Lompat / parkour'
+      : result.blocked
+        ? 'TERHALANG collider solid'
+        : result.multiplier < 1
+          ? `Lambat ×${result.multiplier}`
+          : atPrison
+            ? `Area penjara ${atPrison[0] === 'blue' ? 'Merah' : 'Hijau'}`
+            : atBase
+              ? `Area benteng ${atBase[0] === 'blue' ? 'Merah' : 'Hijau'}`
+              : 'Berjalan / area aman';
+  $('dummyStatus').textContent =
+    `Dummy · ${dummyStatus} · X${Math.round(player.x)} Y${Math.round(player.y)} · jatuh${falls}`;
+}
+function drawDummy(now) {
+  const x = player.x,
+    y = player.y,
+    lift = now < jumpUntil ? 25 : 0,
+    stride = player.moving ? Math.sin(now / 85) * 6 : 0;
+  ctx.save();
+  ctx.fillStyle = '#0007';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 4, 18, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.translate(x, y - lift);
+  ctx.strokeStyle = '#edf5fa';
+  ctx.lineWidth = 7;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-5, -12);
+  ctx.lineTo(-8 - stride, -1);
+  ctx.moveTo(5, -12);
+  ctx.lineTo(8 + stride, -1);
+  ctx.stroke();
+  ctx.fillStyle = '#52cbe2';
+  ctx.fillRect(-11, -33, 22, 24);
+  ctx.fillStyle = '#ffdaa6';
+  ctx.beginPath();
+  ctx.arc(0, -43, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#21313d';
+  ctx.fillRect((player.facing || 1) * 4 - 2, -46, 4, 4);
+  if ($('bounds').checked) {
+    ctx.strokeStyle = '#fff08b';
+    ctx.lineWidth = 2 / zoom();
+    ctx.beginPath();
+    ctx.arc(0, lift, 13, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#fff';
+  ctx.font = `${12 / zoom()}px system-ui`;
+  ctx.fillText('DUMMY', -22 / zoom(), -62);
+  ctx.restore();
+}
+function drawGameplayAssets(now, overlay = false) {
+  if (!$('structures').checked) return;
+  const scale = builtins.find((b) => b.id === map.replaces)?.objectScale ?? 1;
+  for (const t of ['blue', 'red']) {
+    const b = map.bases[t],
+      p = map.prisons[t];
+    const clip = (name) => library.find((a) => a.name === name)?.clip;
+    if (!overlay)
+      drawAsset(
+        ctx,
+        clip(t === 'blue' ? 'fortRed' : 'fortGreen'),
+        b.x - 84 * scale,
+        b.y - 130 * scale,
+        168 * scale,
+        188 * scale,
+        now,
+      );
+    ctx.save();
+    ctx.translate(p.x + (t === 'red' ? p.w : 0), p.y);
+    if (t === 'red') ctx.scale(-1, 1);
+    drawAsset(
+      ctx,
+      clip(overlay ? 'prisonOverlay' : 'prisonFloor'),
+      0,
+      0,
+      p.w,
+      p.h,
+      now,
+    );
+    ctx.restore();
+  }
+}
+function drawGuides() {
+  for (const t of ['blue', 'red']) {
+    const b = map.bases[t],
+      p = map.prisons[t],
+      color = t === 'blue' ? '#ff6b6b' : '#a0e76f';
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = (selected.endsWith(':' + t) ? 4 : 2) / zoom();
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, baseRadius(), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeRect(p.x, p.y, p.w, p.h);
+    ctx.font = `bold ${13 / zoom()}px system-ui`;
+    ctx.fillText(
+      '⚑ BENTENG ' + (t === 'blue' ? 'MERAH' : 'HIJAU'),
+      b.x - 45,
+      b.y + baseRadius() + 16,
+    );
+    ctx.fillText(
+      '▣ PENJARA ' + (t === 'blue' ? 'MERAH' : 'HIJAU'),
+      p.x,
+      p.y - 8 / zoom(),
     );
   }
 }
@@ -418,6 +611,7 @@ function animate(now) {
   testStep(now, dt);
   ctx.setTransform(zoom(), 0, 0, zoom(), 0, 0);
   terrain(now);
+  drawGameplayAssets(now);
   if ($('grid').checked) {
     ctx.strokeStyle = '#ffffff18';
     ctx.lineWidth = 1 / zoom();
@@ -448,37 +642,33 @@ function animate(now) {
     y: testing ? player.y : 0,
     z: 0,
     draw: () => {
-      for (const t of ['blue', 'red']) {
-        const b = map.bases[t],
-          p = map.prisons[t];
-        ctx.fillStyle = t === 'blue' ? '#ef5c5c' : '#86dd76';
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.lineWidth = 3 / zoom();
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, 65, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.strokeRect(p.x, p.y, p.w, p.h);
-        ctx.font = `${14 / zoom()}px system-ui`;
-        ctx.fillText(t === 'blue' ? '⚑ MERAH' : '⚑ HIJAU', b.x - 30, b.y);
-        ctx.fillText('PENJARA', p.x + 10, p.y + 25);
-      }
-      if (testing) {
-        ctx.fillStyle = '#fff7b9';
-        ctx.beginPath();
-        ctx.arc(
-          player.x,
-          player.y - (now < jumpUntil ? 15 : 0),
-          13,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-      }
+      if (testing) drawDummy(now);
     },
   });
   entries
     .sort((a, b) => a.layer - b.layer || a.z - b.z || a.y - b.y)
     .forEach((e) => e.draw());
+  drawGameplayAssets(now, true);
+  drawGuides();
+  if (drawing) {
+    ctx.strokeStyle = '#e7ff93';
+    ctx.fillStyle = '#e7ff9325';
+    ctx.lineWidth = 2 / zoom();
+    ctx.beginPath();
+    drawing.forEach((p, i) =>
+      i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y),
+    );
+    if (pointer) ctx.lineTo(pointer.x, pointer.y);
+    ctx.stroke();
+    drawing.forEach((p, i) => {
+      ctx.fillStyle = '#e7ff93';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5 / zoom(), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = `${13 / zoom()}px system-ui`;
+      ctx.fillText(String(i + 1), p.x + 8 / zoom(), p.y);
+    });
+  }
   const ic = $('iconPreview').getContext('2d');
   ic.clearRect(0, 0, 160, 90);
   drawAsset(ic, map.icon, 0, 0, 160, 90, now);
@@ -486,6 +676,17 @@ function animate(now) {
 canvas.onpointerdown = (e) => {
   canvas.focus();
   const p = position(e);
+  if (drawing) {
+    if (drawing.length >= MAX_POLYGON_NODES)
+      return notice('Maksimal64 titik. Klik Selesai.', true);
+    drawing.push({
+      x: clamp(snap(p.x), 0, map.width),
+      y: clamp(snap(p.y), 0, map.height),
+    });
+    $('drawingCount').textContent = `${drawing.length} titik`;
+    $('finishPolygon').disabled = drawing.length < 3;
+    return;
+  }
   if (testing) {
     if (!solidAt(map, p.x, p.y) && !waterAt(map, p.x, p.y)) player = p;
     return;
@@ -498,15 +699,39 @@ canvas.onpointerdown = (e) => {
         return Math.hypot(q.x - p.x, q.y - p.y) < 12 / zoom();
       });
       if (n >= 0) {
+        selectedNode = n;
         remember();
         if (e.shiftKey && o.points.length > 3) {
           o.points.splice(n, 1);
+          selectedNode = -1;
+          nodeFields();
           return;
         }
         drag = { kind: 'point', index: n };
         canvas.setPointerCapture(e.pointerId);
+        nodeFields();
         return;
       }
+      if (o.points.length < MAX_POLYGON_NODES) {
+        const edge = o.points.findIndex((a, index) => {
+          const b = o.points[(index + 1) % o.points.length];
+          const mid = world(o, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+          return Math.hypot(mid.x - p.x, mid.y - p.y) < 12 / zoom();
+        });
+        if (edge >= 0) {
+          remember();
+          const a = o.points[edge],
+            b = o.points[(edge + 1) % o.points.length];
+          o.points.splice(edge + 1, 0, {
+            x: (a.x + b.x) / 2,
+            y: (a.y + b.y) / 2,
+          });
+          selectedNode = edge + 1;
+          nodeFields();
+          return;
+        }
+      }
+      return; // Node editing never starts an object drag or steals a gameplay marker.
     } else {
       const q = world(o, { x: 1, y: 1 });
       if (Math.hypot(q.x - p.x, q.y - p.y) < 14 / zoom()) {
@@ -521,7 +746,7 @@ canvas.onpointerdown = (e) => {
   for (const t of ['blue', 'red']) {
     const b = map.bases[t],
       pr = map.prisons[t];
-    if (Math.hypot(p.x - b.x, p.y - b.y) < 65) id = 'base:' + t;
+    if (Math.hypot(p.x - b.x, p.y - b.y) < baseRadius()) id = 'base:' + t;
     else if (
       p.x >= pr.x &&
       p.x <= pr.x + pr.w &&
@@ -556,6 +781,10 @@ canvas.onpointerdown = (e) => {
   }
 };
 canvas.onpointermove = (e) => {
+  if (drawing) {
+    pointer = position(e);
+    return;
+  }
   if (!drag) return;
   const p = position(e),
     o = object(),
@@ -603,32 +832,37 @@ canvas.onpointerup = canvas.onpointercancel = () => {
 };
 canvas.ondblclick = (e) => {
   const o = object();
-  if (!o || !pointsMode || testing || o.locked || o.points.length >= 64) return;
+  if (
+    !o ||
+    !pointsMode ||
+    testing ||
+    o.locked ||
+    o.points.length >= MAX_POLYGON_NODES
+  )
+    return;
   const q = local(o, position(e));
   if (q.x < 0 || q.x > 1 || q.y < 0 || q.y > 1) return;
   remember();
-  let edge = 0,
-    best = Infinity;
-  for (let i = 0; i < o.points.length; i++) {
-    const a = o.points[i],
-      b = o.points[(i + 1) % o.points.length],
-      vx = b.x - a.x,
-      vy = b.y - a.y,
-      t = clamp(
-        ((q.x - a.x) * vx + (q.y - a.y) * vy) / (vx * vx + vy * vy || 1),
-        0,
-        1,
-      ),
-      d = Math.hypot(q.x - a.x - t * vx, q.y - a.y - t * vy);
-    if (d < best) {
-      best = d;
-      edge = i;
-    }
-  }
+  const edge = closestEdge(o.points, q, o.w, o.h);
   o.points.splice(edge + 1, 0, q);
+  selectedNode = edge + 1;
+  nodeFields();
 };
 document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if (e.key === 'Escape') {
+    if (drawing) cancelDrawing();
+    else if (pointsMode) {
+      pointsMode = false;
+      propertyFields();
+    } else if (testing) $('test').click();
+    return;
+  }
+  if (e.key === 'Enter' && drawing) {
+    e.preventDefault();
+    $('finishPolygon').click();
+    return;
+  }
   if (testing) {
     if (
       [
@@ -653,14 +887,14 @@ document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
     e.preventDefault();
     $('undo').click();
-  } else if (e.key === 'Delete' && object()) $('delete').click();
+  } else if (e.key === 'Delete' && object())
+    (pointsMode ? $('deleteNode') : $('delete')).click();
 });
 document.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur', () => keys.clear());
 window.addEventListener('beforeunload', (e) => {
-  if (dirty) {
+  if (dirty || drawing?.length) {
     e.preventDefault();
-    e.returnValue = '';
   }
 });
 function editField(el, mutate) {
@@ -697,9 +931,11 @@ for (const [id, key] of [
   el.onchange = el.oninput;
 }
 $('enabled').onchange = () => {
+  if (testing) return;
   remember();
   map.enabled = $('enabled').checked;
   check();
+  publishSummary();
 };
 for (const k of [
   'x',
@@ -741,11 +977,81 @@ for (const k of [
 }
 $('editPoints').onclick = () => {
   const o = object();
-  if (!o || testing) return;
+  if (!o || testing || o.locked) return;
   remember();
   o.shape = 'polygon';
   pointsMode = !pointsMode;
   propertyFields();
+};
+$('addNode').onclick = () => {
+  const o = object();
+  if (!o || !pointsMode || o.locked || o.points.length >= MAX_POLYGON_NODES)
+    return;
+  remember();
+  const edge = selectedNode < 0 ? o.points.length - 1 : selectedNode,
+    a = o.points[edge],
+    b = o.points[(edge + 1) % o.points.length];
+  o.points.splice(edge + 1, 0, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  selectedNode = edge + 1;
+  nodeFields();
+};
+$('deleteNode').onclick = () => {
+  const o = object();
+  if (!o || !pointsMode || o.locked || selectedNode < 0 || o.points.length <= 3)
+    return;
+  remember();
+  o.points.splice(selectedNode, 1);
+  selectedNode = -1;
+  nodeFields();
+};
+function cancelDrawing() {
+  drawing = null;
+  pointer = null;
+  $('drawingTools').hidden = true;
+  notice('Gambar poligon dibatalkan; tidak ada objek dibuat.');
+}
+$('polygon').onclick = () => {
+  if (testing || loading) return;
+  select('');
+  drawing = [];
+  pointer = null;
+  $('drawingTools').hidden = false;
+  $('drawingCount').textContent = '0 titik';
+  $('finishPolygon').disabled = true;
+  canvas.focus();
+  notice(
+    'Klik canvas mengikuti batas collider, lalu klik Selesai / Enter. Esc membatalkan.',
+  );
+};
+$('cancelPolygon').onclick = cancelDrawing;
+$('finishPolygon').onclick = safe(() => {
+  if (!drawing) return;
+  const bounds = polygonBounds(drawing);
+  const o = add(null, 'Collider poligon');
+  Object.assign(o, bounds, { shape: 'polygon', behavior: 'solid' });
+  drawing = null;
+  pointer = null;
+  $('drawingTools').hidden = true;
+  $('bounds').checked = true;
+  pointsMode = true;
+  propertyFields();
+  list();
+  check();
+  notice(
+    'Collider poligon dibuat. Klik＋untuk menambah titik; seret titik untuk membentuk ulang.',
+  );
+});
+$('solidArea').onclick = () => {
+  if (testing || loading) return;
+  const o = add(null, 'Collider kosong');
+  o.behavior = 'solid';
+  $('bounds').checked = true;
+  propertyFields();
+  list();
+  check();
+  notice(
+    'Collider kosong dibuat. Pilih Edit titik polygon untuk bentuk bebas.',
+  );
 };
 $('undo').onclick = () => {
   if (!history.length || testing) return;
@@ -846,6 +1152,7 @@ async function manageMap(action) {
   }
   dirty = false;
   mapChoices();
+  publishSummary();
   if (id === 'kampung3d') $('maps').value = value;
   notice(
     action === 'archive'
@@ -961,6 +1268,8 @@ function mapChoices() {
 }
 $('save').onclick = safe(async () => {
   if (loading) return;
+  if (drawing)
+    throw new Error('Klik Selesai poligon atau Batal sebelum menyimpan.');
   for (const el of document.querySelectorAll('input,textarea,select'))
     if (!el.disabled && !el.checkValidity()) {
       el.reportValidity();
@@ -984,12 +1293,33 @@ $('save').onclick = safe(async () => {
       ? 'Map disimpan dan aktif. Build/publish untuk menerapkan.'
       : 'Draft disimpan lokal; tidak muncul di game sebelum diaktifkan.',
   );
+  publishSummary();
 });
 $('test').onclick = () => {
+  if (loading || drawing)
+    return notice('Selesaikan upload atau gambar poligon dahulu.', true);
   testing = !testing;
+  pointsMode = false;
+  $('polygonTools').hidden = true;
+  propertyFields();
   keys.clear();
   player = { ...map.bases.blue };
   jumpUntil = 0;
+  falls = 0;
+  $('testingTools').hidden = !testing;
+  for (const aside of document.querySelectorAll('main > aside'))
+    aside.inert = testing;
+  for (const id of [
+    'undo',
+    'redo',
+    'save',
+    'build',
+    'publish',
+    'polygon',
+    'solidArea',
+  ])
+    $(id).disabled = testing;
+  canvas.focus();
   $('test').textContent = testing ? '■ Selesai uji' : '▶ Uji cepat';
   $('hint').textContent = testing
     ? 'WASD/panah = jalan · Shift = lompat · Space = boost · klik area aman untuk titik mulai. Simulasi area, bukan pertandingan lengkap.'
@@ -1000,18 +1330,67 @@ $('test').onclick = () => {
       : 'Kembali ke editor.',
   );
 };
+$('spawnRed').onclick = () => {
+  if (testing) {
+    player = { ...map.bases.blue };
+    jumpUntil = 0;
+    keys.clear();
+    canvas.focus();
+  }
+};
+$('spawnGreen').onclick = () => {
+  if (testing) {
+    player = { ...map.bases.red };
+    jumpUntil = 0;
+    keys.clear();
+    canvas.focus();
+  }
+};
+$('jumpDummy').onclick = () => {
+  if (testing && performance.now() > jumpUntil + 400)
+    jumpUntil = performance.now() + 450;
+  canvas.focus();
+};
+$('boostDummy').onclick = () => {
+  if (!testing) return;
+  keys.add(' ');
+  setTimeout(() => keys.delete(' '), 800);
+  canvas.focus();
+};
+for (const button of document.querySelectorAll('[data-move]')) {
+  button.onpointerdown = (e) => {
+    if (!testing) return;
+    keys.add(button.dataset.move);
+    button.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+  button.onpointerup = button.onpointercancel = () =>
+    keys.delete(button.dataset.move);
+}
 async function job(publish) {
   if (dirty)
     throw new Error(
       'Simpan map dahulu. Draft canvas belum ikut build/publish.',
     );
-  notice((await api(publish ? '/api/publish' : '/api/build', {})).message);
+  if (drawing || testing) throw new Error('Selesaikan mode gambar/uji dahulu.');
+  if (publish && !map.enabled)
+    notice(
+      'Perhatian: map ini masih draft nonaktif. Publish menyimpan data, bukan otomatis mengaktifkannya.',
+    );
+  for (const id of ['save', 'build', 'publish']) $(id).disabled = true;
+  try {
+    notice((await api(publish ? '/api/publish' : '/api/build', {})).message);
+  } catch (e) {
+    for (const id of ['save', 'build', 'publish']) $(id).disabled = false;
+    throw e;
+  }
   const timer = setInterval(async () => {
     try {
       const j = await api('/api/job');
       notice(j.message, j.status === 'error');
       if (j.status !== 'running') {
         clearInterval(timer);
+        for (const id of ['save', 'build', 'publish']) $(id).disabled = false;
         if (j.url) {
           const a = document.createElement('a');
           a.href = j.url;
@@ -1023,6 +1402,7 @@ async function job(publish) {
       }
     } catch (e) {
       clearInterval(timer);
+      for (const id of ['save', 'build', 'publish']) $(id).disabled = false;
       notice(e.message, true);
     }
   }, 2000);
@@ -1049,7 +1429,10 @@ $('file').onchange = safe(async () => {
   try {
     const data = await new Promise((resolve, reject) => {
         const r = new FileReader();
-        r.onload = () => resolve(String(r.result).split(',')[1]);
+        r.onload = () =>
+          typeof r.result === 'string'
+            ? resolve(r.result.split(',')[1])
+            : reject(new Error('File gagal dibaca sebagai gambar.'));
         r.onerror = () => reject(new Error('File gagal dibaca.'));
         r.readAsDataURL(f);
       }),
@@ -1127,7 +1510,7 @@ canvas.ondrop = (e) => {
 };
 document.querySelector('main').inert = true;
 for (const b of document.querySelectorAll('nav button')) b.disabled = true;
-safe(async () => {
+void safe(async () => {
   state = await api('/api/state');
   const t = validateCatalog(await api('/api/templates'));
   template = t.template;

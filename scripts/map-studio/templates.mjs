@@ -192,6 +192,8 @@ export async function templates(root) {
       id: f.id,
       name: f.name,
       editable: f.id !== 'kampung3d',
+      objectScale: f.objectScale ?? 1,
+      baseRadius: f.baseRadius ?? 118,
     })),
     library: Object.keys(atlas.assets).map((id) => ({
       name: id,

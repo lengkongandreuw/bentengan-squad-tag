@@ -13,6 +13,7 @@ import {
   BUILTIN_IDS,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
+import { waitForPagesDeployment, PAGES_URL } from './deployment.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   root = path.resolve(here, '../..'),
   hash = (b) => createHash('sha256').update(b).digest('hex');
@@ -33,7 +34,7 @@ const mime = {
   '.ogg': 'audio/ogg',
   '.wav': 'audio/wav',
 };
-function command(program, args, cwd) {
+function command(program, args, cwd, timeoutMs = 300000) {
   return new Promise((resolve, reject) => {
     const child = spawn(program, args, {
       cwd,
@@ -48,8 +49,12 @@ function command(program, args, cwd) {
     let output = '';
     const timer = setTimeout(() => {
       child.kill();
-      reject(new Error('Proses melewati batas 5 menit. Periksa terminal.'));
-    }, 300000);
+      reject(
+        new Error(
+          `Proses melewati batas ${Math.ceil(timeoutMs / 1000)} detik. Periksa terminal.`,
+        ),
+      );
+    }, timeoutMs);
     for (const stream of [child.stdout, child.stderr])
       stream.on('data', (b) => (output = (output + b).slice(-20000)));
     child.on('error', (e) => {
@@ -58,21 +63,23 @@ function command(program, args, cwd) {
     });
     child.on('close', (c) => {
       clearTimeout(timer);
-      c === 0
-        ? resolve(output.trim())
-        : reject(new Error(output || 'Proses gagal.'));
+      if (c === 0) resolve(output.trim());
+      else reject(new Error(output || 'Proses gagal.'));
     });
   });
 }
 export async function startMapStudio(port = 4320, projectRoot = root) {
   const config = path.join(projectRoot, 'config/map-studio.json'),
     token = randomBytes(32).toString('hex');
-  let origin,
-    busy = false,
+  let busy = false,
     job = { status: 'idle', message: '' };
   const read = async () => {
     const b = await readFile(config);
-    return { document: validateDocument(JSON.parse(b)), revision: hash(b) };
+    return {
+      document: validateDocument(JSON.parse(b)),
+      revision: hash(b),
+      mapRevision: hash(JSON.stringify(JSON.parse(b))),
+    };
   };
   const saveDocument = async (document, current) => {
     validateDocument(document);
@@ -192,9 +199,13 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
         };
         return;
       }
+      if ((await read()).revision !== current.revision)
+        throw new Error(
+          'Data map berubah saat build. Simpan ulang dan publish versi terbaru.',
+        );
       await git(['add', '--', 'config/map-studio.json', ...assets]);
-      if (await git(['diff', '--cached', '--name-only']))
-        await git(['commit', '-m', 'Update maps from Map Studio']);
+      const changed = await git(['diff', '--cached', '--name-only']);
+      if (changed) await git(['commit', '-m', 'Update maps from Map Studio']);
       await git([
         '-c',
         'credential.helper=',
@@ -204,11 +215,48 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
         'github',
         'main',
       ]);
+      const commit = await git(['rev-parse', 'HEAD']);
+      if (!changed)
+        await command(
+          'gh',
+          ['workflow', 'run', 'pages.yml', '--ref', 'main'],
+          projectRoot,
+        );
+      job.message =
+        'Commit sudah dipush. Menunggu deployment Pages; belum selesai.';
+      const deployed = await waitForPagesDeployment({
+        commit,
+        mapRevision: current.mapRevision,
+        readRuns: async (sha) =>
+          JSON.parse(
+            await command(
+              'gh',
+              [
+                'api',
+                `repos/lengkongandreuw/bentengan-squad-tag/actions/runs?head_sha=${sha}&per_page=20`,
+              ],
+              projectRoot,
+              15000,
+            ),
+          ).workflow_runs,
+        readPublic: async () => {
+          const response = await fetch(
+            `${PAGES_URL}build-info.json?verify=${Date.now()}`,
+            { signal: AbortSignal.timeout(10000) },
+          );
+          if (!response.ok) throw new Error('Versi publik belum tersedia.');
+          return response.json();
+        },
+        onProgress: (message, runUrl) => {
+          job.message = message;
+          if (runUrl) job.runUrl = runUrl;
+        },
+      });
       job = {
         status: 'success',
         message:
-          'Map dipush. Tunggu workflow Pages sukses sebelum refresh game.',
-        url: 'https://github.com/lengkongandreuw/bentengan-squad-tag/actions',
+          'Map AKTIF sudah tersedia di game: deployment dan revisi publik terverifikasi. Draft nonaktif tetap tidak ditampilkan. Buka hasil untuk melewati cache halaman lama.',
+        ...deployed,
       };
     } catch (e) {
       job = { status: 'error', message: e.message };
@@ -241,6 +289,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           '/editor.js': 'editor.js',
           '/editor.css': 'editor.css',
           '/catalog.mjs': 'catalog.mjs',
+          '/editor-tools.js': 'editor-tools.js',
         };
         let file;
         if (local[url.pathname]) file = path.join(here, local[url.pathname]);
@@ -437,7 +486,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
     server.once('error', reject);
     server.listen(port, '127.0.0.1', resolve);
   });
-  origin = `http://127.0.0.1:${server.address().port}`;
+  const origin = `http://127.0.0.1:${server.address().port}`;
   return { server, origin };
 }
 if (
