@@ -5,6 +5,44 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### IMPLEMENTED — Ultimate Flight Batch01 Bebe/Ciici (2026-10-04)
+
+- Shared lib/flight-ultimate.js controller: complete takeoff sequence,4 seconds
+  actual flight,complete landing sequence. Bebe speed1.25/turn0.85; Ciici1.20/1.15.
+- Tag immunity only FLYING. All busy phases block tag/rescue/capture/pickup/
+  boost/parkour; takeoff/landing vulnerable. Direction controls remain available
+  in flight, including mouse/mobile. Low/parkour/water bypass only; structures,
+  fort core and bounds stay solid. Nearest-safe-ground landing and reset cleanup.
+- Uploaded icons copied unchanged to public/ui-v2/ultimate/bebe.png,ciici.png.
+- Sprite Studio: three non-directional slots only Bebe/Ciici; forced one-shot/
+  loop/one-shot, preview/FPS/pivot/crop, JSON metadata import/export, warnings.
+- Canonical sequences NOT supplied yet: generic ultimate/idle compatibility
+  fallback only. User local configs/assets preserved and not included in publish.
+- Tests:11 Flight/Studio,37 progression,10 audio PASS; TS/build Pages PASS.
+  Scoped publication excludes local-only Economy Module01 and user Studio drafts.
+  Deployment confirmation pending.
+
+### COMPLETE — Economy MODULE01 Wallet Model (2026-10-04, LOCAL ONLY)
+
+- Read economic system fase1/00-INDEX.md and01-ECONOMY-WALLET-MODEL.md.
+  One active module only; explicit STOP/no publish applies to this feature.
+- economy.ts supplies version1 PlayerEconomy, signed EconomyTransaction,
+  independent default wallet0 and strict read-only parsers. Counters/amounts
+  safe integers, nonnegative totals, nonempty IDs, valid date, credit/spend signs.
+  Ledger validates every entry, retains latest50 without changing totals/input.
+- LocalPlayerProfile.economy optional for legacy; new profiles default0 using
+  existing profile service/storage key. Profile parser omits invalid economy
+  without deleting identity/progression. No new migration/write-on-read added.
+- Changed: lib/player-profile/economy.ts, types.ts, migrations.ts,
+  profile-service.ts; scripts/test-economy-wallet.mjs; checkpoint/memori.
+- Validation:4 wallet tests PASS (isolation/invalid data/bound/storage/update/
+  legacy);37 progression tests PASS; TypeScript, scoped lint, diff check PASS.
+  Test harness uses existing TypeScript, test-only Vite BASE_URL substitution;
+  no dependency change. Initial esbuild/VM harness errors fixed, final tests pass.
+- No rewards/spending/upgrades/UI/gameplay or retroactive grants. No publish,
+  no asset rebuild. User map/sprite config and public/sprite-studio/bebe preserved.
+- STOP after01. Next: MODULE02 Economy Rules Config only on next request.
+
 ### PUBLISHED — MODULE17 (2026-10-04)
 
 - Implementation commit d1d15fdf7efdc16b3a5abf28aba0362b3beb7381 pushed to main.

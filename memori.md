@@ -4,6 +4,22 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-04 Ultimate Flight Batch01: Bebe/Ciici shared controller,4sec actual
+FLYING only tag immunity,locked interactions,takeoff/landing vulnerable,selective
+colliders and safe landing. Bebe speed1.25 turn0.85; Ciici1.20/1.15. Existing
+Raja/Kaka unchanged. Sprite Studio adds exactly3 default-only slots for these
+two: ultimate_takeoff,ultimate_fly,ultimate_land. Canonical artwork missing,
+generic ultimate/idle fallback temporary. Icons use user's originals. Preserve
+user local map/sprite drafts; Economy01 still LOCAL ONLY. See checkpoint.
+
+2026-10-04 Economy MODULE01 complete LOCAL ONLY. economy.ts version1 wallet/
+signed transactions/default0/strict safe parsing/latest50 ledger. Optional
+profile.economy for legacy, new profile factory initializes wallet; malformed
+economy does not discard profile/progression. Reuse profile storage key; no
+economy migration or grants yet.4 wallet+37 progression tests, TS/lint PASS.
+STOP before02; index explicitly prohibits publish until requested. Preserve
+user Map/Sprite Studio configs and Bebe uploads. No UI/gameplay/economy awards yet.
+
 2026-10-04 MODULE17 PUBLISHED d1d15fd. Actions37177521084 SUCCESS; public build
 commit/map revision, hashed JS and seven unchanged PNG hashes verified. Draft
 USER config/map-studio.json untouched and excluded. Publication complete.

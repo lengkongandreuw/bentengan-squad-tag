@@ -44,6 +44,8 @@ import { studioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
 import { solidAt as studioSolidAt, waterAt as studioWaterAt, speedAt as studioSpeedAt, contains as studioContains } from '../lib/map-studio-model.js';
+import { flightConfig, startFlight, advanceFlight, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, safeFlightLanding, flightPassesObstacle } from '../lib/flight-ultimate.js';
+import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -132,6 +134,7 @@ type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type DifficultyId = 'easy' | 'normal' | 'hard';
 type Player = {
+  flight?: ReturnType<typeof startFlight> | null;
   visualTagVector?: { x: number; y: number };
   id: string;
   name: string;
@@ -352,6 +355,8 @@ type Snapshot = {
   ultimateMeter: number;
   ultimateBuffRemaining: number;
   ultimateCasting: boolean;
+  flightFlying: boolean;
+  flightDebug: string;
   matchEvents: MatchEvent[];
   rescueRequestActive: boolean;
   rescueRequestRemaining: number;
@@ -408,7 +413,9 @@ const KAKA_ULTIMATE_CAST_MS = 3600;
 const KAKA_ULTIMATE_FRAME_COUNT = 9;
 const KAKA_ULTIMATE_SHIELD_MS = 5000;
 const MUSIC_MUTED_STORAGE_KEY = 'bentengan:music-muted';
-const ULTIMATE_CHARACTER_IDS = new Set<CharacterId>(['raja', 'kaka']);
+const ULTIMATE_CHARACTER_IDS = new Set<CharacterId>(['raja', 'kaka', 'bebe', 'ciici']);
+const ultimateName = (id:CharacterId) => id === 'bebe' ? 'JET FLIGHT' : id === 'ciici' ? 'VAMPIRE FLIGHT' : id === 'kaka' ? 'PERISAI HIJAU' : 'TITAH HALILINTAR';
+const ultimateBannerAsset = (id:CharacterId) => flightConfig(id) ? publicAsset(flightConfig(id)!.icon) : id === 'kaka' ? kakaUltimateBannerAsset() : rajaUltimateBannerAsset();
 const DIFFICULTY_PROFILES = {
   easy: {
     enemySpeed: 1,
@@ -2722,6 +2729,8 @@ const initialSnapshot: Snapshot = {
   ultimateMeter: 0,
   ultimateBuffRemaining: 0,
   ultimateCasting: false,
+  flightFlying: false,
+  flightDebug: '',
   matchEvents: [],
   rescueRequestActive: false,
   rescueRequestRemaining: 0,
@@ -3065,6 +3074,8 @@ export function BentenganPrototype() {
         urls.push(
           rajaUltimateBannerAsset(),
           kakaUltimateBannerAsset(),
+          ultimateBannerAsset('bebe'),
+          ultimateBannerAsset('ciici'),
           ...new Set([
             ...Object.values(MATCH_EVENT_FRAME),
             ...Object.values(ROUND_RESULT_ASSET),
@@ -3346,11 +3357,12 @@ export function BentenganPrototype() {
     if (!ULTIMATE_CHARACTER_IDS.has(selectedId)) return;
     const banner = new Image();
     banner.decoding = 'async';
-    banner.src =
-      selectedId === 'raja'
-        ? rajaUltimateBannerAsset()
-        : kakaUltimateBannerAsset();
+    banner.src = ultimateBannerAsset(selectedId);
     if (selectedId === 'kaka') getKakaUltimateImage();
+    if(process.env.NODE_ENV!=='production'&&flightConfig(selectedId)) {
+      const missing=['ultimate_takeoff','ultimate_fly','ultimate_land'].filter(slot=>!studioFlightClip(selectedId,slot));
+      if(missing.length)console.warn(`${selectedId}: animasi Flight belum lengkap (${missing.join(', ')}). Fallback sementara; unggah sequence final melalui Sprite Studio.`);
+    }
   }, [selectedId]);
 
   useEffect(() => {
@@ -4068,6 +4080,7 @@ export function BentenganPrototype() {
     const winRound = (team: Team, reason: string) => {
       if (phase !== 'PLAYING') return;
       gameplayAudio.resetTagStreak();
+      players.forEach(p => { p.flight = null; });
       if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
       score[team]++;
       roundWinner = team;
@@ -4104,6 +4117,7 @@ export function BentenganPrototype() {
       players.find(
         (p) =>
           p.id !== exceptId &&
+          !flightBusy(p) &&
           !(field.id === 'kanal2' && p.waterEnteredAt) &&
           p.state === 'ACTIVE' &&
           p.team !== baseTeam &&
@@ -4215,7 +4229,7 @@ export function BentenganPrototype() {
     const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) => {
       if (
         field.id !== 'kanal2' || p.id === '__collision_probe__' ||
-        p.waterEnteredAt || p.state === 'PRISONER' ||
+        isFlying(p) || p.waterEnteredAt || p.state === 'PRISONER' ||
         now < p.fallSafeUntil || now < p.parkourUntil
       ) return false;
       let waterPoint = isWaterAt(x, y) ? { x, y } : null;
@@ -4260,6 +4274,7 @@ export function BentenganPrototype() {
         : false;
     const recoverFromObstacle = (p: Player, now: number) => {
       if (
+        isFlying(p) ||
         p.state === 'PRISONER' ||
         (field.id === 'kanal2' && p.waterEnteredAt) ||
         now < p.parkourUntil ||
@@ -4281,6 +4296,14 @@ export function BentenganPrototype() {
       p: Player,
       now: number,
     ) => {
+      if (isFlying(p)) {
+        // Flight is not a global collision disable. Only authored low/parkour
+        // obstacles and jumpable water are bypassed; structures remain solid.
+        if (studioMap && studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, true)) return true;
+        if (solidObstacles.some(o => !flightPassesObstacle(o) && pointHitsExpandedRect(x,y,o,PLAYER_COLLISION_RADIUS))) return true;
+        if (isInsideFortCore(x,y)) return true;
+        return false;
+      }
       if (studioMap && studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
       // The canal's actual water mask is the collision source for its stone
       // banks. This blocks the visible canal instead of inventing rectangles
@@ -4330,9 +4353,18 @@ export function BentenganPrototype() {
         return;
       }
       const len = Math.hypot(dx, dy) || 1;
-      if (studioMap) speed *= studioSpeedAt(studioMap, p.x, p.y);
+      if (studioMap && !isFlying(p)) speed *= studioSpeedAt(studioMap, p.x, p.y);
       p.vx = (dx / len) * speed;
       p.vy = (dy / len) * speed;
+      if(isFlying(p)) {
+        const steps=Math.max(1,Math.ceil(speed*dt/4));
+        for(let i=0;i<steps;i++) {
+          const x=clamp(p.x+p.vx*dt/steps,34,worldWidth-34),y=clamp(p.y+p.vy*dt/steps,58,worldHeight-32);
+          if(!blocked(x,p.y,p,now))p.x=x;
+          if(!blocked(p.x,y,p,now))p.y=y;
+        }
+        return;
+      }
       const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
         ny = clamp(p.y + p.vy * dt, 58, worldHeight - 32);
       if (!blocked(nx, p.y, p, now)) p.x = nx;
@@ -4354,7 +4386,7 @@ export function BentenganPrototype() {
       return true;
     };
     const resolvePlayerSpacing = (now: number) => {
-      const visible = players.filter((p) => p.state !== 'PRISONER' && !(field.id === 'kanal2' && p.waterEnteredAt));
+      const visible = players.filter((p) => !flightBusy(p) && p.state !== 'PRISONER' && !(field.id === 'kanal2' && p.waterEnteredAt));
       for (let i = 0; i < visible.length; i++)
         for (let j = i + 1; j < visible.length; j++) {
           const a = visible[i],
@@ -4486,6 +4518,7 @@ export function BentenganPrototype() {
       return null;
     };
     const resetFallenPlayer = (p: Player, now: number) => {
+      p.flight = null;
       const base = bases[p.team];
       const side = p.team === 'blue' ? 1 : -1;
       const lane = (tieHash(p.id) % 5) - 2;
@@ -4521,13 +4554,14 @@ export function BentenganPrototype() {
             if (now - p.waterEnteredAt >= KANAL2_FALL_RESET_MS) resetFallenPlayer(p, now);
             return;
           }
-          if (p.state === 'PRISONER' || now < p.parkourUntil || now < p.fallSafeUntil || !isWaterAt(p.x, p.y)) return;
+          if (isFlying(p) || p.state === 'PRISONER' || now < p.parkourUntil || now < p.fallSafeUntil || !isWaterAt(p.x, p.y)) return;
           beginKanal2WaterFall(p, now, p.x, p.y);
         });
         return;
       }
       players.forEach((p) => {
         if (
+          isFlying(p) ||
           p.state === 'PRISONER' ||
           now < p.parkourUntil ||
           now < p.fallSafeUntil ||
@@ -4688,7 +4722,7 @@ export function BentenganPrototype() {
       }
     };
     const capture = (winner: Player, loser: Player, now: number) => {
-      if (now < loser.ultimateShieldUntil) return;
+      if (flightBusy(winner) || isFlying(loser) || now < loser.ultimateShieldUntil) return;
       const targetable =
         loser.state === 'ACTIVE' ||
         (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
@@ -4724,6 +4758,7 @@ export function BentenganPrototype() {
       winner.visualTagVector = { x: loser.x - winner.x, y: loser.y - winner.y };
       winner.actionUntil = now + 420;
       loser.state = 'PRISONER';
+      loser.flight = null;
       loser.prisonOwner = winner.team;
       loser.fortCharge = 0;
       loser.rescueShieldUntil = 0;
@@ -4800,7 +4835,7 @@ export function BentenganPrototype() {
     };
     const rescueCheck = (now: number) => {
       players
-        .filter((p) => p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
+        .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
         .forEach((rescuer) => {
           const held = players
             .filter((p) => p.team === rescuer.team && p.state === 'PRISONER')
@@ -4851,6 +4886,7 @@ export function BentenganPrototype() {
       players
         .filter(
           (p) =>
+            !flightBusy(p) &&
             p.state === 'ACTIVE' &&
             !(field.id === 'kanal2' && p.waterEnteredAt) &&
             p.boost < CHARACTER_BY_ID[p.characterId].boost,
@@ -4881,7 +4917,7 @@ export function BentenganPrototype() {
       now: number,
       exitCandidates: Player[],
     ) => {
-      if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) return;
+      if (flightBusy(p) || p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) return;
       const stats = CHARACTER_BY_ID[p.characterId],
         insideOwn = distance(p, bases[p.team]) < baseRadius,
         maxBoost = stats.boost,
@@ -5046,6 +5082,31 @@ export function BentenganPrototype() {
         player.lastY = player.y;
       });
       const me = players[0];
+      const config = flightConfig(me.characterId);
+      const flightGroundValid = (x:number,y:number) => x>=34 && x<=worldWidth-34 && y>=58 && y<=worldHeight-32 && !hitsObstacle(x,y) && !isInsideFortCore(x,y) && !kanalWaterBlocks(x,y);
+      const flightHook = (name:string) => {
+        if (development) console.debug(name, me.characterId, me.flight?.stage, me.flight?.remaining);
+        window.dispatchEvent(new CustomEvent('benteng-flight',{detail:{name,characterId:me.characterId,stage:me.flight?.stage,remaining:me.flight?.remaining,distance:me.flight?.distance}}));
+        // Optional audio/VFX hooks: no final flight samples are supplied yet.
+        if (name === 'flight_warning_sfx') beep(380,.08);
+      };
+      if (me.flight && config) {
+        const slot=flightSlot(me.flight,config)!;
+        const completion=sequenceComplete(studioFlightClip(me.characterId,slot), (me.flight.elapsed+dt)*1000, me.flight.stage==='FLIGHT_TAKEOFF'?config.takeoffSeconds:config.landingSeconds);
+        me.flight=advanceFlight(me.flight,config,dt,completion,{
+          onFlightStart:()=>{flightHook('onFlightStart');flightHook('flight_loop_sfx');},
+          onFlightWarning:()=>flightHook('flight_warning_sfx'),
+          onFlightLanding:()=>{flightHook('onFlightLanding');flightHook('flight_land_sfx');},
+          onFlightEnd:()=>flightHook('ultimate_flight_ended'),
+          onSafeLanding:()=>{
+            const landing=safeFlightLanding(me,me.flight!.lastGround,flightGroundValid);
+            if(landing){me.x=landing.x;me.y=landing.y;me.lastX=me.x;me.lastY=me.y;}
+            else resetFallenPlayer(me,now);
+          },
+        });
+        if(me.state!=='ACTIVE')me.flight=null;
+        if(isFlying(me) && flightGroundValid(me.x,me.y)) me.flight!.lastGround={x:me.x,y:me.y};
+      }
       let dx = 0,
         dy = 0;
       if (ULTIMATE_CHARACTER_IDS.has(me.characterId))
@@ -5059,11 +5120,19 @@ export function BentenganPrototype() {
         const actionAvailable =
           ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
           ultimateMeter >= 100 &&
+          !flightBusy(me) &&
           me.state === 'ACTIVE' &&
           !(field.id === 'kanal2' && me.waterEnteredAt) &&
           now >= me.parkourUntil &&
           (!me.action || now >= me.actionUntil);
         if (actionAvailable) {
+          if(config) {
+            ultimateMeter=0;me.flight=startFlight(me);me.action=undefined;me.actionUntil=0;
+            boostBurstUntil=0;clearMouse();gameplayAudio.play('ultimate');flightHook('onFlightTakeoff');flightHook('flight_takeoff_sfx');
+            setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);
+            bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),820);
+            log(`${me.name} mengaktifkan ${ultimateName(me.characterId)}.`);
+          } else {
           const castDuration =
             me.characterId === 'kaka'
               ? KAKA_ULTIMATE_CAST_MS
@@ -5090,6 +5159,7 @@ export function BentenganPrototype() {
               ? 'KAKA membangkitkan PERISAI HIJAU.'
               : 'RAJA memanggil TITAH HALILINTAR.',
           );
+          }
         }
       }
       const ultimateCasting =
@@ -5136,7 +5206,7 @@ export function BentenganPrototype() {
         teamCombos[me.team],
         now,
       );
-      if (ultimateCasting) {
+      if (ultimateCasting && !config) {
         clearMouse();
         players.forEach((player) => {
           player.vx = 0;
@@ -5152,6 +5222,7 @@ export function BentenganPrototype() {
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
       if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
       if (keys.current.has('s') || keys.current.has('arrowdown')) dy++;
+      if (flightBusy(me) && !isFlying(me)) {dx=0;dy=0;clearMouse();}
       if (!['ACTIVE', 'IN_BASE'].includes(me.state)) clearMouse();
       if (dx || dy) { mouseRoute = []; mouseStuckTime = 0; }
       let mouseDistance = Infinity;
@@ -5166,6 +5237,7 @@ export function BentenganPrototype() {
       const boostKey = keys.current.has(' ') || mouseBoost;
       if (
         boostKey &&
+        !flightBusy(me) &&
         (!boostLatch || mouseBoost) &&
         me.boost > 0 &&
         !(field.id === 'kanal2' && me.waterEnteredAt) &&
@@ -5175,6 +5247,7 @@ export function BentenganPrototype() {
       boostLatch = boostKey;
       mouseBoost = false;
       const boosting =
+        !flightBusy(me) &&
         now < boostBurstUntil &&
         me.boost > 0 &&
         !(field.id === 'kanal2' && me.waterEnteredAt) &&
@@ -5193,6 +5266,7 @@ export function BentenganPrototype() {
       const parkourCost = 8 / selected.agility;
       if (
         parkourKey &&
+        !flightBusy(me) &&
         !parkourLatch &&
         me.boost >= parkourCost &&
         now > me.parkourUntil &&
@@ -5231,6 +5305,10 @@ export function BentenganPrototype() {
       }
       parkourLatch = parkourKey;
       const mouseBefore = { x: me.x, y: me.y };
+      if(isFlying(me) && config) {
+        const steering=steerFlight(me.flight!,dx,dy,dt,config.turnMultiplier);
+        dx=steering.x;dy=steering.y;
+      }
       if (me.state === 'RETURNING') {
         const vector = navigateAroundHazards(
           me,
@@ -5253,6 +5331,7 @@ export function BentenganPrototype() {
           dx,
           dy,
           Math.min(mouseDistance / Math.max(dt, .001), selected.speed *
+            (isFlying(me) && config ? config.speedMultiplier : 1) *
             playerComboMultiplier *
             rajaUltimateMultiplier(me) *
             (boosting ? selected.boostMultiplier : 1)),
@@ -5267,6 +5346,7 @@ export function BentenganPrototype() {
         mouseStuckTime = distance(me, mouseBefore) < .1 ? mouseStuckTime + dt : 0;
         if (mouseStuckTime > .6) clearMouse();
       }
+      if(me.flight){me.flight.distance+=distance(me,mouseBefore);if(isFlying(me)&&flightGroundValid(me.x,me.y))me.flight.lastGround={x:me.x,y:me.y};}
       players.slice(1).forEach((p) => {
         if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) {
           p.vx = 0;
@@ -5323,7 +5403,7 @@ export function BentenganPrototype() {
       // Only actual grounded movement produces footsteps (not pressing into a wall).
       const travelled = previousSoundPosition ? distance(me, previousSoundPosition) : 0;
       previousSoundPosition = { x: me.x, y: me.y };
-      const grounded = now >= me.parkourUntil && me.state !== 'PRISONER';
+      const grounded = !flightBusy(me) && now >= me.parkourUntil && me.state !== 'PRISONER';
       const movingForSound = grounded && travelled > .15 && travelled < 35;
       if (movingForSound && now - lastFootstep > (boosting ? 170 : 270)) {
         gameplayAudio.play('step', boosting ? .8 : .6);
@@ -5332,7 +5412,7 @@ export function BentenganPrototype() {
       if (boosting && !wasDashing && movingForSound) gameplayAudio.play('dash');
       wasDashing = Boolean(boosting && movingForSound);
       if (me.state === 'PRISONER') gameplayAudio.play('prison');
-      const inEnemyFort = me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < baseRadius;
+      const inEnemyFort = !flightBusy(me) && me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < baseRadius;
       if (inEnemyFort && !wasInEnemyFort) gameplayAudio.play('fort-enter');
       wasInEnemyFort = inEnemyFort;
       const exitCandidates: Player[] = [];
@@ -6050,7 +6130,9 @@ export function BentenganPrototype() {
         fallProgress = sinking
           ? clamp((now - p.waterEnteredAt) / 720, 0, 1)
           : waterFall ? 1 - (p.waterFallUntil - now) / 720 : 0,
-        bob = now < p.parkourUntil
+        bob = flightBusy(p)
+          ? -(flightConfig(p.characterId)?.visualHeight ?? 24) * (isFlying(p) ? 1 : p.flight?.stage === 'FLIGHT_TAKEOFF' ? Math.min(1,p.flight.elapsed/(flightConfig(p.characterId)?.takeoffSeconds??.7)) : Math.max(0,1-p.flight!.elapsed/(flightConfig(p.characterId)?.landingSeconds??.4)))
+          : now < p.parkourUntil
           ? -15
           : waterFall
             ? Math.sin(fallProgress * Math.PI / 2) * 12
@@ -6060,6 +6142,7 @@ export function BentenganPrototype() {
         speed = Math.hypot(p.vx, p.vy);
       const inWater =
         p.state !== 'PRISONER' &&
+        !flightBusy(p) &&
         now >= p.parkourUntil &&
         isWaterAt(p.x, p.y);
       const animation = characterAnimationMapping(p.characterId);
@@ -6127,6 +6210,10 @@ export function BentenganPrototype() {
         mirror = p.characterId === 'raja' || p.characterId === 'jago'
           ? direction === 'west'
           : shouldMirrorSprite(direction, dedicatedEast);
+      } else if (flightBusy(p)) {
+        // Temporary compatibility pose until the three editor sequences exist.
+        row = animation.directionRows[direction] ?? directionalRow(direction);
+        columns = [0];
       } else if (speed > 8) {
         const directionalColumns = sprinting
           ? animation.boostColumnsByDirection?.[direction]
@@ -6186,8 +6273,15 @@ export function BentenganPrototype() {
         action: now < p.actionUntil ? p.action ?? null : null,
         parkour: now < p.parkourUntil,
         tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
+        flightSlot:flightSlot(p.flight,flightConfig(p.characterId)??undefined),flightElapsed:(p.flight?.elapsed??0)*1000,
       });
       if (studio) { renderImage = studio.image; frame = studio.frame; mirror = studio.clip.mirror; }
+
+      if(isFlying(p)) {
+        ctx.save();ctx.strokeStyle=p.characterId==='bebe'?'#65e9ff':'#c878ff';
+        ctx.globalAlpha=p.flight!.remaining<=1?.25+.35*Math.abs(Math.sin(now/80)):.65;
+        ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p.x,p.y-12+bob,24,10,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+      }
 
       if (!sinking && p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
         const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
@@ -6684,6 +6778,7 @@ export function BentenganPrototype() {
           blueLock = fortOccupant('blue'),
           redLock = fortOccupant('red');
         canvas.dataset.playerPosition = `${me.x.toFixed(1)},${me.y.toFixed(1)}`;
+        if(development){canvas.dataset.flightStage=me.flight?.stage??'NORMAL';canvas.dataset.flightRemaining=String(me.flight?.remaining??0);}
         canvas.dataset.embeddedPlayers = String(
           players.filter(
             (p) => p.state !== 'PRISONER' && hitsObstacle(p.x, p.y),
@@ -6757,7 +6852,7 @@ export function BentenganPrototype() {
             ? ultimateMeter
             : 0,
           ultimateBuffRemaining:
-            now <
+            isFlying(me) ? Math.ceil(me.flight!.remaining) : now <
             (me.characterId === 'kaka'
               ? ultimateShieldUntil
               : ultimateBuffUntil)
@@ -6770,9 +6865,11 @@ export function BentenganPrototype() {
                 )
               : 0,
           ultimateCasting:
-            ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
+            flightBusy(me) || ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
             me.action === 'ultimate' &&
             now < me.actionUntil,
+          flightFlying:isFlying(me),
+          flightDebug:development && me.flight ? `${me.name} · ${me.flight.stage} · ${me.flight.remaining.toFixed(2)}s · Tag immune ${isFlying(me)} · Parkour ignore ${isFlying(me)} · Interaction lock true · Speed x${isFlying(me)?flightConfig(me.characterId)?.speedMultiplier:1} · Turn x${isFlying(me)?flightConfig(me.characterId)?.turnMultiplier:1}` : '',
           matchEvents: matchEvents.filter((event) => event.expiresAt > now),
           rescueRequestActive:
             rescueRequest?.requesterId === me.id && now < rescueRequest.expiresAt,
@@ -6799,16 +6896,18 @@ export function BentenganPrototype() {
       if (event.pointerType !== 'mouse' || ![0, 2].includes(event.button) || mode !== 'playing' ||
         phase !== 'PLAYING' || paused || !['ACTIVE', 'IN_BASE'].includes(me.state) ||
         (field.id === 'kanal2' && me.waterEnteredAt > 0) ||
+        (flightBusy(me) && !isFlying(me)) ||
         players.some(player => player.action === 'ultimate' && now < player.actionUntil)) return;
       event.preventDefault();
       const shell = canvas.closest('.playing-shell');
       const matrix = shell ? new DOMMatrix(getComputedStyle(shell).transform) : new DOMMatrix();
       const target = pointerWorld({ x: event.clientX, y: event.clientY }, canvas.getBoundingClientRect(), view, Math.abs(matrix.b - 1) < .01);
       if (event.button === 2) {
+        if(flightBusy(me))return;
         mouseBoost = true;
         return;
       }
-      const passable = (x: number, y: number) => x >= 34 && x <= worldWidth - 34 && y >= 58 && y <= worldHeight - 32 && !blocked(x, y, me, now) && !isWaterAt(x, y);
+      const passable = (x: number, y: number) => x >= 34 && x <= worldWidth - 34 && y >= 58 && y <= worldHeight - 32 && !blocked(x, y, me, now) && (isFlying(me)||!isWaterAt(x, y));
       const route = clickRoute(me, target, worldWidth, worldHeight, passable);
       clearMouse();
       if (!route.length) { log('Tujuan tidak dapat dijangkau. Pilih tanah kosong atau jalur jembatan.'); return; }
@@ -6905,6 +7004,7 @@ export function BentenganPrototype() {
     snapshot.state === 'PRISONER' ||
     snapshot.ultimateCasting ||
     snapshot.paused;
+  const playerMovementLocked = snapshot.state === 'PRISONER' || snapshot.paused || (snapshot.ultimateCasting && !snapshot.flightFlying);
   const start = () => {
     if (!playerProfile || !selectedFaction || assetsLoading) return;
     const gate = selectionGate();
@@ -7622,8 +7722,9 @@ export function BentenganPrototype() {
                   Jatuh ke air mengembalikan pemain ke benteng.
                 </li>
                 <li>
-                  <b>Ultimate Raja dan Kaka.</b> Raja mempercepat rekan aktif;
+                  <b>Ultimate Raja, Kaka, Bebe dan Ciici.</b> Raja mempercepat rekan aktif;
                   Kaka membuat seluruh tim kebal tag selama 5 detik.
+                  Bebe/Ciici terbang 4 detik untuk berpindah posisi: kebal tag dan melewati rintangan rendah, tetapi tidak bisa tag, rescue, pickup atau merebut benteng. Takeoff/landing tetap rentan tag.
                 </li>
               </ol>
               <p>
@@ -8248,7 +8349,7 @@ export function BentenganPrototype() {
                   >
                     <span>
                       {selectedId === 'kaka' ? <Shield size={12} /> : <Zap size={12} />}
-                      {selectedId === 'kaka' ? 'PERISAI' : 'TITAH'}
+                      {ultimateName(selectedId)}
                     </span>
                     <b>{Math.floor(snapshot.ultimateMeter)}%</b>
                     <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
@@ -8333,7 +8434,7 @@ export function BentenganPrototype() {
                 >
                   <span>
                     {selectedId === 'kaka' ? <Shield size={14} /> : <Zap size={14} />}
-                    {selectedId === 'kaka' ? ' PERISAI HIJAU' : ' TITAH HALILINTAR'}
+                    {' '+ultimateName(selectedId)}
                   </span>
                   <b>{Math.floor(snapshot.ultimateMeter)}%</b>
                   <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
@@ -8395,7 +8496,7 @@ export function BentenganPrototype() {
                     disabled={
                       snapshot.ultimateMeter < 100 || playerMechanicsLocked
                     }
-                    aria-label={`${selectedId === 'kaka' ? 'Perisai Hijau' : 'Titah Halilintar'} ${Math.floor(snapshot.ultimateMeter)} persen`}
+                    aria-label={`${ultimateName(selectedId)} ${Math.floor(snapshot.ultimateMeter)} persen`}
                   >
                     {selectedId === 'kaka' ? <Shield size={18} /> : <Zap size={18} />}
                     <b>CAPS</b>
@@ -8422,10 +8523,11 @@ export function BentenganPrototype() {
               {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
                 <div className={`ultimate-buff-indicator ${selectedId === 'kaka' ? 'kaka-shield-indicator' : ''}`}>
                   {selectedId === 'kaka' ? <Shield size={13} /> : <Zap size={13} />}
-                  {selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · '}
+                  {flightConfig(selectedId) ? ' FLIGHT · KEBAL TAG · ' : selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · '}
                   {snapshot.ultimateBuffRemaining}s
                 </div>
               )}
+              {snapshot.flightDebug && <output style={{position:'absolute',bottom:140,left:12,zIndex:10,maxWidth:400,padding:6,background:'#000c',color:'#fff',fontSize:10}}>{snapshot.flightDebug}</output>}
               <div className={`control-ribbon ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}>
                 <b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR{' '}
                 {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
@@ -8439,28 +8541,28 @@ export function BentenganPrototype() {
                 <div className="touch-dpad">
                   <button
                     aria-label="Gerak atas"
-                    disabled={playerMechanicsLocked}
+                    disabled={playerMovementLocked}
                     {...touchControl('w')}
                   >
                     ▲
                   </button>
                   <button
                     aria-label="Gerak kiri"
-                    disabled={playerMechanicsLocked}
+                    disabled={playerMovementLocked}
                     {...touchControl('a')}
                   >
                     ◀
                   </button>
                   <button
                     aria-label="Gerak kanan"
-                    disabled={playerMechanicsLocked}
+                    disabled={playerMovementLocked}
                     {...touchControl('d')}
                   >
                     ▶
                   </button>
                   <button
                     aria-label="Gerak bawah"
-                    disabled={playerMechanicsLocked}
+                    disabled={playerMovementLocked}
                     {...touchControl('s')}
                   >
                     ▼
@@ -8485,7 +8587,7 @@ export function BentenganPrototype() {
                   {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                     <button
                       className={`touch-ultimate ${selectedId === 'kaka' ? 'kaka-ultimate' : ''}`}
-                      aria-label={selectedId === 'kaka' ? 'Perisai Hijau' : 'Titah Halilintar'}
+                      aria-label={ultimateName(selectedId)}
                       disabled={
                         snapshot.ultimateMeter < 100 || playerMechanicsLocked
                       }
@@ -8531,18 +8633,12 @@ export function BentenganPrototype() {
               className={`ultimate-banner ${selectedId === 'kaka' ? 'kaka-banner' : ''}`}
               role="status"
               aria-label={
-                selectedId === 'kaka'
-                  ? 'Kaka mengaktifkan Perisai Hijau'
-                  : 'Raja mengaktifkan Titah Halilintar'
+                `${selected.name} mengaktifkan ${ultimateName(selectedId)}`
               }
             >
               <img
-                src={
-                  selectedId === 'kaka'
-                    ? kakaUltimateBannerAsset()
-                    : rajaUltimateBannerAsset()
-                }
-                alt={selectedId === 'kaka' ? 'ULTIMATE SKILL KAKA' : 'TITAH HALILINTAR'}
+                src={ultimateBannerAsset(selectedId)}
+                alt={`ULTIMATE SKILL ${selected.name}`}
                 decoding="async"
               />
             </div>
