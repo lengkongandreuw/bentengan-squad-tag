@@ -5,7 +5,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### IMPLEMENTED — Ultimate roster label artwork (2026-10-05, publish requested)
+### COMPLETE — Ultimate roster label artwork (2026-10-05, PUBLISHED)
 
 - Supplied ultimate_label.png copied to controls/ultimate-label.png and preloaded.
   Replaced old pill for all existing Ultimate IDs Raja/Kaka/Bebe/Ciici. Label is
@@ -13,7 +13,8 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   a small occlusion at the right edge while keeping text primarily outside it.
   Responsive sizing follows character card; existing unlock styling preserved.
 - No gameplay/preview manifest edits. TypeScript checked; no visual browser QA.
-  User subsequently requested publish; Pages deployment verification pending.
+  User subsequently requested publish: commit f4c8737 pushed non-force,Pages
+  run37257613234 completed SUCCESS. TypeScript/Pages build passed.
 
 ### COMPLETE — Publish all local updates (2026-10-05)
 
