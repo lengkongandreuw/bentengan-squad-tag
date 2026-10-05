@@ -2,6 +2,8 @@ import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults';
 import { CHARACTERS, type CharacterId } from '../characters';
 import type { LocalPlayerProfile, PlayerKdaStats } from './types';
 import { parsePlayerProgression } from './progression';
+import { parsePlayerEconomy } from './economy';
+import { parseUltimateUpgradeState } from './ultimate-upgrades';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -43,7 +45,9 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
     return null;
 
   const progression = parsePlayerProgression(value.progression);
-  const { progression: _rawProgression, ...existingFields } = value;
+  const economy = parsePlayerEconomy(value.economy);
+  const ultimateUpgrades = parseUltimateUpgradeState(value.ultimateUpgrades);
+  const { progression: _rawProgression, economy: _rawEconomy, ultimateUpgrades: _rawUpgrades, ...existingFields } = value;
   return {
     ...existingFields,
     schemaVersion: PLAYER_PROFILE_SCHEMA_VERSION,
@@ -55,5 +59,7 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
     featuredCharacterId,
     kda,
     ...(progression ? { progression } : {}),
+    ...(economy ? { economy } : {}),
+    ...(ultimateUpgrades ? { ultimateUpgrades } : {}),
   };
 };

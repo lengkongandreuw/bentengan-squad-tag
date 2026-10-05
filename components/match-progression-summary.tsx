@@ -1,5 +1,6 @@
 import { CHARACTER_BY_ID } from '../lib/characters';
 import type { ProgressionResult } from '../lib/player-profile/match-progression';
+import { MatchTokenSummary } from './match-token-summary';
 
 // Presentation only: never reads storage or resolves/awards progression.
 export function MatchProgressionSummary({ result }: { result: ProgressionResult | null }) {
@@ -26,5 +27,6 @@ export function MatchProgressionSummary({ result }: { result: ProgressionResult 
         <p>{nextCharacter.xpRemaining} XP lagi · Level {nextCharacter.minLevel}</p></>
         : <p>Semua karakter sudah terbuka</p>}
     </div>
+    <MatchTokenSummary result={result} />
   </section>;
 }

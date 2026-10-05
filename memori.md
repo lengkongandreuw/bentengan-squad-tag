@@ -4,13 +4,80 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-05 user explicitly requested publish ALL local changes without disturbing
+other programmers. Prior LOCAL ONLY constraint revoked for this publish. Fetch
+confirmed HEAD==github/main c742c25 before staging; non-force push only. Economy,
+DOI UI,Back art,Workshop entry removal and saved Studio map/sprite edits included.
+Separate editor files preserved. Confirm Pages workflow success after push.
+
+2026-10-05 LOCAL ONLY: currency display renamed TOKEN→DOI,central config label DOI
+but internal token id and all stored keys preserved. Wallet uses supplied coin;
+Ultimate modal follows supplied maroon/graffiti/purple/yellow visual reference
+with label/close/accent PNGs in public/ui-v2/economy. Confirmation,stats,purchase
+guards untouched.83 tests/TS/focused UI lint/Pages build PASS; browser visual QA
+not performed (browser control tool unavailable). No publish/balance changes.
+
+2026-10-05 Economy MODULE10–13 complete LOCAL ONLY. Wallet shown in Profile and
+Character Selection,refreshed from saved profile events. Catalog-supported Raja/
+Kaka get modal current/next stats and confirmed purchase,shortage/max/storage/
+stale feedback,unique quote ID and one-shot click guard. Unsupported characters
+only show wallet. Existing result summary renders engine TOKEN breakdown,total
+and resulting balance; duplicate/incomplete never replay reward. No new shop/key.
+83 tests/TS/focused new UI lint/Pages build PASS; tests include actual component
+handlers and persisted18-TOKEN synthetic journey reaching levels after7/23/52
+matches,totalcost920. NOT player telemetry; real playtest average unknown,config
+unchanged. No manual browser/mobile visual walkthrough. Existing unrelated lint
+issues remain. Studio drafts/assets preserved. No publish; STOP after13.
+Earlier07–09 notes about no purchase UI superseded by10–13.
+
+2026-10-05 Economy MODULE07–09 complete LOCAL ONLY. Pure purchase engine debits
+TOKEN and increments one level atomically; duplicate/insufficient/max/invalid/
+stale quote rejected. Service saves once; failed storage reports no durable success.
+getUltimateUpgradeConfig reads catalog rows; getUltimateUpgradeLevel reads profile.
+Frozen effective stats fall back to level0 for missing/invalid state; unsupportednull.
+Raja/Kaka gameplay snapshots stats at match start (recharge/cast/duration/Raja speed),
+bots retain base activation stats; existing allied effect scope and tag20/rescue30
+bonuses preserved. Bebe/Ciici unchanged. Custom/built-in Ultimate frame timelines
+fit cast duration without asset changes.80 tests/TS/focused lint/Pages build PASS;
+runtime smoke via actual-code harness,not manual browser gameplay validation.
+No purchasing UI,no publish. STOP before10. Editor drafts/assets untouched.
+Earlier04–06 notes about no purchasing/runtime modifiers superseded by07–09.
+
+2026-10-05 Economy MODULE04–06 complete LOCAL ONLY (user supplied all3).
+Match resolver now returns TOKEN breakdown/balances alongsideXP,uses existing
+incomplete/dedup guard and one service save. Formula10 completion+5 win+tag max5
++rescue2 max6 TOKEN; max26 win/21 loss. No parallel processed-match history.
+Storage migration repairs missing economy to0,no retroactive grants; preserves
+safe counters/valid ledger and unrelated profile/progression,one migration write,
+blocked write retains source/retries. New catalog Raja/Kaka Lv0–3 costs120/280/520
+incremental,independent ultimateUpgrades state; missinglevel0,unsupportednull.
+No purchasing/gameplay modifiers/UI. Existing Raja/Kaka base timings preserved.
+53 tests (16economy+37progression)/TS/lint/Pages build PASS; old CSS warnings.
+STOP before07/no publish per economic docs. Editor drafts/assets remain untouched.
+Earlier01–03 notes about no rewards/migration now superseded by04–06.
+
+2026-10-05 Economy MODULE01–03 complete LOCAL ONLY. User supplied01–03 together;
+02 centralized config/economy.json strict frozen parser (malformed throws),03
+creditTokens/spendTokens/getTokenBalance immutable operations, explicit failures,
+safe-integer overflow/no negative balance, bounded50 ledger idempotency only.
+Input amount positive; spend negative ledger. No storage/events/match/UI/upgrades
+or legacy migration/reset.10 economy+37 progression tests/TS/lint PASS.
+STOP before04 and no publish per active specs. Editor drafts/assets untouched.
+
+2026-10-05 published runtime scheduling c742c25 (Pages37215005019 SUCCESS):
+exact-parity priority-queue A*,one queued AI route/frame,hidden scoreboard avoids
+row rebuild,optional ?performance=1 diagnostics. Contributor carousel f3f7a7e
+merged. No asset/FPS reduction; realtime game FPS not measured.033af27 immunity
+now covers Bebe/Ciici takeoff+flying+landing,overrides older flying-only notes.
+
 2026-10-04 user revision: Ultimate Bebe/Ciici now default+8 optional directions
 for all3 Flight phases,overrides original default-only brief. Default fallback
 stays; phase facing matches sequence completion. Performance optimization:
 exact broad-phase Studio collider queries,range-first tag LOS,active-lineup sprite
 preload,offscreen rotated-object culling and cached terrain patterns. Original
 assets/FPS/quality untouched. Running4319/4331 editor servers old; restart needed
-after saving user drafts. Do not kill them automatically. See checkpoint.
+after saving user drafts. Do not kill them automatically. Published180e5d3;
+Pages37210568540 SUCCESS; public commit verified. See checkpoint.
 
 2026-10-04 Ultimate Flight Batch01: Bebe/Ciici shared controller,4sec actual
 FLYING only tag immunity,locked interactions,takeoff/landing vulnerable,selective

@@ -8,6 +8,9 @@ import { loadPlayerProfile, savePlayerProfile } from './storage';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
 import { createDefaultProgression } from './progression';
+import { createDefaultEconomy } from './economy';
+import { createDefaultUltimateUpgrades } from './ultimate-upgrades';
+import { purchaseUltimateUpgrade } from './ultimate-purchase';
 import { applyMatchProgression, type MatchSummary } from './match-progression';
 import { createLocalId } from './match-identity';
 
@@ -46,6 +49,8 @@ export const createPlayerProfile = (usernameInput: string): LocalPlayerProfile =
     featuredCharacterId: 'raja',
     kda: { tagMusuh: 0, masukPenjara: 0, rescueTeam: 0 },
     progression: createDefaultProgression(),
+    economy: createDefaultEconomy(),
+    ultimateUpgrades: createDefaultUltimateUpgrades(),
   });
 };
 
@@ -84,5 +89,16 @@ export const recordMatchProgression = (summary: MatchSummary) => {
     if (!savePlayerProfile(result.profile)) throw new Error('Reward belum tersimpan; penyimpanan browser gagal.');
     notifyProfileChanged();
   }
+  return result;
+};
+
+export const purchasePlayerUltimateUpgrade = (characterId: string, transactionId: string, expectedPreviousLevel?: number) => {
+  const profile=loadPlayerProfile();
+  if(!profile)return null;
+  const result=purchaseUltimateUpgrade(profile,characterId,transactionId,expectedPreviousLevel);
+  if(!result.applied)return result;
+  if(!savePlayerProfile(result.profile))return {...result,profile,applied:false,reason:'storage_failed' as const,
+    currentBalance:result.previousBalance,currentLevel:result.previousLevel};
+  notifyProfileChanged();
   return result;
 };

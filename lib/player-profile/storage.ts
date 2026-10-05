@@ -1,6 +1,7 @@
 import { PLAYER_PROFILE_STORAGE_KEY } from './defaults';
 import { parsePlayerProfile } from './migrations';
 import { migratePlayerProgression } from './progression-migration';
+import { migratePlayerEconomy } from './economy-migration';
 import type { LocalPlayerProfile } from './types';
 
 export const loadPlayerProfile = (): LocalPlayerProfile | null => {
@@ -12,10 +13,11 @@ export const loadPlayerProfile = (): LocalPlayerProfile | null => {
     const profile = parsePlayerProfile(value);
     if (!profile) return null;
     const migration = migratePlayerProgression(profile, value.progression);
-    if (migration.migrated) savePlayerProfile(migration.profile);
+    const economyMigration = migratePlayerEconomy(migration.profile,value.economy);
+    if (migration.migrated || economyMigration.migrated) savePlayerProfile(economyMigration.profile);
     // A blocked write still returns the safe migrated profile in memory. Retry
     // on next load; never erase the old profile or claim durable persistence.
-    return migration.profile;
+    return economyMigration.profile;
   } catch {
     return null;
   }

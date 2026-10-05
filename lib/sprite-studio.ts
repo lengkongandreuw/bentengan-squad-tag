@@ -23,7 +23,7 @@ export function studioImages(id:CharacterId) {
 // Restart one-shot clips only on a real visual state transition, per actor.
 export function createStudioResolver() {
   const actors=new Map<string,{slot:string|null;start:number;vx:number;vy:number}>();
-  return (id:CharacterId,actor:string,c:{vx:number;vy:number;now:number;state:string;result:string|null;ready:boolean;action:string|null;parkour:boolean;tagX?:number;tagY?:number;flightSlot?:string|null;flightDirection?:string;flightElapsed?:number})=>{
+  return (id:CharacterId,actor:string,c:{vx:number;vy:number;now:number;state:string;result:string|null;ready:boolean;action:string|null;parkour:boolean;tagX?:number;tagY?:number;flightSlot?:string|null;flightDirection?:string;flightElapsed?:number;ultimateProgress?:number})=>{
     const previous=actors.get(actor);
     const vx=Math.hypot(c.vx,c.vy)>8?c.vx:previous?.vx??0;
     const vy=Math.hypot(c.vx,c.vy)>8?c.vy:previous?.vy??1;
@@ -37,6 +37,8 @@ export function createStudioResolver() {
     if(!clip) return null;
     const image=images.get(clip.asset);
     if(!image?.complete||!image.naturalWidth) return null;
-    return {clip,image,frame:frameAt(clip,c.flightSlot?c.flightElapsed??0:c.now-start)};
+    const ultimateElapsed=c.action==='ultimate' && c.ultimateProgress!==undefined
+      ? Math.max(0,Math.min(1-Number.EPSILON,c.ultimateProgress))*clip.frames.length/clip.fps*1000 : c.now-start;
+    return {clip,image,frame:frameAt(clip,c.flightSlot?c.flightElapsed??0:ultimateElapsed)};
   };
 }

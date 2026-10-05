@@ -1,5 +1,7 @@
 import type { CharacterId } from '../characters';
 import type { PlayerProgression } from './progression';
+import type { PlayerEconomy } from './economy';
+import type { UltimateUpgradeState } from './ultimate-upgrades';
 
 export type PlayerKdaStats = {
   tagMusuh: number;
@@ -20,6 +22,9 @@ export type LocalPlayerProfile = {
   kda: PlayerKdaStats;
   // Optional on legacy input; storage load migrates missing/outdated progression.
   progression?: PlayerProgression;
+  // Legacy input may omit this; storage load migrates missing/invalid economy.
+  economy?: PlayerEconomy;
+  ultimateUpgrades?: UltimateUpgradeState;
 };
 
 export type RadarMetrics = {

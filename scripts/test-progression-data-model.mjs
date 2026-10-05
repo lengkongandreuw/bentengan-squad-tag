@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import ts from 'typescript';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -24,7 +25,8 @@ async function moduleUrl(file) {
   const imports = [...code.matchAll(/from ['"]([^'"]+)['"]/g)];
   for (const match of imports) {
     const dependency = match[1].startsWith('.')
-      ? await moduleUrl(new URL(match[1] + (/\.(json|tsx?)$/.test(match[1]) ? '' : '.ts'), file))
+      ? await moduleUrl([new URL(match[1] + '.ts', file), new URL(match[1] + '.tsx', file), new URL(match[1], file)]
+        .find(candidate => existsSync(candidate)))
       : import.meta.resolve(match[1]);
     code = code.replace(match[0], `from '${dependency}'`);
   }

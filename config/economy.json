@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "currency": { "id": "token", "label": "DOI" },
+  "matchRewards": {
+    "completeMatch": 10,
+    "win": 5,
+    "tag": 1,
+    "tagPerMatchCap": 5,
+    "rescue": 2,
+    "rescuePerMatchCap": 6
+  },
+  "recentTransactionLimit": 50
+}

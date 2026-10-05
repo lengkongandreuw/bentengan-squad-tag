@@ -5,7 +5,175 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### IMPLEMENTED — Directional Flight + runtime efficiency (2026-10-04)
+### ACTIVE — Publish all local updates (2026-10-05)
+
+- User explicitly authorizes publishing all local changes. Fetched github/main:
+  HEAD and remote identical c742c25,no contributor commits to merge at this check.
+- Includes economy01–13/DOI UI,centered Ultimate panel,Back art,removed in-game
+  Workshop entry,and saved Map/Sprite Studio configurations+Bebe/Ciici assets.
+  All referenced Studio assets exist. Preserve separate editor sources.
+- Regression suites and production build checked before commit. Push must be
+  non-force; if remote advances,merge/retest instead of overwriting it.
+- Earlier LOCAL ONLY/no-publish notes are historical and superseded by this
+  explicit request. Deployment success still pending; do not infer from push.
+
+### COMPLETE — Center Ultimate upgrade modal (2026-10-05, LOCAL ONLY)
+
+- Explicit fixed inset0/auto margins/fit-content height center the skill upgrade
+  panel horizontally and vertically. Existing viewport limit/scroll retained.
+- No purchase,content or asset changes; no publish.
+
+### COMPLETE — Remove in-game Character Workshop entry (2026-10-05, LOCAL ONLY)
+
+- Removed Workshop button,component import and workshop screen state/branch from
+  app/prototype.tsx. Game navigation remains; local editor files/assets preserved.
+- TypeScript checked. No publish.
+
+### COMPLETE — DOI branding + Ultimate panel artwork (2026-10-05, LOCAL ONLY)
+
+- Currency display label is now DOI via config/economy.json. Internal id token,
+  tokenBalance,transaction history and upgrade state unchanged for compatibility.
+  Wallet/profile/selection/result/confirmation/failure messages use DOI.
+- Supplied original PNGs copied to public/ui-v2/economy: doi-coin,label,close,
+  accent. Ultimate modal restyled to reference: maroon card,overhanging graffiti
+  title,level+coin row,two-column stats,purple action,art close with accessible
+  label,yellow corner accent. Short/mobile viewport scrolls with stacked content.
+  Existing native dialog/confirmation/purchase guards retained; artwork preloads.
+-83 regression tests,TypeScript,focused UI lint and Pages build PASS (existing
+  CSS/chunk warnings). Render/click harness used; browser tooling unavailable in
+  this session,so no manual visual/mobile walkthrough claimed. No gameplay,
+  balancing,Studio data or stored-wallet migration changes. No publish.
+
+### COMPLETE — Back button artwork (2026-10-05, LOCAL ONLY)
+
+- Replaced menu Back art with supplied back inactive.png and back button.png;
+  separate public/ui-v2/controls/back-inactive.png and back-hover.png preserve
+  original user files and avoid old UI generator overwriting these assets.
+- Normal/hover+keyboard focus switch artwork; both preload,goBack unchanged.
+  Square footprint72–100px desktop,68px mobile,72–96px map selector.
+- No publish. TypeScript and asset dimensions checked; no browser visual QA.
+
+### COMPLETE — Economy MODULE10–13 (2026-10-05, LOCAL ONLY)
+
+- User supplied10–13 together: wallet/profile display, Raja/Kaka upgrade UI,
+  result TOKEN breakdown and final regression/balance report. No publish.
+- Preserve Studio drafts/assets; use existing profile event/service/result only.
+-10: TokenWallet reads the existing wallet balance; visible on Profile and
+  Character Selection. Existing saved-profile/storage events refresh it.
+-11: native modal dialog for catalog-supported Raja/Kaka only; current/next
+  duration,recharge,cast,Raja speed,cost,shortage,max state. Explicit confirmation
+  shows cost/remaining balance. Unique quote ID,expected previous level,one-shot
+  click guard and authoritative purchase service. Failed saves/stale quotes show
+  feedback; no local UI debit. Escape closes modal; keyboard stays out of menu
+  navigation. Scrollable small-screen dialog,44px button targets.
+-12: result TOKEN total/breakdown/balance comes from existing ProgressionResult.
+  Duplicate/incomplete result suppresses reward replay; loss completion visible.
+-13 validation:83 tests PASS (25 economy,37 progression,6 flight,10 audio,5 Sprite
+  Studio),TypeScript and focused new UI/economy test lint PASS,Pages build PASS
+  with existing CSS/chunk warnings. Existing profile component lint and progression
+  test unused-variable warnings remain out of scope. Actual component handler
+  harness covers confirm/cancel/double click/failed save/stale quote/max/shortage;
+  server-rendered UI covers labels/catalog/rewards. Runtime Ultimate harness from
+ 09 retained. No manual browser/mobile visual walkthrough performed.
+- Balance unchanged: synthetic persisted service journey at18 TOKEN per match
+  reaches Lv1/Lv2/Lv3 after7/23/52 cumulative matches for each character. Total
+  cost920,earned936,remaining16. This is NOT observed player telemetry or an
+  average reward claim. Real playtest average remains unmeasured; completed-match
+  bounds10–26 (win) /10–21 (loss),depending on action rewards. No silent tuning.
+- Files: components/token-wallet.tsx,ultimate-upgrade-panel.tsx,
+  match-token-summary.tsx; profile panel,result summary,app/prototype.tsx,
+  app/globals.css; economy tests and progression test TSX dependency loader.
+- Studio manifests/user assets unchanged (map hash B2738BD2...539C615 retained).
+  No new storage key/shop/backend. All economy01–13 still LOCAL ONLY;
+  no commit,push or deploy. STOP at13.
+
+### COMPLETE — Economy MODULE07–09 (2026-10-05, LOCAL ONLY)
+
+-07 purchase module and service implemented: pure debit+level increment,
+  duplicate/max/invalid/insufficient/stale-quote failures,save failure reported.
+-08 frozen effective-stats resolver and snapshot helper implemented; unsupported
+  has no invented config,invalid/missing levels use base. Existing catalog lookup
+  renamed getUltimateUpgradeConfig; getUltimateUpgradeLevel now reads profile.
+-09: Raja/Kaka runtime uses immutable match-start effective stats for recharge,
+  cast, duration and Raja speed. Level0 parity, tag20/rescue30 bonuses and existing
+  allied effect scope retained. Bots use base activation stats; Bebe/Ciici unchanged.
+  Built-in/custom Ultimate frames follow cast progress without changing assets.
+- Validation:22 economy,37 progression,6 flight,10 audio and5 Sprite Studio tests;
+  TypeScript,focused lint,diff check and Pages build PASS (existing CSS warnings).
+  Runtime smoke executes actual activation code through a harness,not a manual
+  browser/game walkthrough. User editor manifests/assets preserved.
+- No purchasing UI,no commit/push/publish. STOP before MODULE10.
+
+### COMPLETE — Economy MODULE04–06 (2026-10-05, LOCAL ONLY)
+
+- User supplied04–06 together. Reward integration uses existing incomplete/
+  processedMatchIds guard; TOKEN+XP+stats+unlocks persisted once by existing service.
+- Wallet migration on load recovers safe fields without retroactive grants;
+  progression+economy migration share one write. Catalog Raja/Kaka config and
+  independent upgrade state implemented; no purchasing or runtime modifiers/UI.
+-04: match-token-rewards.ts config formula completion10/win5/tag capped5/
+  rescue2 capped6 TOKEN. Safe BigInt multiplication; result carries tokenEarned,
+  tokenBreakdown,previous/current balances. Ledger match:${matchId},referenceId;
+  zero reward for duplicate/incomplete, existing processedMatchIds only. Wallet
+  credit overflow/invalid raises before returning/saving any partial XP/stats.
+-05: economy-migration.ts supplies zero wallet for missing data; malformed wallet
+  preserves safe counters and valid unique recent ledger entries, never infers
+  historical rewards or erases unrelated data. Storage loads raw data for repair,
+  saves progression+economy migrations once; blocked writes keep source and
+  return repaired memory state, retry next load. Valid wallets do not write.
+-06: ultimate-upgrades.json Raja/Kaka Lv0–3,incremental120/280/520 costs;
+  ultimate-upgrades.ts strict frozen catalog and independent version1 state,
+  default Raja/Kaka0,missing levels0,unsupported returnsnull. New profile defaults
+  and profile parser roundtrip; no purchase/runtime modifiers/UI. Base runtime
+ 45s,3200/3600ms cast,5000ms duration,Raja1.4 unchanged and regression checked.
+- Files: config/ultimate-upgrades.json; lib/player-profile/match-token-rewards.ts,
+  economy-migration.ts,ultimate-upgrades.ts,match-progression.ts,storage.ts,
+  types.ts,migrations.ts,profile-service.ts,index.ts; scripts/test-economy-wallet.mjs;
+  CHECKPOINT.md,memori.md. Modules01–03 still local and preserved.
+- Validation:53 tests PASS (16 economy+37 progression),npx tsc --noEmit PASS,
+  scoped oxlint/diff check PASS,npm run build:pages PASS. Existing CSS/chunk-size
+  warnings only. No browser visual test needed/performed: no UI change. No
+  sprites/maps/audio rebuilt; user Studio drafts and Bebe/Ciici assets untouched.
+- Next: STOP before07; request/spec needed. No commit/push/deploy per brief.
+  Economy01–06 all LOCAL ONLY, despite earlier runtime optimizations published.
+
+### COMPLETE — Economy MODULE02–03 (2026-10-05, LOCAL ONLY)
+
+- User supplied01–03 together. Existing01 wallet retained;02 config/parser
+  implemented;03 transaction operations validated. STOP before04.
+- config/economy.json uses specified rewards/caps, latest50 transactions.
+  economy-rules.ts strict safe-integer/version/currency/limit validation,
+  frozen economyRules; malformed config throws, no balancing fallback.
+- Parser ledger bound now uses central rules. No match integration, migration,
+  storage writer, UI, upgrade state or gameplay changes. No publication allowed
+  by active economic specs. User Map/Sprite Studio drafts left untouched.
+- creditTokens/spendTokens/getTokenBalance return immutable profile results;
+  positive input magnitude, signed ledger entries, safe integer overflow guards,
+  insufficient_balance/duplicate/invalid no-op results. Legacy wallet missing/
+  malformed remains untouched and write returns invalid until later migration.
+  No storage/event access. Duplicate protection only retained transaction IDs;
+  no second processed-match history. Omitted createdAt uses current ISO date;
+  callers supply timestamp for deterministic replay.
+- Files: config/economy.json, lib/player-profile/economy-rules.ts,economy.ts,
+  scripts/test-economy-wallet.mjs, memori.md,CHECKPOINT.md. Existing01 integration
+  files types/migrations/profile-service still LOCAL ONLY, not rebuilt/reset.
+- Tests:10 economy +37 progression PASS; TypeScript and scoped lint PASS.
+  No asset rebuild, no git commit/push/deploy. Config reward values10/5/1/5/2/6,
+  ledger limit50 (parser accepts1–1000 explicit safety cap).
+- Next action: user review; MODULE04 only after request/spec. Keep economy local
+  until explicit publish. User editor drafts/uploads continue to be preserved.
+
+### PUBLISHED — Runtime scheduling and full Flight immunity (2026-10-05)
+
+-033af27: Bebe/Ciici cannot be tagged during takeoff/flying/landing, overrides
+  historical flying-only notes below; tests/build/deploy37213590144 SUCCESS.
+-c742c25: priority-queue A* exact route parity, FIFO one-AI-route/frame,
+  closed scoreboard skips row rebuild, optional ?performance=1 instrumentation.
+  Includes latest contributor carousel f3f7a7e without overwriting local drafts.
+ 29 tests/TS/build passed; Pages37215005019 SUCCESS and public commit verified.
+  Route benchmark improved, actual game FPS not measured. No pixels/FPS reduced.
+
+### PUBLISHED — Directional Flight + runtime efficiency (2026-10-04)
 
 - User revision overrides original default-only spec: all3 flight actions now
   support default+8 optional directions for Bebe/Ciici only. Default/legacy
@@ -24,7 +192,9 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
   scoped lint and Pages build PASS. Benchmark1600 colliders/2000 queries ~99.64%
   fewer candidates; NOT an FPS measurement or proof of eliminating every lag.
 - Preserve user config/map-studio.json,config/sprite-studio.json and untracked
-  Bebe/Ciici atlases; Economy01 LOCAL ONLY. Scoped publish pending.
+  Bebe/Ciici atlases; Economy01 LOCAL ONLY. Implementation180e5d3 pushed;
+  Pages37210568540 SUCCESS; public build-info matches180e5d3. Browser/FPS
+  walkthrough not measured; API harness/benchmark/tests/build verified.
 
 ### PUBLISHED — Ultimate Flight Batch01 Bebe/Ciici (2026-10-04)
 

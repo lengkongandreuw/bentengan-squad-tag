@@ -29,14 +29,13 @@ import {
   Users,
   Volume2,
   VolumeX,
-  Wrench,
   X,
   Zap,
 } from 'lucide-react';
-import { CharacterWorkshop } from '../components/character-workshop';
 import { SelectionPortrait } from '../components/selection-portrait';
 import { CharacterLockBadge } from '../components/character-lock-badge';
 import { MatchProgressionSummary } from '../components/match-progression-summary';
+import { UltimateUpgradePanel } from '../components/ultimate-upgrade-panel';
 import { UnlockNotificationPanel } from '../components/unlock-notification-panel';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
@@ -78,6 +77,7 @@ import {
   EMPTY_KDA,
   recordMatchProgression,
   createMatchId,
+  snapshotUltimateStats,
   isCharacterUnlocked,
   isArenaUnlocked,
   getPlayableCharacterIds,
@@ -2956,7 +2956,6 @@ export function BentenganPrototype() {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [missionOpen, setMissionOpen] = useState(false);
-  const [view, setView] = useState<'game' | 'workshop'>('game');
   const [run, setRun] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot>(initialSnapshot);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
@@ -3055,7 +3054,8 @@ export function BentenganPrototype() {
     const prepare = async () => {
       const images: HTMLImageElement[] = [];
       const urls = [uiAsset('controls/primary.webp'), uiAsset('controls/primary-hover.webp'),
-        uiAsset('controls/back.webp'), ...LOADING_UI_FRAMES];
+        uiAsset('controls/back-inactive.png'), uiAsset('controls/back-hover.png'),
+        ...['doi-coin', 'label', 'close', 'accent'].map(name => publicAsset(`ui-v2/economy/${name}.png`)), ...LOADING_UI_FRAMES];
       for (const field of FIELD_CONFIGS) urls.push(arenaImage(field.id));
       if (gameLoading) {
         const faction=selectedFaction??'red';
@@ -3328,7 +3328,7 @@ export function BentenganPrototype() {
   }, []);
 
   useEffect(() => {
-    if (mode === 'menu' && menuStep === 'character' && view === 'game') return;
+    if (mode === 'menu' && menuStep === 'character') return;
     const voice = characterVoiceRef.current;
     if (voice) {
       voice.pause();
@@ -3337,7 +3337,7 @@ export function BentenganPrototype() {
     }
     characterVoiceRef.current = null;
     characterVoiceIdRef.current = null;
-  }, [mode, menuStep, view]);
+  }, [mode, menuStep]);
 
   useEffect(() => {
     if (!audioUnlocked || musicMuted) return;
@@ -3546,6 +3546,12 @@ export function BentenganPrototype() {
     }
     // Identity belongs to this initialized match, not to a render or round.
     const matchId = mode === 'playing' ? createMatchId() : null;
+    // Match-local immutable snapshot: profile refresh never restarts this effect.
+    const playerUltimateStats = snapshotUltimateStats(mode==='playing' ? loadPlayerProfile() ?? playerProfileRef.current ?? null : null,selectedId);
+    const ultimateCastMsFor = (player: Player) => {
+      const base=player.characterId==='kaka'?KAKA_ULTIMATE_CAST_MS:RAJA_ULTIMATE_CAST_MS;
+      return player.controlled ? playerUltimateStats?.castMs ?? base : base;
+    };
     setMatchProgressionResult(null);
     // Result/notice are session-only. Reload never rehydrates consumed notices;
     // the unlocked content itself remains in the persisted player profile.
@@ -3633,6 +3639,7 @@ export function BentenganPrototype() {
     let visibleWorld={left:0,right:0,top:0,bottom:0};
     const objectVisible=(o:typeof studioMap.objects[number])=>visibleBounds(studioBounds.get(o)!,visibleWorld);
     const development = process.env.NODE_ENV !== 'production';
+    if(development)canvas.dataset.ultimateStats=JSON.stringify(playerUltimateStats);
     let debugColliders = development && new URLSearchParams(window.location.search).has('debugColliders');
     const worldWidth = field.width ?? W;
     const worldHeight = field.height ?? H;
@@ -5163,7 +5170,7 @@ export function BentenganPrototype() {
         dy = 0;
       if (ULTIMATE_CHARACTER_IDS.has(me.characterId))
         ultimateMeter = clamp(
-          ultimateMeter + (dt * 100) / RAJA_ULTIMATE_RECHARGE_SECONDS,
+          ultimateMeter + (dt * 100) / (playerUltimateStats?.rechargeSeconds ?? RAJA_ULTIMATE_RECHARGE_SECONDS),
           0,
           100,
         );
@@ -5185,10 +5192,7 @@ export function BentenganPrototype() {
             bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),820);
             log(`${me.name} mengaktifkan ${ultimateName(me.characterId)}.`);
           } else {
-          const castDuration =
-            me.characterId === 'kaka'
-              ? KAKA_ULTIMATE_CAST_MS
-              : RAJA_ULTIMATE_CAST_MS;
+          const castDuration = ultimateCastMsFor(me);
           ultimateMeter = 0;
           ultimateImpactAt = now + castDuration;
           ultimateImpactApplied = false;
@@ -5226,7 +5230,8 @@ export function BentenganPrototype() {
         ultimateImpactApplied = true;
         ultimateImpactAt = 0;
         if (me.characterId === 'kaka') {
-          ultimateShieldUntil = now + KAKA_ULTIMATE_SHIELD_MS;
+          const shieldDuration = playerUltimateStats?.durationMs ?? KAKA_ULTIMATE_SHIELD_MS;
+          ultimateShieldUntil = now + shieldDuration;
           players
             .filter((player) => player.team === me.team)
             .forEach((player) => {
@@ -5236,15 +5241,17 @@ export function BentenganPrototype() {
           burst(me.x, me.y, '#baffc9', 18);
           beep(540, 0.32);
           log(
-            'PERISAI HIJAU · seluruh rekan kebal TAG selama 5 detik.',
+            `PERISAI HIJAU · seluruh rekan kebal TAG selama ${shieldDuration/1000} detik.`,
           );
         } else {
-          ultimateBuffUntil = now + RAJA_ULTIMATE_BUFF_MS;
+          const buffDuration = playerUltimateStats?.durationMs ?? RAJA_ULTIMATE_BUFF_MS;
+          const speedMultiplier = playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER;
+          ultimateBuffUntil = now + buffDuration;
           burst(me.x, me.y, '#ef233c', 28);
           burst(me.x, me.y, '#b54a32', 18);
           beep(118, 0.32);
           log(
-            'TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +40% selama 5 detik.',
+            `TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +${Math.round((speedMultiplier-1)*100)}% selama ${buffDuration/1000} detik.`,
           );
         }
       }
@@ -5252,7 +5259,7 @@ export function BentenganPrototype() {
         player.team === me.team &&
         player.state === 'ACTIVE' &&
         now < ultimateBuffUntil
-          ? RAJA_ULTIMATE_SPEED_MULTIPLIER
+          ? playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER
           : 1;
       const playerComboMultiplier = teamComboSpeedMultiplier(
         teamCombos[me.team],
@@ -6218,6 +6225,7 @@ export function BentenganPrototype() {
           ? direction === 'west'
           : shouldMirrorSprite(direction, dedicatedEast);
       let oneShotColumn: number | undefined;
+      const actorUltimateCastMs=ultimateCastMsFor(p);
       if (phase === 'ROUND_OVER' || phase === 'MATCH_OVER') {
         const result =
           roundWinner === p.team ? animation.victory : animation.defeat;
@@ -6235,15 +6243,15 @@ export function BentenganPrototype() {
           row = animation.ultimate.row;
           columns = animation.ultimate.columns;
           const elapsed = clamp(
-            now - (p.actionUntil - RAJA_ULTIMATE_CAST_MS),
+            now - (p.actionUntil - actorUltimateCastMs),
             0,
-            RAJA_ULTIMATE_CAST_MS - 1,
+            actorUltimateCastMs - 1,
           );
           oneShotColumn =
             columns[
               Math.min(
                 columns.length - 1,
-                Math.floor(elapsed / (RAJA_ULTIMATE_CAST_MS / columns.length)),
+                Math.floor(elapsed / (actorUltimateCastMs / columns.length)),
               )
             ];
         } else if (p.action === 'tag' && animation.tagByDirection) {
@@ -6287,15 +6295,15 @@ export function BentenganPrototype() {
         const stripHeight = renderImage.naturalHeight || 424;
         const cellWidth = stripWidth / KAKA_ULTIMATE_FRAME_COUNT;
         const elapsed = clamp(
-          now - (p.actionUntil - KAKA_ULTIMATE_CAST_MS),
+          now - (p.actionUntil - actorUltimateCastMs),
           0,
-          KAKA_ULTIMATE_CAST_MS - 1,
+          actorUltimateCastMs - 1,
         );
         const frameIndex = Math.min(
           KAKA_ULTIMATE_FRAME_COUNT - 1,
           Math.floor(
             elapsed /
-              (KAKA_ULTIMATE_CAST_MS / KAKA_ULTIMATE_FRAME_COUNT),
+              (actorUltimateCastMs / KAKA_ULTIMATE_FRAME_COUNT),
           ),
         );
         frame = {
@@ -6323,6 +6331,8 @@ export function BentenganPrototype() {
         result: phase === 'ROUND_OVER' || phase === 'MATCH_OVER'
           ? roundWinner === p.team ? 'win' : 'lose' : null,
         action: now < p.actionUntil ? p.action ?? null : null,
+        ultimateProgress: p.action==='ultimate' && (p.characterId==='raja'||p.characterId==='kaka')
+          ? (now-(p.actionUntil-actorUltimateCastMs))/actorUltimateCastMs : undefined,
         parkour: now < p.parkourUntil,
         tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
         flightSlot:flightSlot(p.flight,flightConfig(p.characterId)??undefined),flightDirection:p.flight?.direction,flightElapsed:(p.flight?.elapsed??0)*1000,
@@ -7206,7 +7216,7 @@ export function BentenganPrototype() {
   };
 
   useEffect(() => {
-    if (mode !== 'menu' || view !== 'game' || assetsLoading) return;
+    if (mode !== 'menu' || assetsLoading) return;
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if (!playerProfile) return;
@@ -7277,7 +7287,6 @@ export function BentenganPrototype() {
     selectedId,
     playerProfile,
     profileOpen,
-    view,
   ]);
 
   const touchKey = (key: string, pressed: boolean) =>
@@ -7336,12 +7345,6 @@ export function BentenganPrototype() {
       </section>
     </main>
   );
-  if (view === 'workshop')
-    return (
-      <main className="game-shell">
-        <CharacterWorkshop onClose={() => setView('game')} />
-      </main>
-    );
   if (mode === 'menu') {
     const activeFaction = hoveredFaction;
     return (
@@ -7617,6 +7620,8 @@ export function BentenganPrototype() {
                 <span>PILIH {selected.name}</span>
               </button>
             </aside>
+            {playerProfile && <UltimateUpgradePanel key={selectedId} profile={playerProfile}
+              characterId={selectedId} onRefresh={refreshPlayerProfile} />}
             <div className="character-unlock-list" role="group" aria-label="Status unlock karakter">
               {availableCharacters.map(character => {
                 const state = getCharacterSelectionState(playerProfile, character.id);
@@ -7776,7 +7781,8 @@ export function BentenganPrototype() {
             onClick={goBack}
             aria-label="Kembali"
           >
-            <img src={uiAsset('controls/back.webp')} alt="Kembali" />
+            <img className="back-normal" src={uiAsset('controls/back-inactive.png')} alt="" />
+            <img className="back-hover" src={uiAsset('controls/back-hover.png')} alt="" aria-hidden="true" />
           </button>
         )}
         <div className={`pregame-actions step-${menuStep}`}>
@@ -7800,17 +7806,6 @@ export function BentenganPrototype() {
             trigger={<img src={uiAsset('controls/settings-button.png')} alt="" />}
           />
         </div>
-        {menuStep === 'character' && (
-          <button
-            className="workshop-link workshop-float"
-            onClick={() => {
-              stopCharacterVoice();
-              setView('workshop');
-            }}
-          >
-            <Wrench size={14} /> Workshop
-          </button>
-        )}
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && (
           <div

@@ -1,4 +1,7 @@
 import type { CharacterId } from '../characters';
+import { creditTokens, getTokenBalance } from './economy';
+import { migratePlayerEconomy } from './economy-migration';
+import { calculateMatchTokenBreakdown, zeroTokenBreakdown, type MatchTokenBreakdown } from './match-token-rewards';
 import { applyArenaMatchStat } from './arena-stats';
 import { resolveArenaUnlocks } from './arena-unlocks';
 import { resolveCharacterUnlocks, getNextCharacterGoal } from './character-unlocks';
@@ -20,6 +23,10 @@ export type ProgressionResult = {
   applied: boolean;
   reason: 'applied' | 'incomplete' | 'duplicate';
   xpEarned: number;
+  tokenEarned: number;
+  tokenBreakdown: MatchTokenBreakdown;
+  previousTokenBalance: number;
+  currentTokenBalance: number;
   xpBreakdown: MatchXPBreakdown;
   levelProgress: CurrentLevelProgress;
   nextCharacter: ReturnType<typeof getNextCharacterGoal>;
@@ -51,6 +58,8 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
   const previousLevel = getLevelFromXP(previousXP);
   const unchanged: ProgressionResult = {
     profile, applied: false, reason: 'incomplete', xpEarned: 0,
+    tokenEarned: 0, tokenBreakdown: zeroTokenBreakdown(),
+    previousTokenBalance: getTokenBalance(profile), currentTokenBalance: getTokenBalance(profile),
     xpBreakdown: { match: 0, victory: 0, tag: 0, rescue: 0 },
     levelProgress: getCurrentLevelProgress(previousXP), nextCharacter: getNextCharacterGoal(profile),
     previousXP, currentXP: previousXP, previousLevel, currentLevel: previousLevel,
@@ -76,8 +85,22 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
   }, summary.arenaId, summary.won);
   const characters = resolveCharacterUnlocks(updated);
   const arenas = resolveArenaUnlocks(characters.profile);
+  // Reuse the existing incomplete/processedMatchIds decisions above. Commit
+  // TOKEN, XP, counters and unlocks together through recordMatchProgression.
+  const tokenBreakdown = calculateMatchTokenBreakdown({ ...summary, result: summary.won ? 'win' : 'loss' });
+  const tokenEarned = safeCount(Object.values(tokenBreakdown).reduce((sum,value)=>sum+value,0));
+  const walletProfile = migratePlayerEconomy(arenas.profile).profile;
+  const previousTokenBalance = getTokenBalance(walletProfile);
+  let rewardedProfile = walletProfile;
+  if (tokenEarned > 0) {
+    const credit = creditTokens(walletProfile,{ transactionId: `match:${summary.matchId}`, amount: tokenEarned,
+      type: 'match_reward', referenceId: summary.matchId });
+    if (!credit.applied) throw new Error(`Reward DOI gagal: ${credit.reason}. Profil belum diubah.`);
+    rewardedProfile = credit.profile;
+  }
   return {
-    profile: arenas.profile, applied: true, reason: 'applied', xpEarned: earned,
+    profile: rewardedProfile, applied: true, reason: 'applied', xpEarned: earned,
+    tokenEarned, tokenBreakdown, previousTokenBalance, currentTokenBalance: getTokenBalance(rewardedProfile),
     xpBreakdown, levelProgress: getCurrentLevelProgress(currentXP),
     nextCharacter: getNextCharacterGoal(arenas.profile),
     previousXP, currentXP, previousLevel, currentLevel: getLevelFromXP(currentXP),
