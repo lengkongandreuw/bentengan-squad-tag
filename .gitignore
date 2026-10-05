@@ -39,3 +39,5 @@ next-env.d.ts
 /work/
 /.preview-admin/
 *.tsbuildinfo
+/graphify-out
+/.workflow

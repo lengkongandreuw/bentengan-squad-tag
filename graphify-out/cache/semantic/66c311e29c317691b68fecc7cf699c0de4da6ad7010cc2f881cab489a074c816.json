@@ -1,1 +1,17 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "code", "id": "character_admin_index_editor_ui", "label": "Character Admin Editor UI", "source_file": "scripts/character-admin/index.html", "source_location": null, "source_url": null}], "edges": [], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "code",
+      "id": "character_admin_index_editor_ui",
+      "label": "Character Admin Editor UI",
+      "source_file": "scripts/character-admin/index.html",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [],
+  "hyperedges": []
+}

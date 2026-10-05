@@ -1,1 +1,38 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "code", "id": "character_admin_test_suite", "label": "Admin Panel Test Suite", "source_file": "scripts/character-admin/test.mjs", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "character_admin_test_suite", "source_file": "scripts/character-admin/test.mjs", "source_location": null, "target": "character_admin_server_startadmin", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "character_admin_test_suite", "source_file": "scripts/character-admin/test.mjs", "source_location": null, "target": "character_admin_server_inspectimage", "weight": 1.0}], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "code",
+      "id": "character_admin_test_suite",
+      "label": "Admin Panel Test Suite",
+      "source_file": "scripts/character-admin/test.mjs",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "character_admin_test_suite",
+      "source_file": "scripts/character-admin/test.mjs",
+      "source_location": null,
+      "target": "character_admin_server_startadmin",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "character_admin_test_suite",
+      "source_file": "scripts/character-admin/test.mjs",
+      "source_location": null,
+      "target": "character_admin_server_inspectimage",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

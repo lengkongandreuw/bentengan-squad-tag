@@ -1,1 +1,82 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "code", "id": "scripts_audit_game_audit", "label": "Game Audit Runner", "source_file": "scripts/audit-game.mjs", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_audit_game_audit", "source_file": "scripts/audit-game.mjs", "source_location": null, "target": "public_characters_bundle", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_audit_game_audit", "source_file": "scripts/audit-game.mjs", "source_location": null, "target": "config_sprite_baseline", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_audit_game_audit", "source_file": "scripts/audit-game.mjs", "source_location": null, "target": "public_field_bundle", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_audit_game_audit", "source_file": "scripts/audit-game.mjs", "source_location": null, "target": "config_field_baseline", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_audit_game_audit", "source_file": "scripts/audit-game.mjs", "source_location": null, "target": "public_ui_v2_bundle", "weight": 1.0}], "hyperedges": [{"confidence": "INFERRED", "confidence_score": 0.75, "id": "audit_coverage_group", "label": "Gameplay audit and sprite test coverage", "nodes": ["scripts_audit_game_audit", "scripts_test_series_sprites_check", "scripts_test_kampung3d_check"], "relation": "participate_in", "source_file": "scripts/audit-game.mjs"}]}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "code",
+      "id": "scripts_audit_game_audit",
+      "label": "Game Audit Runner",
+      "source_file": "scripts/audit-game.mjs",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_audit_game_audit",
+      "source_file": "scripts/audit-game.mjs",
+      "source_location": null,
+      "target": "public_characters_bundle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_audit_game_audit",
+      "source_file": "scripts/audit-game.mjs",
+      "source_location": null,
+      "target": "config_sprite_baseline",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_audit_game_audit",
+      "source_file": "scripts/audit-game.mjs",
+      "source_location": null,
+      "target": "public_field_bundle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_audit_game_audit",
+      "source_file": "scripts/audit-game.mjs",
+      "source_location": null,
+      "target": "config_field_baseline",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_audit_game_audit",
+      "source_file": "scripts/audit-game.mjs",
+      "source_location": null,
+      "target": "public_ui_v2_bundle",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "id": "audit_coverage_group",
+      "label": "Gameplay audit and sprite test coverage",
+      "nodes": [
+        "scripts_audit_game_audit",
+        "scripts_test_series_sprites_check",
+        "scripts_test_kampung3d_check"
+      ],
+      "relation": "participate_in",
+      "source_file": "scripts/audit-game.mjs"
+    }
+  ]
+}

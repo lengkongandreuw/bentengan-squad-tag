@@ -1,0 +1,22 @@
+{
+  "id": "tui",
+  "name": "Tui",
+  "role": "Runner",
+  "speed": 230,
+  "boost": 96,
+  "agility": 1.17,
+  "visualScale": 0.94,
+  "accent": "#ef3f43",
+  "copy": "Sprinter Tim Merah dengan akselerasi kuat untuk membuka serangan.",
+  "passiveName": "Start Meledak",
+  "passiveCopy": "Sprint Space mencapai kecepatan puncak lebih cepat.",
+  "tagRange": 28,
+  "rescueRange": 32,
+  "boostMultiplier": 1.78,
+  "boostDrain": 32,
+  "baseChargeTime": 0.65,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 480,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

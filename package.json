@@ -27,6 +27,7 @@
     "verify": "npm run ui:build && npm run fields:build && npm run sprites:build && npm run audit && npm run build && npm run verify:runtime && npm run build:pages",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
+    "check": "npx tsc --noEmit && npm run lint && npm run audit && npm run build:pages",
     "format": "oxfmt"
   },
   "dependencies": {

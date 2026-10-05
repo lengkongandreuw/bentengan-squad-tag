@@ -433,3 +433,53 @@ Jika task hanya menyebut satu map atau satu fitur:
 ## Kapan harus bertanya
 
 Tanyakan hanya jika informasi yang hilang akan mengubah hasil secara material, misalnya aset mana yang final, apakah bangunan tertentu memiliki collider, atau apakah publikasi eksternal diizinkan. Untuk detail kecil yang aman dan mudah dibalik, gunakan keputusan terbaik lalu laporkan asumsi tersebut.
+
+## Refactor bentengan-squad-tag (berjalan, branch `Refactor-Clio`)
+
+- Alur kerja per seam: analisis → approval → 1 seam → direct test + 4 suite
+  R1 + `tsc` + `lint` + `audit` + `build:pages` (+ in-match bila runtime) →
+  catat CHECKPOINT (+ revert note) → baru analisis seam berikut. Jangan
+  mengganti approved seam yang sedang berjalan dengan kandidat baru; kandidat
+  baru dicatat sebagai backlog.
+- Arah Design G (loop-back L1): lifecycle = peta analisis, bukan pindah tiga
+  region; strangler seam sempit; `game-core/` hanya orkestrasi runtime (tanpa
+  rules gameplay); tanpa god object publik; modul final terima input/output
+  domain sempit.
+- Q2 freeze: angka ultimate Kaka/Raja dipindah verbatim, tanpa tuning. Tuning
+  butuh sign-off eksplisit terpisah.
+- Selesai tervalidasi: G0 safety net; G1 storage/audio-port/workshop-screen;
+  G2 map-data + character JSON; G3 awal: loop driver (`match-runtime.ts`),
+  `chargeUltimateMeter` (P1.1), stats-store (P1.2), `layoutPrisons`,
+  `pushMatchEvent` → `match-state.ts` (2026-10-05; 8/8 verifikasi backlog
+  PASS; revert = hapus modul + test, kembalikan body 17 baris).
+- Selesai tervalidasi (2026-10-05): `roundedOn` → `modules/ui/canvas-shapes.ts`
+  (murni, 0 deps, 6 situs; revert = hapus modul + test, kembalikan def 11
+  baris). Prototype 6024 → 6014. Gates: tsc bersih, lint 119 (= baseline),
+  audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `boardRows` → `bars-score.ts` (+`BoardRow`
+  types; pure filter+projection, 2 situs; revert = hapus blok + test,
+  kembalikan def 16 baris). Prototype 6014 → 5999. Gates: tsc bersih
+  (setelah `BoardRow=Omit<facet,'team'>`), lint 119, audit 21 pre-existing,
+  build PASS.
+- Selesai tervalidasi (2026-10-05): `formatTime` + `statPercent` →
+  `modules/ui/format.ts` (murni, 8 situs; revert = hapus modul + test,
+  kembalikan 2 def). Prototype 5999 → 5994. Gates: tsc bersih, lint 119,
+  audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `hitsObstacle` →
+  `modules/gameplay/collision-navigation.ts` (+`ObstacleWorld`; murni
+  two-source OR, 5 situs via 1 objek dunia bersama; revert = hapus blok +
+  test, kembalikan def 4 baris). Prototype 5994 → 5996 (+2: objek eksplisit
+  lebih mahal dari def yang dihapus — biaya jujur kontrak eksplisit).
+  Gates: tsc bersih, lint 119, audit 21 pre-existing, build PASS.
+- P1.1 aktual: `chargeUltimateMeter(meter, controlled, id, amount)` murni di
+  `modules/gameplay/bars-score.ts`; 2 situs tag/rescue; konstanta bonus 20/30
+  beku; revert = kembalikan definisi lokal + 2 situs.
+- Backlog `pushMatchEvent` SELESAI (jadi seam aktif, bukan lagi backlog).
+  Kandidat berikut: mutator `log`/`burst`, slice `input-navigation`,
+  slice `snapshot-write` (survey terkecil dulu).
+- Baseline verifikasi: `tsc` bersih, lint 119, audit 21 gagal pre-existing
+  (7 game + 14 metadata sprite; file di luar diff, isu asset-pipeline),
+  `build:pages` PASS. Jangan sentuh baseline untuk menutupi regresi.
+- Pengguna yang merge ke `main`; asisten tidak pernah merge/push ke `main`.
+- Shell default pwsh 7.6.6; dilarang `npm run format` telanjang (pernah
+  memformat 316 file; sudah di-revert).

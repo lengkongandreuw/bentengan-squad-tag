@@ -1,0 +1,22 @@
+{
+  "id": "buto",
+  "name": "Buto",
+  "role": "Wall",
+  "speed": 194,
+  "boost": 122,
+  "agility": 0.86,
+  "visualScale": 0.9,
+  "accent": "#82934b",
+  "copy": "Benteng berjalan yang kuat menutup jalur dan menjaga penjara.",
+  "passiveName": "Jangkauan Besar",
+  "passiveCopy": "Kontak tangkap 21% lebih jauh dari karakter lain.",
+  "tagRange": 34,
+  "rescueRange": 32,
+  "boostMultiplier": 1.62,
+  "boostDrain": 31,
+  "baseChargeTime": 0.75,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 500,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

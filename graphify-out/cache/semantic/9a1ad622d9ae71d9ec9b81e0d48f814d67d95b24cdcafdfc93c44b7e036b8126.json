@@ -1,1 +1,28 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "code", "id": "scripts_build_web_assets_build", "label": "Web Asset Builder", "source_file": "scripts/build-web-assets.mjs", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_build_web_assets_build", "source_file": "scripts/build-web-assets.mjs", "source_location": null, "target": "public_web_bundle", "weight": 1.0}], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "code",
+      "id": "scripts_build_web_assets_build",
+      "label": "Web Asset Builder",
+      "source_file": "scripts/build-web-assets.mjs",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_build_web_assets_build",
+      "source_file": "scripts/build-web-assets.mjs",
+      "source_location": null,
+      "target": "public_web_bundle",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

@@ -1,1 +1,192 @@
-{"nodes": [{"file_type": "code", "id": "app_prototype_bentenganprototype", "label": "BentenganPrototype", "source_file": "app/prototype.tsx", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_click_navigation_clickroute", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_click_navigation_pointerworld", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_field_cycle_fieldcycledecision", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_tag_contact_sweptcontactdistance", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_collision_navigation_depenetrate", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_collision_navigation_steer", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_series_animation_seriesframe", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_sprite_motion_directionfromvelocity", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_team_combo_advanceteamcombo", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_character_animation_mapping", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_audio_settings_audiolevels", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_gameplay_audio_gameplayaudio", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_characters_characterasset", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "config_game_rules_gamerules", "weight": 1.0}, {"confidence": "INFERRED", "confidence_score": 0.75, "relation": "shares_data_with", "source": "app_prototype_bentenganprototype", "source_file": "app/prototype.tsx", "source_location": null, "target": "lib_characters_characterbyid", "weight": 1.0}], "hyperedges": [{"confidence": "INFERRED", "confidence_score": 0.85, "id": "gameplay_tick_resolution", "label": "Gameplay tick tag and combo resolution", "nodes": ["app_prototype_bentenganprototype", "lib_tag_contact_sweptcontactdistance", "lib_team_combo_advanceteamcombo"], "relation": "participate_in", "source_file": "app/prototype.tsx"}, {"confidence": "INFERRED", "confidence_score": 0.75, "id": "player_navigation_stack", "label": "Click route plus collision steering stack", "nodes": ["app_prototype_bentenganprototype", "lib_click_navigation_clickroute", "lib_collision_navigation_steer"], "relation": "participate_in", "source_file": "app/prototype.tsx"}]}
+{
+  "nodes": [
+    {
+      "file_type": "code",
+      "id": "app_prototype_bentenganprototype",
+      "label": "BentenganPrototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_click_navigation_clickroute",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_click_navigation_pointerworld",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_field_cycle_fieldcycledecision",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_tag_contact_sweptcontactdistance",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_collision_navigation_depenetrate",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_collision_navigation_steer",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_series_animation_seriesframe",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_sprite_motion_directionfromvelocity",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_team_combo_advanceteamcombo",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_character_animation_mapping",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_audio_settings_audiolevels",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_gameplay_audio_gameplayaudio",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_characters_characterasset",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "config_game_rules_gamerules",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "shares_data_with",
+      "source": "app_prototype_bentenganprototype",
+      "source_file": "app/prototype.tsx",
+      "source_location": null,
+      "target": "lib_characters_characterbyid",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "id": "gameplay_tick_resolution",
+      "label": "Gameplay tick tag and combo resolution",
+      "nodes": [
+        "app_prototype_bentenganprototype",
+        "lib_tag_contact_sweptcontactdistance",
+        "lib_team_combo_advanceteamcombo"
+      ],
+      "relation": "participate_in",
+      "source_file": "app/prototype.tsx"
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "id": "player_navigation_stack",
+      "label": "Click route plus collision steering stack",
+      "nodes": [
+        "app_prototype_bentenganprototype",
+        "lib_click_navigation_clickroute",
+        "lib_collision_navigation_steer"
+      ],
+      "relation": "participate_in",
+      "source_file": "app/prototype.tsx"
+    }
+  ]
+}

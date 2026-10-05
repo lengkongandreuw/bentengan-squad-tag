@@ -11,7 +11,7 @@ export const selectionPreviewReady = (url: string) => ready.has(url);
 export const selectionPreviewEntry = (id: CharacterId) => previewEntry(settings, id);
 export function selectionPreviewUrls(id: CharacterId): string[] {
   const entry = selectionPreviewEntry(id);
-  return [entry.static, entry.animated].filter(Boolean).map(file => publicAsset(file));
+  return [entry.static, entry.animated].filter((file): file is string => !!file).map(file => publicAsset(file));
 }
 export function loadSelectionPreview(url: string): Promise<void> {
   if (ready.has(url)) return Promise.resolve();

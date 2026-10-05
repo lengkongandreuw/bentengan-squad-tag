@@ -1,0 +1,22 @@
+{
+  "id": "kodo",
+  "name": "Kodo",
+  "role": "Wall",
+  "speed": 200,
+  "boost": 124,
+  "agility": 0.9,
+  "visualScale": 1.17,
+  "accent": "#f28a2d",
+  "copy": "Penjaga reptil Tim Hijau yang menguasai koridor sempit dan jalur penjara.",
+  "passiveName": "Ekor Penghadang",
+  "passiveCopy": "Jangkauan tag besar dengan cadangan boost yang tahan lama.",
+  "tagRange": 35,
+  "rescueRange": 31,
+  "boostMultiplier": 1.62,
+  "boostDrain": 26,
+  "baseChargeTime": 0.78,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 520,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

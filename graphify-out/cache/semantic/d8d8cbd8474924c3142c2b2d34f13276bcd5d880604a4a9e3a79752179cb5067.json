@@ -1,1 +1,17 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "code", "id": "index_game_entry_html", "label": "Game HTML Entry", "source_file": "index.html", "source_location": null, "source_url": null}], "edges": [], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "code",
+      "id": "index_game_entry_html",
+      "label": "Game HTML Entry",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [],
+  "hyperedges": []
+}

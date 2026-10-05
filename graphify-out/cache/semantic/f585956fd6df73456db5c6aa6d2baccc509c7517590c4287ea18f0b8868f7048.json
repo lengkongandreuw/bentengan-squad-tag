@@ -1,1 +1,33 @@
-{"nodes": [{"file_type": "code", "id": "lib_series_animation_seriesframe", "label": "seriesFrame", "source_file": "lib/series-animation.js", "source_location": null, "source_url": null}, {"file_type": "code", "id": "lib_series_animation_hasspriteseries", "label": "hasSpriteSeries", "source_file": "lib/series-animation.js", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "lib_series_animation_seriesframe", "source_file": "lib/series-animation.js", "source_location": null, "target": "lib_series_animation_hasspriteseries", "weight": 1.0}], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "file_type": "code",
+      "id": "lib_series_animation_seriesframe",
+      "label": "seriesFrame",
+      "source_file": "lib/series-animation.js",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "file_type": "code",
+      "id": "lib_series_animation_hasspriteseries",
+      "label": "hasSpriteSeries",
+      "source_file": "lib/series-animation.js",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "lib_series_animation_seriesframe",
+      "source_file": "lib/series-animation.js",
+      "source_location": null,
+      "target": "lib_series_animation_hasspriteseries",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

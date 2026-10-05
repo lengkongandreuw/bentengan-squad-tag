@@ -1,1 +1,38 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "code", "id": "scripts_build_kaka_ultimate_build", "label": "Kaka Ultimate Builder", "source_file": "scripts/build-kaka-ultimate.mjs", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "references", "source": "scripts_build_kaka_ultimate_build", "source_file": "scripts/build-kaka-ultimate.mjs", "source_location": null, "target": "public_characters_bundle", "weight": 1.0}, {"confidence": "INFERRED", "confidence_score": 0.75, "relation": "conceptually_related_to", "source": "scripts_build_kaka_ultimate_build", "source_file": "scripts/build-kaka-ultimate.mjs", "source_location": null, "target": "scripts_build_sprites_build", "weight": 1.0}], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "code",
+      "id": "scripts_build_kaka_ultimate_build",
+      "label": "Kaka Ultimate Builder",
+      "source_file": "scripts/build-kaka-ultimate.mjs",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "references",
+      "source": "scripts_build_kaka_ultimate_build",
+      "source_file": "scripts/build-kaka-ultimate.mjs",
+      "source_location": null,
+      "target": "public_characters_bundle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "conceptually_related_to",
+      "source": "scripts_build_kaka_ultimate_build",
+      "source_file": "scripts/build-kaka-ultimate.mjs",
+      "source_location": null,
+      "target": "scripts_build_sprites_build",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

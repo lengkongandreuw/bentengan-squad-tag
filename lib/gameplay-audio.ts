@@ -1,4 +1,4 @@
-import { audioLevels, AUDIO_SETTINGS_EVENT } from './audio-settings';
+import { audioLevels, AUDIO_SETTINGS_EVENT } from './audio-settings.ts';
 
 //for tambah kse kuat suara
 const SFX_BOOST = 3; 

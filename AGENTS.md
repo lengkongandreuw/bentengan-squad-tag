@@ -1,5 +1,27 @@
 # AGENTS.md — bentengan-squad-tag
 
+DON'T TOUCH OR CHANGE THIS AGENTS.MD FILE UNTIL I SAY SO.
+
+## Important Note (Apply On Refactor only )
+
+PLEASE USE GRAPHIFY TU EXPLORE THE CODEBASE
+Apply the **Refactor protocol** below only when the active task is a refactor,
+modularization, architecture cleanup, or explicitly touches the
+`bentengan-refactor` workflow and when the refactor implementation is been worked.
+
+1. Avoid overengineered or enterprise-grade solutions.
+2. Avoid assumptions. Inspect the relevant code, config, tests, and git state
+   before claiming that a boundary, behavior, or compliance already exists.
+3. Do not assume code is compliant merely because it builds, typechecks, or
+   looks modular.
+4. Do not add a framework, event bus, dependency-injection container, global
+   state manager, generic repository layer, or new runtime dependency unless
+   the active task explicitly requires it and there is a real second consumer.
+5. Prefer plain-language names, direct code, small contracts, and the smallest
+   reversible change that solves the active task.
+6. A module move is not automatically an architecture improvement. Do not move
+   a god file into `modules/` and call it finished.
+
 ## Start here
 
 Source-of-truth order: (1) active task instructions, (2) `CHECKPOINT.md` (if `State: ACTIVE`, resume at `Next action`, don't redo passed stages), (3) `memori.md` (canonical project decisions), (4) code/config/git history. Do not read old chat history unless asked. An instruction stating it replaces/cancels/ignores a prior decision wins, then summarize back into `memori.md`.
@@ -55,6 +77,7 @@ This project has a knowledge graph at graphify-out/ with god nodes, community st
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
 Rules:
+
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.

@@ -1,1 +1,43 @@
-{"nodes": [{"file_type": "code", "id": "lib_selection_preview_assets_loadselectionpreview", "label": "loadSelectionPreview", "source_file": "lib/selection-preview-assets.ts", "source_location": null, "source_url": null}, {"file_type": "code", "id": "lib_selection_preview_assets_selectionpreviewurls", "label": "selectionPreviewUrls", "source_file": "lib/selection-preview-assets.ts", "source_location": null, "source_url": null}], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "lib_selection_preview_assets_selectionpreviewurls", "source_file": "lib/selection-preview-assets.ts", "source_location": null, "target": "lib_selection_preview_model_previewentry", "weight": 1.0}, {"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "calls", "source": "lib_selection_preview_assets_loadselectionpreview", "source_file": "lib/selection-preview-assets.ts", "source_location": null, "target": "lib_asset_ready_imageready", "weight": 1.0}], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "file_type": "code",
+      "id": "lib_selection_preview_assets_loadselectionpreview",
+      "label": "loadSelectionPreview",
+      "source_file": "lib/selection-preview-assets.ts",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "file_type": "code",
+      "id": "lib_selection_preview_assets_selectionpreviewurls",
+      "label": "selectionPreviewUrls",
+      "source_file": "lib/selection-preview-assets.ts",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "lib_selection_preview_assets_selectionpreviewurls",
+      "source_file": "lib/selection-preview-assets.ts",
+      "source_location": null,
+      "target": "lib_selection_preview_model_previewentry",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "calls",
+      "source": "lib_selection_preview_assets_loadselectionpreview",
+      "source_file": "lib/selection-preview-assets.ts",
+      "source_location": null,
+      "target": "lib_asset_ready_imageready",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

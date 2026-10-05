@@ -1,0 +1,22 @@
+{
+  "id": "ciici",
+  "name": "Ciici",
+  "role": "Rescuer",
+  "speed": 219,
+  "boost": 96,
+  "agility": 1.22,
+  "visualScale": 0.95,
+  "accent": "#d45a43",
+  "copy": "Spesialis menerobos penjara dan mengevakuasi seluruh rantai.",
+  "passiveName": "NIGHT PULL",
+  "passiveCopy": "Jangkauan rescue lebih luas; rekan kebal 2,2 detik.",
+  "tagRange": 28,
+  "rescueRange": 42,
+  "boostMultiplier": 1.68,
+  "boostDrain": 31,
+  "baseChargeTime": 0.7,
+  "rescueShieldMs": 2200,
+  "tagCooldownMs": 500,
+  "mirrorWest": false,
+  "dedicatedEast": false
+}

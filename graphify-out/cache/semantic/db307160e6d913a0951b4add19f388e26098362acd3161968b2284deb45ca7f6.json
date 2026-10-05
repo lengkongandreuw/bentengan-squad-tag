@@ -1,1 +1,40 @@
-{"nodes": [{"author": null, "captured_at": null, "contributor": null, "file_type": "concept", "id": "feature_round_stats_leaderboard_panel", "label": "Round Stats and Match Leaderboard Panel", "rationale": "Quick auto recap between rounds plus manual final panel shows TAG RESCUE PRISON contributions while keeping game flow fast", "source_file": "FEATURE_ROUND_STATS_LEADERBOARD.md", "source_location": null, "source_url": null}, {"author": null, "captured_at": null, "contributor": null, "file_type": "concept", "id": "feature_round_stats_leaderboard_manual", "label": "Manual Leaderboard via Tab and Score HUD", "source_file": "FEATURE_ROUND_STATS_LEADERBOARD.md", "source_location": null, "source_url": null}], "edges": [{"confidence": "INFERRED", "confidence_score": 0.75, "source": "feature_round_stats_leaderboard_manual", "source_file": "FEATURE_ROUND_STATS_LEADERBOARD.md", "source_location": null, "target": "feature_match_event_notifications_toast", "weight": 1.0, "relation": "conceptually_related_to"}], "hyperedges": []}
+{
+  "nodes": [
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "feature_round_stats_leaderboard_panel",
+      "label": "Round Stats and Match Leaderboard Panel",
+      "rationale": "Quick auto recap between rounds plus manual final panel shows TAG RESCUE PRISON contributions while keeping game flow fast",
+      "source_file": "FEATURE_ROUND_STATS_LEADERBOARD.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "feature_round_stats_leaderboard_manual",
+      "label": "Manual Leaderboard via Tab and Score HUD",
+      "source_file": "FEATURE_ROUND_STATS_LEADERBOARD.md",
+      "source_location": null,
+      "source_url": null
+    }
+  ],
+  "edges": [
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source": "feature_round_stats_leaderboard_manual",
+      "source_file": "FEATURE_ROUND_STATS_LEADERBOARD.md",
+      "source_location": null,
+      "target": "feature_match_event_notifications_toast",
+      "weight": 1.0,
+      "relation": "conceptually_related_to"
+    }
+  ],
+  "hyperedges": []
+}

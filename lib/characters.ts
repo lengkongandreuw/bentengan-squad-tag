@@ -23,6 +23,30 @@ export type CharacterRole =
   | 'Scout'
   | 'Disruptor';
 
+export type UltimateKind = 'shield' | 'surge';
+export type UltimateDescriptor = {
+  kind: UltimateKind;
+  name: string;
+  shortLabel: string;
+  hudTitle: string;
+  buffText: string;
+  bannerAlt: string;
+  icon: 'shield' | 'zap';
+  hudClass: string;
+  shieldClass: string;
+  actionClass: string;
+  indicatorClass: string;
+  bannerClass: string;
+  trackEdge: string;
+  trackFill: string;
+  castBurst: string;
+  castBeepHz: number;
+  castMs: number;
+  bannerMs: number;
+  strip: boolean;
+  castLog: string;
+};
+
 export type CharacterDefinition = {
   id: CharacterId;
   name: string;
@@ -42,310 +66,58 @@ export type CharacterDefinition = {
   baseChargeTime: number;
   rescueShieldMs: number;
   tagCooldownMs: number;
+  mirrorWest: boolean;
+  dedicatedEast: boolean;
+  ultimate?: UltimateDescriptor;
 };
 
+import { createElement } from 'react';
+import { Shield, Zap } from 'lucide-react';
+import bebeData from '../config/characters/bebe.json' with { type: 'json' };
+import bokeData from '../config/characters/boke.json' with { type: 'json' };
+import butoData from '../config/characters/buto.json' with { type: 'json' };
+import ciiciData from '../config/characters/ciici.json' with { type: 'json' };
+import jagoData from '../config/characters/jago.json' with { type: 'json' };
+import kakaData from '../config/characters/kaka.json' with { type: 'json' };
+import kodoData from '../config/characters/kodo.json' with { type: 'json' };
+import kumisData from '../config/characters/kumis.json' with { type: 'json' };
+import lalaData from '../config/characters/lala.json' with { type: 'json' };
+import luiData from '../config/characters/lui.json' with { type: 'json' };
+import mariaData from '../config/characters/maria.json' with { type: 'json' };
+import rajaData from '../config/characters/raja.json' with { type: 'json' };
+import robotData from '../config/characters/robot.json' with { type: 'json' };
+import tuiData from '../config/characters/tui.json' with { type: 'json' };
+
 export const CHARACTERS: CharacterDefinition[] = [
-  {
-    id: 'robot',
-    name: 'Robot',
-    role: 'Wall',
-    speed: 198,
-    boost: 118,
-    agility: 0.9,
-    visualScale: 1.04,
-    accent: '#c99a58',
-    copy: 'Stabil, tahan lama, dan sulit digeser. Cocok untuk menjaga jalur saat situasi mulai hectic.',
-    passiveName: 'BIG CELL',
-    passiveCopy: 'Boost terkuras 15% lebih lambat.',
-    tagRange: 28,
-    rescueRange: 32,
-    boostMultiplier: 1.64,
-    boostDrain: 26,
-    baseChargeTime: .75,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'ciici',
-    name: 'Ciici',
-    role: 'Rescuer',
-    speed: 219,
-    boost: 96,
-    agility: 1.22,
-    visualScale: 0.95,
-    accent: '#d45a43',
-    copy: 'Spesialis menerobos penjara dan mengevakuasi seluruh rantai.',
-    passiveName: 'NIGHT PULL',
-    passiveCopy: 'Jangkauan rescue lebih luas; rekan kebal 2,2 detik.',
-    tagRange: 28,
-    rescueRange: 42,
-    boostMultiplier: 1.68,
-    boostDrain: 31,
-    baseChargeTime: .7,
-    rescueShieldMs: 2200,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'kaka',
-    name: 'Kaka',
-    role: 'Runner',
-    speed: 238,
-    boost: 88,
-    agility: 1.08,
-    visualScale: 1,
-    accent: '#33d36b',
-    copy: 'Pelari tercepat untuk rotasi, umpan, dan mengejar prioritas.',
-    passiveName: 'Top Speed',
-    passiveCopy: 'Kecepatan dasar tertinggi dengan cadangan boost pendek.',
-    tagRange: 28,
-    rescueRange: 32,
-    boostMultiplier: 1.68,
-    boostDrain: 31,
-    baseChargeTime: .75,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'buto',
-    name: 'Buto',
-    role: 'Wall',
-    speed: 194,
-    boost: 122,
-    agility: 0.86,
-    visualScale: 0.9,
-    accent: '#82934b',
-    copy: 'Benteng berjalan yang kuat menutup jalur dan menjaga penjara.',
-    passiveName: 'Jangkauan Besar',
-    passiveCopy: 'Kontak tangkap 21% lebih jauh dari karakter lain.',
-    tagRange: 34,
-    rescueRange: 32,
-    boostMultiplier: 1.62,
-    boostDrain: 31,
-    baseChargeTime: .75,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'jago',
-    name: 'Jago',
-    role: 'Chaser',
-    speed: 229,
-    boost: 92,
-    agility: 1.14,
-    visualScale: 1.2,
-    accent: '#d92d43',
-    copy: 'Pemburu agresif untuk menutup jarak sebelum target kembali.',
-    passiveName: 'Ledakan Kejar',
-    passiveCopy: 'Boost tercepat, tetapi menghabiskan energi lebih deras.',
-    tagRange: 28,
-    rescueRange: 32,
-    boostMultiplier: 1.82,
-    boostDrain: 34,
-    baseChargeTime: .75,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'raja',
-    name: 'Raja',
-    role: 'All-rounder',
-    speed: 216,
-    boost: 102,
-    agility: 1.02,
-    visualScale: 0.86,
-    accent: '#55c932',
-    copy: 'Komandan fleksibel untuk berganti antara serang dan bertahan.',
-    passiveName: 'Reposisi Cepat',
-    passiveCopy: 'Persiapan keluar benteng 27% lebih singkat.',
-    tagRange: 28,
-    rescueRange: 32,
-    boostMultiplier: 1.68,
-    boostDrain: 31,
-    baseChargeTime: .55,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'lala',
-    name: 'Lala',
-    role: 'Scout',
-    speed: 224,
-    boost: 100,
-    agility: 1.24,
-    visualScale: 1.16,
-    accent: '#77b9df',
-    copy: 'Pengintai lincah yang paling mudah menembus jalur rintangan.',
-    passiveName: 'Langkah Sutra',
-    passiveCopy: 'Parkour terjauh dengan biaya boost paling ringan.',
-    tagRange: 27,
-    rescueRange: 34,
-    boostMultiplier: 1.7,
-    boostDrain: 30,
-    baseChargeTime: .68,
-    rescueShieldMs: 1700,
-    tagCooldownMs: 500,
-  },
-  {
-    id: 'maria',
-    name: 'Maria',
-    role: 'Chaser',
-    speed: 232,
-    boost: 94,
-    agility: 1.12,
-    visualScale: 0.99,
-    accent: '#df8b49',
-    copy: 'Pemburu cepat yang efektif mengunci target secara beruntun.',
-    passiveName: 'Tempo Tag',
-    passiveCopy: 'Cooldown setelah menangkap 28% lebih singkat.',
-    tagRange: 30,
-    rescueRange: 32,
-    boostMultiplier: 1.72,
-    boostDrain: 32,
-    baseChargeTime: .75,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 360,
-  },
-  {
-    id: 'kumis',
-    name: 'Kumis',
-    role: 'Wall',
-    speed: 188,
-    boost: 128,
-    agility: 0.82,
-    visualScale: 1.3,
-    accent: '#e2554a',
-    copy: 'Penjaga terbesar dengan daya tahan dan wilayah tangkap luas.',
-    passiveName: 'Benteng Hidup',
-    passiveCopy: 'Boost terbesar dan jangkauan tangkap terluas.',
-    tagRange: 36,
-    rescueRange: 30,
-    boostMultiplier: 1.58,
-    boostDrain: 25,
-    baseChargeTime: .8,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 540,
-  },
-  {
-    id: 'boke',
-    name: 'Boke',
-    role: 'Disruptor',
-    speed: 202,
-    boost: 116,
-    agility: 0.88,
-    visualScale: 1.05,
-    accent: '#ef677c',
-    copy: 'Pengacau garis depan yang kuat memecah formasi lawan.',
-    passiveName: 'Tag Kasar',
-    passiveCopy: 'Jangkauan besar dengan recovery tag lebih cepat.',
-    tagRange: 32,
-    rescueRange: 31,
-    boostMultiplier: 1.66,
-    boostDrain: 29,
-    baseChargeTime: .76,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 410,
-  },
-  {
-    id: 'tui',
-    name: 'Tui',
-    role: 'Runner',
-    speed: 230,
-    boost: 96,
-    agility: 1.17,
-    visualScale: 0.94,
-    accent: '#ef3f43',
-    copy: 'Sprinter Tim Merah dengan akselerasi kuat untuk membuka serangan.',
-    passiveName: 'Start Meledak',
-    passiveCopy: 'Sprint Space mencapai kecepatan puncak lebih cepat.',
-    tagRange: 28,
-    rescueRange: 32,
-    boostMultiplier: 1.78,
-    boostDrain: 32,
-    baseChargeTime: .65,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 480,
-  },
-  {
-    id: 'lui',
-    name: 'Lui',
-    role: 'Scout',
-    speed: 226,
-    boost: 104,
-    agility: 1.19,
-    visualScale: 0.93,
-    accent: '#42d875',
-    copy: 'Pengintai Tim Hijau yang unggul menyelinap melalui jalur sempit.',
-    passiveName: 'Jalur Sunyi',
-    passiveCopy: 'Sprint stabil dengan kendali parkour yang presisi.',
-    tagRange: 28,
-    rescueRange: 35,
-    boostMultiplier: 1.72,
-    boostDrain: 29,
-    baseChargeTime: .68,
-    rescueShieldMs: 1750,
-    tagCooldownMs: 480,
-  },
-  {
-    id: 'bebe',
-    name: 'Bebe',
-    role: 'Rescuer',
-    speed: 218,
-    boost: 110,
-    agility: 1.1,
-    visualScale: 0.96,
-    accent: '#4eeaf2',
-    copy: 'Teknisi drone Tim Merah yang membuka jalur penyelamatan di tengah tekanan.',
-    passiveName: 'Drone Penolong',
-    passiveCopy: 'Jangkauan rescue luas dan memberi pelindung lebih lama kepada rekan.',
-    tagRange: 27,
-    rescueRange: 41,
-    boostMultiplier: 1.7,
-    boostDrain: 29,
-    baseChargeTime: .7,
-    rescueShieldMs: 2150,
-    tagCooldownMs: 490,
-  },
-  {
-    id: 'kodo',
-    name: 'Kodo',
-    role: 'Wall',
-    speed: 200,
-    boost: 124,
-    agility: .9,
-    visualScale: 1.17,
-    accent: '#f28a2d',
-    copy: 'Penjaga reptil Tim Hijau yang menguasai koridor sempit dan jalur penjara.',
-    passiveName: 'Ekor Penghadang',
-    passiveCopy: 'Jangkauan tag besar dengan cadangan boost yang tahan lama.',
-    tagRange: 35,
-    rescueRange: 31,
-    boostMultiplier: 1.62,
-    boostDrain: 26,
-    baseChargeTime: .78,
-    rescueShieldMs: 1500,
-    tagCooldownMs: 520,
-  },
+  robotData as CharacterDefinition,
+  ciiciData as CharacterDefinition,
+  kakaData as CharacterDefinition,
+  butoData as CharacterDefinition,
+  jagoData as CharacterDefinition,
+  rajaData as CharacterDefinition,
+  lalaData as CharacterDefinition,
+  mariaData as CharacterDefinition,
+  kumisData as CharacterDefinition,
+  bokeData as CharacterDefinition,
+  tuiData as CharacterDefinition,
+  luiData as CharacterDefinition,
+  bebeData as CharacterDefinition,
+  kodoData as CharacterDefinition,
 ];
 
 export const CHARACTER_BY_ID = Object.fromEntries(
   CHARACTERS.map(character => [character.id, character]),
 ) as Record<CharacterId, CharacterDefinition>;
 
-const DEDICATED_EAST_CHARACTERS = new Set<CharacterId>([
-  'buto',
-  'jago',
-  'lala',
-  'maria',
-  'kumis',
-  'boke',
-  'tui',
-  'lui',
-  'bebe',
-  'kodo',
-]);
+export const ULTIMATE_CHARACTER_IDS: ReadonlySet<CharacterId> = new Set(
+  CHARACTERS.filter(character => character.ultimate).map(character => character.id),
+);
 
-export const characterUsesDedicatedEast = (id: CharacterId) =>
-  DEDICATED_EAST_CHARACTERS.has(id);
+export const characterUsesDedicatedEast = (id: CharacterId): boolean =>
+  CHARACTER_BY_ID[id]?.dedicatedEast ?? false;
+
+export const characterMirrorsWest = (id: CharacterId): boolean =>
+  CHARACTER_BY_ID[id]?.mirrorWest ?? false;
 
 const publicBase = (
   (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/'
@@ -390,6 +162,15 @@ export const rajaUltimateBannerAsset = () =>
 
 export const kakaUltimateBannerAsset = () =>
   `${publicBase}ui-v2/skills/kaka-perisai-hijau.webp?v=8`;
+
+export const ULTIMATE_ICONS = { shield: Shield, zap: Zap } as const;
+export type UltimateIconId = keyof typeof ULTIMATE_ICONS;
+export const ultimateIcon = (icon: UltimateIconId, size: number) =>
+  createElement(ULTIMATE_ICONS[icon], { size });
+export const ULTIMATE_BANNERS = {
+  shield: kakaUltimateBannerAsset,
+  zap: rajaUltimateBannerAsset,
+} as const;
 
 export const characterSelectionVideo = (faction: 'red' | 'green') =>
   `${publicBase}ui-v2/videos/team-${faction}.mp4?v=8`;
