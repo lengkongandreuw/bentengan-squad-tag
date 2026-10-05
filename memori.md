@@ -4,6 +4,15 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-05 LOCAL ONLY optimization: custom sprites use separate lossless packed
+runtime assets (config/sprite-runtime.json, public/sprite-runtime). Originals and
+Sprite Studio config untouched. 47 atlases/1213 frames decoded RGBA area proxy
+731.8 ->392.8MiB; compressed size31.05 ->30.51MiB. Not measured RAM/FPS. Original
+logical placement/FPS/frames preserved, actor states and flight views cached.
+New editor assets/frames fallback to originals until npm run sprites:runtime or
+build:pages regenerates. 100 regression/packing tests PASS, TypeScript/lint/Pages
+build PASS with existing warnings; live/browser FPS QA pending. No publish.
+
 2026-10-05 user explicitly requested publish ALL local changes without disturbing
 other programmers. Prior LOCAL ONLY constraint revoked for this publish. Fetch
 confirmed HEAD==github/main c742c25 before staging; non-force push only. Economy,

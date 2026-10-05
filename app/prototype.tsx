@@ -6499,9 +6499,15 @@ export function BentenganPrototype() {
           const placement = spritePlacement(studio.clip, frame, 74 * stats.visualScale);
           ctx.translate(p.x + studio.clip.x, p.y + 18 + bob + studio.clip.y);
           if (mirror) ctx.scale(-1, 1);
-          ctx.drawImage(renderImage, frame.x, frame.y, frame.width, frame.height,
-            -placement.width * studio.clip.pivotX, -placement.height * studio.clip.pivotY,
-            placement.width, placement.height);
+          const packed=studio.packedFrame;
+          if(packed) {
+            const sx=placement.width/frame.width,sy=placement.height/frame.height;
+            ctx.drawImage(renderImage,packed.x,packed.y,packed.width,packed.height,
+              -placement.width*studio.clip.pivotX+packed.left*sx,-placement.height*studio.clip.pivotY+packed.top*sy,
+              packed.width*sx,packed.height*sy);
+          } else ctx.drawImage(renderImage, frame.x, frame.y, frame.width, frame.height,
+              -placement.width * studio.clip.pivotX, -placement.height * studio.clip.pivotY,
+              placement.width, placement.height);
         } else {
         if (mirror) {
           ctx.translate(p.x * 2, 0);

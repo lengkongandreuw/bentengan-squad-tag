@@ -352,7 +352,8 @@ test('module09 custom ultimate sprites keep all frames within upgraded cast with
   const clip={asset:'sprite-studio/raja/test.webp',width:90,height:10,frames,fps:10,loop:false,scale:1,x:0,y:0,pivotX:.5,pivotY:1,mirror:false};
   const source=fs.readFileSync('lib/sprite-studio.ts','utf8').replace(/^import .*;\r?$/gm,'');
   const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  const exports={},context={exports,settings:{characters:{raja:{ultimate:clip}}},...model,
+  const exports={},context={exports,settings:{characters:{raja:{ultimate:clip}}},runtime:{version:1,assets:{}},
+    ...load('lib/studio-runtime-resource.ts'),...model,
     publicAsset:asset=>asset,Image:class {complete=true;naturalWidth=90;}};
   vm.runInNewContext(output,context);
   exports.studioImages('raja');const resolve=exports.createStudioResolver();

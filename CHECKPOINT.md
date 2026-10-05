@@ -5,6 +5,35 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### IN PROGRESS — Publish lossless runtime optimization (2026-10-05)
+
+- User explicitly requested publish. Fresh fetch confirmed HEAD==github/main
+  e508b11; other contributor branch Refactor-Clio fetched but not merged/modified.
+  Only scoped optimization files and generated runtime assets will be committed.
+- Prior LOCAL ONLY optimization note below is superseded for this publish.
+  Non-force push and Pages deployment confirmation pending.
+
+### COMPLETE — Lossless custom sprite runtime optimization (2026-10-05, LOCAL ONLY)
+
+- User authorized optimization without changing visual quality/gameplay. Added
+  separate runtime atlases: trim transparent margins, pack with 2px sampling
+  gutters, lossless WebP. Original Sprite Studio assets/config remain unchanged.
+- 47 atlases / 1,213 unique frame rectangles: theoretical decoded RGBA area
+  731.8 -> 392.8 MiB (-46.3%). Compressed bytes only 31.05 -> 30.51 MiB;
+  principal benefit is texture area, NOT a claim of equivalent FPS improvement
+  or measured device RAM. Only active-lineup resources preload as before.
+- Original logical frame sizes/pivots/scale/FPS/order/loop/mirroring preserved;
+  draw offsets compensate trims. Runtime mappings and flight clip views cache;
+  per-actor visual state reused rather than allocated every frame.
+- New/stale editor assets or unmapped frames automatically use originals.
+  npm run sprites:runtime regenerates; build:pages runs it automatically.
+- 96 existing regression tests plus 4 new tests PASS; visible RGB/alpha checked
+  across EVERY packed source frame, synthetic partial-alpha/empty frames tested,
+  actual resolver flight timing checked. TypeScript/focused lint/Pages build PASS.
+  Existing CSS/chunk build warnings remain. Full legacy audit not claimed green.
+- No publish, balancing/control/physics/map/editor mutations. Browser/FPS and
+  filtered rendering on actual hardware still need testing; no browser QA claim.
+
 ### COMPLETE — Ultimate roster label artwork (2026-10-05, PUBLISHED)
 
 - Supplied ultimate_label.png copied to controls/ultimate-label.png and preloaded.
