@@ -8,7 +8,9 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 other programmers. Prior LOCAL ONLY constraint revoked for this publish. Fetch
 confirmed HEAD==github/main c742c25 before staging; non-force push only. Economy,
 DOI UI,Back art,Workshop entry removal and saved Studio map/sprite edits included.
-Separate editor files preserved. Confirm Pages workflow success after push.
+Separate editor files preserved. Implementation9adf32c pushed non-force; Pages
+run37249937717 completed SUCCESS.96 regression tests/TS/Pages build passed.
+Published:https://lengkongandreuw.github.io/bentengan-squad-tag/
 
 2026-10-05 LOCAL ONLY: currency display renamed TOKEN→DOI,central config label DOI
 but internal token id and all stored keys preserved. Wallet uses supplied coin;

@@ -5,17 +5,19 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### ACTIVE — Publish all local updates (2026-10-05)
+### COMPLETE — Publish all local updates (2026-10-05)
 
 - User explicitly authorizes publishing all local changes. Fetched github/main:
   HEAD and remote identical c742c25,no contributor commits to merge at this check.
 - Includes economy01–13/DOI UI,centered Ultimate panel,Back art,removed in-game
   Workshop entry,and saved Map/Sprite Studio configurations+Bebe/Ciici assets.
   All referenced Studio assets exist. Preserve separate editor sources.
-- Regression suites and production build checked before commit. Push must be
-  non-force; if remote advances,merge/retest instead of overwriting it.
+-96 regression tests,TypeScript and production Pages build passed before commit.
+  Implementation commit9adf32c pushed normally c742c25→9adf32c,no force/overwrite.
 - Earlier LOCAL ONLY/no-publish notes are historical and superseded by this
-  explicit request. Deployment success still pending; do not infer from push.
+  explicit request. Pages run37249937717 confirmed completed/success via GitHub.
+  Site:https://lengkongandreuw.github.io/bentengan-squad-tag/
+  No manual live-browser visual QA claimed; existing CSS/chunk warnings remain.
 
 ### COMPLETE — Center Ultimate upgrade modal (2026-10-05, LOCAL ONLY)
 
