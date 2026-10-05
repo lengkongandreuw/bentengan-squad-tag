@@ -4,6 +4,12 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-05 user subsequently requested publish optimization. Fresh fetch showed
+HEAD==github/main e508b11; no merge or force push. Implementation065bdf5 published,
+Pages run37280025918 build+deploy SUCCESS; TypeScript/100 tests PASS. Source Studio
+assets/config and map config unchanged; Refactor-Clio branch not merged/modified.
+LOCAL ONLY optimization entry below is historical and superseded for publish.
+
 2026-10-05 LOCAL ONLY optimization: custom sprites use separate lossless packed
 runtime assets (config/sprite-runtime.json, public/sprite-runtime). Originals and
 Sprite Studio config untouched. 47 atlases/1213 frames decoded RGBA area proxy

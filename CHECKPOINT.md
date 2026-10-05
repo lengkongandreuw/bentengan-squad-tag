@@ -5,13 +5,15 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### IN PROGRESS — Publish lossless runtime optimization (2026-10-05)
+### COMPLETE — Publish lossless runtime optimization (2026-10-05, PUBLISHED)
 
 - User explicitly requested publish. Fresh fetch confirmed HEAD==github/main
   e508b11; other contributor branch Refactor-Clio fetched but not merged/modified.
   Only scoped optimization files and generated runtime assets will be committed.
 - Prior LOCAL ONLY optimization note below is superseded for this publish.
-  Non-force push and Pages deployment confirmation pending.
+  Commit065bdf5 pushed non-force e508b11->065bdf5. TypeScript/100 tests PASS.
+  GitHub Pages run37280025918 build/deploy completed SUCCESS. Original Studio
+  assets/config and map config unchanged; other contributor branch untouched.
 
 ### COMPLETE — Lossless custom sprite runtime optimization (2026-10-05, LOCAL ONLY)
 
