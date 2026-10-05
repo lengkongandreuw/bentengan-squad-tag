@@ -5274,21 +5274,24 @@ p {
 /* Gameplay audit pass · mobile landscape, fair AI feedback, and readable rules */
 .ultimate-roster-badge {
   position: absolute;
-  z-index: 9;
-  top: 7%;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 8px;
-  color: #142014;
-  background: #a9ff57;
-  border: 1px solid #fff;
-  border-radius: 999px;
-  font: 900 8px var(--font-heading);
-  letter-spacing: 0.08em;
-  transform: translateX(-50%);
-  box-shadow: 0 0 16px rgba(126, 255, 73, 0.65);
+  z-index: 1;
+  top: 20%;
+  left: -40%;
+  width: 75%;
+  aspect-ratio: 1074 / 530;
+  display: block;
+  padding: 0;
+  pointer-events: none;
+}
+.carousel-character { isolation: isolate; }
+.carousel-character > img[data-selection-portrait] { position: relative; z-index: 2; }
+.carousel-character > span { z-index: 3; }
+.roster-stage .carousel-character .ultimate-roster-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: none;
 }
 .arena-intel {
   position: absolute;

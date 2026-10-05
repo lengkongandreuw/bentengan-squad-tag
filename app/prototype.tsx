@@ -3054,7 +3054,7 @@ export function BentenganPrototype() {
     const prepare = async () => {
       const images: HTMLImageElement[] = [];
       const urls = [uiAsset('controls/primary.webp'), uiAsset('controls/primary-hover.webp'),
-        uiAsset('controls/back-inactive.png'), uiAsset('controls/back-hover.png'),
+        uiAsset('controls/back-inactive.png'), uiAsset('controls/back-hover.png'), uiAsset('controls/ultimate-label.png'),
         ...['doi-coin', 'label', 'close', 'accent'].map(name => publicAsset(`ui-v2/economy/${name}.png`)), ...LOADING_UI_FRAMES];
       for (const field of FIELD_CONFIGS) urls.push(arenaImage(field.id));
       if (gameLoading) {
@@ -7538,13 +7538,8 @@ export function BentenganPrototype() {
                     />
                     <CharacterLockBadge profile={playerProfile} id={character.id} />
                     {ULTIMATE_CHARACTER_IDS.has(character.id) && (
-                      <strong className="ultimate-roster-badge">
-                        {character.id === 'kaka' ? (
-                          <Shield size={12} />
-                        ) : (
-                          <Zap size={12} />
-                        )}
-                        ULTIMATE
+                      <strong className="ultimate-roster-badge" aria-label="Memiliki Ultimate">
+                        <img src={uiAsset('controls/ultimate-label.png')} alt="" aria-hidden="true" />
                       </strong>
                     )}
                     <span>{character.name}</span>

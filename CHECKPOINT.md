@@ -5,6 +5,16 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### IMPLEMENTED — Ultimate roster label artwork (2026-10-05, publish requested)
+
+- Supplied ultimate_label.png copied to controls/ultimate-label.png and preloaded.
+  Replaced old pill for all existing Ultimate IDs Raja/Kaka/Bebe/Ciici. Label is
+  left shoulder-height behind portrait (z1 artwork,z2 portrait,z3 name),allowing
+  a small occlusion at the right edge while keeping text primarily outside it.
+  Responsive sizing follows character card; existing unlock styling preserved.
+- No gameplay/preview manifest edits. TypeScript checked; no visual browser QA.
+  User subsequently requested publish; Pages deployment verification pending.
+
 ### COMPLETE — Publish all local updates (2026-10-05)
 
 - User explicitly authorizes publishing all local changes. Fetched github/main:
