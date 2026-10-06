@@ -1,0 +1,110 @@
+    const aiVector = (p: Player, now: number) => {
+      if (p.state === 'RETURNING') return baseVector(p);
+      if (p.state === 'IN_BASE')
+        return {
+          x: worldWidth / 2 - p.x,
+          y: worldHeight / 2 + Math.sin(now / 920 + p.aiSeed) * 230 - p.y,
+        };
+      const requester = rescueRequest
+        ? players.find((player) => player.id === rescueRequest?.requesterId)
+        : undefined;
+      if (
+        requester &&
+        requester.state === 'PRISONER' &&
+        rescueRequest?.assignedRescuerId === p.id
+      )
+        return { x: requester.x - p.x, y: requester.y - p.y };
+      const held = players
+        .filter((q) => q.team === p.team && q.state === 'PRISONER')
+        .sort((a, b) => b.prisonIndex - a.prisonIndex);
+      if (
+        held.length &&
+        (p.aiSeed % 3 < aiProfile.rescueCutoff || held.length >= 3)
+      )
+        return { x: held[0].x - p.x, y: held[0].y - p.y };
+      if (p.boost < 34) {
+        const item = refills
+          .slice()
+          .sort((a, b) => distance(p, a) - distance(p, b))[0];
+        if (item && distance(p, item) < 360)
+          return { x: item.x - p.x, y: item.y - p.y };
+      }
+      const threat = players
+        .filter(
+          (q) =>
+            q.team !== p.team &&
+            q.state === 'ACTIVE' &&
+            q.exitOrder > p.exitOrder,
+        )
+        .sort((a, b) => distance(p, a) - distance(p, b))[0];
+      if (threat && distance(p, threat) < aiProfile.threatRadius)
+        return { x: p.x - threat.x, y: p.y - threat.y };
+      const target = players
+        .filter(
+          (q) =>
+            q.team !== p.team &&
+            q.state === 'ACTIVE' &&
+            q.exitOrder < p.exitOrder,
+        )
+        .sort((a, b) => {
+          const aPlayerBias = a.controlled ? -aiProfile.playerBias : 0,
+            bPlayerBias = b.controlled ? -aiProfile.playerBias : 0;
+          return distance(p, a) + aPlayerBias - distance(p, b) - bPlayerBias;
+        })[0];
+      if (target)
+        return {
+          x: target.x + target.vx * aiProfile.prediction - p.x,
+          y: target.y + target.vy * aiProfile.prediction - p.y,
+        };
+      if (p.boost < 18 || Math.sin(now / 4300 + p.aiSeed) > 0.86)
+        return baseVector(p);
+      const enemy = bases[other(p.team)];
+      return {
+        x: enemy.x - p.x,
+        y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150,
+      };
+    };
+      players.slice(1).forEach((p) => {
+        if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) {
+          p.vx = 0;
+          p.vy = 0;
+          return;
+        }
+        const stats = CHARACTER_BY_ID[p.characterId];
+        const enemyOfPlayer = p.team !== me.team;
+        const desired = aiVector(p, now);
+        const vector = navigateAroundHazards(
+          p,
+          desired,
+          now,
+          enemyOfPlayer ? aiProfile.steerDistance : 78,
+          Math.sin(p.aiSeed + now / 1700),
+        );
+        const far = Math.hypot(vector.x, vector.y) > 145;
+        const boostThreshold = AI_BOOST_THRESHOLD;
+        const boostAi =
+          p.state === 'ACTIVE' &&
+          !(field.id === 'kanal2' && p.waterEnteredAt) &&
+          p.boost > 10 &&
+          far &&
+          Math.sin(now / 950 + p.aiSeed) > boostThreshold;
+        if (boostAi) {
+          drainBoost(p, stats.boostDrain * AI_BOOST_DRAIN_MULTIPLIER, dt, now);
+        }
+        const comboMultiplier = teamComboSpeedMultiplier(
+          teamCombos[p.team],
+          now,
+        );
+        move(
+          p,
+          vector.x,
+          vector.y,
+          stats.speed *
+            comboMultiplier *
+            rajaUltimateMultiplier(p) *
+            AI_SPEED_MULTIPLIER *
+            (boostAi ? stats.boostMultiplier : 1),
+          dt,
+          now,
+        );
+      });

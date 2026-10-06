@@ -40,13 +40,36 @@ import { UnlockNotificationPanel } from '../components/unlock-notification-panel
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
+import type { RuntimeActor } from '../lib/game-core/types';
+import { createEntityRegistry } from '../lib/game-core/entities';
+import { createLocalInputAdapter, type PlayerInputFrame } from '../lib/game-core/input';
+import { createBotAuthority } from '../lib/game-core/bot-ai';
+import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-core/events';
+import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick';
+import { describeMatch } from '../lib/game-core/state';
+import { createRenderAdapter, type RenderFrame } from '../lib/game-core/render-state';
+import { createSnapshot, type GameSnapshot } from '../lib/game-core/snapshot';
+import type {MultiplayerSession} from '../lib/multiplayer/session';
+import {createContentIdentity} from '../lib/multiplayer/content';
+import {createRemoteInputBuffer,createRemoteHumanMovement,wireInput} from '../lib/multiplayer/remote-input';
+import {createSnapshotBuffer,snapshotRenderState} from '../lib/multiplayer/interpolation';
+import {NETWORK_RATES} from '../lib/multiplayer/rates';
+import {createMatchRoster,takeoverDisconnected} from '../lib/multiplayer/roster';
+import {createMatchResult,createResultHandoff,type MatchResultPacket} from '../lib/multiplayer/result';
+import {createNetworkUltimates} from '../lib/multiplayer/ultimates';
+import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol';
+import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../lib/game-core/ultimate';
+import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../lib/game-core/match-rules';
+import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../lib/game-core/movement';
+import { resolveTag, tagContacts, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../lib/game-core/interactions';
+import type { CanonicalGameState } from '../lib/game-core/types';
 import { createRouteScheduler } from '../lib/route-scheduler';
 import { studioImages, retainStudioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
 import { contains as studioContains } from '../lib/map-studio-model.js';
 import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
-import { flightConfig, startFlight, advanceFlight, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, safeFlightLanding, flightPassesObstacle } from '../lib/flight-ultimate.js';
+import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight } from '../lib/flight-ultimate.js';
 import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
@@ -108,7 +131,6 @@ import {
 } from '../lib/sprite-motion.js';
 import { fieldCycleDecision } from '../lib/field-cycle.js';
 import { kanalObjectRects, kanalObjectPolygons, kanalFortPolygon, polygonToRects } from '../lib/kanal-footprints.js';
-import { sweptContactDistance } from '../lib/tag-contact.js';
 import {
   depenetrateFromRects,
   pointHitsExpandedRect,
@@ -126,55 +148,18 @@ let Kampung3DRenderer: typeof Kampung3D | undefined;
 const PlayerProfilePanel = lazy(async () => ({
   default: (await import('../components/player-profile/player-profile-panel')).PlayerProfilePanel,
 }));
+const MultiplayerPanel = lazy(async () => ({default:(await import('../components/multiplayer-panel')).MultiplayerPanel}));
 
 type Team = 'blue' | 'red';
 type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
-type PlayerAction = 'tag' | 'rescue' | 'ultimate';
 type Grade = 25 | 40 | 75 | 100;
 type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kanal2' | 'kampung3d' | `studio-${string}`;
 const isKanalField = (id: FieldId) => id === 'kanal2';
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type DifficultyId = 'easy' | 'normal' | 'hard';
-type Player = {
-  flight?: ReturnType<typeof startFlight> | null;
-  visualTagVector?: { x: number; y: number };
-  id: string;
-  name: string;
-  team: Team;
-  characterId: CharacterId;
-  controlled?: boolean;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  state: PlayerState;
-  exitOrder: number;
-  boost: number;
-  baseCharge: number;
-  exitDeadline: number;
-  lastExitAt: number;
-  tagCooldown: number;
-  parkourUntil: number;
-  boostReadyAt: number;
-  fortCharge: number;
-  prisonOwner?: Team;
-  prisonIndex: number;
-  captures: number;
-  aiSeed: number;
-  rescueShieldUntil: number;
-  ultimateShieldUntil: number;
-  fallSafeUntil: number;
-  fallNoticeUntil: number;
-  waterEnteredAt: number;
-  waterFallUntil: number;
-  capturedIds: string[];
-  action?: PlayerAction;
-  actionUntil: number;
-  lastX: number;
-  lastY: number;
-};
+type Player = RuntimeActor;
 type Obstacle = {
   x: number;
   y: number;
@@ -2690,6 +2675,8 @@ FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
   id: map.id, name: map.name, kicker: map.description, difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
   aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined, ground: 'kampungGround', width: map.width, height: map.height,
   bases: map.bases, prisons: map.prisons, paths: [], obstacles: [], decorations: [], animated: [],
+  structuresInBackground: !!(map.replaces && nativeFieldConfigs[map.replaces].structuresInBackground &&
+    map.terrain?.asset === `field/${nativeFieldConfigs[map.replaces].background}`),
 })));
 const FIELD_BY_ID = Object.fromEntries(
   FIELD_CONFIGS.map((field) => [field.id, field]),
@@ -2952,6 +2939,15 @@ export function BentenganPrototype() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');
+  const [multiplayerOpen,setMultiplayerOpen]=useState(false);
+  const [networkSession,setNetworkSession]=useState<MultiplayerSession|null>(null);
+  useEffect(()=>{
+    if(!networkSession)return;
+    const off=networkSession.subscribe(state=>{if(state.phase==='ended'){
+      setNetworkSession(null);setMultiplayerOpen(false);setMode('menu');setMenuStep('splash');setContentGateError(state.error||'Room ditutup.');
+    }});
+    return ()=>{off();networkSession.close();};
+  },[networkSession]);
   const [hoveredFaction, setHoveredFaction] = useState<Faction | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
@@ -2993,7 +2989,7 @@ export function BentenganPrototype() {
     return true;
   };
   useEffect(() => {
-    if (mode !== 'playing') return;
+    if (mode !== 'playing' || networkSession) return;
     if (!playerProfile || !selectedFaction) {
       setContentGateError('Profil atau tim tidak tersedia. Kembali ke menu.');
       setMode('menu');
@@ -3009,7 +3005,7 @@ export function BentenganPrototype() {
         setSelectedFieldIdState(valid.arenaId as FieldId);
       }
     }
-  }, [playerProfile, selectedFaction, selectedId, selectedFieldId, mode]);
+  }, [playerProfile, selectedFaction, selectedId, selectedFieldId, mode,networkSession]);
   const [profileOpen, setProfileOpen] = useState(false);
   const refreshPlayerProfile = () => {
     const profile = loadPlayerProfile();
@@ -3540,14 +3536,16 @@ export function BentenganPrototype() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (mode === 'playing') {
+    const network=mode==='playing'?networkSession:null;
+    const clientOnly=network?.read().role==='client';
+    if (mode === 'playing' && !network) {
       const gate = selectionGate();
       if (gate) { setContentGateError(gate); setMode('menu'); return; }
     }
     // Identity belongs to this initialized match, not to a render or round.
-    const matchId = mode === 'playing' ? createMatchId() : null;
+    const matchId = mode === 'playing' ? network?`${network.read().roomCode}:match`:createMatchId() : null;
     // Match-local immutable snapshot: profile refresh never restarts this effect.
-    const playerUltimateStats = snapshotUltimateStats(mode==='playing' ? loadPlayerProfile() ?? playerProfileRef.current ?? null : null,selectedId);
+    const playerUltimateStats = snapshotUltimateStats(mode==='playing'&&!network ? loadPlayerProfile() ?? playerProfileRef.current ?? null : null,selectedId);
     const ultimateCastMsFor = (player: Player) => {
       const base=player.characterId==='kaka'?KAKA_ULTIMATE_CAST_MS:RAJA_ULTIMATE_CAST_MS;
       return player.controlled ? playerUltimateStats?.castMs ?? base : base;
@@ -3796,7 +3794,7 @@ export function BentenganPrototype() {
     window.addEventListener('keydown', gameplayAudio.unlock);
     let lastFootstep = 0;
     let wasDashing = false;
-    let wasInEnemyFort = false;
+    const fortOccupancy = new Set<string>();
     let previousSoundPosition: { x: number; y: number } | null = null;
     const beep = (frequency: number, duration = 0.08) => {
       if (audioLevels().sfx === 0) return;
@@ -3818,6 +3816,9 @@ export function BentenganPrototype() {
         /* optional */
       }
     };
+    const entityRegistry = createEntityRegistry();
+    const frozenRoster=network?createMatchRoster(network.read().lobby!):null;
+    const disconnectedPeers=new Set<string>();
     const makePlayer = (
       id: string,
       characterId: CharacterId,
@@ -3831,6 +3832,8 @@ export function BentenganPrototype() {
         GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
       const direction = team === 'blue' ? 1 : -1;
       return {
+        entityId: entityRegistry.assign(id),
+        controller: controlled ? 'local' : 'bot',
         id,
         name: character.name.toUpperCase(),
         team,
@@ -3866,6 +3869,18 @@ export function BentenganPrototype() {
       };
     };
     const makePlayers = () => {
+      if(network){
+        const room=network.read();
+        const result=frozenRoster!.map(({characterId,team,slot,peerId},index)=>{
+          const owner=peerId&&!disconnectedPeers.has(peerId)?peerId:null;
+          const local=owner===room.localPeerId;
+          const p=makePlayer(index===0?'you':index<5?`ally${index+1}`:`enemy${index-4}`,characterId,TEAM_FOR_FACTION[team],slot,local);
+          p.controller=owner?local?'local':'remote':'bot';if(owner)p.ownerPeerId=owner;
+          return p;
+        });
+        // Stable IDs assigned in host order; camera/HUD put this peer's actor first.
+        return [...result.filter(p=>p.ownerPeerId===room.localPeerId),...result.filter(p=>p.ownerPeerId!==room.localPeerId)];
+      }
       const faction = selectedFaction ?? 'red';
       const opponentFaction: Faction = faction === 'red' ? 'green' : 'red';
       const userTeam = TEAM_FOR_FACTION[faction];
@@ -3888,6 +3903,38 @@ export function BentenganPrototype() {
       ];
     };
     let players = makePlayers();
+    const myEntityId=players[0].entityId;
+    const humanIdentities=players.filter(p=>p.ownerPeerId).map(p=>({peerId:p.ownerPeerId!,entityId:p.entityId}));
+    const networkUltimates=createNetworkUltimates(humanIdentities);
+    const networkUltimateRules=(p:Player)=>({supported:ULTIMATE_CHARACTER_IDS,kanal2:field.id==='kanal2',
+      rechargeSeconds:RAJA_ULTIMATE_RECHARGE_SECONDS,castMs:p.characterId==='kaka'?KAKA_ULTIMATE_CAST_MS:RAJA_ULTIMATE_CAST_MS,
+      durationMs:p.characterId==='kaka'?KAKA_ULTIMATE_SHIELD_MS:RAJA_ULTIMATE_BUFF_MS,speedMultiplier:RAJA_ULTIMATE_SPEED_MULTIPLIER});
+    let lastNetworkFrame:Extract<ProtocolMessage,{type:'MATCH_FRAME'}>|null=null,networkEventSerial=0;
+    const receivedNetworkEvents:GameEvent[]=[];
+    const publishNetworkFacts=(facts:readonly GameEvent[])=>{if(network&&!clientOnly)for(const event of facts)network.publishEvent({version:1,type:'GAME_EVENT',
+      matchId:matchId!,tick:simulationClock.tick,eventId:`${matchId}:event:${++networkEventSerial}`,event:toNetworkGameEvent(event)});};
+    const resultHandoff=network?createResultHandoff({matchId:matchId!,arenaId:field.id,peerId:network.read().localPeerId,
+      entityId:myEntityId,team:FACTION_FOR_TEAM[players[0].team]},summary=>recordMatchProgression(summary)):null;
+    let pendingMatchResult:MatchResultPacket|null=null;
+    let lastResultAttempt=-Infinity;
+    const remoteInputs=createRemoteInputBuffer(matchId??'menu-preview',new Map(players.filter(p=>p.controller==='remote').map(p=>[p.entityId,p.ownerPeerId!])),worldWidth,worldHeight);
+    const remoteMovement=createRemoteHumanMovement();
+    const snapshots=createSnapshotBuffer(matchId??'menu-preview',field.id,NETWORK_RATES.interpolationDelayMs);
+    let lastNetworkSend=-Infinity,initialNetworkSnapshot=true,clientPresentation:CanonicalGameState|null=null;
+    const networkOff=network?.onGameplay((peer,m)=>{
+      if(!clientOnly&&m.type==='INPUT')remoteInputs.accept(peer,m,performance.now());
+      else if(clientOnly&&(m.type==='SNAPSHOT'||m.type==='MATCH_START'))snapshots.push(m.snapshot,performance.now());
+      else if(clientOnly&&m.type==='MATCH_FRAME'){lastNetworkFrame=m;snapshots.push(m.snapshot,performance.now());}
+      else if(clientOnly&&m.type==='MATCH_RESULT'){pendingMatchResult=m;snapshots.push(m.snapshot,performance.now());}
+      else if(clientOnly&&m.type==='GAME_EVENT'){receivedNetworkEvents.push(fromNetworkGameEvent(m.event));if(receivedNetworkEvents.length>256)receivedNetworkEvents.shift();}
+    });
+    const networkStateOff=network?.subscribe(state=>{if(!clientOnly){
+      for(const change of takeoverDisconnected(players,new Set(state.lobby?.participants.map(p=>p.peerId)),disconnectedPeers)){
+        remoteInputs.disconnect(change.peerId);network.publishDeparture(change.peerId,change.entityId);
+      }
+    }});
+    const localInput = createLocalInputAdapter();
+    const simulationClock = createSimulationClock();
     const emptyStats = (): PlayerStats => ({ tags: 0, prisons: 0, rescues: 0 });
     const makeStatsStore = () =>
       Object.fromEntries(players.map((player) => [player.id, emptyStats()])) as Record<
@@ -3930,8 +3977,7 @@ export function BentenganPrototype() {
         (a, b) => b.priority - a.priority || b.id - a.id,
       );
     };
-    const requestRescue = (now: number) => {
-      const requester = players[0];
+    const requestRescue = (now: number,requester=players[0]) => {
       if (
         requester.state !== 'PRISONER' ||
         rescueRequest ||
@@ -3941,7 +3987,7 @@ export function BentenganPrototype() {
       const assignedRescuer = players
         .filter(
           (player) =>
-            !player.controlled &&
+            (network?player.controller==='bot':!player.controlled) &&
             player.team === requester.team &&
             player.state === 'ACTIVE' &&
             distance(player, bases[other(player.team)]) > baseRadius * 1.25,
@@ -4027,9 +4073,8 @@ export function BentenganPrototype() {
       logs = [text, ...logs].slice(0, 5);
     };
     const chargeUltimate = (actor: Player, amount: number) => {
-      if (!actor.controlled || !ULTIMATE_CHARACTER_IDS.has(actor.characterId))
-        return;
-      ultimateMeter = clamp(ultimateMeter + amount, 0, 100);
+      if(network)networkUltimates.gain(actor,amount,ULTIMATE_CHARACTER_IDS);
+      else ultimateMeter = gainUltimate(ultimateMeter, actor, amount, ULTIMATE_CHARACTER_IDS);
     };
     const burst = (x: number, y: number, color: string, count = 12) => {
       for (let i = 0; i < count; i++) {
@@ -4093,6 +4138,7 @@ export function BentenganPrototype() {
     };
     seedRefills();
     const resetRound = () => {
+      if(network)networkUltimates.reset();
       gameplayAudio.resetTagStreak();
       countdownSoundPlayed = false;
       clearMouse();
@@ -4128,33 +4174,43 @@ export function BentenganPrototype() {
       log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
     };
     const winRound = (team: Team, reason: string) => {
-      if (phase !== 'PLAYING') return;
-      gameplayAudio.resetTagStreak();
-      players.forEach(p => { p.flight = null; });
-      if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
-      score[team]++;
+      const resultNow = performance.now();
+      const outcome = endRound(players, score, phase, team, reason, resultNow);
+      if (!outcome) return;
       roundWinner = team;
       roundEndReason = reason;
-      phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
-      const resultNow = performance.now();
+      phase = outcome.phase;
       matchEvents = [];
       resultWinner = team;
       resultAnnouncementUntil = resultNow + 1500;
       if (phase === 'MATCH_OVER') {
         try {
           const stats = pendingProfileStatsRef.current;
-          if (matchId) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
+          if (matchId && !network) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
             won: team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
             timesCaptured: stats.masukPenjara }));
         } catch (error) {
           setContentGateError(error instanceof Error ? error.message : 'Reward gagal disimpan.');
         }
         pendingProfileStatsRef.current = { ...EMPTY_KDA };
-        completedMatchesRef.current++;
+        if(!network)completedMatchesRef.current++;
         fieldRotationPending = completedMatchesRef.current >= 3;
-        gameplayAudio.play(team === players[0].team ? 'victory' : 'defeat');
       }
-      phaseUntil = resultNow + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 4500);
+      phaseUntil = outcome.phaseUntil;
+      if(network&&!clientOnly)publishNetworkFacts([{type:outcome.type,team,reason}]);
+      if(network&&phase==='MATCH_OVER'){
+        const packet=createMatchResult(readCanonicalState(resultNow),humanIdentities,disconnectedPeers);
+        network.publishResult(packet);
+        try{const handed=resultHandoff!(packet);if(handed.result)setMatchProgressionResult(handed.result);}
+        catch(error){pendingMatchResult=packet;lastResultAttempt=resultNow;setContentGateError(error instanceof Error?error.message:'Reward multiplayer belum tersimpan.');}
+      }
+      // Persistence above is not a presentation subscriber; event payload omits
+      // internal phaseUntil=Infinity so this boundary remains finite JSON data.
+      presentGameEvents([{type:outcome.type,team:outcome.team,reason:outcome.reason}],event=>{
+      if(event.type!=='ROUND_ENDED'&&event.type!=='MATCH_ENDED')return;
+      gameplayAudio.resetTagStreak();
+      if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
+      if(event.type==='MATCH_ENDED')gameplayAudio.play(team === players[0].team ? 'victory' : 'defeat');
       announcement =
         phase === 'MATCH_OVER'
           ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
@@ -4162,17 +4218,10 @@ export function BentenganPrototype() {
       beep(team === 'blue' ? 720 : 320, 0.25);
       burst(worldWidth / 2, worldHeight / 2, TEAM_COLOR[team], 38);
       log(announcement);
+      });
     };
-    const fortOccupant = (baseTeam: Team, exceptId?: string) =>
-      players.find(
-        (p) =>
-          p.id !== exceptId &&
-          !flightBusy(p) &&
-          !(field.id === 'kanal2' && p.waterEnteredAt) &&
-          p.state === 'ACTIVE' &&
-          p.team !== baseTeam &&
-          distance(p, bases[baseTeam]) < baseRadius,
-      );
+    const fortOccupant = (baseTeam:Team,exceptId?:string) =>
+      coreFortOccupant(players,bases,baseRadius,baseTeam,field.id==='kanal2',exceptId);
     const tieHash = (id: string) => {
       let value = (2166136261 ^ round) >>> 0;
       for (let i = 0; i < id.length; i++) {
@@ -4276,39 +4325,26 @@ export function BentenganPrototype() {
       }
       return false;
     };
-    const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) => {
-      if (
-        field.id !== 'kanal2' || p.id === '__collision_probe__' ||
-        isFlying(p) || p.waterEnteredAt || p.state === 'PRISONER' ||
-        now < p.fallSafeUntil || now < p.parkourUntil
-      ) return false;
-      let waterPoint = isWaterAt(x, y) ? { x, y } : null;
-      for (let side = 0; !waterPoint && side < 16; side++) {
-        const angle = side * Math.PI / 8;
-        const sample = {
-          x: x + Math.cos(angle) * PLAYER_COLLISION_RADIUS,
-          y: y + Math.sin(angle) * PLAYER_COLLISION_RADIUS,
-        };
-        if (isWaterAt(sample.x, sample.y)) waterPoint = sample;
-      }
-      if (!waterPoint) return false;
-      p.x = waterPoint.x;
-      p.y = waterPoint.y;
-      p.lastX = p.x;
-      p.lastY = p.y;
-      p.vx = 0;
-      p.vy = 0;
-      p.action = undefined;
-      p.actionUntil = 0;
-      p.waterEnteredAt = now;
-      p.waterFallUntil = now + 720;
+    const movementWorld: CollisionWorld = {
+      width:worldWidth,height:worldHeight,bases,baseRadius,
+      kanal:isKanalField(field.id),kanal2:field.id==='kanal2',obstacles:solidObstacles,
+      studioSolidAt:studioQueries?.solidAt,waterAt:isWaterAt,waterBlocks:kanalWaterBlocks,
+      fortCoreAt:isInsideFortCore,fortOccupied:(team,id)=>!!fortOccupant(team,id),
+      baseChargeTime:p=>CHARACTER_BY_ID[p.characterId].baseChargeTime,
+      speedAt:(x,y)=>studioQueries?.speedAt(x,y)??1,
+    };
+    const waterFallEffects = (p: Player) => {
       burst(p.x, p.y + 7, '#65e9ff', 12);
       if (p.controlled) {
         clearMouse();
         gameplayAudio.play('dash', 0.38);
         log('TERJATUH KE AIR · kembali ke benteng sebentar lagi.');
       }
-      return true;
+    };
+    const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) => {
+      const fell = enterWaterFall(movementWorld,p,now,x,y);
+      if(fell)waterFallEffects(p);
+      return fell;
     };
     const isNearWater = (x: number, y: number) =>
       (field.waterMask || studioMap)
@@ -4340,87 +4376,11 @@ export function BentenganPrototype() {
       p.x = recovered.x;
       p.y = recovered.y;
     };
-    const blocked = (
-      x: number,
-      y: number,
-      p: Player,
-      now: number,
-    ) => {
-      if (isFlying(p)) {
-        // Flight is not a global collision disable. Only authored low/parkour
-        // obstacles and jumpable water are bypassed; structures remain solid.
-        if (studioQueries && studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS, true)) return true;
-        if (solidObstacles.some(o => !flightPassesObstacle(o) && pointHitsExpandedRect(x,y,o,PLAYER_COLLISION_RADIUS))) return true;
-        if (isInsideFortCore(x,y)) return true;
-        return false;
-      }
-      if (studioQueries && studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
-      // The canal's actual water mask is the collision source for its stone
-      // banks. This blocks the visible canal instead of inventing rectangles
-      // on clear ground, and bridges remain open because they are not water.
-      if (
-        isKanalField(field.id) &&
-        kanalWaterBlocks(x, y)
-      )
-        return true;
-      const entersFortCore =
-        isKanalField(field.id) &&
-        !isInsideFortCore(p.x, p.y) &&
-        isInsideFortCore(x, y);
-
-      if (
-        now >= p.parkourUntil &&
-        (hitsObstacle(x, y) || entersFortCore)
-      )
-        return true;
-      if (
-        p.state === 'IN_BASE' &&
-        p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance(p, bases[p.team]) < baseRadius &&
-        distance({ x, y }, bases[p.team]) >= baseRadius
-      )
-        return true;
-      for (const team of ['blue', 'red'] as Team[]) {
-        const entering =
-          distance({ x, y }, bases[team]) < baseRadius &&
-          distance(p, bases[team]) >= baseRadius;
-        if (entering && p.team !== team && fortOccupant(team, p.id))
-          return true;
-      }
-      return false;
-    };
-    const move = (
-      p: Player,
-      dx: number,
-      dy: number,
-      speed: number,
-      dt: number,
-      now: number,
-    ) => {
-      if (field.id === 'kanal2' && p.waterEnteredAt) {
-        p.vx = 0;
-        p.vy = 0;
-        return;
-      }
-      const len = Math.hypot(dx, dy) || 1;
-      if (studioQueries && !isFlying(p)) speed *= studioQueries.speedAt(p.x, p.y);
-      p.vx = (dx / len) * speed;
-      p.vy = (dy / len) * speed;
-      if(isFlying(p)) {
-        const steps=Math.max(1,Math.ceil(speed*dt/4));
-        for(let i=0;i<steps;i++) {
-          const x=clamp(p.x+p.vx*dt/steps,34,worldWidth-34),y=clamp(p.y+p.vy*dt/steps,58,worldHeight-32);
-          if(!blocked(x,p.y,p,now))p.x=x;
-          if(!blocked(p.x,y,p,now))p.y=y;
-        }
-        return;
-      }
-      const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
-        ny = clamp(p.y + p.vy * dt, 58, worldHeight - 32);
-      if (!blocked(nx, p.y, p, now)) p.x = nx;
-      else if (beginKanal2WaterFall(p, now, nx, p.y)) return;
-      if (!blocked(p.x, ny, p, now)) p.y = ny;
-      else beginKanal2WaterFall(p, now, p.x, ny);
+    const blocked = (x:number,y:number,p:Player,now:number) =>
+      movementBlocked(movementWorld,x,y,p,now);
+    const move = (p:Player,dx:number,dy:number,speed:number,dt:number,now:number,input?:PlayerInputFrame) => {
+      const event=input?moveInputActor(movementWorld,p,input,{x:dx,y:dy},speed,dt,now):moveActor(movementWorld,p,dx,dy,speed,dt,now);
+      if(event)waterFallEffects(p);
     };
     const spacingPositionAllowed = (p: Player, x: number, y: number) => {
       if (isKanalField(field.id) && (
@@ -4542,37 +4502,8 @@ export function BentenganPrototype() {
         ? fallback
         : { x: 0, y: 0 };
     };
-    const findParkourLanding = (
-      p: Player,
-      direction: { x: number; y: number },
-      nominalDistance: number,
-      now: number,
-    ) => {
-      const magnitude = Math.hypot(direction.x, direction.y);
-      if (magnitude < 0.01) return null;
-      const unitX = direction.x / magnitude;
-      const unitY = direction.y / magnitude;
-      const maximumDistance = Math.max(nominalDistance, 132);
-      let crossedWater = false;
-      for (let distanceAlong = 10; distanceAlong <= maximumDistance; distanceAlong += 6) {
-        const x = clamp(p.x + unitX * distanceAlong, 34, worldWidth - 34);
-        const y = clamp(p.y + unitY * distanceAlong, 58, worldHeight - 32);
-        const water = isWaterAt(x, y);
-        crossedWater ||= water;
-        if (
-          crossedWater &&
-          !water &&
-          distanceAlong >= nominalDistance * 0.72 &&
-          !blocked(x, y, p, now)
-        )
-          return { x, y, crossedWater: true };
-      }
-      const x = clamp(p.x + unitX * nominalDistance, 34, worldWidth - 34);
-      const y = clamp(p.y + unitY * nominalDistance, 58, worldHeight - 32);
-      if (!crossedWater && !blocked(x, y, p, now))
-        return { x, y, crossedWater: false };
-      return null;
-    };
+    const findParkourLanding = (p:Player,direction:{x:number;y:number},nominalDistance:number,now:number) =>
+      parkourLanding(movementWorld,p,direction,nominalDistance,now);
     const resetFallenPlayer = (p: Player, now: number) => {
       p.flight = null;
       const base = bases[p.team];
@@ -4627,103 +4558,9 @@ export function BentenganPrototype() {
         resetFallenPlayer(p, now);
       });
     };
-    const aiVector = (p: Player, now: number) => {
-      if (p.state === 'RETURNING') return baseVector(p);
-      if (p.state === 'IN_BASE')
-        return {
-          x: worldWidth / 2 - p.x,
-          y: worldHeight / 2 + Math.sin(now / 920 + p.aiSeed) * 230 - p.y,
-        };
-      const requester = rescueRequest
-        ? players.find((player) => player.id === rescueRequest?.requesterId)
-        : undefined;
-      if (
-        requester &&
-        requester.state === 'PRISONER' &&
-        rescueRequest?.assignedRescuerId === p.id
-      )
-        return { x: requester.x - p.x, y: requester.y - p.y };
-      const held = players
-        .filter((q) => q.team === p.team && q.state === 'PRISONER')
-        .sort((a, b) => b.prisonIndex - a.prisonIndex);
-      if (
-        held.length &&
-        (p.aiSeed % 3 < aiProfile.rescueCutoff || held.length >= 3)
-      )
-        return { x: held[0].x - p.x, y: held[0].y - p.y };
-      if (p.boost < 34) {
-        const item = refills
-          .slice()
-          .sort((a, b) => distance(p, a) - distance(p, b))[0];
-        if (item && distance(p, item) < 360)
-          return { x: item.x - p.x, y: item.y - p.y };
-      }
-      const threat = players
-        .filter(
-          (q) =>
-            q.team !== p.team &&
-            q.state === 'ACTIVE' &&
-            q.exitOrder > p.exitOrder,
-        )
-        .sort((a, b) => distance(p, a) - distance(p, b))[0];
-      if (threat && distance(p, threat) < aiProfile.threatRadius)
-        return { x: p.x - threat.x, y: p.y - threat.y };
-      const target = players
-        .filter(
-          (q) =>
-            q.team !== p.team &&
-            q.state === 'ACTIVE' &&
-            q.exitOrder < p.exitOrder,
-        )
-        .sort((a, b) => {
-          const aPlayerBias = a.controlled ? -aiProfile.playerBias : 0,
-            bPlayerBias = b.controlled ? -aiProfile.playerBias : 0;
-          return distance(p, a) + aPlayerBias - distance(p, b) - bPlayerBias;
-        })[0];
-      if (target)
-        return {
-          x: target.x + target.vx * aiProfile.prediction - p.x,
-          y: target.y + target.vy * aiProfile.prediction - p.y,
-        };
-      if (p.boost < 18 || Math.sin(now / 4300 + p.aiSeed) > 0.86)
-        return baseVector(p);
-      const enemy = bases[other(p.team)];
-      return {
-        x: enemy.x - p.x,
-        y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150,
-      };
-    };
-    const layoutPrisons = () => {
-      (['blue', 'red'] as Team[]).forEach((owner) => {
-        const prison = field.prisons[owner];
-        players
-          .filter((p) => p.state === 'PRISONER' && p.prisonOwner === owner)
-          .forEach((p, i) => {
-            p.prisonIndex = i;
-            if (isKanalField(field.id)) {
-              const column = i % 3;
-              const row = Math.floor(i / 3);
-              const leftToRight = prison.x + 34 + column * ((prison.w - 68) / 2);
-              p.x =
-                owner === 'blue'
-                  ? leftToRight
-                  : prison.x + prison.w - (leftToRight - prison.x);
-              p.y = prison.y + 76 + row * 30;
-              p.lastX = p.x;
-              p.lastY = p.y;
-              return;
-            }
-            p.x =
-              owner === 'blue'
-                ? prison.x + 62 + i * 31
-                : prison.x + prison.w - 62 - i * 31;
-            p.y =
-              owner === 'blue' ? prison.y + 116 + i * 6 : prison.y + 82 - i * 6;
-            p.lastX = p.x;
-            p.lastY = p.y;
-          });
-      });
-    };
+    const botAuthority = createBotAuthority();
+    const simulationAuthority: 'host' | 'client' = clientOnly?'client':'host';
+    const layoutPrisons = () => layoutPrisoners(players,field.prisons,isKanalField(field.id));
     const registerTeamAction = (
       actor: Player,
       actionLabel: 'TAG' | 'RESCUE',
@@ -4777,110 +4614,73 @@ export function BentenganPrototype() {
         comboCalloutUntil = now + 2500;
       }
     };
-    const capture = (winner: Player, loser: Player, now: number) => {
-      if (flightBusy(winner) || flightBusy(loser) || now < loser.ultimateShieldUntil) return;
-      const targetable =
-        loser.state === 'ACTIVE' ||
-        (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
-      if (
-        winner.state !== 'ACTIVE' ||
-        now < winner.parkourUntil ||
-        now < loser.parkourUntil ||
-        winner.tagCooldown > now ||
-        !targetable ||
-        winner.exitOrder <= loser.exitOrder
-      )
-        return;
-      winner.tagCooldown =
-        now + CHARACTER_BY_ID[winner.characterId].tagCooldownMs;
-      winner.captures++;
+    const interactionRules = {
+      kanal2:field.id==='kanal2',
+      tagRange:(p:Player)=>CHARACTER_BY_ID[p.characterId].tagRange,
+      tagCooldownMs:(p:Player)=>CHARACTER_BY_ID[p.characterId].tagCooldownMs,
+      lineOfSight:hasLineOfSight,
+    };
+    const presentInteractionEvents = (events:readonly GameEvent[],now:number) => {
+      if(network&&!clientOnly)publishNetworkFacts(events);
+      presentGameEvents(events,event=>{
+      if(event.type==='PLAYER_TAGGED'||event.type==='PLAYER_CAPTURED'){
+        const winner=players.find(p=>p.entityId===event.actorId),loser=players.find(p=>p.entityId===event.targetId);
+        if(!winner||!loser)return;
+        if(event.type==='PLAYER_TAGGED'){
+          addMatchEvent({kind:'tag',actorName:winner.name,actorTeam:winner.team,targetName:loser.name,targetTeam:loser.team},now);
+          burst(event.x,event.y,TEAM_COLOR[winner.team]);
+        } else {
+          if(loser.controlled){gameplayAudio.resetTagStreak();gameplayAudio.play('caught');}
+          else if (winner.controlled) gameplayAudio.playerTag(now);
+          else if(distance(players[0],loser)<300)gameplayAudio.play('tag',.22);
+          log(`${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`);
+        }
+      } else if(event.type==='PLAYER_RESCUED'){
+        const rescuer=players.find(p=>p.entityId===event.actorId);
+        const held=event.targetIds.map(id=>players.find(p=>p.entityId===id)).filter((p):p is Player=>!!p);
+        if(!rescuer||!held.length)return;
+        if(rescuer.controlled)gameplayAudio.play('rescue');
+        addMatchEvent({kind:'rescue',actorName:rescuer.name,actorTeam:rescuer.team,
+          targetName:held.length===1?held[0].name:undefined,targetTeam:held.length===1?held[0].team:undefined,rescuedCount:held.length},now);
+        burst(event.x,event.y,'#b9ee3d',26);
+        if(held.some(p=>p.controlled)||rescuer.controlled)gameplayAudio.play('rescued');
+        else if(distance(players[0],rescuer)<300)gameplayAudio.play('rescued',.25);
+        log(`${rescuer.name} membebaskan ${held.length} rekan.`);
+      } else if(event.type==='FORCED_EXIT'||event.type==='BOOST_RECOVERED'){
+        const p=players.find(p=>p.entityId===event.actorId);if(!p)return;
+        if(event.type==='FORCED_EXIT')log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
+        else if(p.controlled){log(`Boost ${p.name} pulih penuh setelah 20 detik.`);beep(690,.13);}
+      } else if(event.type==='FORT_ENTERED'){
+        if(event.actorId===players[0].entityId)gameplayAudio.play('fort-enter');
+      }
+      });
+    };
+    const presentNetworkUltimate = (events:readonly GameEvent[])=>{
+      for(const event of events){if(event.type!=='ULTIMATE_STARTED'&&event.type!=='ULTIMATE_APPLIED')continue;
+        const actor=players.find(p=>p.entityId===event.actorId);if(!actor)continue;
+        if(event.type==='ULTIMATE_STARTED'){
+          gameplayAudio.play('ultimate');burst(actor.x,actor.y,TEAM_COLOR[actor.team],14);log(`${actor.name} mengaktifkan ${ultimateName(actor.characterId)}.`);
+          if(actor.controlled){boostBurstUntil=0;clearMouse();setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),1050);}
+        }else {burst(actor.x,actor.y,event.effect==='shield'?'#35f477':'#ef233c',28);log(`${actor.name} · ${event.effect==='shield'?'PERISAI HIJAU':'TITAH HALILINTAR'} ${event.durationMs/1000} detik.`);}
+      }
+    };
+    const capture = (winner:Player,loser:Player,now:number) => {
+      const events:GameEvent[]=[];
+      if(!resolveTag(players,winner.entityId,loser.entityId,now,interactionRules,facts=>events.push(...facts)))return;
       addStat(winner, 'tags');
       addStat(loser, 'prisons');
       if (winner.controlled) pendingProfileStatsRef.current.tagMusuh++;
       if (loser.controlled) pendingProfileStatsRef.current.masukPenjara++;
-      addMatchEvent(
-        {
-          kind: 'tag',
-          actorName: winner.name,
-          actorTeam: winner.team,
-          targetName: loser.name,
-          targetTeam: loser.team,
-        },
-        now,
-      );
-      if (!winner.capturedIds.includes(loser.id))
-        winner.capturedIds.push(loser.id);
-      winner.action = 'tag';
-      winner.visualTagVector = { x: loser.x - winner.x, y: loser.y - winner.y };
-      winner.actionUntil = now + 420;
-      loser.state = 'PRISONER';
-      loser.flight = null;
-      loser.prisonOwner = winner.team;
-      loser.fortCharge = 0;
-      loser.rescueShieldUntil = 0;
-      burst(loser.x, loser.y, TEAM_COLOR[winner.team]);
-      if (loser.controlled) { gameplayAudio.resetTagStreak(); gameplayAudio.play('caught'); }
-      else if (winner.controlled) gameplayAudio.playerTag(now);
-      else if (distance(players[0], loser) < 300) gameplayAudio.play('tag', .22);
-      log(
-        `${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`,
-      );
+      presentInteractionEvents(events,now);
       registerTeamAction(winner, 'TAG', loser.x, loser.y, now);
       chargeUltimate(winner, RAJA_ULTIMATE_TAG_BONUS);
       if (winner.controlled) mission.tag = true;
       layoutPrisons();
-      if (suddenDeath) winRound(winner.team, 'SUDDEN DEATH TAG');
+      const tagOutcome=suddenDeathTagWinner(suddenDeath,winner.team);
+      if(tagOutcome)winRound(tagOutcome.team,tagOutcome.reason);
     };
-    const tagCheck = (now: number) => {
-      const contacts: Array<{ attacker: Player; target: Player }> = [];
-      for (let i = 0; i < players.length; i++)
-        for (let j = i + 1; j < players.length; j++) {
-          const a = players[i],
-            b = players[j],
-            contactDistance = Math.min(
-              distance(a, b),
-              sweptContactDistance(a, b),
-            );
-          if (
-            a.team === b.team ||
-            flightBusy(a) || flightBusy(b) ||
-            (field.id === 'kanal2' && (a.waterEnteredAt || b.waterEnteredAt)) ||
-            now < a.parkourUntil ||
-            now < b.parkourUntil ||
-            contactDistance > Math.max(CHARACTER_BY_ID[a.characterId].tagRange,CHARACTER_BY_ID[b.characterId].tagRange)+4
-          )
-            continue;
-          const aTargetable =
-            now >= a.ultimateShieldUntil &&
-            (a.state === 'ACTIVE' ||
-              (a.state === 'RETURNING' && now >= a.rescueShieldUntil));
-          const bTargetable =
-            now >= b.ultimateShieldUntil &&
-            (b.state === 'ACTIVE' ||
-              (b.state === 'RETURNING' && now >= b.rescueShieldUntil));
-          if (
-            a.state === 'ACTIVE' &&
-            bTargetable &&
-            a.exitOrder > b.exitOrder &&
-            contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange + 4
-          ) {
-            if(hasLineOfSight(a,b))contacts.push({ attacker: a, target: b });
-          }
-          else if (
-            b.state === 'ACTIVE' &&
-            aTargetable &&
-            b.exitOrder > a.exitOrder &&
-            contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange + 4
-          ) {
-            if(hasLineOfSight(a,b))contacts.push({ attacker: b, target: a });
-          }
-        }
-      contacts.sort(
-        (a, b) =>
-          b.attacker.exitOrder - a.attacker.exitOrder ||
-          b.target.exitOrder - a.target.exitOrder ||
-          a.attacker.id.localeCompare(b.attacker.id),
-      );
+    const tagCheck = (now:number) => {
+      const contacts=tagContacts(players,now,interactionRules);
       const resolved = new Set<string>();
       contacts.forEach(({ attacker, target }) => {
         if (resolved.has(attacker.id) || resolved.has(target.id)) return;
@@ -4896,23 +4696,13 @@ export function BentenganPrototype() {
       players
         .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
         .forEach((rescuer) => {
-          const held = players
-            .filter((p) => p.team === rescuer.team && p.state === 'PRISONER')
-            .sort((a, b) => b.prisonIndex - a.prisonIndex);
           const rescuerStats = CHARACTER_BY_ID[rescuer.characterId];
-          if (
-            held[0] &&
-            distance(rescuer, held[0]) < rescuerStats.rescueRange
-          ) {
-            if (rescuer.controlled) gameplayAudio.play('rescue');
-            held.forEach((p) => {
-              p.state = 'RETURNING';
-              p.prisonOwner = undefined;
-              p.rescueShieldUntil = now + rescuerStats.rescueShieldMs;
-              p.x += rescuer.team === 'blue' ? -22 : 22;
-            });
-            rescuer.action = 'rescue';
-            rescuer.actionUntil = now + 460;
+          const events:GameEvent[]=[];
+          const event=resolveRescue(players,rescuer.entityId,now,{
+            kanal2:field.id==='kanal2',range:rescuerStats.rescueRange,shieldMs:rescuerStats.rescueShieldMs,
+          },facts=>events.push(...facts));
+          if(event?.type==='rescue') {
+            const held=event.targetIds.map(id=>players.find(p=>p.entityId===id)!);
             addStat(rescuer, 'rescues');
             if (rescuer.controlled) pendingProfileStatsRef.current.rescueTeam++;
             if (
@@ -4920,21 +4710,7 @@ export function BentenganPrototype() {
               held.some((player) => player.id === rescueRequest?.requesterId)
             )
               rescueRequest = null;
-            addMatchEvent(
-              {
-                kind: 'rescue',
-                actorName: rescuer.name,
-                actorTeam: rescuer.team,
-                targetName: held.length === 1 ? held[0].name : undefined,
-                targetTeam: held.length === 1 ? held[0].team : undefined,
-                rescuedCount: held.length,
-              },
-              now,
-            );
-            burst(held[0].x, held[0].y, '#b9ee3d', 26);
-            if (held.some(p => p.controlled) || rescuer.controlled) gameplayAudio.play('rescued');
-            else if (distance(players[0], rescuer) < 300) gameplayAudio.play('rescued', .25);
-            log(`${rescuer.name} membebaskan ${held.length} rekan.`);
+            presentInteractionEvents(events,now);
             registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
             chargeUltimate(rescuer, RAJA_ULTIMATE_RESCUE_BONUS);
             if (rescuer.controlled) mission.rescue = true;
@@ -4970,105 +4746,35 @@ export function BentenganPrototype() {
           log(`${p.name} mengambil refill boost ${item.grade}%.`);
         });
     };
-    const baseCheck = (
-      p: Player,
-      dt: number,
-      now: number,
-      exitCandidates: Player[],
-    ) => {
-      if (flightBusy(p) || p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) return;
-      const stats = CHARACTER_BY_ID[p.characterId],
-        insideOwn = distance(p, bases[p.team]) < baseRadius,
-        maxBoost = stats.boost,
-        chargeTime = stats.baseChargeTime;
-      const contested = Boolean(fortOccupant(p.team));
-      if (insideOwn) {
-        if (contested) {
-          if (p.state === 'IN_BASE' || p.state === 'RETURNING')
-            exitCandidates.push(p);
-        } else if (
-          p.state === 'ACTIVE' &&
-          now - p.lastExitAt < BASE_REENTRY_COOLDOWN_MS
-        ) {
-          p.fortCharge = 0;
-        } else {
-          if (p.state !== 'IN_BASE') {
-            p.state = 'IN_BASE';
-            p.baseCharge = 0;
-            p.exitDeadline = 0;
-            p.fortCharge = 0;
-          }
-          const charging = players
-            .filter(
-              (q) =>
-                q.team === p.team &&
-                q.state === 'IN_BASE' &&
-                distance(q, bases[q.team]) < baseRadius,
-            )
-            .sort(
-              (a, b) =>
-                b.baseCharge - a.baseCharge || tieHash(a.id) - tieHash(b.id),
-            )
-            .slice(0, 3);
-          if (
-            charging.some((q) => q.id === p.id) &&
-            p.baseCharge < chargeTime
-          ) {
-            p.baseCharge = Math.min(chargeTime, p.baseCharge + dt);
-            if (p.baseCharge >= chargeTime && !p.exitDeadline)
-              p.exitDeadline = now + 5000;
-          }
-          p.boost = maxBoost;
-          p.boostReadyAt = 0;
-          if (
-            p.baseCharge >= chargeTime &&
-            p.exitDeadline > 0 &&
-            now >= p.exitDeadline
-          ) {
-            p.x =
-              bases[p.team].x +
-              (p.team === 'blue' ? baseRadius + 5 : -baseRadius - 5);
-            exitCandidates.push(p);
-            log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
-          }
-        }
-      } else if (p.state === 'IN_BASE' && p.baseCharge >= chargeTime) {
-        exitCandidates.push(p);
-      }
-      if (
-        p.state === 'ACTIVE' &&
-        distance(p, bases[other(p.team)]) < baseRadius
-      ) {
-        const defending = players.some(
-          (q) =>
-            q.team !== p.team &&
-            q.state === 'ACTIVE' &&
-            distance(q, bases[other(p.team)]) < baseRadius,
-        );
-        p.fortCharge = defending ? 0 : p.fortCharge + dt;
-        if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
-      } else p.fortCharge = 0;
-      if (p.boost < maxBoost && p.boostReadyAt > 0 && now >= p.boostReadyAt) {
-        p.boost = maxBoost;
-        p.boostReadyAt = 0;
-        if (p.controlled) {
-          log(`Boost ${p.name} pulih penuh setelah 20 detik.`);
-          beep(690, 0.13);
-        }
+    const baseCheck = (p:Player,dt:number,now:number,exitCandidates:Player[]) => {
+      const stats=CHARACTER_BY_ID[p.characterId];
+      const facts:GameEvent[]=[];
+      const events=resolveBase(players,p,dt,now,exitCandidates,{
+        bases,radius:baseRadius,kanal2:field.id==='kanal2',boost:stats.boost,
+        chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,
+      },events=>facts.push(...events));
+      presentInteractionEvents(facts,now);
+      for(const event of events) {
+        if(event.type==='objective')winRound(event.team,event.reason);
       }
     };
     const update = (dt: number, now: number) => {
+      const input = localInput.sample(players[0].entityId, keys.current, mouseBoost, mouseRoute.at(-1));
+      if(network)input.pause=false;
+      const humanFrames=new Map<string,PlayerInputFrame>();
+      if(network){humanFrames.set(myEntityId,input);for(const p of players)if(p.controller==='remote')humanFrames.set(p.entityId,remoteInputs.sample(p.entityId,now));}
       gameplayAudio.expireTagStreak(now);
-      if (keys.current.has('p')) {
+      if (input.pause) {
         keys.current.delete('p');
         paused = !paused;
       }
       if (paused || mode !== 'playing') { clearMouse(); return; }
       if (phase !== 'PLAYING') clearMouse();
-      if (phase === 'COUNTDOWN') {
+      const transition = phaseTransition(phase, phaseUntil, now, postRoundActionRef.current === 'next-round');
+      if (transition === 'countdown' || transition === 'start-round') {
         if (!countdownSoundPlayed && now < phaseUntil) countdownSoundPlayed = gameplayAudio.playCountdown((phaseUntil - now) / 1000);
         announcement = `${Math.max(1, Math.ceil((phaseUntil - now) / 1000))}`;
-        if (now >= phaseUntil) {
+        if (transition === 'start-round') {
           phase = 'PLAYING';
           if (round === 1 && score.blue === 0 && score.red === 0)
             matchStartedAt = now;
@@ -5079,16 +4785,13 @@ export function BentenganPrototype() {
         }
         return;
       }
-      if (
-        phase === 'ROUND_OVER' &&
-        (now >= phaseUntil || postRoundActionRef.current === 'next-round')
-      ) {
+      if (transition === 'next-round') {
         postRoundActionRef.current = null;
         round++;
         resetRound();
         return;
       }
-      if (phase === 'MATCH_OVER') {
+      if (transition === 'finished') {
         return;
       }
       if (
@@ -5098,38 +4801,25 @@ export function BentenganPrototype() {
             ?.state !== 'PRISONER')
       )
         rescueRequest = null;
-      if (keys.current.has('r')) {
+      if (input.rescue) {
         keys.current.delete('r');
         requestRescue(now);
       }
-      if (!suddenDeath) timer -= dt;
-      if (!suddenDeath && timer <= 0) {
-        const blueHeld = players.filter(
-          (p) => p.team === 'red' && p.state === 'PRISONER',
-        ).length;
-        const redHeld = players.filter(
-          (p) => p.team === 'blue' && p.state === 'PRISONER',
-        ).length;
-        const blueUnique = new Set(
-          players
-            .filter((p) => p.team === 'blue')
-            .flatMap((p) => p.capturedIds),
-        ).size;
-        const redUnique = new Set(
-          players.filter((p) => p.team === 'red').flatMap((p) => p.capturedIds),
-        ).size;
-        if (blueHeld !== redHeld)
-          winRound(blueHeld > redHeld ? 'blue' : 'red', 'WAKTU HABIS');
-        else if (blueUnique !== redUnique)
-          winRound(blueUnique > redUnique ? 'blue' : 'red', 'TANGKAPAN UNIK');
-        else {
-          suddenDeath = true;
-          timer = 0;
+      if(network)for(const p of players)if(p.controller==='remote'&&humanFrames.get(p.entityId)?.rescue)requestRescue(now,p);
+      // Stage the fixed clock without quantizing movement/contacts. Keep legacy
+      // deadline semantics while full fixed-step conversion remains staged.
+      if(!network)advanceSimulationClock(simulationClock, dt * 1000);
+      const wasSuddenDeath = suddenDeath;
+      const timerResult = stepMatchTimer(players, timer, suddenDeath, dt);
+      timer = timerResult.timer;
+      suddenDeath = timerResult.suddenDeath;
+      if (timerResult.winner) winRound(timerResult.winner.team, timerResult.winner.reason);
+      else if (!wasSuddenDeath && suddenDeath) {
           announcement = 'SUDDEN DEATH';
           log('Skor seri—tag atau rebut benteng berikutnya menang.');
           beep(760, 0.22);
-        }
       }
+      if(network&&phase!=='PLAYING')return;
       refills = refills.filter((item) => item.expiresAt > now);
       if (now >= nextRefillSpawn && refills.length < 9) {
         spawnRefill(now);
@@ -5143,144 +4833,79 @@ export function BentenganPrototype() {
       const me = players[0];
       const config = flightConfig(me.characterId);
       const flightGroundValid = (x:number,y:number) => x>=34 && x<=worldWidth-34 && y>=58 && y<=worldHeight-32 && !hitsObstacle(x,y) && !isInsideFortCore(x,y) && !kanalWaterBlocks(x,y);
-      const flightHook = (name:string) => {
-        if (development) console.debug(name, me.characterId, me.flight?.stage, me.flight?.remaining);
-        window.dispatchEvent(new CustomEvent('benteng-flight',{detail:{name,characterId:me.characterId,stage:me.flight?.stage,remaining:me.flight?.remaining,distance:me.flight?.distance}}));
+      if(network){
+        const stepped=networkUltimates.tick(players,humanFrames,dt,now,networkUltimateRules,
+          (p,slot,elapsed,fallback)=>sequenceComplete(studioFlightClip(p.characterId,slot,p.flight?.direction),elapsed,fallback),flightGroundValid,p=>resetFallenPlayer(p,now));
+        publishNetworkFacts(stepped.facts);presentNetworkUltimate(stepped.facts);
+        const own=networkUltimates.get(myEntityId)!;ultimateMeter=own.meter;ultimateImpactAt=own.impactAt;ultimateImpactApplied=own.impactApplied;
+        ultimateBuffUntil=own.buffUntil;ultimateShieldUntil=own.shieldUntil;
+        if(input.ultimate)keys.current.delete('capslock');
+        if(stepped.casting){clearMouse();freezeUltimateActors(players);return;}
+      }
+      const flightHook = (name:string, data:{stage:string;remaining:number;distance:number}|null|undefined=me.flight) => {
+        if (development) console.debug(name, me.characterId, data?.stage, data?.remaining);
+        window.dispatchEvent(new CustomEvent('benteng-flight',{detail:{name,characterId:me.characterId,stage:data?.stage,remaining:data?.remaining,distance:data?.distance}}));
         // Optional audio/VFX hooks: no final flight samples are supplied yet.
         if (name === 'flight_warning_sfx') beep(380,.08);
       };
-      if (me.flight && config) {
+      if (!network && me.flight && config) {
         const slot=flightSlot(me.flight,config)!;
         const completion=sequenceComplete(studioFlightClip(me.characterId,slot,me.flight.direction), (me.flight.elapsed+dt)*1000, me.flight.stage==='FLIGHT_TAKEOFF'?config.takeoffSeconds:config.landingSeconds);
-        me.flight=advanceFlight(me.flight,config,dt,completion,{
-          onFlightStart:()=>{flightHook('onFlightStart');flightHook('flight_loop_sfx');},
-          onFlightWarning:()=>flightHook('flight_warning_sfx'),
-          onFlightLanding:()=>{flightHook('onFlightLanding');flightHook('flight_land_sfx');},
-          onFlightEnd:()=>flightHook('ultimate_flight_ended'),
-          onSafeLanding:()=>{
-            const landing=safeFlightLanding(me,me.flight!.lastGround,flightGroundValid);
-            if(landing){me.x=landing.x;me.y=landing.y;me.lastX=me.x;me.lastY=me.y;}
-            else resetFallenPlayer(me,now);
-          },
-        });
-        if(me.state!=='ACTIVE')me.flight=null;
-        if(isFlying(me) && flightGroundValid(me.x,me.y)) me.flight!.lastGround={x:me.x,y:me.y};
+        const flightResult=stepFlight(me,config,dt,completion,flightGroundValid);
+        if(flightResult.landingFailed){resetFallenPlayer(me,now);me.flight=null;}
+        for(const fact of flightResult.facts)flightHook(fact.name,fact);
       }
       let dx = 0,
         dy = 0;
-      if (ULTIMATE_CHARACTER_IDS.has(me.characterId))
-        ultimateMeter = clamp(
-          ultimateMeter + (dt * 100) / (playerUltimateStats?.rechargeSeconds ?? RAJA_ULTIMATE_RECHARGE_SECONDS),
-          0,
-          100,
-        );
-      if (keys.current.has('capslock')) {
-        keys.current.delete('capslock');
-        const actionAvailable =
-          ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
-          ultimateMeter >= 100 &&
-          !flightBusy(me) &&
-          me.state === 'ACTIVE' &&
-          !(field.id === 'kanal2' && me.waterEnteredAt) &&
-          now >= me.parkourUntil &&
-          (!me.action || now >= me.actionUntil);
-        if (actionAvailable) {
-          if(config) {
-            ultimateMeter=0;me.flight=startFlight(me);me.action=undefined;me.actionUntil=0;
-            boostBurstUntil=0;clearMouse();gameplayAudio.play('ultimate');flightHook('onFlightTakeoff');flightHook('flight_takeoff_sfx');
-            setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);
-            bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),820);
-            log(`${me.name} mengaktifkan ${ultimateName(me.characterId)}.`);
-          } else {
-          const castDuration = ultimateCastMsFor(me);
-          ultimateMeter = 0;
-          ultimateImpactAt = now + castDuration;
-          ultimateImpactApplied = false;
-          me.action = 'ultimate';
-          gameplayAudio.play('ultimate');
-          me.actionUntil = ultimateImpactAt;
-          me.vx = 0;
-          me.vy = 0;
-          boostBurstUntil = 0;
-          setUltimateBannerVisible(true);
-          window.clearTimeout(bannerTimeout);
-          bannerTimeout = window.setTimeout(
-            () => setUltimateBannerVisible(false),
-            me.characterId === 'kaka' ? 1050 : 820,
-          );
-          const isKaka = me.characterId === 'kaka';
-          burst(me.x, me.y, isKaka ? '#35f477' : '#ef233c', 14);
-          log(
-            isKaka
-              ? 'KAKA membangkitkan PERISAI HIJAU.'
-              : 'RAJA memanggil TITAH HALILINTAR.',
-          );
+      // Numeric match snapshot feeds authority; presentation consumes returned facts.
+      const ultimateState = {meter:ultimateMeter,impactAt:ultimateImpactAt,impactApplied:ultimateImpactApplied,buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil};
+      const ultimateRules = {
+        supported:ULTIMATE_CHARACTER_IDS,kanal2:field.id==='kanal2',
+        rechargeSeconds:playerUltimateStats?.rechargeSeconds ?? RAJA_ULTIMATE_RECHARGE_SECONDS,
+        castMs:ultimateCastMsFor(me),
+        durationMs:playerUltimateStats?.durationMs ?? (me.characterId==='kaka'?KAKA_ULTIMATE_SHIELD_MS:RAJA_ULTIMATE_BUFF_MS),
+        speedMultiplier:playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER,
+      };
+      const ultimateFacts = network?[]:stepUltimate(players,me,ultimateState,dt,now,input.ultimate,ultimateRules);
+      if(input.ultimate)keys.current.delete('capslock');
+      ultimateMeter=ultimateState.meter;ultimateImpactAt=ultimateState.impactAt;ultimateImpactApplied=ultimateState.impactApplied;
+      ultimateBuffUntil=ultimateState.buffUntil;ultimateShieldUntil=ultimateState.shieldUntil;
+      presentGameEvents(ultimateFacts,fact=>{
+        if(fact.type==='ULTIMATE_STARTED') {
+          boostBurstUntil=0;gameplayAudio.play('ultimate');
+          if(fact.flight){clearMouse();flightHook('onFlightTakeoff');flightHook('flight_takeoff_sfx');}
+          setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);
+          bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),!fact.flight&&me.characterId==='kaka'?1050:820);
+          if(fact.flight)log(`${me.name} mengaktifkan ${ultimateName(me.characterId)}.`);
+          else {
+            const isKaka=me.characterId==='kaka';
+            burst(me.x,me.y,isKaka?'#35f477':'#ef233c',14);
+            log(isKaka?'KAKA membangkitkan PERISAI HIJAU.':'RAJA memanggil TITAH HALILINTAR.');
           }
+        } else if(fact.type==='ULTIMATE_APPLIED'&&fact.effect==='shield') {
+          burst(me.x,me.y,'#35f477',34);burst(me.x,me.y,'#baffc9',18);beep(540,.32);
+          log(`PERISAI HIJAU · seluruh rekan kebal TAG selama ${fact.durationMs/1000} detik.`);
+        } else if(fact.type==='ULTIMATE_APPLIED') {
+          burst(me.x,me.y,'#ef233c',28);burst(me.x,me.y,'#b54a32',18);beep(118,.32);
+          log(`TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +${Math.round((fact.speedMultiplier-1)*100)}% selama ${fact.durationMs/1000} detik.`);
         }
-      }
-      const ultimateCasting =
-        ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
-        me.action === 'ultimate' &&
-        now < me.actionUntil;
-      if (
-        ultimateImpactAt &&
-        !ultimateImpactApplied &&
-        now >= ultimateImpactAt
-      ) {
-        ultimateImpactApplied = true;
-        ultimateImpactAt = 0;
-        if (me.characterId === 'kaka') {
-          const shieldDuration = playerUltimateStats?.durationMs ?? KAKA_ULTIMATE_SHIELD_MS;
-          ultimateShieldUntil = now + shieldDuration;
-          players
-            .filter((player) => player.team === me.team)
-            .forEach((player) => {
-              player.ultimateShieldUntil = ultimateShieldUntil;
-            });
-          burst(me.x, me.y, '#35f477', 34);
-          burst(me.x, me.y, '#baffc9', 18);
-          beep(540, 0.32);
-          log(
-            `PERISAI HIJAU · seluruh rekan kebal TAG selama ${shieldDuration/1000} detik.`,
-          );
-        } else {
-          const buffDuration = playerUltimateStats?.durationMs ?? RAJA_ULTIMATE_BUFF_MS;
-          const speedMultiplier = playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER;
-          ultimateBuffUntil = now + buffDuration;
-          burst(me.x, me.y, '#ef233c', 28);
-          burst(me.x, me.y, '#b54a32', 18);
-          beep(118, 0.32);
-          log(
-            `TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +${Math.round((speedMultiplier-1)*100)}% selama ${buffDuration/1000} detik.`,
-          );
-        }
-      }
-      const rajaUltimateMultiplier = (player: Player) =>
-        player.team === me.team &&
-        player.state === 'ACTIVE' &&
-        now < ultimateBuffUntil
-          ? playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER
-          : 1;
+      });
+      const ultimateCasting = coreUltimateCasting(me,now,ULTIMATE_CHARACTER_IDS);
+      const rajaUltimateMultiplier = (player:Player) =>
+        network?networkUltimates.speed(player,players,now,networkUltimateRules):ultimateSpeed(player,me,now,ultimateBuffUntil,playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER);
       const playerComboMultiplier = teamComboSpeedMultiplier(
         teamCombos[me.team],
         now,
       );
       if (ultimateCasting && !config) {
         clearMouse();
-        players.forEach((player) => {
-          player.vx = 0;
-          player.vy = 0;
-          player.lastX = player.x;
-          player.lastY = player.y;
-        });
-        boostLatch = keys.current.has(' ');
-        parkourLatch = keys.current.has('shift');
+        freezeUltimateActors(players);
+        boostLatch = input.keyboardSprint;
+        parkourLatch = input.parkour;
         return;
       }
-      if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
-      if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
-      if (keys.current.has('w') || keys.current.has('arrowup')) dy--;
-      if (keys.current.has('s') || keys.current.has('arrowdown')) dy++;
+      dx = input.moveX;
+      dy = input.moveY;
       if (flightBusy(me) && !isFlying(me)) {dx=0;dy=0;clearMouse();}
       if (!['ACTIVE', 'IN_BASE'].includes(me.state)) clearMouse();
       if (dx || dy) { mouseRoute = []; mouseStuckTime = 0; }
@@ -5293,11 +4918,12 @@ export function BentenganPrototype() {
           mouseDistance = Math.hypot(dx, dy);
         }
       }
-      const boostKey = keys.current.has(' ') || mouseBoost;
+      const sprintPulse = input.sprintPulse && mouseBoost;
+      const boostKey = input.keyboardSprint || sprintPulse;
       if (
         boostKey &&
         !flightBusy(me) &&
-        (!boostLatch || mouseBoost) &&
+        (!boostLatch || sprintPulse) &&
         me.boost > 0 &&
         !(field.id === 'kanal2' && me.waterEnteredAt) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
@@ -5313,15 +4939,10 @@ export function BentenganPrototype() {
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE');
       if (boosting) {
-        me.boost = Math.max(
-          0,
-          me.boost -
-            selected.boostDrain * (playerComboMultiplier > 1 ? 0.8 : 1) * dt,
-        );
-        me.boostReadyAt = now + 20000;
+        drainBoost(me, selected.boostDrain * (playerComboMultiplier > 1 ? 0.8 : 1), dt, now);
         mission.boost = true;
       }
-      const parkourKey = keys.current.has('shift');
+      const parkourKey = input.parkour;
       const parkourCost = 8 / selected.agility;
       if (
         parkourKey &&
@@ -5383,6 +5004,7 @@ export function BentenganPrototype() {
           selected.speed * playerComboMultiplier,
           dt,
           now,
+          input,
         );
       } else if ((dx || dy) && me.state !== 'PRISONER')
         move(
@@ -5396,6 +5018,7 @@ export function BentenganPrototype() {
             (boosting ? selected.boostMultiplier : 1)),
           dt,
           now,
+          input,
         );
       else {
         me.vx = 0;
@@ -5406,56 +5029,24 @@ export function BentenganPrototype() {
         if (mouseStuckTime > .6) clearMouse();
       }
       if(me.flight){me.flight.distance+=distance(me,mouseBefore);if(isFlying(me)&&flightGroundValid(me.x,me.y))me.flight.lastGround={x:me.x,y:me.y};}
-      players.slice(1).forEach((p) => {
-        if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) {
-          p.vx = 0;
-          p.vy = 0;
-          return;
-        }
-        const stats = CHARACTER_BY_ID[p.characterId];
-        const enemyOfPlayer = p.team !== me.team;
-        const desired = aiVector(p, now);
-        const vector = navigateAroundHazards(
-          p,
-          desired,
-          now,
-          enemyOfPlayer ? aiProfile.steerDistance : 78,
-          Math.sin(p.aiSeed + now / 1700),
-        );
-        const far = Math.hypot(vector.x, vector.y) > 145;
-        const boostThreshold = AI_BOOST_THRESHOLD;
-        const boostAi =
-          p.state === 'ACTIVE' &&
-          !(field.id === 'kanal2' && p.waterEnteredAt) &&
-          p.boost > 10 &&
-          far &&
-          Math.sin(now / 950 + p.aiSeed) > boostThreshold;
-        if (boostAi) {
-          p.boost = Math.max(
-            0,
-            p.boost -
-              stats.boostDrain *
-                AI_BOOST_DRAIN_MULTIPLIER *
-                dt,
-          );
-          p.boostReadyAt = now + 20000;
-        }
-        const comboMultiplier = teamComboSpeedMultiplier(
-          teamCombos[p.team],
-          now,
-        );
-        move(
-          p,
-          vector.x,
-          vector.y,
-          stats.speed *
-            comboMultiplier *
-            rajaUltimateMultiplier(p) *
-            AI_SPEED_MULTIPLIER *
-            (boostAi ? stats.boostMultiplier : 1),
-          dt,
-          now,
-        );
+      for(const p of players)if(p.controller==='remote'||network&&p.controller==='bot'&&p.flight)remoteMovement(p,humanFrames.get(p.entityId)??localInput.sample(p.entityId,new Set()),CHARACTER_BY_ID[p.characterId],dt,now,{
+        move,landing:findParkourLanding,near:p=>obstacles.some(o=>p.x+44>o.x&&p.x-44<o.x+o.w&&p.y+44>o.y&&p.y-44<o.y+o.h)||isNearWater(p.x,p.y)||!!studioMap?.objects.some(o=>o.behavior==='parkour'&&studioContains({...o,x:o.x-40,y:o.y-40,w:o.w+80,h:o.h+80},p.x,p.y)),
+        returnVector:(p,now)=>navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
+        combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:field.id==='kanal2',boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
+      });
+      botAuthority.run(simulationAuthority,{
+        players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
+        kanal2:field.id==='kanal2',localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
+        navigate:navigateAroundHazards,
+      },now,(p,intent)=>{
+        if(network&&p.flight)return;
+        if(intent.blocked){p.vx=0;p.vy=0;return;}
+        const stats=CHARACTER_BY_ID[p.characterId];
+        if(intent.frame.sprint)drainBoost(p,stats.boostDrain*AI_BOOST_DRAIN_MULTIPLIER,dt,now);
+        const comboMultiplier=teamComboSpeedMultiplier(teamCombos[p.team],now);
+        move(p,intent.frame.moveX,intent.frame.moveY,
+          stats.speed*comboMultiplier*rajaUltimateMultiplier(p)*AI_SPEED_MULTIPLIER*(intent.frame.sprint?stats.boostMultiplier:1),
+          dt,now,intent.frame);
       });
       resolvePlayerSpacing(now);
       riverFallCheck(now);
@@ -5471,9 +5062,7 @@ export function BentenganPrototype() {
       if (boosting && !wasDashing && movingForSound) gameplayAudio.play('dash');
       wasDashing = Boolean(boosting && movingForSound);
       if (me.state === 'PRISONER') gameplayAudio.play('prison');
-      const inEnemyFort = !flightBusy(me) && me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < baseRadius;
-      if (inEnemyFort && !wasInEnemyFort) gameplayAudio.play('fort-enter');
-      wasInEnemyFort = inEnemyFort;
+      presentInteractionEvents(fortEntryEvents(players,bases,baseRadius,fortOccupancy),now);
       const exitCandidates: Player[] = [];
       players.forEach((p) => baseCheck(p, dt, now, exitCandidates));
       Array.from(new Map(exitCandidates.map((p) => [p.id, p])).values())
@@ -5493,13 +5082,9 @@ export function BentenganPrototype() {
       tagCheck(now);
       rescueCheck(now);
       layoutPrisons();
-      (['blue', 'red'] as Team[]).forEach((team) => {
-        const allHeld = players
-          .filter((p) => p.team === other(team))
-          .every((p) => p.state === 'PRISONER' && p.prisonOwner === team);
-        totalCapture[team] = allHeld ? totalCapture[team] + dt : 0;
-        if (totalCapture[team] >= 2) winRound(team, 'SEMUA LAWAN DITANGKAP');
-      });
+      for(const event of resolveAllHeld(players,totalCapture,dt)) {
+        if(event.type==='objective')winRound(event.team,event.reason);
+      }
       particles.forEach((p) => {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
@@ -6088,10 +5673,11 @@ export function BentenganPrototype() {
         );
       });
     };
-    const drawBase = (team: Team) => {
+    const drawBase = (team: Team, render:RenderFrame) => {
       const b = bases[team],
         color = TEAM_COLOR[team],
-        occupant = fortOccupant(team);
+        occupant = render.players.find(p=>p.team!==team&&!flightBusy(p)&&p.state==='ACTIVE'&&
+          !(field.id==='kanal2'&&p.waterEnteredAt)&&distance(p,b)<baseRadius);
       ctx.strokeStyle = occupant ? '#f5cf45' : color;
       ctx.lineWidth = occupant ? 7 : 4;
       ctx.setLineDash(occupant ? [3, 5] : [8, 7]);
@@ -6181,7 +5767,8 @@ export function BentenganPrototype() {
         : '#f1d46c';
     };
     const studioResolve = createStudioResolver();
-    const drawPlayer = (p: Player, me: Player, now: number) => {
+    const drawPlayer = (p: Player, me: Player, now: number, render:RenderFrame) => {
+      const {phase,roundWinner,ultimateMeter,ultimateBuffUntil,teamCombos}=render;
       const color = TEAM_COLOR[p.team],
         outline = relationColor(p, me, now),
         sinking = field.id === 'kanal2' && p.waterEnteredAt > 0,
@@ -6675,7 +6262,10 @@ export function BentenganPrototype() {
         );
       }
     };
-    const draw = (now: number) => {
+    const renderAdapter = createRenderAdapter(players);
+    let pendingRenderFailure:string|null=null;
+    const draw = (now: number, render:RenderFrame) => {
+      const {players,refills,phase,rescueRequest}=render;
       const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
         cw = canvas.clientWidth,
         ch = canvas.clientHeight;
@@ -6721,12 +6311,11 @@ export function BentenganPrototype() {
         try {
           for (const p of players) scene3d.updateActor(p.id, p.x, p.y, target => {
             const previous = ctx;
-            try { ctx = target; drawPlayer(p, me, now); } finally { ctx = previous; }
+            try { ctx = target; drawPlayer(p, me, now, render); } finally { ctx = previous; }
           });
           ctx.drawImage(scene3d.render(cw, ch, scale, camX, camY, now), 0, 0, cw, ch);
         } catch (error) {
-          paused = true;
-          setRendererError(error instanceof Error ? error.message : 'Grafis 3D terhenti. Kembali ke menu untuk mencoba lagi.');
+          pendingRenderFailure = error instanceof Error ? error.message : 'Grafis 3D terhenti. Kembali ke menu untuk mencoba lagi.';
           scene3d.dispose(); scene3d = undefined;
         }
       }
@@ -6739,8 +6328,8 @@ export function BentenganPrototype() {
         drawKanalWater(now);
         drawNearbyFieldDetails(me, activeCamera);
       }
-      drawBase('blue');
-      drawBase('red');
+      drawBase('blue',render);
+      drawBase('red',render);
       if (mouseRoute.length) {
         const target = mouseRoute[mouseRoute.length - 1];
         ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
@@ -6752,7 +6341,7 @@ export function BentenganPrototype() {
         refills.forEach((item) => drawRefill(item, now));
         if (!scene3d && studioMap) {
           const entries = [
-            ...players.map(p=>({y:p.y,z:0,draw:()=>drawPlayer(p,me,now)})),
+            ...players.map(p=>({y:p.y,z:0,draw:()=>drawPlayer(p,me,now,render)})),
             ...studioLayers.world.filter(objectVisible).map(o=>({y:o.y+o.h,z:o.z,draw:()=>drawMapObject(ctx,o,now)})),
           ];
           entries.sort((a,b)=>a.z-b.z||a.y-b.y).forEach(item=>item.draw());
@@ -6760,7 +6349,7 @@ export function BentenganPrototype() {
         if (!scene3d && !studioMap) players
           .slice()
           .sort((a, b) => a.y - b.y)
-          .forEach((p) => drawPlayer(p, me, now));
+          .forEach((p) => drawPlayer(p, me, now, render));
         if (selectedFieldId !== 'kampung3d') drawPrisonOverlays(now);
         if (studioMap) studioLayers.foreground.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,now);});
         const rescueRequester = rescueRequest
@@ -6839,15 +6428,75 @@ export function BentenganPrototype() {
     let cachedStatsBoard = initialSnapshot.statsBoard;
     const profileRuntime = new URLSearchParams(window.location.search).get('performance') === '1';
     let profileFrames=0,profileUpdate=0,profileDraw=0,profileHud=0,profileWorst=0,profileStart=performance.now();
-    const loop = (now: number) => {
-      const dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
+    const loop = (localNow: number) => {
+      let now=localNow;
+      const dt = Math.min(0.033, (localNow - last) / 1000);
+      last = localNow;
       const updateStart=profileRuntime?performance.now():0;
-      if(!paused && phase==='PLAYING') routeScheduler.run();
+      if(!clientOnly&&!paused && phase==='PLAYING') routeScheduler.run();
       else routeScheduler.clear();
-      update(dt, now);
+      if(clientOnly){
+        if(localNow-lastNetworkSend>=1000/NETWORK_RATES.inputHz){
+          const me=players[0];
+          if(!['ACTIVE','IN_BASE'].includes(me.state))clearMouse();
+          while(mouseRoute.length&&distance(me,mouseRoute[0])<=5)mouseRoute.shift();
+          const frame=localInput.sample(myEntityId,keys.current,mouseBoost,mouseRoute[0]);
+          if(frame.moveX||frame.moveY)mouseRoute=[];
+          network!.sendInput({version:1,type:'INPUT',matchId:matchId!,entityId:myEntityId,sequence:frame.sequence,input:wireInput(frame)});
+          if(frame.ultimate)keys.current.delete('capslock');if(frame.rescue)keys.current.delete('r');
+          mouseBoost=false;lastNetworkSend=localNow;
+        }
+        const s=snapshots.read(localNow);
+        if(s){
+          clientPresentation=snapshotRenderState(readCanonicalState(localNow),s);now=s.timeMs;
+          // These are detached presentation values only: no collision, AI or rules run.
+          for(const e of clientPresentation.entities)e.controller=e.entityId===myEntityId?'local':e.controller==='bot'?'bot':'remote';
+          clientPresentation.entities=[...clientPresentation.entities.filter(e=>e.entityId===myEntityId),...clientPresentation.entities.filter(e=>e.entityId!==myEntityId)];
+          players=renderAdapter(clientPresentation).players as Player[];
+          const changedResult=phase!==s.phase&&(s.phase==='ROUND_OVER'||s.phase==='MATCH_OVER');
+          phase=s.phase;round=s.round;timer=s.timer;paused=s.paused;score={blue:s.score.red,red:s.score.green};
+          refills=structuredClone(s.refills);suddenDeath=s.suddenDeath;phaseUntil=s.phaseUntilMs??Infinity;
+          const requester=s.rescueRequest?players.find(p=>p.entityId===s.rescueRequest!.requesterId):null;
+          rescueRequest=requester&&s.rescueRequest?{requesterId:requester.id,team:s.rescueRequest.team==='red'?'blue':'red',expiresAt:s.rescueRequest.expiresAt,
+            assignedRescuerId:players.find(p=>p.entityId===s.rescueRequest!.assignedRescuerId)?.id}:null;
+          teamCombos={blue:{...teamCombos.blue,...s.combos.red},red:{...teamCombos.red,...s.combos.green}};
+          ultimateBuffUntil=s.ultimate.buffUntil;ultimateShieldUntil=s.ultimate.shieldUntil;ultimateMeter=players[0]?s.entities.find(e=>e.id===myEntityId)?.ultimateMeter??0:0;
+          roundWinner=s.result?.winner==='red'?'blue':s.result?.winner==='green'?'red':undefined;roundEndReason=s.result?.reason??'';
+          resultWinner=roundWinner;if(changedResult)resultAnnouncementUntil=s.timeMs+1500;
+          if(lastNetworkFrame){matchStartedAt=lastNetworkFrame.matchStartedAtMs;
+            rescueRequestCooldownUntil=lastNetworkFrame.rescueCooldownUntil;clientPresentation.rescueRequestCooldownUntil=rescueRequestCooldownUntil;
+            for(const [rows,store] of [[lastNetworkFrame.roundStats,roundStats],[lastNetworkFrame.matchStats,matchStats]] as const)for(const row of rows){const p=players.find(p=>p.entityId===row.entityId);if(p)store[p.id]={tags:row.tags,rescues:row.rescues,prisons:row.prisons};}
+            clientPresentation.roundStats=Object.fromEntries(lastNetworkFrame.roundStats.map(({entityId,...stats})=>[entityId,stats]));
+            clientPresentation.matchStats=Object.fromEntries(lastNetworkFrame.matchStats.map(({entityId,...stats})=>[entityId,stats]));
+          }
+          announcement=s.phase==='COUNTDOWN'?String(Math.max(1,Math.ceil(((s.phaseUntilMs??s.timeMs)-s.timeMs)/1000))):s.result?.reason??'';
+        }else announcement='MENUNGGU SNAPSHOT HOST…';
+        for(const event of receivedNetworkEvents.splice(0)){
+          if(event.type==='ULTIMATE_STARTED'||event.type==='ULTIMATE_APPLIED')presentNetworkUltimate([event]);
+          else if(event.type==='ROUND_ENDED'||event.type==='MATCH_ENDED'){
+            gameplayAudio.resetTagStreak();if(event.type==='MATCH_ENDED')gameplayAudio.play(event.team===players[0].team?'victory':'defeat');
+            burst(worldWidth/2,worldHeight/2,TEAM_COLOR[event.team],38);log(`${teamName(event.team)} · ${event.reason}`);
+          }else presentInteractionEvents([event],now);
+        }
+        particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;p.life-=dt;});particles=particles.filter(p=>p.life>0);
+      }else {
+        if(network)advanceSimulationClock(simulationClock,dt*1000);
+        update(dt, now);
+        if(network&&localNow-lastNetworkSend>=1000/NETWORK_RATES.snapshotHz){
+          const s=createSnapshot(readCanonicalState(now));
+          const state=readCanonicalState(now),rows=(stats:CanonicalGameState['matchStats'])=>Object.entries(stats).map(([entityId,counts])=>({entityId,...counts}));
+          network.publishSnapshot(initialNetworkSnapshot?{version:1,type:'MATCH_START',matchId:matchId!,arenaId:field.id,startAtMs:phaseUntil,snapshot:s}:
+            {version:1,type:'MATCH_FRAME',matchId:matchId!,tick:s.tick,snapshot:s,matchStartedAtMs:matchStartedAt,rescueCooldownUntil:rescueRequestCooldownUntil,roundStats:rows(state.roundStats),matchStats:rows(state.matchStats)});
+          initialNetworkSnapshot=false;lastNetworkSend=localNow;
+        }
+      }
+      if(pendingMatchResult&&localNow-lastResultAttempt>=5000){const packet=pendingMatchResult;lastResultAttempt=localNow;
+        try{const handed=resultHandoff!(packet);if(handed.result)setMatchProgressionResult(handed.result);if(handed.ack){if(clientOnly)network!.ackResult(packet.matchId);pendingMatchResult=null;}}
+        catch(error){setContentGateError(error instanceof Error?error.message:'Reward multiplayer belum tersimpan.');}
+      }
       const drawStart=profileRuntime?performance.now():0;
-      draw(now);
+      draw(now,renderAdapter(clientPresentation??readCanonicalState(now)));
+      if(pendingRenderFailure!==null){paused=true;setRendererError(pendingRenderFailure);pendingRenderFailure=null;}
       const hudStart=profileRuntime?performance.now():0;
       if (now - lastHud > 100) {
         lastHud = now;
@@ -7023,6 +6672,26 @@ export function BentenganPrototype() {
       if (event.key === 'F8') { event.preventDefault(); toggleCollision(); }
     };
     const debugHost = window as Window & { __kanalCollision?: unknown };
+    // Shared detached read adapter for rendering and development inspection.
+    const coreHost = window as Window & { __bentengGameCore?: { readState: () => CanonicalGameState; readSnapshot: () => GameSnapshot;readNetwork:()=>ReturnType<MultiplayerSession['metrics']>|null;readArena:()=>{width:number;height:number} } };
+    const readCanonicalState = (observedAtMs=performance.now()) => {const state=describeMatch({
+      matchId:matchId??'menu-preview',arenaId:field.id,phase,paused,
+      tick:simulationClock.tick,simulationTimeMs:simulationClock.simulationTimeMs,
+      fixedDeltaMs:simulationClock.fixedDeltaMs,observedAtMs,round,timer,phaseUntil,
+      suddenDeath,score,players,refills,nextRefillSpawn,exitCounter,teamCombos,totalCapture,
+      rescueRequest,rescueRequestCooldownUntil,ultimateMeter,ultimateImpactAt,ultimateImpactApplied,
+      ultimateBuffUntil,ultimateShieldUntil,
+      ultimateStats:playerUltimateStats?Object.fromEntries(Object.entries(playerUltimateStats).filter((entry):entry is [string,number]=>typeof entry[1]==='number')):null,
+      bases,baseRadius,roundStats,matchStats,winner:roundWinner,reason:roundEndReason,
+      });
+      if(network){for(const p of state.entities)p.ultimateMeter=networkUltimates.get(p.entityId)?.meter??0;
+        const raja=players.find(p=>p.characterId==='raja'),rajaState=raja?networkUltimates.get(raja.entityId):null;
+        state.ultimate.buffUntil=rajaState?.buffUntil??0;state.ultimate.effectiveStats={castMs:ultimateCastMsFor(players[0]),speedMultiplier:RAJA_ULTIMATE_SPEED_MULTIPLIER};
+      }
+      return state;
+    };
+    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}) };
+    if(development)coreHost.__bentengGameCore=coreProbe;
     if (development && isKanalField(field.id)) {
       collisionToggle = document.createElement('button');
       collisionToggle.type = 'button';
@@ -7064,6 +6733,7 @@ export function BentenganPrototype() {
     }
     raf = requestAnimationFrame(loop);
     return () => {
+      networkOff?.();networkStateOff?.();
       canvas.removeEventListener('pointerdown', pointerDown);
       canvas.removeEventListener('contextmenu', contextMenu);
       window.removeEventListener('blur', clearMouse);
@@ -7086,8 +6756,9 @@ export function BentenganPrototype() {
       collisionToggle?.remove();
       window.removeEventListener('keydown', collisionKey);
       if (isKanalField(field.id)) delete debugHost.__kanalCollision;
+      if(coreHost.__bentengGameCore===coreProbe)delete coreHost.__bentengGameCore;
     };
-  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId]);
+  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession]);
 
   const missionCount = useMemo(
     () => Object.values(snapshot.mission).filter(Boolean).length,
@@ -7113,6 +6784,7 @@ export function BentenganPrototype() {
     setGameLoading(true);
   };
   const quit = () => {
+    networkSession?.close();setNetworkSession(null);setMultiplayerOpen(false);
     stopCharacterVoice();
     keys.current.clear();
     setLeaderboardOpen(false);
@@ -7144,6 +6816,7 @@ export function BentenganPrototype() {
     setSelectedFieldId(decision.fieldId);
   };
   const rematch = () => {
+    if(networkSession){quit();return;}
     const gate = selectionGate();
     if (gate) { setContentGateError(gate); setMode('menu'); setMenuStep('field'); return; }
     keys.current.clear();
@@ -7155,6 +6828,7 @@ export function BentenganPrototype() {
     setRun((v) => v + 1);
   };
   const backToCharacterSelect = () => {
+    if(networkSession){quit();return;}
     keys.current.clear();
     postRoundActionRef.current = null;
     setLeaderboardOpen(false);
@@ -7168,6 +6842,7 @@ export function BentenganPrototype() {
     setRun((v) => v + 1);
   };
   const backToFieldSelect = () => {
+    if(networkSession){quit();return;}
     keys.current.clear();
     postRoundActionRef.current = null;
     setLeaderboardOpen(false);
@@ -7201,6 +6876,7 @@ export function BentenganPrototype() {
     setMenuStep('field');
   };
   const restartMatch = () => {
+    if(networkSession){quit();return;}
     const gate = selectionGate();
     if (gate) { setContentGateError(gate); setMode('menu'); return; }
     keys.current.clear();
@@ -7226,7 +6902,7 @@ export function BentenganPrototype() {
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if (!playerProfile) return;
-      if (profileOpen) return;
+      if (profileOpen || multiplayerOpen) return;
       if (creditsOpen) return;
       if (rulesOpen) {
         if (key === 'escape') setRulesOpen(false);
@@ -7293,6 +6969,7 @@ export function BentenganPrototype() {
     selectedId,
     playerProfile,
     profileOpen,
+    multiplayerOpen,
   ]);
 
   const touchKey = (key: string, pressed: boolean) =>
@@ -7319,6 +6996,7 @@ export function BentenganPrototype() {
     mode === 'playing' && (leaderboardOpen || statsBoard.visible);
   const closeLeaderboard = () => setLeaderboardOpen(false);
   const requestNextRound = () => {
+    if(networkSession?.read().role==='client'){setLeaderboardOpen(false);return;}
     postRoundActionRef.current = 'next-round';
     setLeaderboardOpen(false);
   };
@@ -7409,6 +7087,7 @@ export function BentenganPrototype() {
               >
                 <span>PRESS</span> SPACE <small>atau klik untuk masuk</small>
               </button>
+              <button type="button" className="multiplayer-open" style={{marginTop:12,padding:'10px 18px',background:'#172419',color:'#e9f1d6',border:'1px solid #c9ee5f',borderRadius:8,cursor:'pointer'}} onClick={()=>setMultiplayerOpen(true)}>MULTIPLAYER · LOBBY</button>
             </div>
           </section>
         )}
@@ -7878,6 +7557,13 @@ export function BentenganPrototype() {
             />
           </Suspense>
         )}
+        {multiplayerOpen&&<Suspense fallback={<output>Memuat panel multiplayer…</output>}><MultiplayerPanel
+          arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
+          prepareContent={id=>createContentIdentity(id,{field:FIELD_BY_ID[id as FieldId],studio:studioMapById[id]??null})}
+          onLaunch={session=>{const state=session.read(),local=state.lobby!.participants.find(p=>p.peerId===state.localPeerId)!;
+            keys.current.clear();setSelectedFaction(local.team);setSelectedIdState(local.characterId);setSelectedFieldIdState(session.content.arenaId as FieldId);
+            setNetworkSession(session);setMultiplayerOpen(false);setSnapshot(initialSnapshot);setMode('playing');}}
+          onClose={()=>setMultiplayerOpen(false)}/></Suspense>}
       </main>
     );
   }

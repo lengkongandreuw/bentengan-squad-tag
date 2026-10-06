@@ -1,10 +1,11 @@
 import { getArenaStats } from './arena-stats';
+import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity';
 import { progressionRules } from './progression-rules';
 import type { LocalPlayerProfile } from './types';
 import { getLevelFromXP } from './xp-engine';
 
 export function getArenaUnlockRequirement(arenaId: string) {
-  const requirement = progressionRules.arenaProgression.unlockRequirements.find(r => r.arenaId === arenaId);
+  const requirement = progressionRules.arenaProgression.unlockRequirements.find(r => r.arenaId === getProgressionArenaId(arenaId));
   return requirement ? {
     ...requirement,
     requiredArenaStats: requirement.requiredArenaStats.map(r => ({ ...r })),
@@ -14,8 +15,8 @@ export function getArenaUnlockRequirement(arenaId: string) {
 
 export function getArenaUnlockProgress(profile: LocalPlayerProfile, arenaId: string) {
   const requirement = getArenaUnlockRequirement(arenaId);
-  const historical = profile.progression?.unlockedArenaIds.includes(arenaId) ?? false;
-  const starter = progressionRules.initialUnlocks.arenaIds.includes(arenaId);
+  const historical = getProgressionArenaIds(arenaId).some(id => profile.progression?.unlockedArenaIds.includes(id));
+  const starter = progressionRules.initialUnlocks.arenaIds.includes(getProgressionArenaId(arenaId));
   const checks: { kind: string; id?: string; current: number; required: number; met: boolean }[] = [];
   const check = (kind: string, current: number, required: number, id?: string) =>
     checks.push({ kind, ...(id ? { id } : {}), current, required, met: current >= required });

@@ -279,14 +279,16 @@ test('module08 all catalog tiers resolve, invalid/missing state is base and snap
 test('module09 runtime smoke executes actual ultimate block: base/upgraded cast, recharge, effects, scope, audio once',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   const updateStart=source.indexOf('const update = (dt: number, now: number) =>');
-  const start=source.indexOf('if (ULTIMATE_CHARACTER_IDS.has(me.characterId))',updateStart);
+  const start=source.indexOf('// Numeric match snapshot feeds authority',updateStart);
   const end=source.indexOf('const playerComboMultiplier',start);
   assert.ok(updateStart>0&&start>updateStart&&end>start);
   const helperStart=source.indexOf('const ultimateCastMsFor =');
   const helperEnd=source.indexOf('setMatchProgressionResult(null)',helperStart);
   const helper=source.slice(helperStart,helperEnd);
   const setup=`
-    const me=players[0],config=null,keys={current:new Set()},field={id:'kampung'};
+    const {stepUltimate,ultimateCasting:coreUltimateCasting,ultimateSpeed}=core;
+    const presentGameEvents=(events,consume)=>events.forEach(consume);
+    const me=players[0],config=null,keys={current:new Set()},field={id:'kampung'},network=null;
     const ULTIMATE_CHARACTER_IDS=new Set(['raja','kaka']);
     const RAJA_ULTIMATE_RECHARGE_SECONDS=45,RAJA_ULTIMATE_CAST_MS=3200,KAKA_ULTIMATE_CAST_MS=3600,
       RAJA_ULTIMATE_BUFF_MS=5000,KAKA_ULTIMATE_SHIELD_MS=5000,RAJA_ULTIMATE_SPEED_MULTIPLIER=1.4;
@@ -301,6 +303,7 @@ test('module09 runtime smoke executes actual ultimate block: base/upgraded cast,
       castFor:ultimateCastMsFor,
       step(dt,now,press=false){
         if(press)keys.current.add('capslock');
+        const input={ultimate:keys.current.has('capslock')};
         ${source.slice(start,end)}
         return {meter:ultimateMeter,casting:ultimateCasting,buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil,
           multipliers:players.map(rajaUltimateMultiplier),audio:[...audio],messages:[...messages]};
@@ -308,7 +311,8 @@ test('module09 runtime smoke executes actual ultimate block: base/upgraded cast,
     };
   `;
   const output=ts.transpileModule(setup,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
-  const initialize=vm.runInThisContext(`(function(players,playerUltimateStats){${output}\n})`);
+  const initializeBlock=vm.runInThisContext(`(function(players,playerUltimateStats,core){${output}\n})`);
+  const initialize=(players,stats)=>initializeBlock(players,stats,load('lib/game-core/ultimate.ts'));
   for(const id of ['raja','kaka'])for(const level of [0,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
     const stats=effective.snapshotUltimateStats(p,id);

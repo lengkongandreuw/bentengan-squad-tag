@@ -83,7 +83,7 @@ export async function templates(root) {
     });
     for (const [i, o] of field.obstacles.entries()) {
       const v = visual(o, `obj-visual-${i}`);
-      if (!o.hidden && !o.underlay) objects.push(v);
+      if (!o.hidden) objects.push(v);
       if (field.id === 'kanal2') {
         for (const [j, poly] of kanalObjectPolygons(o).entries()) {
           const x = Math.min(...poly.map((p) => p[0])),
@@ -118,7 +118,7 @@ export async function templates(root) {
         });
     }
     for (const [i, o] of field.decorations.entries())
-      if (!o.underlay) objects.push(visual(o, `obj-decoration-${i}`));
+      objects.push(visual(o, `obj-decoration-${i}`));
     const file = field.background,
       meta = await sharp(
         await readFile(path.join(root, 'public/field', file)),
@@ -148,6 +148,8 @@ export async function templates(root) {
       }
       waterMask = { width, height, rows };
     }
+    const iconFile = `ui-v2/fields/${field.id}.webp`,
+      iconMeta = await sharp(await readFile(path.join(root, 'public', iconFile))).metadata();
     return {
       id: `studio-edit-${field.id}`,
       replaces: field.id,
@@ -164,7 +166,8 @@ export async function templates(root) {
         frames: [{ x: 0, y: 0, width: meta.width, height: meta.height }],
         fps: 12,
       },
-      icon: null,
+      icon: {asset: iconFile, width: iconMeta.width, height: iconMeta.height,
+        frames: [{x: 0, y: 0, width: iconMeta.width, height: iconMeta.height}], fps: 12},
       terrainMode: 'stretch',
       tileSize: 256,
       objects,
@@ -194,6 +197,8 @@ export async function templates(root) {
       editable: f.id !== 'kampung3d',
       objectScale: f.objectScale ?? 1,
       baseRadius: f.baseRadius ?? 118,
+      structuresInBackground: !!f.structuresInBackground,
+      background: f.background,
     })),
     library: Object.keys(atlas.assets).map((id) => ({
       name: id,

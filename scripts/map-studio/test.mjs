@@ -279,6 +279,14 @@ test('Kampung template and library use normalized valid assets', async () => {
   assert.equal(t.builtins.length, 6);
   assert.equal(t.builtinTemplates.length, 5);
   t.builtinTemplates.forEach(validateMap);
+  for (const m of t.builtinTemplates) {
+    assert.equal(m.icon.asset, `ui-v2/fields/${m.replaces}.webp`);
+    assert.equal(m.icon.frames.length, 1);
+  }
+  assert.ok(t.template.objects.some(o => o.asset && o.layer === 'background'), 'underlay artwork must not disappear');
+  const taman = t.builtinTemplates.find(m => m.replaces === 'taman');
+  assert.equal(taman.terrain.asset, 'field/taman-map.webp');
+  assert.ok(t.builtins.find(b => b.id === 'taman').structuresInBackground);
   assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
 });
 
@@ -307,8 +315,17 @@ test('HTTP harness exposes built-in catalog and browser guard from running serve
       'dummyStatus',
       'activationState',
       'structures',
+      'chooseMapPreview',
+      'mapPreviewFile',
+      'iconPreview',
+      'unlockIdentity',
+      'cleanPreview',
     ])
       assert.ok(html.includes(`id="${id}"`));
+    const nativePreview = await fetch(origin + '/ui-v2/fields/taman.webp');
+    assert.equal(nativePreview.status, 200);
+    assert.match(nativePreview.headers.get('content-type'), /image\/webp/);
+    assert.equal((await fetch(origin + '/ui-v2/fields/not-a-map.webp')).status, 404);
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
@@ -442,6 +459,17 @@ test('local API upload, session guard, revision conflict and safe map merge', as
       400,
     );
     assert.ok(await readFile(path.join(dir, 'public', asset.asset)));
+    state = { ...state, ...(await (await fetch(origin + '/api/state')).json()) };
+    const iconUpload = await post('/api/upload', {kind: 'icon', file: {data: png.toString('base64')}});
+    assert.equal(iconUpload.status, 200);
+    const icon = (await iconUpload.json()).asset;
+    assert.equal(icon.frames[0].width, 640); assert.equal(icon.frames[0].height, 360); assert.equal(icon.frames.length, 1);
+    const original = structuredClone(state.document.maps[1]);
+    const iconSave = await post('/api/save', {map: {...original, icon}});
+    assert.equal(iconSave.status, 200);
+    const savedIconState = await iconSave.json();
+    assert.deepEqual(savedIconState.document.maps[1], {...original, icon});
+    assert.deepEqual(savedIconState.document.maps[0], state.document.maps[0]);
     assert.ok((await fetch(origin + '/')).ok);
     assert.ok((await fetch(origin + '/editor.js')).ok);
   } finally {

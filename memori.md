@@ -4,6 +4,149 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-06 PUBLISH BATCH AUTHORIZED: user requests all current local changes.
+Multiplayer02–23 + map editor identity/preview improvements + user local maps and
+4 WebP uploads included. Native game/editor data preserved, draft enable status
+unchanged.165 combined tests/TS/Pages build PASS. Fetched GitHub main equal to
+base d576801. Push via Windows Git credentials; restricted shell credentials and
+default GH CLI token unavailable. Do not force-push; verify public build-info and
+Pages workflow after push. Historical LOCAL ONLY entries below describe earlier
+development stages and do not revoke this explicit publish authorization.
+
+2026-10-06 MAP EDITOR LOCAL: edited native maps keep original unlock/tier identity
+via arena-identity.ts; runtime gates/requirements/stats agree across studio-edit
+and native IDs. Historical alias stats combine on read, fold once on next match
+write; no read-time storage mutation, no extra prerequisites or threshold changes.
+Map selection image editing is prominent: PNG/GIF/WebP, first frame still,
+lossless640x360 contain; save/reload tested in isolated fixture. Replacement maps
+without custom thumbnail inherit original arena artwork. Templates keep visible
+underlays; Taman combined native terrain matches game, clean preview hides guides,
+no duplicate generic structures on already-baked Taman/Kanal terrain. Current
+native Taman has no independent warung asset; do not invent obsolete-layout props.
+165 combined tests, TS/focused lint, Pages build PASS; browser checks exact source,
+thumbnail round-trip and collider preservation, screenshots inspected. Existing
+legacy lint/build warnings remain. Local editor4341/session3303;4320 occupied,
+not interrupted. Actual config/map assets preserved; no publish.
+
+2026-10-06 MODULE20–23 LOCAL ONLY, supersedes navigation-only restrictions in
+historical17–19 below. Frozen10-actor roster; disconnected remote humans become
+bots without identity/character/prison/stat reset, input authority revoked. Host
+loss ends clients; no reconnect/migration. Host-owned completed MATCH_RESULT and
+per-human eligibility/KDA feed existing local progression writer, XP/DOI/unlocks;
+ACK/retry, storage failure retry and existing persistent match-ID dedup. Departed
+humans/incomplete matches get no rewards. Casual P2P trust, not ranked security.
+Host authoritative ultimate/rescue input, independent human skill states using
+existing core, all flight-stage tag protection, per-round meter preservation.
+Base ultimate stats online, no remote profile upgrade transfer. MATCH_FRAME syncs
+scoreboards/cooldown; deduplicated host events drive client presentation only.
+2–4 humans +8/7/6 host bots.163 regression tests, TS/focused lint and Pages compile
+PASS. Actual2-browser full match same2–0 winner,160XP/15DOI vs100XP/10DOI; result
+screenshots inspected. Actual3/4-human ownership/takeover/host-loss QA PASS;4-human
+repeat checks signed movement directions, no page errors.4-human sample7.403s,
+1,156,485 host application bytes,6.48Hz snapshots observed vs12Hz configured;
+same-PC/startup-inclusive, not latency/FPS guarantee.24 not implemented.
+See docs/MULTIPLAYER-MODULE20-23.md. Review3026; restart after source/content changes
+to refresh compatibility manifest. No publish. Concurrent map editor config/WebP
+saves observed during verification belong to their author; preserve untouched.
+Final retry with network permission on editor replacement studio-edit-kampung
+also PASS:green2–1 red, client160XP/15DOI and host100XP/10DOI,66 gameplay events,
+one result/ACK,86.692s,no page errors. Earlier host-not-found signaling attempts
+failed before gameplay; no guaranteed connectivity claim. Review session90824.
+
+2026-10-06 MODULE17–19 LOCAL ONLY explicit batch. Actual lobby→game session
+ownership transfer; host simulates local+remote humans+existing bots with stable
+IDs/reserve choices, remote INPUT ownership/shape/sequence/bounds gates and250ms
+neutral timeout. Shared human move/boost/parkour, no bot multipliers for humans.
+Client has no authoritative update/AI/collision;12Hz host snapshots,30Hz client
+input,100ms bounded receive-clock interpolation of x/y with latest discrete data.
+No prediction; legacy variable-delta physics retained. Online profile/reward/XP/
+DOI/rotation writes disabled. Navigation MVP only, not complete online match FX.
+CONTENT_VERSION gates admission/start; SHA-256 source/config build + selected
+arena definition/Studio/map asset bytes detect same-ID changed maps; mismatch
+readable and approval revoked. Pages Vite manifest required; restart server after
+source edits. No automatic assets/auth/server/reconnect/host migration.
+154 regression tests,TypeScript,focused module lint,Pages build passed; actual
+two isolated browser runtime QA PASS (remote reserve Kodo, host local,8 bots,
+snapshots, host-tab disconnect, no page errors). Heartbeat silence10s/scanned5s
+ends frozen clients even before ICE leave detection. Full legacy monolith lint
+diagnostics remain. Current local review3025. Details
+docs/MULTIPLAYER-MODULE17-19.md. No publish.
+
+2026-10-06 MODULE14–16 LOCAL ONLY in requested order. Lazy pinned MQTT/Trystero
+WebRTC adapter isolated from gameplay; no dedicated server/TURN/media permission.
+Public signaling/ICE dependency and NAT failure caveats; full room code embeds
+expected host peer ID plus nonce, not authentication.20s missing-host failure.
+Host canonical revisioned lobby validates peer-bound team/character/ready and
+duplicates, max4 humans,5v5 bot preview; only host can start2+ all-ready prep.
+Native minimal multiplayer dialog on splash, leave closes transport/timers, host
+loss ends room. LOBBY_STATE/SESSION_ERROR added to local v1 protocol. Lobby start
+does not run online gameplay; compatibility/assets and live sync pending later.
+8 deterministic tests + real two isolated Chrome contexts WebRTC team/character/
+ready/start/disconnect PASS, desktop/mobile inspected.144/144 tests, TS/lint/Pages
+build PASS; npm audit21 advisories not auto-fixed/clean security not claimed.
+Existing locked versions/assets/config/editor/solo behavior preserved; no publish.
+See docs/MULTIPLAYER-MODULE14-16.md. Prior02–13 uncommitted work retained.
+
+2026-10-06 MODULE11–13 LOCAL ONLY under explicit batch instruction. Drawing reads
+detached canonical RenderFrame; keeps sprite/cache legacy visual IDs and names,
+no actor mutation authority; 3D error pause handled by runtime loop. Canonical
+projection runs each render frame for current variable-delta truth; snapshot
+JSON encoding only on demand. No measured device FPS/browser visual QA claim.
+Snapshot v1 dynamic allowlist excludes assets/static geometry/profile/stat stores;
+strict finite exact-key bounded parser, identity/reference/phase checks.
+Dev probe readSnapshot() added. Protocol v1 validates all12 messages and events,
+canonical team conversion and envelope consistency; no WebRTC/transport/network
+apply, authentication or sequence/ownership authorization yet. See
+docs/MULTIPLAYER-MODULE11-13.md.136/136 tests, TypeScript/lint/Pages build PASS;
+existing CSS/chunk warnings remain. Source assets,
+configs/editors/economy/balance untouched; no publish. Prior02–10 work preserved.
+
+2026-10-06 MODULE09+10 LOCAL ONLY, explicitly authorized together. Bot strategy
+and sequenced intents extracted to game-core/bot-ai.ts; host-only/controller=bot
+selection, sequential shared movement, old routing and balance retained. Client
+guard does no AI/navigation/consume. Current single-player remains host; no P2P.
+game-core/events.ts defines finite data-only event boundary: accepted tag/rescue,
+fort entry/capture edges, ultimate and guarded results. Runtime presentation
+consumes audio/feed/VFX events; stats/rewards remain outside subscriptions.
+Legacy return shapes retained; footsteps/refill/hazard/combo effect paths still
+incremental, not a claim of fully decoupled monolith. Staged clock unchanged.
+127/127 combined tests, TypeScript/core lint/Pages build PASS; see
+docs/MULTIPLAYER-MODULE09-10.md. No asset/editor/config changes
+or publish. Prior STOP09 is superseded by this explicit batch request.
+
+2026-10-06 MODULE08 LOCAL ONLY: ultimate + match authority extracted into
+lib/game-core/ultimate.ts and match-rules.ts. Current balance and upgrade snapshot
+preserved; cast/impact, flight sequence, bonus/recharge, scope, timer precedence,
+sudden death and best-of-three guarded by core. Audio/banners/reward storage stay
+runtime-side. Frozen parity and actual once-only result adapter tests added.
+Combined120/120 tests, TypeScript/core lint/Pages build PASS; details
+docs/MULTIPLAYER-MODULE08.md. Staged clock unchanged.
+Supplied08–10 require per-module STOP, so09/10 not implemented yet. No publish;
+continue09 only on user instruction. Prior02–07 work retained uncommitted.
+
+2026-10-06 MODULE02–07 implemented LOCAL ONLY after explicit user batch approval,
+superseding the earlier one-module STOP. lib/game-core provides canonical JSON
+read state, stable IDs, sequenced input, staged 30Hz clock, extracted motion and
+interaction rules. Runtime delegates without asset/balance/editor changes.
+Clock does NOT yet replace the original variable-delta simulation. Legacy IDs
+retained for ties/stats; all ten new entity IDs persist across rounds. Dev-only
+window.__bentengGameCore.readState() reads detached actual match truth on demand.
+No remote input, WebRTC, full state writer or takeover workflow. Audio/profile,
+AI decisions and ultimate timing remain runtime-owned pending later modules.
+114/114 combined tests PASS including 14 core frozen legacy parity tests;
+TypeScript/core lint/Pages build PASS with existing CSS/chunk warnings. See
+docs/MULTIPLAYER-PHASE-A-02-07.md for boundaries and validation. No commit/push;
+next development follows the next supplied document, not inferred deployment.
+
+2026-10-05 Multiplayer MODULE01 COMPLETE LOCAL ONLY. Supplied00–03 require STOP
+after active module, so inventory only: docs/MULTIPLAYER-RUNTIME-BOUNDARIES.md.
+Main runtime8936lines; mutable effect truth, players[0]/slice(1) controller
+assumptions, internal blue=visible red and red=green. Existing Snapshot is HUD,
+not canonical truth. Flight advance/steer mutate; map index owns caches/functions.
+Preserve tieHash/ID ordering, dt vs deadline clock semantics, finite JSON values,
+authored flight timing, progression handoff once per completed match. No runtime/
+asset/editor changes or publish. Next on continuation02, then03; no P2P yet.
+
 2026-10-05 user subsequently requested publish optimization. Fresh fetch showed
 HEAD==github/main e508b11; no merge or force push. Implementation065bdf5 published,
 Pages run37280025918 build+deploy SUCCESS; TypeScript/100 tests PASS. Source Studio

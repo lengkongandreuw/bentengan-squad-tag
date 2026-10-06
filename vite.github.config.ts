@@ -1,7 +1,8 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const legacyEntryFiles = [
@@ -10,6 +11,17 @@ const legacyEntryFiles = [
   'assets/app.js',
 ];
 const legacyStyleFiles = ['assets/index-BoUDbTB1.css', 'assets/index.css'];
+
+// Hash source bytes, not HEAD/date: local uncommitted builds must also differ.
+function treeHash(roots:string[],sourceOnly=false) {
+  const hash=createHash('sha256'),files:string[]=[];
+  const visit=(dir:string)=>{for(const item of readdirSync(dir,{withFileTypes:true})){const path=join(dir,item.name);
+    if(item.isDirectory())visit(path);else if(!sourceOnly||/\.(tsx?|js|json)$/.test(path))files.push(path);}};
+  roots.forEach(visit);
+  for(const file of files.sort())hash.update(relative(process.cwd(),file).replaceAll('\\','/')).update('\0').update(readFileSync(file)).update('\0');
+  return hash.digest('hex');
+}
+const contentManifest={buildVersion:treeHash(['app','lib','config'],true),mapAssetsRevision:treeHash(['public/field','public/map-studio'])};
 
 const githubPagesCacheCompatibility: Plugin = {
   name: 'github-pages-cache-compatibility',
@@ -65,6 +77,7 @@ const githubPagesCacheCompatibility: Plugin = {
 };
 
 export default defineConfig({
+  define:{__BENTENG_CONTENT__:JSON.stringify(contentManifest)},
   base: '/bentengan-squad-tag/',
   plugins: [react(), githubPagesCacheCompatibility],
   build: {

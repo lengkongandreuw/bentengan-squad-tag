@@ -112,7 +112,7 @@ function image(a) {
   if (!a) return null;
   if (!cache.has(a.asset)) {
     const i = new Image();
-    i.src = '/' + a.asset;
+    i.src = '/' + a.asset + '?v=' + encodeURIComponent(state.revision);
     i.onerror = () => notice('Gambar gagal dimuat: ' + a.asset, true);
     cache.set(a.asset, i);
   }
@@ -231,6 +231,9 @@ function fields() {
     $(id).setCustomValidity('');
   }
   $('enabled').checked = map.enabled;
+  $('unlockIdentity').textContent = map.replaces
+    ? `Unlock tetap mengikuti arena asli (${map.replaces}). Edit map tidak menambah syarat baru.`
+    : 'Mengedit map ini tidak mengubah ID atau syarat unlock yang sudah ada.';
   propertyFields();
   list();
   resize();
@@ -381,7 +384,7 @@ function drawObject(o, now) {
     if (o.mirror) ctx.scale(-1, 1);
     ctx.globalAlpha = 1;
   }
-  if ($('bounds').checked || o.id === selected) {
+  if (!$('cleanPreview').checked && ($('bounds').checked || o.id === selected)) {
     ctx.fillStyle = colors[o.behavior] + '25';
     ctx.strokeStyle = o.id === selected ? '#dcffb5' : colors[o.behavior];
     ctx.lineWidth = 2 / zoom();
@@ -545,6 +548,10 @@ function drawDummy(now) {
 }
 function drawGameplayAssets(now, overlay = false) {
   if (!$('structures').checked) return;
+  const native = builtins.find(b => b.id === map.replaces);
+  // Authored Taman/Kanal backgrounds already contain the native structures.
+  // Do not paint unrelated generic structures over the same pixels.
+  if (native?.structuresInBackground && map.terrain?.asset === 'field/' + native.background) return;
   const scale = builtins.find((b) => b.id === map.replaces)?.objectScale ?? 1;
   for (const t of ['blue', 'red']) {
     const b = map.bases[t],
@@ -576,6 +583,7 @@ function drawGameplayAssets(now, overlay = false) {
   }
 }
 function drawGuides() {
+  if ($('cleanPreview').checked) return;
   for (const t of ['blue', 'red']) {
     const b = map.bases[t],
       p = map.prisons[t],
@@ -670,8 +678,10 @@ function animate(now) {
     });
   }
   const ic = $('iconPreview').getContext('2d');
-  ic.clearRect(0, 0, 160, 90);
-  drawAsset(ic, map.icon, 0, 0, 160, 90, now);
+  ic.clearRect(0, 0, ic.canvas.width, ic.canvas.height);
+  const artwork = map.icon ?? builtinTemplates.find(m => m.replaces === map.replaces)?.icon ??
+    (map.terrain?.frames.length === 1 ? map.terrain : null);
+  drawAsset(ic, artwork, 0, 0, ic.canvas.width, ic.canvas.height, now);
 }
 canvas.onpointerdown = (e) => {
   canvas.focus();
@@ -1263,7 +1273,7 @@ function mapChoices() {
   $('maps').value = map.replaces ? 'builtin:' + map.replaces : map.id;
   $('resetMap').disabled = !map.replaces;
   $('mapOrigin').textContent = map.replaces
-    ? `Versi pengganti ${map.replaces}. Simpan draft lalu Aktifkan untuk mengganti di game; Pulihkan versi asli untuk membatalkan. ${map.archived ? 'ARSIP. ' : ''}${map.deleted ? 'SAMPAH. ' : ''}Grafik baked-in tetap menyatu di terrain.`
+    ? `Versi pengganti ${map.replaces}. Simpan draft lalu Aktifkan untuk mengganti di game; Pulihkan versi asli untuk membatalkan. ${map.archived ? 'ARSIP. ' : ''}${map.deleted ? 'SAMPAH. ' : ''}Bangunan pada gambar terrain bawaan tetap menyatu di latar; gunakan Preview bersih untuk melihatnya tanpa garis collider.`
     : 'Map buatan editor. Arsip/Sampah tidak menghapus aset. Perubahan daftar berlaku setelah Build/publish.';
 }
 $('save').onclick = safe(async () => {
@@ -1409,15 +1419,14 @@ async function job(publish) {
 }
 $('build').onclick = safe(() => job(false));
 $('publish').onclick = safe(() => job(true));
-$('file').onchange = safe(async () => {
+async function uploadFile(f, target) {
+  if (loading || testing) throw new Error('Selesaikan upload/uji cepat dahulu.');
   if ($('maps').value === 'builtin:kampung3d')
     throw new Error('Pilih map 2D untuk upload/edit.');
-  const f = $('file').files[0];
   if (!f) return;
   if (f.size > 30 * 1024 * 1024)
     throw new Error('File ditolak: maksimal 30 MB.');
-  const target = $('uploadKind').value,
-    selectedBefore = selected;
+  const selectedBefore = selected;
   if (target === 'replace' && !object()) throw new Error('Pilih objek dahulu.');
   if (uploadUrl) URL.revokeObjectURL(uploadUrl);
   uploadUrl = URL.createObjectURL(f);
@@ -1459,6 +1468,12 @@ $('file').onchange = safe(async () => {
     loading = false;
     $('save').disabled = false;
   }
+}
+$('file').onchange = safe(() => uploadFile($('file').files[0], $('uploadKind').value));
+$('chooseMapPreview').onclick = () => $('mapPreviewFile').click();
+$('mapPreviewFile').onchange = safe(async () => {
+  try { await uploadFile($('mapPreviewFile').files[0], 'icon'); }
+  finally { $('mapPreviewFile').value = ''; }
 });
 function renderLibrary() {
   const q = $('search').value.toLowerCase();

@@ -297,6 +297,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           file = path.join(projectRoot, 'lib/map-studio-model.js');
         else if (
           /^\/map-studio\/[a-f0-9]{64}\.webp$/.test(url.pathname) ||
+          /^\/ui-v2\/fields\/(kampung|pasar|taman|kanal|kanal2)\.webp$/.test(url.pathname) ||
           /^\/field\/(objects|grounds|animated|kampung-map|pasar-map|taman-map|kanal-map|kanal2-ground|kanal-object-atlas)\.webp$/.test(
             url.pathname,
           )
@@ -424,7 +425,12 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
               ).toString('base64'),
             };
           }
-          const result = await compileSprites([file], {}),
+          // Thumbnails are one still image, not a padded animation atlas.
+          const result = data.kind === 'icon' ? await (async () => {
+            const bytes = await sharp(Buffer.from(file.data, 'base64')).webp({lossless: true}).toBuffer();
+            return {bytes, hash: hash(bytes), width: 640, height: 360,
+              frames: [{x: 0, y: 0, width: 640, height: 360}]};
+          })() : await compileSprites([file], {}),
             asset = `map-studio/${result.hash}.webp`,
             dir = path.join(projectRoot, 'public/map-studio');
           await mkdir(dir, { recursive: true });

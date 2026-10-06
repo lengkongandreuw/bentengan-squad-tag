@@ -70,6 +70,8 @@ test('three flight actions support optional eight directions with backward-compa
 });
 test('runtime retains existing team ultimates and gates all flight interactions',()=>{
   const code=fs.readFileSync('app/prototype.tsx','utf8');
-  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','flightBusy(winner) || flightBusy(loser)','flightBusy(a) || flightBusy(b)','!flightBusy(p) && p.state','flightBusy(p) || p.state','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)'])assert.ok(code.includes(pattern),pattern);
+  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)','resolveTag(players,winner.entityId,loser.entityId','resolveRescue(players,rescuer.entityId','resolveBase(players,p,dt,now'])assert.ok(code.includes(pattern),pattern);
+  const rules=fs.readFileSync('lib/game-core/interactions.ts','utf8');
+  for(const pattern of ['!flightBusy(a)&&!flightBusy(b)','flightBusy(actor)','flightBusy(p)','now>=b.ultimateShieldUntil','now>=a.parkourUntil&&now>=b.parkourUntil'])assert.ok(rules.includes(pattern),pattern);
   assert.equal(code.split("onClick={() => keys.current.add('capslock')}").length-1,2,'desktop/mobile ultimate queues a one-shot until consumed');
 });

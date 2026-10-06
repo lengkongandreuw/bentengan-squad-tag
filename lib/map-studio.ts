@@ -100,6 +100,6 @@ export function drawMapObject(
 }
 export function mapArtwork(id: string) {
   const m = studioMapById[id],
-    a = m?.icon ?? (m?.terrain?.frames.length === 1 ? m.terrain : null);
-  return m ? publicAsset(a?.asset ?? 'arena-ui/kampung.webp') : null;
+    a = m?.icon ?? (!m?.replaces && m?.terrain?.frames.length === 1 ? m.terrain : null);
+  return m ? publicAsset(a?.asset ?? `ui-v2/fields/${m.replaces ?? 'kampung'}.webp`) : null;
 }

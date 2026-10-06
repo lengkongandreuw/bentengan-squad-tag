@@ -1,11 +1,12 @@
 import { getArenaUnlockProgress } from './arena-unlocks';
 import { progressionRules } from './progression-rules';
 import type { LocalPlayerProfile } from './types';
+import { getProgressionArenaId } from './arena-identity';
 
 export function getArenaSelectionProgress(profile: LocalPlayerProfile, arenaId: string,
   catalog: readonly { id: string; name: string }[]) {
   const result = getArenaUnlockProgress(profile, arenaId);
-  const name = (id: string) => catalog.find(arena => arena.id === id)?.name ?? id;
+  const name = (id: string) => catalog.find(arena => getProgressionArenaId(arena.id) === getProgressionArenaId(id))?.name ?? id;
   return {
     unlocked: result.unlocked,
     configured: result.requirement !== null,

@@ -1,5 +1,6 @@
 import type { ArenaProgressionStats } from './progression';
 import type { LocalPlayerProfile } from './types';
+import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity';
 
 function validateArenaId(arenaId: string): void {
   if (typeof arenaId !== 'string' || !arenaId.trim())
@@ -11,12 +12,18 @@ function validateArenaId(arenaId: string): void {
 export function getArenaStats(profile: LocalPlayerProfile, arenaId: string): ArenaProgressionStats {
   validateArenaId(arenaId);
   const stats = profile.progression?.arenaStats;
-  if (!stats || !Object.hasOwn(stats, arenaId)) return { played: 0, wins: 0 };
-  const entry = stats[arenaId];
-  if (!entry || !Number.isSafeInteger(entry.played) || !Number.isSafeInteger(entry.wins) ||
-      entry.played < 0 || entry.wins < 0 || entry.wins > entry.played)
-    throw new Error(`Statistik arena tidak valid: ${arenaId}`);
-  return { played: entry.played, wins: entry.wins };
+  const total = { played: 0, wins: 0 };
+  for (const id of getProgressionArenaIds(arenaId)) {
+    if (!stats || !Object.hasOwn(stats, id)) continue;
+    const entry = stats[id];
+    if (!entry || !Number.isSafeInteger(entry.played) || !Number.isSafeInteger(entry.wins) ||
+        entry.played < 0 || entry.wins < 0 || entry.wins > entry.played)
+      throw new Error(`Statistik arena tidak valid: ${id}`);
+    total.played += entry.played; total.wins += entry.wins;
+    if (!Number.isSafeInteger(total.played) || !Number.isSafeInteger(total.wins))
+      throw new Error('Statistik arena melebihi batas bilangan bulat yang aman.');
+  }
+  return total;
 }
 
 // Exactly one completed match per explicit call. The future match resolver must
@@ -32,11 +39,13 @@ export function applyArenaMatchStat(
   const next = { played: previous.played + 1, wins: previous.wins + (won ? 1 : 0) };
   if (!Number.isSafeInteger(next.played) || !Number.isSafeInteger(next.wins))
     throw new Error('Statistik arena melebihi batas bilangan bulat yang aman.');
+  const arenaStats = { ...progression.arenaStats };
+  for (const alias of getProgressionArenaIds(arenaId)) delete arenaStats[alias];
   return {
     ...profile,
     progression: {
       ...progression,
-      arenaStats: { ...progression.arenaStats, [arenaId]: next },
+      arenaStats: { ...arenaStats, [getProgressionArenaId(arenaId)]: next },
     },
   };
 }

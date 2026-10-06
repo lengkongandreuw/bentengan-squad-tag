@@ -51,11 +51,54 @@ const { isCharacterUnlocked, getCharacterUnlockRequirement,
   getCharacterUnlockProgress, resolveCharacterUnlocks } = await load('character-unlocks');
 const { getArenaStats, applyArenaMatchStat } = await load('arena-stats');
 const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await load('arena-unlocks');
+const { getProgressionArenaId } = await load('arena-identity');
 const { applyMatchProgression } = await load('match-progression');
 const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
+
+test('edited built-in arenas inherit original unlock requirements and runtime gates', async () => {
+  const maps = JSON.parse(await readFile(new URL('../config/map-studio.json', import.meta.url))).maps;
+  const replacements = maps.filter(map => map.replaces);
+  assert.ok(replacements.length >= 5);
+  const profile = service.createPlayerProfile('MapUnlock');
+  for (const map of replacements) {
+    assert.equal(getProgressionArenaId(map.id), map.replaces);
+    const original = getArenaUnlockProgress(profile, map.replaces);
+    const edited = getArenaUnlockProgress(profile, map.id);
+    assert.deepEqual(edited.requirement, original.requirement);
+    assert.deepEqual(edited.checks, original.checks);
+    assert.equal(edited.unlocked, original.unlocked);
+    profile.progression.unlockedArenaIds.push(map.replaces);
+    assert.equal(isArenaUnlocked(profile, map.id), true);
+    assert.equal(validatePlayableContent(profile, 'raja', map.id, ['raja'], [map.id]), null);
+    assert.ok(getPlayableArenaIds(profile, [map.id]).includes(map.id));
+  }
+  assert.equal(isArenaUnlocked(profile, 'studio-unconfigured-new'), false);
+});
+
+test('edited arena wins count toward original tiers; historical alias stats merge once without mutation', () => {
+  const profile = service.createPlayerProfile('MapStats');
+  profile.progression.arenaStats.kampung = {played: 2, wins: 1};
+  profile.progression.arenaStats['studio-edit-kampung'] = {played: 3, wins: 2};
+  const before = structuredClone(profile);
+  assert.deepEqual(getArenaStats(profile, 'kampung'), {played: 5, wins: 3});
+  assert.deepEqual(getArenaStats(profile, 'studio-edit-kampung'), {played: 5, wins: 3});
+  assert.deepEqual(profile, before);
+  const result = applyMatchProgression(profile, {matchId: 'edited-arena-match', arenaId: 'studio-edit-kampung',
+    won: true, completed: true, tags: 0, rescues: 0});
+  assert.deepEqual(getArenaStats(result.profile, 'kampung'), {played: 6, wins: 4});
+  assert.deepEqual(getArenaStats(result.profile, 'studio-edit-kampung'), {played: 6, wins: 4});
+  assert.equal(Object.hasOwn(result.profile.progression.arenaStats, 'studio-edit-kampung'), false);
+  assert.deepEqual(profile, before);
+  const duplicate = applyMatchProgression(result.profile, {matchId: 'edited-arena-match', arenaId: 'studio-edit-kampung',
+    won: true, completed: true, tags: 0, rescues: 0});
+  assert.equal(duplicate.reason, 'duplicate');
+  assert.deepEqual(getArenaStats(duplicate.profile, 'kampung'), {played: 6, wins: 4});
+  result.profile.progression.xp = 200;
+  assert.equal(isArenaUnlocked(result.profile, 'pasar'), true);
+});
 
 test('module15 full persisted player journey reaches all characters/arenas with exactly-once rewards', () => {
   const data = new Map(); let writes = 0;
@@ -147,8 +190,9 @@ test('module15 runtime wiring uses one writer, stable match identity and unrestr
   const code = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
   assert.equal((code.match(/recordMatchProgression\(\{/g) ?? []).length, 1);
   assert.doesNotMatch(code, /recordCompletedMatch/);
-  assert.match(code, /const matchId = mode === 'playing' \? createMatchId\(\) : null/);
-  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId\]/);
+  assert.match(code, /const matchId = mode === 'playing' \? network\?`\$\{network\.read\(\)\.roomCode\}:match`:createMatchId\(\) : null/);
+  assert.ok(code.includes('matchId && !network'), 'online MVP cannot award solo progression');
+  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession\]/);
   const lineup = code.slice(code.indexOf('const lineupFor ='), code.indexOf('const RAW_FIELD_CONFIGS'));
   assert.doesNotMatch(lineup, /getPlayable|isCharacterUnlocked|playerProfile/);
   assert.match(lineup, /roster\.slice\(0, GAME_RULES.matchSize\)/);

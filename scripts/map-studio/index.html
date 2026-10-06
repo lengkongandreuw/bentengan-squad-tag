@@ -79,6 +79,13 @@
             Map asli tetap utuh. Simpan → Build untuk pertandingan. Draft
             nonaktif tidak muncul di game.
           </p>
+          <p id="unlockIdentity"></p>
+          <h2>Gambar map selection</h2>
+          <canvas id="iconPreview" width="240" height="135" aria-label="Preview map selection"></canvas>
+          <button id="chooseMapPreview">Ganti gambar preview</button>
+          <input id="mapPreviewFile" type="file" accept="image/png,image/gif,image/webp" hidden />
+          <button id="clearIcon">Gunakan preview bawaan</button>
+          <p>PNG / GIF / WebP. Gambar disesuaikan ke 16:9 tanpa dipotong. Simpan map untuk menerapkannya.</p>
         </section>
         <section>
           <h2>02 · Aset</h2>
@@ -113,14 +120,7 @@
                 min="32"
                 max="1024" /></label
             ><button id="clearTerrain">Hapus terrain</button
-            ><button id="clearIcon">Hapus ikon</button
-            ><button id="clearWaterMask">Hapus area air bawaan</button
-            ><canvas
-              id="iconPreview"
-              width="160"
-              height="90"
-              aria-label="Preview ikon"
-            ></canvas>
+            ><button id="clearWaterMask">Hapus area air bawaan</button>
           </details>
           <label
             >Cari objek bawaan<input id="search" placeholder="parkTree…"
@@ -138,6 +138,7 @@
               max="160"
               value="45" /><output id="zoomLabel"></output></label
           ><button id="fit">Fit map</button
+          ><label class="check"><input id="cleanPreview" type="checkbox" />Preview bersih (tanpa garis collider)</label
           ><label class="check"
             ><input id="grid" type="checkbox" /> Grid / snap 20</label
           ><label class="check"
