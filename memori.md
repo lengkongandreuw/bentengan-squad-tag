@@ -4,13 +4,18 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
-2026-10-06 PUBLISH BATCH AUTHORIZED: user requests all current local changes.
+2026-10-06 PUBLISH BATCH COMPLETE: user requests all current local changes.
 Multiplayer02–23 + map editor identity/preview improvements + user local maps and
 4 WebP uploads included. Native game/editor data preserved, draft enable status
 unchanged.165 combined tests/TS/Pages build PASS. Fetched GitHub main equal to
 base d576801. Push via Windows Git credentials; restricted shell credentials and
-default GH CLI token unavailable. Do not force-push; verify public build-info and
-Pages workflow after push. Historical LOCAL ONLY entries below describe earlier
+default GH CLI token unavailable. Feature ef7c972 pushed fast-forward; Pages
+workflow37461007037 SUCCESS, public build-info exact feature commit/map revision
+verified. Public two-profile UI Host/Join/Ready/Start/countdown PASS, no page errors,
+screenshots inspected. URL https://lengkongandreuw.github.io/bentengan-squad-tag/?build=ef7c9729c201
+Final documentation-only [skip ci] commit does not change deployed runtime.
+Local editor backend remains local; GitHub Pages hosts game + multiplayer entry.
+Historical LOCAL ONLY entries below describe earlier
 development stages and do not revoke this explicit publish authorization.
 
 2026-10-06 MAP EDITOR LOCAL: edited native maps keep original unlock/tier identity

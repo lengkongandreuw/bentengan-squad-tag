@@ -5,7 +5,7 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
-### VERIFIED — Publish all local changes (2026-10-06)
+### COMPLETE — Publish all local changes (2026-10-06)
 
 - User explicitly authorized publishing ALL current local changes, including
   multiplayer02–23, map editor fixes, local map saves and4 uploaded WebP assets.
@@ -16,8 +16,18 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 - Git push access checked through Windows credentials (escalated execution);
   restricted credential access failed, GitHub CLI default token also invalid.
   Use authenticated Git for push and public API/build-info for Pages verification.
-- Deployment completion and public game URL must be verified after push; this
-  pre-publication checkpoint records verified contents, not a success assertion.
+- Feature commit ef7c9729c20173c6cd6de8bb72c79e6a041d5c1b pushed fast-forward to
+  github/main. Pages workflow37461007037 SUCCESS. Public build-info matches exact
+  commit and map revision91a72eed1c2b47b5276680503fcb47c1252278b80f3dce6a026aadc053e5bcc1.
+- Public production UI test with two isolated Chrome profiles PASS: Host, Join,
+  Ready, Start and rendered match countdown on both, no page errors. No production
+  developer probe/state injection/profile inspection. Screenshots inspected.
+- Published URL https://lengkongandreuw.github.io/bentengan-squad-tag/?build=ef7c9729c201
+  Same game URL, no separate multiplayer page. Local admin editor server code is
+  committed but not magically hosted as a writable backend on GitHub Pages.
+- This documentation-only final checkpoint can be pushed with [skip ci]; the
+  public runtime remains the verified feature commit above. Multiplayer24 and
+  guaranteed signaling/NAT reliability are not claimed.
 
 ### COMPLETE — Map editor unlock identity / selection preview / scene parity (2026-10-06, LOCAL ONLY)
 
