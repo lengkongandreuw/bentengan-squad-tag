@@ -6,8 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "admin:maps": "node scripts/map-studio/server.mjs",
-    "test:map-studio": "node --test scripts/map-studio/test.mjs",
+    "admin:maps": "node --experimental-strip-types scripts/map-studio/server.mjs",
+    "test:map-studio": "node --experimental-strip-types --test scripts/map-studio/test.mjs",
     "admin:sprites": "node scripts/sprite-studio/server.mjs",
     "test:sprite-studio": "node --test scripts/sprite-studio/test.mjs",
     "admin:characters": "node scripts/character-admin/server.mjs",
@@ -22,7 +22,7 @@
     "sprites:series": "node scripts/build-series-sprites.mjs",
     "ultimate:kaka:build": "node scripts/build-kaka-ultimate.mjs",
     "sprites:baseline": "node scripts/update-sprite-baseline.mjs",
-    "audit": "node scripts/audit-game.mjs && node scripts/test-series-sprites.mjs && node scripts/test-kampung3d.mjs",
+    "audit": "node --experimental-strip-types scripts/audit-game.mjs && node --experimental-strip-types scripts/test-series-sprites.mjs && node --experimental-strip-types scripts/test-kampung3d.mjs",
     "verify:runtime": "node scripts/verify-runtime-build.mjs",
     "verify": "npm run ui:build && npm run fields:build && npm run sprites:build && npm run audit && npm run build && npm run verify:runtime && npm run build:pages",
     "start": "wrangler dev --config dist/server/wrangler.json",

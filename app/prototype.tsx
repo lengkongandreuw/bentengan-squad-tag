@@ -9,60 +9,76 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import {
-  BatteryCharging,
-  BellRing,
-  Check,
-  Flag,
-  Gauge,
-  Lock,
-  LogOut,
-  Map as MapIcon,
-  Menu,
-  Pause,
-  Play,
-  RotateCcw,
-  Shield,
-  UserRound,
-  Users,
-  Volume2,
-  VolumeX,
-  Wrench,
-  X,
-  Zap,
-} from 'lucide-react';
 import { CharacterWorkshop } from '../modules/ui/character-workshop/character-workshop';
-import { SelectionPortrait } from '../components/selection-portrait';
+import { MatchEventFeed } from '../modules/ui/match-event-feed.tsx';
+import { RoundStatsOverlay } from '../modules/ui/round-stats-overlay.tsx';
+import { MissionPanel } from '../modules/ui/mission-panel.tsx';
+import { RoundResultAnnouncementCard } from '../modules/ui/round-result-announcement.tsx';
+import { SplashScreen } from '../modules/ui/splash-screen.tsx';
+import { TeamScreen } from '../modules/ui/team-screen.tsx';
+import { RulesOverlay } from '../modules/ui/rules-overlay.tsx';
+import { FieldSelectScreen } from '../modules/ui/field-select-screen.tsx';
+import { CharacterSelectScreen } from '../modules/ui/character-select-screen.tsx';
+import { AssetLoadingScreen } from '../modules/ui/asset-loading-screen.tsx';
+import { MenuActionsRow } from '../modules/ui/menu-actions-row.tsx';
+import { BackButton } from '../modules/ui/back-button.tsx';
+import { ProfileTriggerButton } from '../modules/ui/profile-trigger-button.tsx';
+import { WorkshopLink } from '../modules/ui/workshop-link.tsx';
+import { ArenaIntel } from '../modules/ui/arena-intel.tsx';
+import { StageHud } from '../modules/ui/stage-hud.tsx';
+import { PlayingTopbar } from '../modules/ui/playing-topbar.tsx';
+import { PauseOverlay } from '../modules/ui/pause-overlay.tsx';
+import { CameraSwitcher } from '../modules/ui/camera-switcher.tsx';
+import { BoostStack } from '../modules/ui/boost-stack.tsx';
+import { UltimateMeterHud } from '../modules/ui/ultimate-meter-hud.tsx';
+import { CharacterHud } from '../modules/ui/character-hud.tsx';
+import { UltimateBanner } from '../modules/ui/ultimate-banner.tsx';
+import { PrisonerNotice } from '../modules/ui/prisoner-notice.tsx';
+import { ActiveObjective } from '../modules/ui/active-objective.tsx';
+import { TeamComboHud } from '../modules/ui/team-combo-hud.tsx';
+import { MobileControls } from '../modules/ui/mobile-controls.tsx';
+import { ActionDock } from '../modules/ui/action-dock.tsx';
+import { RendererErrorNotice } from '../modules/ui/renderer-error-notice.tsx';
+import { StatusRibbon } from '../modules/ui/status-ribbon.tsx';
+import { ComboCallout } from '../modules/ui/combo-callout.tsx';
+import { ControlRibbon } from '../modules/ui/control-ribbon.tsx';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
-import { landingLogoAsset } from '../lib/branding';
-import { clickRoute, pointerWorld } from '../lib/click-navigation';
 import { studioImages, createStudioResolver } from '../lib/sprite-studio';
-import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
-import { solidAt as studioSolidAt, waterAt as studioWaterAt, speedAt as studioSpeedAt, contains as studioContains } from '../lib/map-studio-model.js';
-import { AudioSettings } from '../components/audio-settings';
+import { solidAt as studioSolidAt, speedAt as studioSpeedAt } from '../lib/map-studio-model.js';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { createMatchAudio } from '../modules/audio/audio-port';
+import { playTone, closeToneAudio } from '../modules/audio/audio-tone';
+import { playAudioCue as playAudioCueAt } from '../modules/audio/audio-cue';
+import { characterVoiceAsset } from '../modules/audio/character-voice';
 import { startMatchLoop } from '../modules/game-core/match-runtime';
 import { pushMatchEvent } from '../modules/game-core/match-state';
-import { drawBase } from '../modules/ui/draw-base.ts';
-import { relationColor } from '../modules/ui/relation-color.ts';
-import { roundedOn } from '../modules/ui/canvas-shapes.ts';
-import { formatTime, statPercent } from '../modules/ui/format.ts';
-import { ArenaBackdrop, arenaImage } from '../components/arena-backdrop';
+import { drawBase, drawPrisonOverlays as drawPrisonOverlaysAt, drawRescueBubble as drawRescueBubbleAt, drawPhaseOverlay as drawPhaseOverlayAt, drawRouteTarget as drawRouteTargetAt } from '../modules/ui/draw-base.ts';
+import { createFieldAssetDraw, createDrawFieldAnimations } from '../modules/ui/field-assets.ts';
+import { createDrawRefill } from '../modules/ui/draw-refill.ts';
+import { createGroundTileCanvas } from '../modules/ui/ground-tiles.ts';
+import { createColliderDebugDraw } from '../modules/ui/collider-debug.ts';
+import { createStaticMapLayer } from '../modules/ui/static-map-layer.ts';
+import { createDrawKanalWater } from '../modules/ui/draw-kanal-water.ts';
+import { createDrawNearbyFieldDetails } from '../modules/ui/draw-nearby-details.ts';
+import { createDrawPlayer } from '../modules/ui/draw-player.ts';
+import { computeFrameView } from '../modules/ui/frame-view.ts';
+import { burst as burstParticles, stepParticles, drawParticles as drawParticlesAt } from '../modules/ui/effects-particles.ts';
+import { pushLog } from '../modules/ui/effects-log.ts';
+import { uiAsset as uiAssetAt, matchEventFrames, roundResultAssets, loadingUiFrame as loadingUiFrameAt, loadingUiFrames } from '../modules/ui/ui-assets.ts';
+import { getSprintDustImage, getKakaUltimateImage, getFieldImage } from '../modules/ui/image-cache.ts';
+import { interactiveTarget as interactiveTargetAt, handlePointerOut as handlePointerOutAt } from '../modules/ui/event-target.ts';
+import { makePlayers, cycleRosterId, rosterCharacters, squadLineup } from '../modules/gameplay/roster.ts';
+import { ArenaBackdrop, arenaImage } from '../modules/ui/arena-backdrop';
 import { imageReady, videoReady } from '../lib/asset-ready';
 import {
   CHARACTER_BY_ID,
   CharacterId,
-  characterAsset,
   characterFullBodyPortrait,
-  characterMirrorsWest,
   characterPreviewIcon,
   characterRuntimeAsset,
   characterSelectionVideo,
-  characterUsesDedicatedEast,
   kakaUltimateBannerAsset,
-  kakaUltimateSpriteAsset,
   publicAsset,
   rajaUltimateBannerAsset,
   uiAudioAsset,
@@ -70,46 +86,58 @@ import {
   ULTIMATE_CHARACTER_IDS,
   ultimateIcon,
 } from '../lib/characters';
-import { characterAnimationMapping } from '../lib/character-animation.js';
-import { DeveloperCredits } from '../components/developer-credits';
-import { PlayerProfileSetup } from '../components/player-profile/player-profile-setup';
+import { DeveloperCredits } from '../modules/ui/developer-credits';
+import { PlayerProfileSetup } from '../modules/ui/player-profile/player-profile-setup';
 import {
   loadPlayerProfile,
   PLAYER_PROFILE_CHANGED_EVENT,
   EMPTY_KDA,
-  recordCompletedMatch,
   type LocalPlayerProfile,
   type PlayerKdaStats,
 } from '../lib/player-profile';
-import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
+import { hasSpriteSeries } from '../lib/series-animation.js';
 import {
   FIELD_ANIMATED_ATLAS,
-  FIELD_ASSET_VERSION,
   FIELD_GROUND_ATLAS,
   FIELD_OBJECT_ATLAS,
-  FieldAnimatedId,
-  FieldAssetId,
-  GroundTileId,
 } from '../lib/field-assets.generated';
-import {
-  directionFromVelocity,
-  directionalRow,
-  shouldMirrorSprite,
-  sprintEffectRotation,
-} from '../lib/sprite-motion.js';
-import { fieldCycleDecision } from '../lib/field-cycle.js';
-import { buildFieldConfigs, GUIDE_FIELD_CONFIGS, kanal2X } from '../modules/world/map-data/guide-fields';
-import { clamp, distance, other, tieHash } from '../lib/math.ts';
+import { buildFieldConfigs, GUIDE_FIELD_CONFIGS } from '../modules/world/map-data/guide-fields';
+import { factionName, FIXED_ROSTERS, TEAM_COLOR } from '../modules/world/team-tables';
+import { isKanalField } from '../modules/world/field-flags';
+import { clamp, distance, other } from '../lib/math.ts';
 import { fortOccupant } from '../modules/gameplay/base.ts';
-import { hitsObstacle as hitsObstacleAt, isInsideFortCore as isInsideFortCoreAt, isNearWater, kanalWaterBlocks, recoverFromObstacle } from '../modules/gameplay/collision-navigation.ts';
-import { requestRescue } from '../modules/gameplay/rescue.ts';
+import { baseVector as baseVectorAt, depenetrateFromRects, findParkourLanding as findParkourLandingAt, hasLineOfSight, hitsObstacle as hitsObstacleAt, isBlocked as isBlockedAt, isInsideFortCore as isInsideFortCoreAt, kanalWaterBlocks, movePlayer as movePlayerAt, navigateAroundHazardsForPlayer, recoverFromObstacle, resolvePlayerSpacing as resolvePlayerSpacingAt, tryParkourJump } from '../modules/gameplay/collision-navigation.ts';
+import { expireRescueRequest, requestRescue } from '../modules/gameplay/rescue.ts';
+import { registerTeamAction as registerTeamActionAt } from '../modules/gameplay/team-combo-actions.ts';
+import { stepBots } from '../modules/gameplay/ai-movement.ts';
+import { capture as captureAt, updateCaptureHold } from '../modules/gameplay/capture.ts';
+import { tagCheck as tagCheckAt } from '../modules/gameplay/tag-check.ts';
+import { rescueCheck as rescueCheckAt } from '../modules/gameplay/rescue-check.ts';
+import { refillCheck as refillCheckAt } from '../modules/gameplay/refill-check.ts';
 import {
   seedRefills,
-  spawnRefill,
-  resetFallenPlayer,
+  spawnGeo,
+  tickRefills,
   type Refill,
-  type SpawnGeometry,
 } from '../modules/gameplay/spawn.ts';
+import { riverFallCheck as riverFallCheckAt } from '../modules/gameplay/river-fall.ts';
+import { stepMovementAudio } from '../modules/gameplay/movement-audio.ts';
+import { applyExitOrder, baseCheck as baseCheckAt } from '../modules/gameplay/base-check.ts';
+import { createWaterAt, beginKanal2WaterFall as beginKanal2WaterFallAt } from '../modules/gameplay/water.ts';
+import {
+  clearKeys,
+  handleContextMenu as handleContextMenuAt,
+  handleKeyDown,
+  handleKeyUp,
+  handlePointerDown,
+  handleStopForMenu as handleStopForMenuAt,
+  handleStopWhenHidden as handleStopWhenHiddenAt,
+  handleVisibilityChange,
+  stepMouseStuckTimeout,
+  stepPauseGate,
+} from '../modules/gameplay/input-navigation.ts';
+import { createSnapshotWriter } from '../modules/game-core/snapshot-write.ts';
+import { createResetRound, createWinRound, stepSuddenDeath, pendingFieldRotation, nextLandingArenaId, stepFieldId } from '../modules/game-core/match-control.ts';
 import type {
   MatchEvent,
   MatchEventKind,
@@ -119,55 +147,52 @@ import type {
 } from '../modules/game-core/match-types';
 import {
   addStat,
-  boardRows as boardRowsOf,
+  applyUltimateImpact,
+  beginUltimateCast,
   chargeUltimateMeter,
-  contributionScore,
   createStatsStore,
-  ensureStats,
-  type PlayerStats,
+  freezeDuringUltimateCast,
+  rajaUltimateMultiplier as rajaUltimateMultiplierAt,
+  stepBoost,
+  tickUltimateMeter,
 } from '../modules/gameplay/bars-score';
-import { layoutPrisons } from '../modules/gameplay/prison.ts';
+import { buildStatsBoard as buildStatsBoardOf } from '../modules/game-core/stats-board.ts';
+import { kanalPrisonWalls, layoutPrisons } from '../modules/gameplay/prison.ts';
 import type {
   DifficultyId,
   Faction,
   FieldConfig,
   FieldId,
-  Obstacle,
   Team,
 } from '../modules/world/map-data/field-types';
 import {
   BASE_RADIUS,
   BASES,
+  fortGeometry,
   H,
-  MAP4_GUIDE_HEIGHT,
-  MAP4_GUIDE_WIDTH,
   W,
-  worldX,
-  worldY,
 } from '../modules/world/map-data/scalars';
-import { kanalObjectRects, kanalObjectPolygons, kanalFortPolygon, polygonToRects } from '../lib/kanal-footprints.js';
-import { sweptContactDistance } from '../lib/tag-contact.js';
+import { extractWaterMask } from '../modules/world/water-mask.ts';
+import { kanalObjectRects, kanalObjectPolygons, kanalFortPolygon, polygonToRects } from '../modules/world/kanal-footprints.ts';
 import { loadMusicMuted, saveMusicMuted } from '../modules/storage/local-settings';
 import {
-  depenetrateFromRects,
-  hasLineOfSight,
-  pointHitsExpandedRect,
-  steerAroundRects,
-} from '../lib/collision-navigation.js';
-import {
-  advanceTeamCombo,
   createTeamComboState,
   teamComboSeconds,
   teamComboSpeedMultiplier,
-} from '../lib/team-combo.js';
-import GAME_RULES from '../config/game-rules.json';
+} from '../modules/gameplay/team-combo.ts';
 import type { Kampung3D } from '../lib/kampung-3d';
 let Kampung3DRenderer: typeof Kampung3D | undefined;
 const PlayerProfilePanel = lazy(async () => ({
-  default: (await import('../components/player-profile/player-profile-panel')).PlayerProfilePanel,
+  default: (await import('../modules/ui/player-profile/player-profile-panel')).PlayerProfilePanel,
 }));
 
-const isKanalField = (id: FieldId) => id === 'kanal2';
+import type {
+  Mission,
+  Snapshot,
+  StatsBoard,
+} from '../modules/game-core/snapshot-types';
+import { initialSnapshot } from '../modules/game-core/snapshot-types';
+
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type Player = {
@@ -207,99 +232,13 @@ type Player = {
   lastX: number;
   lastY: number;
 };
-type Mission = {
-  refresh: boolean;
-  boost: boolean;
-  parkour: boolean;
-  tag: boolean;
-  rescue: boolean;
-  combo: boolean;
-};
-type RoundResultAnnouncement = {
-  visible: boolean;
-  winner?: Team;
-  final: boolean;
-};
-type StatsBoard = {
-  visible: boolean;
-  final: boolean;
-  round: number;
-  winner?: Team;
-  reason: string;
-  countdown: number;
-  duration: number;
-  mapName: string;
-  format: string;
-  mvpId: string;
-  mvpName: string;
-  score: Record<Team, number>;
-  teams: Record<
-    Team,
-    Array<
-      PlayerStats & {
-        id: string;
-        name: string;
-        characterId: CharacterId;
-        controlled?: boolean;
-        contribution: number;
-        mvp: boolean;
-      }
-    >
-  >;
-};
-type Snapshot = {
-  blue: number;
-  red: number;
-  round: number;
-  timer: number;
-  boost: number;
-  boostCountdown: number;
-  order: number;
-  state: PlayerState;
-  paused: boolean;
-  logs: string[];
-  mission: Mission;
-  team: Array<{
-    name: string;
-    characterId: CharacterId;
-    state: PlayerState;
-    boost: number;
-  }>;
-  blueHeld: number;
-  redHeld: number;
-  pickupCount: number;
-  fortLock: string;
-  baseGrace: number;
-  suddenDeath: boolean;
-  fieldWins: number;
-  comboLevel: number;
-  comboRemaining: number;
-  comboSurgeRemaining: number;
-  comboCallout: string;
-  ultimateMeter: number;
-  ultimateBuffRemaining: number;
-  ultimateCasting: boolean;
-  matchEvents: MatchEvent[];
-  rescueRequestActive: boolean;
-  rescueRequestRemaining: number;
-  rescueRequestCooldown: number;
-  roundResult: RoundResultAnnouncement;
-  statsBoard: StatsBoard;
-};
-
-const STATIC_MAP_SCALE = 0.5;
-const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
-const BASE_REENTRY_COOLDOWN_MS = 1500;
 const AI_SPEED_MULTIPLIER = 1;
 const AI_BOOST_THRESHOLD = -0.15;
 const AI_BOOST_DRAIN_MULTIPLIER = 0.66;
 const RAJA_ULTIMATE_RECHARGE_SECONDS = 45;
-const RAJA_ULTIMATE_TAG_BONUS = 20;
-const RAJA_ULTIMATE_RESCUE_BONUS = 30;
 const RAJA_ULTIMATE_CAST_MS = 3200;
 const RAJA_ULTIMATE_BUFF_MS = 5000;
-const RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4;
 const KAKA_ULTIMATE_CAST_MS = 3600;
 const KAKA_ULTIMATE_FRAME_COUNT = 9;
 const KAKA_ULTIMATE_SHIELD_MS = 5000;
@@ -347,28 +286,6 @@ const DIFFICULTY_PROFILES = {
     boostDrain: number;
   }
 >;
-const KANAL2_FALL_RESET_MS = 3000;
-const TEAM_COLOR = {
-  blue: GAME_RULES.teams.red.color,
-  red: GAME_RULES.teams.green.color,
-};
-const FIXED_ROSTERS = {
-  red: GAME_RULES.teams.red.roster as CharacterId[],
-  green: GAME_RULES.teams.green.roster as CharacterId[],
-};
-const TEAM_FOR_FACTION: Record<Faction, Team> = { red: 'blue', green: 'red' };
-const FACTION_FOR_TEAM: Record<Team, Faction> = { blue: 'red', red: 'green' };
-const factionName = (faction: Faction) => GAME_RULES.teams[faction].label;
-const teamName = (team: Team) => factionName(FACTION_FOR_TEAM[team]);
-const lineupFor = (faction: Faction, selectedId?: CharacterId) => {
-  const roster = FIXED_ROSTERS[faction];
-  return selectedId && roster.includes(selectedId)
-    ? [selectedId, ...roster.filter((id) => id !== selectedId)].slice(
-        0,
-        GAME_RULES.matchSize,
-      )
-    : roster.slice(0, GAME_RULES.matchSize);
-};
 const FIELD_CONFIGS: FieldConfig[] = buildFieldConfigs(GUIDE_FIELD_CONFIGS);
 
 // Clone AFTER normalization: no second scaling and no change to live arena rules.
@@ -449,153 +366,13 @@ const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [
   { id: 'tactical', label: 'Taktis' },
   { id: 'overview', label: 'Overall' },
 ];
-const initialSnapshot: Snapshot = {
-  blue: 0,
-  red: 0,
-  round: 1,
-  timer: 240,
-  boost: 100,
-  boostCountdown: 0,
-  order: 0,
-  state: 'IN_BASE',
-  paused: false,
-  logs: ['Prototype 5v5 siap.'],
-  mission: {
-    refresh: false,
-    boost: false,
-    parkour: false,
-    tag: false,
-    rescue: false,
-    combo: false,
-  },
-  team: [],
-  blueHeld: 0,
-  redHeld: 0,
-  pickupCount: 0,
-  fortLock: 'Benteng terbuka',
-  baseGrace: 0,
-  suddenDeath: false,
-  fieldWins: 0,
-  comboLevel: 0,
-  comboRemaining: 0,
-  comboSurgeRemaining: 0,
-  comboCallout: '',
-  ultimateMeter: 0,
-  ultimateBuffRemaining: 0,
-  ultimateCasting: false,
-  matchEvents: [],
-  rescueRequestActive: false,
-  rescueRequestRemaining: 0,
-  rescueRequestCooldown: 0,
-  roundResult: { visible: false, final: false },
-  statsBoard: {
-    visible: false,
-    final: false,
-    round: 1,
-    reason: '',
-    countdown: 0,
-    duration: 0,
-    mapName: '',
-    format: 'Best of 3',
-    mvpId: '',
-    mvpName: '',
-    score: { blue: 0, red: 0 },
-    teams: { blue: [], red: [] },
-  },
-};
+const uiAssetSources = { mapArtwork, publicAsset };
+const uiAsset = (file: string) => uiAssetAt(file, uiAssetSources);
+const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = matchEventFrames(uiAssetSources);
+const ROUND_RESULT_ASSET: Record<Team, string> = roundResultAssets(uiAssetSources);
+const loadingUiFrame = (faction: Faction, progress: number) => loadingUiFrameAt(faction, progress, uiAssetSources);
 
-const uiAsset = (file: string) => {
-  const customId = file.match(/^fields\/(studio-[a-z0-9-]+)\.webp$/)?.[1];
-  if (customId) return mapArtwork(customId) ?? publicAsset('ui-v2/fields/kampung.webp');
-  file = file.replace('fields/kampung3d.', 'fields/kampung.');
-  return publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
-};
-const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = {
-  tag: publicAsset('arena-ui/match-events/notification-tag.png.PNG?v=3'),
-  rescue: publicAsset('arena-ui/match-events/notification-rescue.png.PNG?v=3'),
-  'rescue-request': publicAsset('arena-ui/match-events/notification-rescue.png.PNG?v=3'),
-};
-const ROUND_RESULT_ASSET: Record<Team, string> = {
-  blue: publicAsset('arena-ui/match-events/merah-menang.png?v=3'),
-  red: publicAsset('arena-ui/match-events/hijau-menang.png?v=3'),
-};
-const loadingUiFrame = (faction: Faction, progress: number) => {
-  // === PERUBAHAN: artwork 100% hanya tampil saat progress benar-benar 100% ===
-  // Sebelumnya Math.ceil() membuat progress 81-99% langsung memakai gambar 100%.
-  // Sekarang milestone dibulatkan ke bawah, sehingga 80-99% tetap memakai frame 80.
-  const milestone =
-    progress >= 100
-      ? 100
-      : Math.max(20, Math.floor(progress / 20) * 20);
-
-  const suffix = faction === 'red' && progress < 20 ? '00' : String(milestone);
-  const team = faction === 'red' ? 'MERAH' : 'HIJAU';
-
-  return publicAsset(`loading-ui/TEAM ${team} LOADING ${suffix}_.png?v=1`);
-};
-
-// === TEST CHARACTER SELECTION VOICE ===
-const CHARACTER_VOICE_FILES: Partial<Record<CharacterId, string>> = {
-  bebe: 'characters/bebe.mp3',
-  kodo: 'characters/kodo.mp3',
-  maria: 'characters/maria.mp3',
-  tui: 'characters/tui.mp3',
-  lui: 'characters/lui.mp3',
-  raja: 'characters/raja.mp3',
-  kaka: 'characters/kaka.mp3',
-  jago: 'characters/jago.mp3',
-  lala: 'characters/lala.mp3',
-  buto: 'characters/buto.mp3',
-  boke: 'characters/boke.mp3',
-  kumis: 'characters/kumis.mp3',
-  robot: 'characters/robot.mp3',
-  ciici: 'characters/ciici.mp3',
-};
-
-const characterVoiceAsset = (id: CharacterId) => {
-  const file = CHARACTER_VOICE_FILES[id];
-  return file ? uiAudioAsset(file) : null;
-};
-// === END TEST CHARACTER SELECTION VOICE ===
-
-const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
-  [0, 20, 40, 60, 80, 100]
-    .filter((progress) => faction === 'red' || progress > 0)
-    .map((progress) => loadingUiFrame(faction, progress)),
-);
-
-const CharacterPreview = ({
-  id,
-  alt = '',
-  eager = false,
-  className,
-  variant = 'icon',
-}: {
-  id: CharacterId;
-  alt?: string;
-  eager?: boolean;
-  className?: string;
-  variant?: 'icon' | 'full';
-}) => (
-  <img
-    className={className}
-    data-character={id}
-    src={
-      variant === 'full'
-        ? characterFullBodyPortrait(id)
-        : characterPreviewIcon(id)
-    }
-    alt={alt}
-    loading={eager ? 'eager' : 'lazy'}
-    decoding="async"
-    onError={(event) => {
-      if (event.currentTarget.dataset.fallback === 'true') return;
-      event.currentTarget.dataset.fallback = 'true';
-      const fallback = characterAsset(id, 'portrait.webp');
-      event.currentTarget.src = fallback;
-    }}
-  />
-);
+const LOADING_UI_FRAMES = loadingUiFrames(uiAssetSources);
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
 const seriesImages = new Map<CharacterId, HTMLImageElement>();
@@ -619,22 +396,6 @@ const getPresentationImage = (url: string) => {
   }
   return image;
 };
-const fieldImages = new Map<string, HTMLImageElement>();
-let sprintDustImage: HTMLImageElement | null = null;
-let kakaUltimateImage: HTMLImageElement | null = null;
-const spriteFrame = (
-  width: number,
-  height: number,
-  column: number,
-  row: number,
-) => {
-  const x = Math.round((column * width) / 7),
-    y = Math.round((row * height) / 6);
-  const right = Math.round(((column + 1) * width) / 7),
-    bottom = Math.round(((row + 1) * height) / 6);
-  return { x, y, width: right - x, height: bottom - y };
-};
-
 const getSpriteImage = (id: CharacterId) => {
   const cached = spriteImages.get(id);
   if (cached) return cached;
@@ -642,33 +403,6 @@ const getSpriteImage = (id: CharacterId) => {
   image.decoding = 'async';
   image.src = characterRuntimeAsset(id);
   spriteImages.set(id, image);
-  return image;
-};
-
-const getSprintDustImage = () => {
-  if (sprintDustImage) return sprintDustImage;
-  sprintDustImage = new Image();
-  sprintDustImage.decoding = 'async';
-  sprintDustImage.src = publicAsset('vfx/sprint-dust.webp?v=7');
-  return sprintDustImage;
-};
-
-const getKakaUltimateImage = () => {
-  if (kakaUltimateImage) return kakaUltimateImage;
-  kakaUltimateImage = new Image();
-  kakaUltimateImage.decoding = 'async';
-  kakaUltimateImage.src = kakaUltimateSpriteAsset();
-  return kakaUltimateImage;
-};
-
-const getFieldImage = (asset: string) => {
-  const url = publicAsset(`field/${asset}?v=${FIELD_ASSET_VERSION}`);
-  const cached = fieldImages.get(url);
-  if (cached) return cached;
-  const image = new Image();
-  image.decoding = 'async';
-  image.src = url;
-  fieldImages.set(url, image);
   return image;
 };
 
@@ -717,10 +451,9 @@ export function BentenganPrototype() {
     for (const team of ['red', 'green']) getPresentationImage(arenaImage(`${team}-loading`));
     LOADING_UI_FRAMES.forEach(getPresentationImage);
   }, []);
-  const nextLandingArena = () => setLandingArena(current => {
-    const choices = FIELD_CONFIGS.filter(field => field.id !== current);
-    return choices[Math.floor(Math.random() * choices.length)].id;
-  });
+  const nextLandingArena = () => setLandingArena(current =>
+    nextLandingArenaId(current, FIELD_CONFIGS.map(field => field.id), (count) => Math.floor(Math.random() * count)),
+  );
   const [readyFaction, setReadyFaction] = useState<Faction | null>(null);
   const [gameLoading, setGameLoading] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -840,22 +573,12 @@ export function BentenganPrototype() {
   }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, loadAttempt]);
   const selected = CHARACTER_BY_ID[selectedId];
   const availableCharacters = useMemo(
-    () =>
-      selectedFaction
-        ? FIXED_ROSTERS[selectedFaction].map((id) => CHARACTER_BY_ID[id])
-        : [],
+    () => rosterCharacters(selectedFaction),
     [selectedFaction],
   );
   const squad = useMemo(
-    () => (selectedFaction ? lineupFor(selectedFaction, selectedId) : []),
+    () => squadLineup(selectedFaction, selectedId),
     [selectedFaction, selectedId],
-  );
-  const opponentSquad = useMemo(
-    () =>
-      selectedFaction
-        ? lineupFor(selectedFaction === 'red' ? 'green' : 'red')
-        : [],
-    [selectedFaction],
   );
 
   const chooseFaction = (faction: Faction) => {
@@ -863,15 +586,7 @@ export function BentenganPrototype() {
     setSelectedId(FIXED_ROSTERS[faction][0]);
   };
 
-  const playAudioCue = (file: string, volume = 0.55) => {
-    try {
-      const cue = new Audio(uiAudioAsset(file));
-      cue.volume = volume * audioLevels().sfx;
-      void cue.play().catch(() => undefined);
-    } catch {
-      /* Audio tetap opsional pada browser yang memblokir media. */
-    }
-  };
+  const playAudioCue = (file: string, volume = 0.55) => playAudioCueAt(file, volume);
 
   // === CHARACTER SELECTION VOICE: loop selama karakter masih disorot ===
   const stopCharacterVoice = () => {
@@ -898,7 +613,7 @@ export function BentenganPrototype() {
     // Saat sorotan pindah, voice lama harus langsung berhenti.
     stopCharacterVoice();
 
-    const src = characterVoiceAsset(id);
+    const src = characterVoiceAsset(id, uiAudioAsset);
     if (!src) return;
 
     const voice = new Audio(src);
@@ -1070,10 +785,7 @@ export function BentenganPrototype() {
       sample.volume = 0.48 * audioLevels().sfx;
       void sample.play().catch(() => undefined);
     };
-    const interactive = (target: EventTarget | null) =>
-      target instanceof Element
-        ? (target.closest('button,[role="button"]') as HTMLElement | null)
-        : null;
+    const interactive = (target: EventTarget | null) => interactiveTargetAt(target);
     const onPointerOver = (event: PointerEvent) => {
       const target = interactive(event.target);
       const now = performance.now();
@@ -1090,9 +802,10 @@ export function BentenganPrototype() {
       lastHoverAt = now;
       playUiTone(560, 0.035, 0.012, 'sine');
     };
-    const onPointerOut = (event: PointerEvent) => {
-      if (interactive(event.target) === lastHoverTarget) lastHoverTarget = null;
-    };
+    const onPointerOut = (event: PointerEvent) =>
+      handlePointerOutAt(event.target, lastHoverTarget, () => {
+        lastHoverTarget = null;
+      });
     const onPointerDown = (event: PointerEvent) => {
       const target = interactive(event.target);
       if (!target || target.matches(':disabled')) return;
@@ -1120,45 +833,12 @@ export function BentenganPrototype() {
   }, []);
 
   useEffect(() => {
-    const down = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (profileOpen) {
-        keys.current.clear();
-        return;
-      }
-      if (mode === 'playing') {
-        if (key === 'tab') {
-          event.preventDefault();
-          setLeaderboardOpen(true);
-          return;
-        }
-        if (
-          [
-            'arrowup',
-            'arrowdown',
-            'arrowleft',
-            'arrowright',
-            ' ',
-            'shift',
-            'capslock',
-          ].includes(key)
-        )
-          event.preventDefault();
-        keys.current.add(key);
-      }
-    };
-    const up = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (key === 'tab') {
-        setLeaderboardOpen(false);
-        return;
-      }
-      keys.current.delete(key);
-    };
-    const releaseAll = () => keys.current.clear();
-    const visibility = () => {
-      if (document.hidden) releaseAll();
-    };
+    const down = (event: KeyboardEvent) =>
+      handleKeyDown(event, keys.current, mode, profileOpen, setLeaderboardOpen);
+    const up = (event: KeyboardEvent) =>
+      handleKeyUp(event, keys.current, setLeaderboardOpen);
+    const releaseAll = () => clearKeys(keys.current);
+    const visibility = () => handleVisibilityChange(keys.current, document.hidden);
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', releaseAll);
@@ -1228,7 +908,6 @@ export function BentenganPrototype() {
       color: string;
     }> = [];
     let refills: Refill[] = [],
-      audio: AudioContext | null = null,
       parkourLatch = false,
       boostLatch = false,
       boostBurstUntil = 0;
@@ -1256,9 +935,7 @@ export function BentenganPrototype() {
       ? visualObstacles.flatMap(item => kanalObjectRects(item).map((rect: { x: number; y: number; w: number; h: number }) => ({ ...item, ...rect, hidden: true })))
       : visualObstacles;
     const fieldObjectScale = field.objectScale ?? 1;
-    const fortWidth = Math.round(168 * fieldObjectScale);
-    const fortHeight = Math.round(188 * fieldObjectScale);
-    const fortAnchorY = Math.round(130 * fieldObjectScale);
+    const { fortWidth, fortHeight, fortAnchorY } = fortGeometry(fieldObjectScale);
     const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const kanalObjectAtlas = isKanalField(field.id)
@@ -1306,85 +983,47 @@ export function BentenganPrototype() {
 
     const kanalWaterGlints: { x: number; y: number; phase: number }[] = [];
     const cacheWaterMask = () => {
-      if (
-        !fieldWaterMask ||
-        !waterMaskContext ||
-        !fieldWaterMask.naturalWidth ||
-        !fieldWaterMask.naturalHeight
-      )
-        return;
-      waterMaskContext.clearRect(
-        0,
-        0,
-        waterMaskCanvas.width,
-        waterMaskCanvas.height,
-      );
-      waterMaskContext.drawImage(
-        fieldWaterMask,
-        0,
-        0,
-        waterMaskCanvas.width,
-        waterMaskCanvas.height,
-      );
-      waterMaskPixels = waterMaskContext.getImageData(
-        0,
-        0,
-        waterMaskCanvas.width,
-        waterMaskCanvas.height,
-      ).data;
-      if (waterDebugContext) {
-        const overlay = waterDebugContext.createImageData(
-          waterMaskCanvas.width,
-          waterMaskCanvas.height,
-        );
-        for (let pixel = 0; pixel < waterMaskCanvas.width * waterMaskCanvas.height; pixel++) {
-          if (waterMaskPixels[pixel * 4] <= 127) continue;
-          overlay.data[pixel * 4] = 255;
-          overlay.data[pixel * 4 + 1] = 69;
-          overlay.data[pixel * 4 + 2] = 69;
-          overlay.data[pixel * 4 + 3] = 78;
-        }
-        waterDebugContext.putImageData(overlay, 0, 0);
-      }
+      const result = extractWaterMask({
+        image: fieldWaterMask,
+        context: waterMaskContext,
+        canvas: waterMaskCanvas,
+        debugContext: waterDebugContext,
+        worldWidth,
+        worldHeight,
+        kanal: isKanalField(field.id),
+      });
+      if (!result) return;
+      waterMaskPixels = result.pixels;
       kanalWaterGlints.length = 0;
-      if (isKanalField(field.id)) {
-        const maskWidth = waterMaskCanvas.width;
-        const maskHeight = waterMaskCanvas.height;
-        for (let y = 9; y < maskHeight - 9; y += 12)
-          for (let x = 9; x < maskWidth - 9; x += 12) {
-            const solidWater = (px: number, py: number) =>
-              waterMaskPixels![(py * maskWidth + px) * 4] > 127;
-            if (
-              solidWater(x, y) &&
-              solidWater(x - 3, y) &&
-              solidWater(x + 3, y) &&
-              solidWater(x, y - 3) &&
-              solidWater(x, y + 3)
-            )
-              kanalWaterGlints.push({
-                x: ((x + 0.5) / maskWidth) * worldWidth,
-                y: ((y + 0.5) / maskHeight) * worldHeight,
-                phase: (x * 17 + y * 31) % 29,
-              });
-          }
-      }
+      kanalWaterGlints.push(...result.glints);
     };
 
-    // Raised authored scenery needs a full-resolution cache; otherwise the
-    // close camera resamples it twice and makes fences/foliage look flat.
-    const staticMapScale = isKanalField(field.id)
-      ? 1.5
-      : field.structuresInBackground
-        ? 0.75
-        : STATIC_MAP_SCALE;
-    const staticLayer = document.createElement('canvas');
-    staticLayer.width = Math.round(worldWidth * staticMapScale);
-    staticLayer.height = Math.round(worldHeight * staticMapScale);
-    const staticLayerContext = staticLayer.getContext('2d');
-    let staticMapDirty = true;
-    const invalidateStaticMap = () => {
-      staticMapDirty = true;
-    };
+    const { drawFieldAsset, drawAnimatedAsset } = createFieldAssetDraw({
+      kanal: isKanalField(field.id),
+      objectAssets: FIELD_OBJECT_ATLAS.assets,
+      animations: FIELD_ANIMATED_ATLAS.animations,
+      baseAtlas: fieldObjectAtlas,
+      kanalAtlas: kanalObjectAtlas,
+      animatedAtlas: fieldAnimatedAtlas,
+    });
+    const groundTileCanvas = createGroundTileCanvas(fieldGroundAtlas, FIELD_GROUND_ATLAS.tiles);
+    const staticMapLayer = createStaticMapLayer({
+      getContext: () => ctx,
+      field,
+      fieldBackground,
+      studioMap: studioMap ?? null,
+      kanal: isKanalField(field.id),
+      worldWidth,
+      worldHeight,
+      bases,
+      fortWidth,
+      fortHeight,
+      fortAnchorY,
+      groundTile: groundTileCanvas,
+      drawFieldAsset,
+      drawMapTerrain,
+    });
+    const invalidateStaticMap = staticMapLayer.invalidate;
     fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
     kanalObjectAtlas?.addEventListener('load', invalidateStaticMap);
     fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
@@ -1400,261 +1039,104 @@ export function BentenganPrototype() {
     let wasDashing = false;
     let wasInEnemyFort = false;
     let previousSoundPosition: { x: number; y: number } | null = null;
-    const beep = (frequency: number, duration = 0.08) => {
-      if (audioLevels().sfx === 0) return;
-      try {
-        audio ??= new AudioContext();
-        const oscillator = audio.createOscillator();
-        const gain = audio.createGain();
-        oscillator.frequency.value = frequency;
-        gain.gain.value = Math.max(.0001, 0.05 * audioLevels().sfx);
-        oscillator.connect(gain);
-        gain.connect(audio.destination);
-        oscillator.start();
-        gain.gain.exponentialRampToValueAtTime(
-          0.001,
-          audio.currentTime + duration,
-        );
-        oscillator.stop(audio.currentTime + duration);
-      } catch {
-        /* optional */
-      }
-    };
-    const makePlayer = (
-      id: string,
-      characterId: CharacterId,
-      team: Team,
-      slot: number,
-      controlled = false,
-    ): Player => {
-      const b = bases[team];
-      const character = CHARACTER_BY_ID[characterId];
-      const offset =
-        GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
-      const direction = team === 'blue' ? 1 : -1;
-      return {
-        id,
-        name: character.name.toUpperCase(),
-        team,
-        characterId,
-        controlled,
-        x: b.x + offset.x * direction,
-        y: b.y + offset.y,
-        vx: 0,
-        vy: 0,
-        state: 'IN_BASE',
-        exitOrder: 0,
-        boost: character.boost,
-        baseCharge: 0,
-        exitDeadline: 0,
-        lastExitAt: 0,
-        tagCooldown: 0,
-        parkourUntil: 0,
-        boostReadyAt: 0,
-        fortCharge: 0,
-        prisonIndex: 0,
-        captures: 0,
-        rescueShieldUntil: 0,
-        ultimateShieldUntil: 0,
-        fallSafeUntil: 0,
-        fallNoticeUntil: 0,
-        waterEnteredAt: 0,
-        waterFallUntil: 0,
-        capturedIds: [],
-        actionUntil: 0,
-        lastX: b.x + offset.x * direction,
-        lastY: b.y + offset.y,
-        aiSeed: 0.35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
-      };
-    };
-    const makePlayers = () => {
-      const faction = selectedFaction ?? 'red';
-      const opponentFaction: Faction = faction === 'red' ? 'green' : 'red';
-      const userTeam = TEAM_FOR_FACTION[faction];
-      const opponentTeam = TEAM_FOR_FACTION[opponentFaction];
-      const userRoster = lineupFor(faction, selectedId);
-      const opponentRoster = lineupFor(opponentFaction);
-      return [
-        ...userRoster.map((characterId, slot) =>
-          makePlayer(
-            slot === 0 ? 'you' : `ally${slot + 1}`,
-            characterId,
-            userTeam,
-            slot,
-            slot === 0,
-          ),
-        ),
-        ...opponentRoster.map((characterId, slot) =>
-          makePlayer(`enemy${slot + 1}`, characterId, opponentTeam, slot),
-        ),
-      ];
-    };
-    let players = makePlayers();
+    let players: Player[] = makePlayers({ faction: selectedFaction, selectedId, bases });
     let roundStats = createStatsStore(players.map((player) => player.id));
     let matchStats = createStatsStore(players.map((player) => player.id));
-    const addMatchEvent = (
-      event: Omit<MatchEvent, 'id' | 'priority' | 'expiresAt'>,
-      now: number,
-    ) => {
-      const next = pushMatchEvent({ events: matchEvents, nextId: matchEventId }, event, now);
-      matchEvents = next.events;
-      matchEventId = next.nextId;
-    };
-    const buildStatsBoard = (now: number): StatsBoard => {
-      const automatic = phase === 'ROUND_OVER' || phase === 'MATCH_OVER';
-      const final = phase === 'MATCH_OVER';
-      const store = final || leaderboardOpenRef.current ? matchStats : roundStats;
-      const rankedPlayers = players
-        .map((player) => ({
-          player,
-          contribution: contributionScore(ensureStats(store, player)),
-        }))
-        .sort(
-          (a, b) =>
-            b.contribution - a.contribution ||
-            ensureStats(store, b.player).tags - ensureStats(store, a.player).tags ||
-            ensureStats(store, b.player).rescues - ensureStats(store, a.player).rescues ||
-            a.player.name.localeCompare(b.player.name),
-        );
-      const mvp = rankedPlayers[0];
-      return {
-        visible: automatic && now >= resultAnnouncementUntil,
-        final,
+    const buildStatsBoard = (now: number): StatsBoard =>
+      buildStatsBoardOf(now, {
+        phase,
         round,
-        winner: roundWinner,
-        reason: roundEndReason,
-        countdown:
-          phase === 'ROUND_OVER'
-            ? Math.max(0, Math.ceil((phaseUntil - now) / 1000))
-            : 0,
-        duration: Math.max(0, (now - matchStartedAt) / 1000),
-        mapName: field.name,
-        format: 'Best of 3',
-        mvpId: mvp?.player.id ?? '',
-        mvpName: mvp?.player.name ?? '',
-        score: { ...score },
-        teams: {
-          blue: boardRowsOf(store, players, 'blue', mvp?.player.id ?? ''),
-          red: boardRowsOf(store, players, 'red', mvp?.player.id ?? ''),
-        },
-      };
-    };
+        roundWinner,
+        roundEndReason,
+        resultAnnouncementUntil,
+        phaseUntil,
+        matchStartedAt,
+        fieldName: field.name,
+        score,
+        players,
+        roundStats,
+        matchStats,
+        isLeaderboardOpen: () => leaderboardOpenRef.current,
+      });
     const log = (text: string) => {
-      logs = [text, ...logs].slice(0, 5);
+      logs = pushLog(logs, text);
     };
     const burst = (x: number, y: number, color: string, count = 12) => {
-      for (let i = 0; i < count; i++) {
-        const a = Math.random() * Math.PI * 2;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(a) * (30 + Math.random() * 80),
-          vy: Math.sin(a) * (30 + Math.random() * 80),
-          life: 0.65,
-          color,
-        });
-      }
+      particles.push(...burstParticles(x, y, color, count));
     };
-    const spawnGeo = (): SpawnGeometry => ({
-      worldWidth,
-      obstacles,
-      studioMap: studioMap ?? null,
+    ({ refills, nextId: refillId } = seedRefills(spawnGeo(worldWidth, obstacles, studioMap ?? null)));
+    const resetRound = createResetRound({
+      clearMouse,
+      getBases: () => bases,
+      getSelectedFaction: () => selectedFaction,
+      getSelectedId: () => selectedId,
+      getWorldWidth: () => worldWidth,
+      getObstacles: () => obstacles,
+      getStudioMap: () => studioMap ?? null,
+      getRound: () => round,
+      setPlayers: (value) => { players = value as Player[]; },
+      getPlayers: () => players,
+      setRoundStats: (value) => { roundStats = value; },
+      getMatchStats: () => matchStats,
+      setMatchEvents: (value) => { matchEvents = value; },
+      setRescueRequest: (value) => { rescueRequest = value; },
+      setRescueRequestCooldownUntil: (value) => { rescueRequestCooldownUntil = value; },
+      setRefills: (value) => { refills = value; },
+      setRefillId: (value) => { refillId = value; },
+      setTimer: (value) => { timer = value; },
+      setExitCounter: (value) => { exitCounter = value; },
+      setTotalCapture: (value) => { totalCapture = value; },
+      setSuddenDeath: (value) => { suddenDeath = value; },
+      setRoundWinner: (value) => { roundWinner = value; },
+      setRoundEndReason: (value) => { roundEndReason = value; },
+      setResultWinner: (value) => { resultWinner = value; },
+      setResultAnnouncementUntil: (value) => { resultAnnouncementUntil = value; },
+      setUltimateImpactAt: (value) => { ultimateImpactAt = value; },
+      setUltimateBuffUntil: (value) => { ultimateBuffUntil = value; },
+      setUltimateShieldUntil: (value) => { ultimateShieldUntil = value; },
+      setUltimateImpactApplied: (value) => { ultimateImpactApplied = value; },
+      setUltimateBannerVisible,
+      setTeamCombos: (value) => { teamCombos = value; },
+      setComboCallout: (value) => { comboCallout = value; },
+      setComboCalloutUntil: (value) => { comboCalloutUntil = value; },
+      setPhase: (value) => { phase = value as typeof phase; },
+      setPhaseUntil: (value) => { phaseUntil = value; },
+      setAnnouncement: (value) => { announcement = value; },
+      log,
+      now: () => performance.now(),
     });
-    ({ refills, nextId: refillId } = seedRefills(spawnGeo()));
-    const resetRound = () => {
-      clearMouse();
-      players = makePlayers();
-      roundStats = createStatsStore(players.map((player) => player.id));
-      matchEvents = [];
-      rescueRequest = null;
-      rescueRequestCooldownUntil = 0;
-      players.forEach((player) => ensureStats(matchStats, player));
-      ({ refills, nextId: refillId } = seedRefills(spawnGeo()));
-      timer = 240;
-      exitCounter = 0;
-      totalCapture = { blue: 0, red: 0 };
-      suddenDeath = false;
-      roundWinner = undefined;
-      roundEndReason = '';
-      resultWinner = undefined;
-      resultAnnouncementUntil = 0;
-      ultimateImpactAt = 0;
-      ultimateBuffUntil = 0;
-      ultimateShieldUntil = 0;
-      ultimateImpactApplied = false;
-      setUltimateBannerVisible(false);
-      teamCombos = {
-        blue: createTeamComboState(),
-        red: createTeamComboState(),
-      };
-      comboCallout = '';
-      comboCalloutUntil = 0;
-      phase = 'COUNTDOWN';
-      phaseUntil = performance.now() + 2800;
-      announcement = `RONDE ${round}`;
-      log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
-    };
-    const winRound = (team: Team, reason: string) => {
-      if (phase !== 'PLAYING') return;
-      if (reason === 'BENTENG DIREBUT') matchAudio.play('fort-captured', team === players[0].team ? 1 : .55);
-      score[team]++;
-      roundWinner = team;
-      roundEndReason = reason;
-      phase = score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
-      const resultNow = performance.now();
-      matchEvents = [];
-      resultWinner = team;
-      resultAnnouncementUntil = resultNow + 1500;
-      if (phase === 'MATCH_OVER') {
-        recordCompletedMatch(
-          team === players[0].team ? 'win' : 'loss',
-          pendingProfileStatsRef.current,
-        );
-        pendingProfileStatsRef.current = { ...EMPTY_KDA };
-        completedMatchesRef.current++;
-        fieldRotationPending = completedMatchesRef.current >= 3;
-        playAudioCue(
-          team === players[0].team ? 'victory.mp3' : 'defeat.mp3',
-          0.68,
-        );
-      }
-      phaseUntil = resultNow + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 4500);
-      announcement =
-        phase === 'MATCH_OVER'
-          ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
-          : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
-      beep(team === 'blue' ? 720 : 320, 0.25);
-      burst(worldWidth / 2, worldHeight / 2, TEAM_COLOR[team], 38);
-      log(announcement);
-    };
-    // Kanal's prison uses a thin U-frame: walls block traversal, while the
-    // wide front gate and entire interior remain open for rescues. No other
-    // arena receives these additional collision rules.
-    const kanalPrisonWalls = isKanalField(field.id)
-      ? Object.values(field.prisons).flatMap((prison): Obstacle[] => {
-          const thickness = Math.max(12, Math.round(Math.min(prison.w, prison.h) * 0.09));
-          const gateWidth = Math.max(76, Math.round(prison.w * 0.48));
-          const shoulderWidth = Math.round((prison.w - gateWidth) / 2);
-          const hiddenWall = (x: number, y: number, w: number, h: number): Obstacle => ({
-            asset: prison.floorAsset ?? 'prisonFloor',
-            x,
-            y,
-            w,
-            h,
-            visualW: 1,
-            visualH: 1,
-            hidden: true,
-          });
-          return [
-            hiddenWall(prison.x, prison.y, prison.w, thickness),
-            hiddenWall(prison.x, prison.y + thickness, thickness, prison.h - thickness),
-            hiddenWall(prison.x + prison.w - thickness, prison.y + thickness, thickness, prison.h - thickness),
-            hiddenWall(prison.x, prison.y + prison.h - thickness, shoulderWidth, thickness),
-            hiddenWall(prison.x + prison.w - shoulderWidth, prison.y + prison.h - thickness, shoulderWidth, thickness),
-          ];
-        })
-      : [];
-    const solidObstacles = [...obstacles, ...kanalPrisonWalls];
+    const winRound = createWinRound({
+      getPhase: () => phase,
+      playFortCaptured: (team, volume) => matchAudio.play('fort-captured', volume),
+      getPlayers: () => players,
+      score,
+      setRoundWinner: (value) => { roundWinner = value; },
+      setRoundEndReason: (value) => { roundEndReason = value; },
+      setPhase: (value) => { phase = value as typeof phase; },
+      setMatchEvents: (value) => { matchEvents = value; },
+      setResultWinner: (value) => { resultWinner = value; },
+      setResultAnnouncementUntil: (value) => { resultAnnouncementUntil = value; },
+      getPendingProfile: () => pendingProfileStatsRef.current,
+      setPendingProfile: (value) => { pendingProfileStatsRef.current = value as never; },
+      getCompletedMatches: () => completedMatchesRef.current,
+      setCompletedMatches: (value) => { completedMatchesRef.current = value; },
+      getFieldRotationPending: () => fieldRotationPending,
+      setFieldRotationPending: (value) => { fieldRotationPending = value; },
+      playAudioCue,
+      setPhaseUntil: (value) => { phaseUntil = value; },
+      setAnnouncement: (value) => { announcement = value; },
+      playTone,
+      burst: (x, y, color, count) => burst(x, y, color, count),
+      getWorldWidth: () => worldWidth,
+      getWorldHeight: () => worldHeight,
+      log,
+      now: () => performance.now(),
+      emptyKda: EMPTY_KDA,
+    });
+    const solidObstacles = [
+      ...obstacles,
+      ...kanalPrisonWalls(field.prisons, isKanalField(field.id)),
+    ];
     const kanalFortPolygons = isKanalField(field.id)
       ? Object.values(bases).map(base => kanalFortPolygon(base, fortWidth, fortHeight, fortAnchorY))
       : [];
@@ -1680,55 +1162,23 @@ export function BentenganPrototype() {
       fortWidth,
     };
     const isInsideFortCore = (x: number, y: number) => isInsideFortCoreAt(x, y, fortCoreWorld);
-    const isWaterAt = (x: number, y: number) => {
-      if (studioMap) return studioWaterAt(studioMap, x, y);
-      if (!waterMaskPixels) return false;
-      const maskX = clamp(
-        Math.round((x / worldWidth) * (waterMaskCanvas.width - 1)),
-        0,
-        waterMaskCanvas.width - 1,
-      );
-      const maskY = clamp(
-        Math.round((y / worldHeight) * (waterMaskCanvas.height - 1)),
-        0,
-        waterMaskCanvas.height - 1,
-      );
-      return waterMaskPixels[(maskY * waterMaskCanvas.width + maskX) * 4] > 127;
-    };
-    const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) => {
-      if (
-        field.id !== 'kanal2' || p.id === '__collision_probe__' ||
-        p.waterEnteredAt || p.state === 'PRISONER' ||
-        now < p.fallSafeUntil || now < p.parkourUntil
-      ) return false;
-      let waterPoint = isWaterAt(x, y) ? { x, y } : null;
-      for (let side = 0; !waterPoint && side < 16; side++) {
-        const angle = side * Math.PI / 8;
-        const sample = {
-          x: x + Math.cos(angle) * PLAYER_COLLISION_RADIUS,
-          y: y + Math.sin(angle) * PLAYER_COLLISION_RADIUS,
-        };
-        if (isWaterAt(sample.x, sample.y)) waterPoint = sample;
-      }
-      if (!waterPoint) return false;
-      p.x = waterPoint.x;
-      p.y = waterPoint.y;
-      p.lastX = p.x;
-      p.lastY = p.y;
-      p.vx = 0;
-      p.vy = 0;
-      p.action = undefined;
-      p.actionUntil = 0;
-      p.waterEnteredAt = now;
-      p.waterFallUntil = now + 720;
-      burst(p.x, p.y + 7, '#65e9ff', 12);
-      if (p.controlled) {
-        clearMouse();
-        matchAudio.play('dash', 0.38);
-        log('TERJATUH KE AIR · kembali ke benteng sebentar lagi.');
-      }
-      return true;
-    };
+    const isWaterAt = createWaterAt({
+      studioMap: studioMap ?? null,
+      pixels: () => waterMaskPixels,
+      canvas: waterMaskCanvas,
+      worldWidth,
+      worldHeight,
+    });
+    const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) =>
+      beginKanal2WaterFallAt(p, now, x, y, {
+        kanal: field.id === 'kanal2',
+        radius: PLAYER_COLLISION_RADIUS,
+        isWaterAt,
+        onBurst: (bx, by, color, count) => burst(bx, by, color, count),
+        onClearMouse: () => clearMouse(),
+        onAudio: (name, volume) => matchAudio.play(name, volume),
+        onLog: (text) => log(text),
+      });
     const collisionWorld = {
       kanal: isKanalField(field.id),
       collides: (x: number, y: number) => hitsObstacle(x, y),
@@ -1737,47 +1187,29 @@ export function BentenganPrototype() {
           minX: 34, maxX: worldWidth - 34, minY: 58, maxY: worldHeight - 32,
         }),
     };
+    // The canal's actual water mask is the collision source for its stone
+    // banks. This blocks the visible canal instead of inventing rectangles
+    // on clear ground, and bridges remain open because they are not water.
+    const blockedWorld = {
+      kanal: isKanalField(field.id),
+      studioSolidAt: (x: number, y: number, jumping: boolean) =>
+        studioMap ? studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, jumping) : false,
+      waterBlocksAt: (x: number, y: number) => kanalWaterBlocks(x, y, isWaterAt, PLAYER_COLLISION_RADIUS),
+      fortCoreAt: (x: number, y: number) => isInsideFortCore(x, y),
+      obstacleAt: (x: number, y: number) => hitsObstacle(x, y),
+      waterAt: (x: number, y: number) => isWaterAt(x, y),
+      chargeTimeOf: (characterId: string) => CHARACTER_BY_ID[characterId as CharacterId].baseChargeTime,
+      bases,
+      baseRadius,
+      occupantAt: (team: Team, exceptId: string) =>
+        Boolean(fortOccupant(players, bases, baseRadius, isKanalField(field.id), team, exceptId)),
+    };
     const blocked = (
       x: number,
       y: number,
       p: Player,
       now: number,
-    ) => {
-      if (studioMap && studioSolidAt(studioMap, x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
-      // The canal's actual water mask is the collision source for its stone
-      // banks. This blocks the visible canal instead of inventing rectangles
-      // on clear ground, and bridges remain open because they are not water.
-      if (
-        isKanalField(field.id) &&
-        kanalWaterBlocks(x, y, isWaterAt, PLAYER_COLLISION_RADIUS)
-      )
-        return true;
-      const entersFortCore =
-        isKanalField(field.id) &&
-        !isInsideFortCore(p.x, p.y) &&
-        isInsideFortCore(x, y);
-
-      if (
-        now >= p.parkourUntil &&
-        (hitsObstacle(x, y) || entersFortCore)
-      )
-        return true;
-      if (
-        p.state === 'IN_BASE' &&
-        p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance(p, bases[p.team]) < baseRadius &&
-        distance({ x, y }, bases[p.team]) >= baseRadius
-      )
-        return true;
-      for (const team of ['blue', 'red'] as Team[]) {
-        const entering =
-          distance({ x, y }, bases[team]) < baseRadius &&
-          distance(p, bases[team]) >= baseRadius;
-        if (entering && p.team !== team && fortOccupant(players, bases, baseRadius, isKanalField(field.id), team, p.id))
-          return true;
-      }
-      return false;
-    };
+    ) => isBlockedAt(x, y, p, now, blockedWorld);
     const move = (
       p: Player,
       dx: number,
@@ -1785,89 +1217,30 @@ export function BentenganPrototype() {
       speed: number,
       dt: number,
       now: number,
-    ) => {
-      if (field.id === 'kanal2' && p.waterEnteredAt) {
-        p.vx = 0;
-        p.vy = 0;
-        return;
-      }
-      const len = Math.hypot(dx, dy) || 1;
-      if (studioMap) speed *= studioSpeedAt(studioMap, p.x, p.y);
-      p.vx = (dx / len) * speed;
-      p.vy = (dy / len) * speed;
-      const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
-        ny = clamp(p.y + p.vy * dt, 58, worldHeight - 32);
-      if (!blocked(nx, p.y, p, now)) p.x = nx;
-      else if (beginKanal2WaterFall(p, now, nx, p.y)) return;
-      if (!blocked(p.x, ny, p, now)) p.y = ny;
-      else beginKanal2WaterFall(p, now, p.x, ny);
-    };
-    const spacingPositionAllowed = (p: Player, x: number, y: number) => {
-      if (isKanalField(field.id) && (
-        kanalWaterBlocks(x, y, isWaterAt, PLAYER_COLLISION_RADIUS) || (!isInsideFortCore(p.x, p.y) && isInsideFortCore(x, y))
-      )) return false;
-      if ((isKanalField(field.id) && isWaterAt(x, y)) || hitsObstacle(x, y)) return false;
-      if (
-        p.state === 'IN_BASE' &&
-        p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
-        distance({ x, y }, bases[p.team]) >= baseRadius
-      )
-        return false;
-      return true;
-    };
-    const resolvePlayerSpacing = (now: number) => {
-      const visible = players.filter((p) => p.state !== 'PRISONER' && !(field.id === 'kanal2' && p.waterEnteredAt));
-      for (let i = 0; i < visible.length; i++)
-        for (let j = i + 1; j < visible.length; j++) {
-          const a = visible[i],
-            b = visible[j];
-          const dx = b.x - a.x,
-            dy = b.y - a.y,
-            d = Math.hypot(dx, dy);
-          const minimum =
-            a.state === 'IN_BASE' && b.state === 'IN_BASE' ? 42 : 30;
-          if (d >= minimum) continue;
-          const nx = d > 0.01 ? dx / d : tieHash(round, a.id) % 2 ? 1 : -1,
-            ny = d > 0.01 ? dy / d : 0;
-          const push = (minimum - d) * 0.52;
-          const ax = clamp(a.x - nx * push, 34, worldWidth - 34),
-            ay = clamp(a.y - ny * push, 58, worldHeight - 32);
-          const bx = clamp(b.x + nx * push, 34, worldWidth - 34),
-            by = clamp(b.y + ny * push, 58, worldHeight - 32);
-          if (spacingPositionAllowed(a, ax, ay)) {
-            a.x = ax;
-            a.y = ay;
-          }
-          if (spacingPositionAllowed(b, bx, by)) {
-            b.x = bx;
-            b.y = by;
-          }
-        }
-      visible.forEach((p) => recoverFromObstacle(p, now, collisionWorld));
-    };
-    const baseVector = (p: Player) => ({
-      x: bases[p.team].x - p.x,
-      y: bases[p.team].y - p.y,
-    });
-    const directionIsTraversable = (
-      p: Player,
-      direction: { x: number; y: number },
-      distanceToProbe: number,
-      now: number,
-    ) => {
-      const magnitude = Math.hypot(direction.x, direction.y);
-      if (magnitude < 0.01) return true;
-      const unitX = direction.x / magnitude;
-      const unitY = direction.y / magnitude;
-      const samples = Math.max(5, Math.ceil(distanceToProbe / 14));
-      for (let step = 1; step <= samples; step += 1) {
-        const distanceAlong = (distanceToProbe * step) / samples;
-        const x = p.x + unitX * distanceAlong;
-        const y = p.y + unitY * distanceAlong;
-        if (blocked(x, y, p, now) || isWaterAt(x, y)) return false;
-      }
-      return true;
-    };
+    ) =>
+      movePlayerAt(p, dx, dy, speed, dt, now, {
+        kanalSwim: field.id === 'kanal2' && Boolean(p.waterEnteredAt),
+        speedAt: (x, y, s) => (studioMap ? s * studioSpeedAt(studioMap, x, y) : s),
+        bounds: { minX: 34, maxX: worldWidth - 34, minY: 58, maxY: worldHeight - 32 },
+        isBlocked: (x, y, t) => blocked(x, y, p, t),
+        onWaterFall: (x, y, t) => beginKanal2WaterFall(p, t, x, y),
+      });
+    const resolvePlayerSpacing = (now: number) =>
+      resolvePlayerSpacingAt(now, {
+        players,
+        kanal: field.id === 'kanal2',
+        round,
+        worldWidth,
+        worldHeight,
+        waterBlocksAt: (x, y) => kanalWaterBlocks(x, y, isWaterAt, PLAYER_COLLISION_RADIUS),
+        waterAt: (x, y) => isWaterAt(x, y),
+        fortCoreAt: (x, y) => isInsideFortCore(x, y),
+        obstacleAt: (x, y) => hitsObstacle(x, y),
+        bases,
+        baseRadius,
+        onRecover: (p, t) => recoverFromObstacle(p as Player, t, collisionWorld),
+      });
+    const baseVector = (p: Player) => baseVectorAt(p, bases);
     const studioRoutes = new Map<string,{target:{x:number;y:number};route:Array<{x:number;y:number}>;until:number}>();
     const navigateAroundHazards = (
       p: Player,
@@ -1875,174 +1248,53 @@ export function BentenganPrototype() {
       now: number,
       probeDistance: number,
       turnBias: number,
-    ) => {
-      if (studioMap) {
-        const target = { x: clamp(p.x + desired.x, 34, worldWidth - 34), y: clamp(p.y + desired.y, 58, worldHeight - 32) };
-        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !studioSolidAt(studioMap,x,y,PLAYER_COLLISION_RADIUS) && !studioWaterAt(studioMap,x,y);
-        const cached = studioRoutes.get(p.id);
-        if (!cached || now > cached.until || distance(target,cached.target)>100) {
-          const route = clickRoute(p,target,worldWidth,worldHeight,passable,40);
-          studioRoutes.set(p.id,{target,route,until:now+1800});
-        }
-        const route = studioRoutes.get(p.id)!.route;
-        while(route.length && distance(p,route[0])<18) route.shift();
-        if(route[0]) return {x:route[0].x-p.x,y:route[0].y-p.y};
-      }
-      const magnitude = Math.hypot(desired.x, desired.y);
-      if (magnitude < 0.01) return desired;
-      const distanceToProbe = Math.min(probeDistance, Math.max(48, magnitude));
-      if (directionIsTraversable(p, desired, distanceToProbe, now))
-        return desired;
-      const baseAngle = Math.atan2(desired.y, desired.x);
-      const side = turnBias >= 0 ? 1 : -1;
-      for (const offset of [0.38, -0.38, 0.7, -0.7, 1.02, -1.02, 1.42, -1.42]) {
-        const angle = baseAngle + offset * side;
-        const candidate = {
-          x: Math.cos(angle) * magnitude,
-          y: Math.sin(angle) * magnitude,
-        };
-        if (directionIsTraversable(p, candidate, distanceToProbe, now))
-          return candidate;
-      }
-      const fallback = steerAroundRects(
-        p,
+    ) =>
+      navigateAroundHazardsForPlayer(
+        { id: p.id, x: p.x, y: p.y, team: p.team, characterId: p.characterId, baseCharge: p.baseCharge, parkourUntil: p.parkourUntil, state: p.state },
         desired,
-        obstacles,
-        PLAYER_COLLISION_RADIUS,
+        now,
         probeDistance,
         turnBias,
+        {
+          studioMap,
+          worldWidth,
+          worldHeight,
+          radius: PLAYER_COLLISION_RADIUS,
+          isBlocked: (x, y, pl, t) => blocked(x, y, pl as Player, t),
+          isWaterAt,
+          rects: obstacles,
+          cache: studioRoutes,
+        },
       );
-      return directionIsTraversable(p, fallback, distanceToProbe, now)
-        ? fallback
-        : { x: 0, y: 0 };
-    };
     const findParkourLanding = (
       p: Player,
       direction: { x: number; y: number },
       nominalDistance: number,
       now: number,
-    ) => {
-      const magnitude = Math.hypot(direction.x, direction.y);
-      if (magnitude < 0.01) return null;
-      const unitX = direction.x / magnitude;
-      const unitY = direction.y / magnitude;
-      const maximumDistance = Math.max(nominalDistance, 132);
-      let crossedWater = false;
-      for (let distanceAlong = 10; distanceAlong <= maximumDistance; distanceAlong += 6) {
-        const x = clamp(p.x + unitX * distanceAlong, 34, worldWidth - 34);
-        const y = clamp(p.y + unitY * distanceAlong, 58, worldHeight - 32);
-        const water = isWaterAt(x, y);
-        crossedWater ||= water;
-        if (
-          crossedWater &&
-          !water &&
-          distanceAlong >= nominalDistance * 0.72 &&
-          !blocked(x, y, p, now)
-        )
-          return { x, y, crossedWater: true };
-      }
-      const x = clamp(p.x + unitX * nominalDistance, 34, worldWidth - 34);
-      const y = clamp(p.y + unitY * nominalDistance, 58, worldHeight - 32);
-      if (!crossedWater && !blocked(x, y, p, now))
-        return { x, y, crossedWater: false };
-      return null;
-    };
-    const applyFallReset = (p: Player, now: number) => {
-      const effects = resetFallenPlayer(p, round, bases[p.team], now);
-      for (const burstEffect of effects.bursts) burst(burstEffect.x, burstEffect.y, burstEffect.color, burstEffect.count);
-      for (const sound of effects.beeps) beep(sound.frequency, sound.duration);
-      for (const line of effects.logs) log(line);
-    };
-    const riverFallCheck = (now: number) => {
-      if (!studioMap && (!field.waterMask || !waterMaskPixels)) return;
-      if (field.id === 'kanal2') {
-        players.forEach((p) => {
-          if (p.waterEnteredAt) {
-            if (now - p.waterEnteredAt >= KANAL2_FALL_RESET_MS) applyFallReset(p, now);
-            return;
-          }
-          if (p.state === 'PRISONER' || now < p.parkourUntil || now < p.fallSafeUntil || !isWaterAt(p.x, p.y)) return;
-          beginKanal2WaterFall(p, now, p.x, p.y);
-        });
-        return;
-      }
-      players.forEach((p) => {
-        if (
-          p.state === 'PRISONER' ||
-          now < p.parkourUntil ||
-          now < p.fallSafeUntil ||
-          !isWaterAt(p.x, p.y)
-        )
-          return;
-        applyFallReset(p, now);
+    ) =>
+      findParkourLandingAt({ x: p.x, y: p.y }, direction, nominalDistance, {
+        isWaterAt: (x, y) => isWaterAt(x, y),
+        isBlocked: (x, y) => blocked(x, y, p, now),
+        worldWidth,
+        worldHeight,
       });
-    };
-    const aiVector = (p: Player, now: number) => {
-      if (p.state === 'RETURNING') return baseVector(p);
-      if (p.state === 'IN_BASE')
-        return {
-          x: worldWidth / 2 - p.x,
-          y: worldHeight / 2 + Math.sin(now / 920 + p.aiSeed) * 230 - p.y,
-        };
-      const requester = rescueRequest
-        ? players.find((player) => player.id === rescueRequest?.requesterId)
-        : undefined;
-      if (
-        requester &&
-        requester.state === 'PRISONER' &&
-        rescueRequest?.assignedRescuerId === p.id
-      )
-        return { x: requester.x - p.x, y: requester.y - p.y };
-      const held = players
-        .filter((q) => q.team === p.team && q.state === 'PRISONER')
-        .sort((a, b) => b.prisonIndex - a.prisonIndex);
-      if (
-        held.length &&
-        (p.aiSeed % 3 < aiProfile.rescueCutoff || held.length >= 3)
-      )
-        return { x: held[0].x - p.x, y: held[0].y - p.y };
-      if (p.boost < 34) {
-        const item = refills
-          .slice()
-          .sort((a, b) => distance(p, a) - distance(p, b))[0];
-        if (item && distance(p, item) < 360)
-          return { x: item.x - p.x, y: item.y - p.y };
-      }
-      const threat = players
-        .filter(
-          (q) =>
-            q.team !== p.team &&
-            q.state === 'ACTIVE' &&
-            q.exitOrder > p.exitOrder,
-        )
-        .sort((a, b) => distance(p, a) - distance(p, b))[0];
-      if (threat && distance(p, threat) < aiProfile.threatRadius)
-        return { x: p.x - threat.x, y: p.y - threat.y };
-      const target = players
-        .filter(
-          (q) =>
-            q.team !== p.team &&
-            q.state === 'ACTIVE' &&
-            q.exitOrder < p.exitOrder,
-        )
-        .sort((a, b) => {
-          const aPlayerBias = a.controlled ? -aiProfile.playerBias : 0,
-            bPlayerBias = b.controlled ? -aiProfile.playerBias : 0;
-          return distance(p, a) + aPlayerBias - distance(p, b) - bPlayerBias;
-        })[0];
-      if (target)
-        return {
-          x: target.x + target.vx * aiProfile.prediction - p.x,
-          y: target.y + target.vy * aiProfile.prediction - p.y,
-        };
-      if (p.boost < 18 || Math.sin(now / 4300 + p.aiSeed) > 0.86)
-        return baseVector(p);
-      const enemy = bases[other(p.team)];
-      return {
-        x: enemy.x - p.x,
-        y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150,
-      };
-    };
+    const riverFallCheck = (now: number) =>
+      riverFallCheckAt(now, {
+        players,
+        waterSource:
+          Boolean(studioMap) || Boolean(field.waterMask && waterMaskPixels),
+        kanal: field.id === 'kanal2',
+        round,
+        bases,
+        isWaterAt,
+        onWaterFall: (p, fallNow, x, y) =>
+          beginKanal2WaterFall(p as Player, fallNow, x, y),
+        fx: {
+          onBurst: (x, y, color, count) => burst(x, y, color, count),
+          onTone: (frequency, duration) => playTone(frequency, duration),
+          onLog: (text) => log(text),
+        },
+      });
     const registerTeamAction = (
       actor: Player,
       actionLabel: 'TAG' | 'RESCUE',
@@ -2050,334 +1302,136 @@ export function BentenganPrototype() {
       y: number,
       now: number,
     ) => {
-      const result = advanceTeamCombo(teamCombos[actor.team], actor.id, now);
-      teamCombos[actor.team] = result.state;
-      if (result.outcome === 'ignored') return;
-
-      const isPlayerTeam = actor.team === players[0].team;
-      if (result.outcome === 'started') {
-        if (isPlayerTeam) {
-          comboCallout = `LINK 1/3 · ${actor.name} ${actionLabel}`;
-          comboCalloutUntil = now + 1400;
-        }
-        return;
-      }
-
-      const teammates = players.filter(
-        (p) => p.team === actor.team && p.state !== 'PRISONER',
-      );
-      if (result.outcome === 'duo') {
-        teammates.forEach((p) => {
-          const maximum = CHARACTER_BY_ID[p.characterId].boost;
-          p.boost = Math.min(maximum, p.boost + maximum * 0.12);
-        });
-        burst(x, y, '#f5cf45', 20);
-        beep(isPlayerTeam ? 680 : 390, 0.14);
-        log(`${teamName(actor.team)} merangkai DUO LINK · boost tim +12%.`);
-        if (isPlayerTeam) {
-          comboCallout = 'DUO LINK · BOOST TIM +12%';
-          comboCalloutUntil = now + 1900;
-        }
-        return;
-      }
-
-      teammates.forEach((p) => {
-        const maximum = CHARACTER_BY_ID[p.characterId].boost;
-        p.boost = Math.min(maximum, p.boost + maximum * 0.16);
-      });
-      burst(x, y, TEAM_COLOR[actor.team], 32);
-      beep(isPlayerTeam ? 880 : 440, 0.22);
-      log(
-        `${teamName(actor.team)} mengaktifkan SQUAD SURGE · gerak +10% selama 5 detik.`,
-      );
-      if (isPlayerTeam) {
-        mission.combo = true;
-        comboCallout = 'SQUAD SURGE · SPEED +10%';
-        comboCalloutUntil = now + 2500;
-      }
-    };
-    const capture = (winner: Player, loser: Player, now: number) => {
-      if (now < loser.ultimateShieldUntil) return;
-      const targetable =
-        loser.state === 'ACTIVE' ||
-        (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
-      if (
-        winner.state !== 'ACTIVE' ||
-        now < winner.parkourUntil ||
-        now < loser.parkourUntil ||
-        winner.tagCooldown > now ||
-        !targetable ||
-        winner.exitOrder <= loser.exitOrder
-      )
-        return;
-      winner.tagCooldown =
-        now + CHARACTER_BY_ID[winner.characterId].tagCooldownMs;
-      winner.captures++;
-      const stores = { round: roundStats, match: matchStats };
-      addStat(stores, winner, 'tags');
-      addStat(stores, loser, 'prisons');
-      if (winner.controlled) pendingProfileStatsRef.current.tagMusuh++;
-      if (loser.controlled) pendingProfileStatsRef.current.masukPenjara++;
-      addMatchEvent(
-        {
-          kind: 'tag',
-          actorName: winner.name,
-          actorTeam: winner.team,
-          targetName: loser.name,
-          targetTeam: loser.team,
-        },
+      teamCombos[actor.team] = registerTeamActionAt(
+        { id: actor.id, team: actor.team, name: actor.name },
+        actionLabel,
+        x,
+        y,
         now,
-      );
-      if (!winner.capturedIds.includes(loser.id))
-        winner.capturedIds.push(loser.id);
-      winner.action = 'tag';
-      winner.visualTagVector = { x: loser.x - winner.x, y: loser.y - winner.y };
-      winner.actionUntil = now + 420;
-      loser.state = 'PRISONER';
-      loser.prisonOwner = winner.team;
-      loser.fortCharge = 0;
-      loser.rescueShieldUntil = 0;
-      burst(loser.x, loser.y, TEAM_COLOR[winner.team]);
-      if (loser.controlled) matchAudio.play('caught');
-      else if (winner.controlled) matchAudio.play('tag');
-      else if (distance(players[0], loser) < 300) matchAudio.play('tag', .22);
-      log(
-        `${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`,
-      );
-      registerTeamAction(winner, 'TAG', loser.x, loser.y, now);
-      ultimateMeter = chargeUltimateMeter(ultimateMeter, winner.controlled, winner.characterId, RAJA_ULTIMATE_TAG_BONUS);
-      if (winner.controlled) mission.tag = true;
-      layoutPrisons(field.prisons, players, isKanalField(field.id));
-      if (suddenDeath) winRound(winner.team, 'SUDDEN DEATH TAG');
-    };
-    const tagCheck = (now: number) => {
-      const contacts: Array<{ attacker: Player; target: Player }> = [];
-      for (let i = 0; i < players.length; i++)
-        for (let j = i + 1; j < players.length; j++) {
-          const a = players[i],
-            b = players[j],
-            contactDistance = Math.min(
-              distance(a, b),
-              sweptContactDistance(a, b),
-            );
-          if (
-            a.team === b.team ||
-            (field.id === 'kanal2' && (a.waterEnteredAt || b.waterEnteredAt)) ||
-            !hasLineOfSight(a, b, solidObstacles, studioMap ?? null) ||
-            now < a.parkourUntil ||
-            now < b.parkourUntil
-          )
-            continue;
-          const aTargetable =
-            now >= a.ultimateShieldUntil &&
-            (a.state === 'ACTIVE' ||
-              (a.state === 'RETURNING' && now >= a.rescueShieldUntil));
-          const bTargetable =
-            now >= b.ultimateShieldUntil &&
-            (b.state === 'ACTIVE' ||
-              (b.state === 'RETURNING' && now >= b.rescueShieldUntil));
-          if (
-            a.state === 'ACTIVE' &&
-            bTargetable &&
-            a.exitOrder > b.exitOrder &&
-            contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange + 4
-          )
-            contacts.push({ attacker: a, target: b });
-          else if (
-            b.state === 'ACTIVE' &&
-            aTargetable &&
-            b.exitOrder > a.exitOrder &&
-            contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange + 4
-          )
-            contacts.push({ attacker: b, target: a });
-        }
-      contacts.sort(
-        (a, b) =>
-          b.attacker.exitOrder - a.attacker.exitOrder ||
-          b.target.exitOrder - a.target.exitOrder ||
-          a.attacker.id.localeCompare(b.attacker.id),
-      );
-      const resolved = new Set<string>();
-      contacts.forEach(({ attacker, target }) => {
-        if (resolved.has(attacker.id) || resolved.has(target.id)) return;
-        const before = target.state;
-        capture(attacker, target, now);
-        if (before !== 'PRISONER' && target.state === 'PRISONER') {
-          resolved.add(attacker.id);
-          resolved.add(target.id);
-        }
-      });
-    };
-    const rescueCheck = (now: number) => {
-      players
-        .filter((p) => p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
-        .forEach((rescuer) => {
-          const held = players
-            .filter((p) => p.team === rescuer.team && p.state === 'PRISONER')
-            .sort((a, b) => b.prisonIndex - a.prisonIndex);
-          const rescuerStats = CHARACTER_BY_ID[rescuer.characterId];
-          if (
-            held[0] &&
-            distance(rescuer, held[0]) < rescuerStats.rescueRange
-          ) {
-            held.forEach((p) => {
-              p.state = 'RETURNING';
-              p.prisonOwner = undefined;
-              p.rescueShieldUntil = now + rescuerStats.rescueShieldMs;
-              p.x += rescuer.team === 'blue' ? -22 : 22;
+        {
+          comboState: teamCombos[actor.team],
+          playerTeam: players[0].team,
+          players,
+          onComboCallout: (text, until) => {
+            comboCallout = text;
+            comboCalloutUntil = until;
+          },
+          onPlayerBoost: (teammates, fraction) => {
+            teammates.forEach((p) => {
+              const maximum = CHARACTER_BY_ID[p.characterId].boost;
+              p.boost = Math.min(maximum, p.boost + maximum * fraction);
             });
-            rescuer.action = 'rescue';
-            rescuer.actionUntil = now + 460;
-            addStat({ round: roundStats, match: matchStats }, rescuer, 'rescues');
-            if (rescuer.controlled) pendingProfileStatsRef.current.rescueTeam++;
-            if (
-              rescueRequest &&
-              held.some((player) => player.id === rescueRequest?.requesterId)
-            )
-              rescueRequest = null;
-            addMatchEvent(
-              {
-                kind: 'rescue',
-                actorName: rescuer.name,
-                actorTeam: rescuer.team,
-                targetName: held.length === 1 ? held[0].name : undefined,
-                targetTeam: held.length === 1 ? held[0].team : undefined,
-                rescuedCount: held.length,
-              },
-              now,
-            );
-            burst(held[0].x, held[0].y, '#b9ee3d', 26);
-            if (held.some(p => p.controlled)) matchAudio.play('rescued');
-            else if (rescuer.controlled) matchAudio.play('rescue');
-            else if (distance(players[0], rescuer) < 300) matchAudio.play('rescue', .25);
-            log(`${rescuer.name} membebaskan ${held.length} rekan.`);
-            registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
-            ultimateMeter = chargeUltimateMeter(ultimateMeter, rescuer.controlled, rescuer.characterId, RAJA_ULTIMATE_RESCUE_BONUS);
-            if (rescuer.controlled) mission.rescue = true;
-          }
-        });
+          },
+          onBurst: (bx, by, color, count) => burst(bx, by, color, count),
+          onTone: (frequency, duration) => playTone(frequency, duration),
+          onLog: (text) => log(text),
+          onMissionCombo: () => {
+            mission.combo = true;
+          },
+        },
+      );
     };
-    const refillCheck = () => {
-      players
-        .filter(
-          (p) =>
-            p.state === 'ACTIVE' &&
-            !(field.id === 'kanal2' && p.waterEnteredAt) &&
-            p.boost < CHARACTER_BY_ID[p.characterId].boost,
-        )
-        .forEach((p) => {
-          const item = refills.find((i) => distance(p, i) < 27);
-          if (!item) return;
-          const maxBoost = CHARACTER_BY_ID[p.characterId].boost;
-          p.boost = Math.min(maxBoost, p.boost + (maxBoost * item.grade) / 100);
-          refills = refills.filter((i) => i.id !== item.id);
-          const refillColor =
-            item.grade === 100
-              ? '#60e6ff'
-              : item.grade === 75
-                ? '#ef75ff'
-                : item.grade === 40
-                  ? '#f5cf45'
-                  : '#b9ee3d';
-          burst(item.x, item.y, refillColor, 18);
-          beep(560 + item.grade * 2, 0.12);
-          if (p.controlled) mission.boost = true;
-          log(`${p.name} mengambil refill boost ${item.grade}%.`);
-        });
-    };
+    const capture = (winner: Player, loser: Player, now: number) =>
+      captureAt(winner, loser, now, {
+        suddenDeath,
+        loserAudible: distance(players[0], loser) < 300,
+        onStat: (p, key) => addStat({ round: roundStats, match: matchStats }, p, key),
+        onProfileStat: (key) => {
+          if (key === 'tagMusuh') pendingProfileStatsRef.current.tagMusuh++;
+          else pendingProfileStatsRef.current.masukPenjara++;
+        },
+        onMatchEvent: (event) => {
+          const next = pushMatchEvent({ events: matchEvents, nextId: matchEventId }, event, now);
+          matchEvents = next.events;
+          matchEventId = next.nextId;
+        },
+        onBurst: (x, y, color) => burst(x, y, color),
+        onAudio: (name, volume) => matchAudio.play(name, volume),
+        onLog: (text) => log(text),
+        onTeamAction: (x, y) => registerTeamAction(winner, 'TAG', x, y, now),
+        onChargeUltimate: (controlled, characterId, amount) => {
+          ultimateMeter = chargeUltimateMeter(ultimateMeter, controlled, characterId, amount);
+        },
+        onMissionTag: () => {
+          mission.tag = true;
+        },
+        onLayoutPrisons: () => layoutPrisons(field.prisons, players, isKanalField(field.id)),
+        onWinRound: (team, reason) => winRound(team, reason),
+      });
+    const tagCheck = (now: number) =>
+      tagCheckAt(now, {
+        players,
+        kanal: field.id === 'kanal2',
+        lineOfSight: (a, b) => hasLineOfSight(a, b, solidObstacles, studioMap ?? null),
+        onCapture: (attacker, target) =>
+          capture(attacker as Player, target as Player, now),
+      });
+    const rescueCheck = (now: number) =>
+      rescueCheckAt(now, {
+        players,
+        kanal: field.id === 'kanal2',
+        rescueRequest,
+        audible: (rescuer) => distance(players[0], rescuer) < 300,
+        onStat: (p, key) => addStat({ round: roundStats, match: matchStats }, p, key),
+        onProfileStat: () => {
+          pendingProfileStatsRef.current.rescueTeam++;
+        },
+        onClearRescueRequest: () => {
+          rescueRequest = null;
+        },
+        onMatchEvent: (event) => {
+          const next = pushMatchEvent({ events: matchEvents, nextId: matchEventId }, event, now);
+          matchEvents = next.events;
+          matchEventId = next.nextId;
+        },
+        onBurst: (x, y, color, count) => burst(x, y, color, count),
+        onAudio: (name, volume) => matchAudio.play(name, volume),
+        onLog: (text) => log(text),
+        onTeamAction: (rescuer, x, y) =>
+          registerTeamAction(rescuer as Player, 'RESCUE', x, y, now),
+        onChargeUltimate: (controlled, characterId, amount) => {
+          ultimateMeter = chargeUltimateMeter(ultimateMeter, controlled, characterId, amount);
+        },
+        onMissionRescue: () => {
+          mission.rescue = true;
+        },
+      });
+    const refillCheck = () =>
+      refillCheckAt({
+        players,
+        refills,
+        kanal: field.id === 'kanal2',
+        onRefills: (next) => {
+          refills = next;
+        },
+        onBurst: (x, y, color, count) => burst(x, y, color, count),
+        onTone: (frequency, duration) => playTone(frequency, duration),
+        onLog: (text) => log(text),
+        onMissionBoost: () => {
+          mission.boost = true;
+        },
+      });
     const baseCheck = (
       p: Player,
       dt: number,
       now: number,
       exitCandidates: Player[],
-    ) => {
-      if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) return;
-      const stats = CHARACTER_BY_ID[p.characterId],
-        insideOwn = distance(p, bases[p.team]) < baseRadius,
-        maxBoost = stats.boost,
-        chargeTime = stats.baseChargeTime;
-      const contested = Boolean(fortOccupant(players, bases, baseRadius, isKanalField(field.id), p.team));
-      if (insideOwn) {
-        if (contested) {
-          if (p.state === 'IN_BASE' || p.state === 'RETURNING')
-            exitCandidates.push(p);
-        } else if (
-          p.state === 'ACTIVE' &&
-          now - p.lastExitAt < BASE_REENTRY_COOLDOWN_MS
-        ) {
-          p.fortCharge = 0;
-        } else {
-          if (p.state !== 'IN_BASE') {
-            p.state = 'IN_BASE';
-            p.baseCharge = 0;
-            p.exitDeadline = 0;
-            p.fortCharge = 0;
-          }
-          const charging = players
-            .filter(
-              (q) =>
-                q.team === p.team &&
-                q.state === 'IN_BASE' &&
-                distance(q, bases[q.team]) < baseRadius,
-            )
-            .sort(
-              (a, b) =>
-                b.baseCharge - a.baseCharge || tieHash(round, a.id) - tieHash(round, b.id),
-            )
-            .slice(0, 3);
-          if (
-            charging.some((q) => q.id === p.id) &&
-            p.baseCharge < chargeTime
-          ) {
-            p.baseCharge = Math.min(chargeTime, p.baseCharge + dt);
-            if (p.baseCharge >= chargeTime && !p.exitDeadline)
-              p.exitDeadline = now + 5000;
-          }
-          p.boost = maxBoost;
-          p.boostReadyAt = 0;
-          if (
-            p.baseCharge >= chargeTime &&
-            p.exitDeadline > 0 &&
-            now >= p.exitDeadline
-          ) {
-            p.x =
-              bases[p.team].x +
-              (p.team === 'blue' ? baseRadius + 5 : -baseRadius - 5);
-            exitCandidates.push(p);
-            log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
-          }
-        }
-      } else if (p.state === 'IN_BASE' && p.baseCharge >= chargeTime) {
-        exitCandidates.push(p);
-      }
-      if (
-        p.state === 'ACTIVE' &&
-        distance(p, bases[other(p.team)]) < baseRadius
-      ) {
-        const defending = players.some(
-          (q) =>
-            q.team !== p.team &&
-            q.state === 'ACTIVE' &&
-            distance(q, bases[other(p.team)]) < baseRadius,
-        );
-        p.fortCharge = defending ? 0 : p.fortCharge + dt;
-        if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
-      } else p.fortCharge = 0;
-      if (p.boost < maxBoost && p.boostReadyAt > 0 && now >= p.boostReadyAt) {
-        p.boost = maxBoost;
-        p.boostReadyAt = 0;
-        if (p.controlled) {
-          log(`Boost ${p.name} pulih penuh setelah 20 detik.`);
-          beep(690, 0.13);
-        }
-      }
-    };
+    ) =>
+      baseCheckAt(p, dt, now, {
+        players,
+        bases,
+        baseRadius,
+        kanal: field.id === 'kanal2',
+        round,
+        onExitCandidate: (q) => exitCandidates.push(q as Player),
+        onLog: (text) => log(text),
+        onTone: (frequency, duration) => playTone(frequency, duration),
+        onWinRound: (team, reason) => winRound(team, reason),
+      });
     const update = (dt: number, now: number) => {
-      if (keys.current.has('p')) {
-        keys.current.delete('p');
-        paused = !paused;
-      }
-      if (paused || mode !== 'playing') { clearMouse(); return; }
+      const pause = stepPauseGate(keys.current, paused, mode, clearMouse);
+      paused = pause.paused;
+      if (pause.halted) return;
       if (phase !== 'PLAYING') clearMouse();
       if (phase === 'COUNTDOWN') {
         announcement = `${Math.max(1, Math.ceil((phaseUntil - now) / 1000))}`;
@@ -2404,56 +1458,32 @@ export function BentenganPrototype() {
       if (phase === 'MATCH_OVER') {
         return;
       }
-      if (
-        rescueRequest &&
-        (now >= rescueRequest.expiresAt ||
-          players.find((player) => player.id === rescueRequest?.requesterId)
-            ?.state !== 'PRISONER')
-      )
-        rescueRequest = null;
+      rescueRequest = expireRescueRequest(rescueRequest, players, now);
       if (keys.current.has('r')) {
         keys.current.delete('r');
         const rescueEffects = requestRescue(players, rescueRequest, rescueRequestCooldownUntil, { bases, baseRadius }, now);
         rescueRequest = rescueEffects.request;
         rescueRequestCooldownUntil = rescueEffects.cooldownUntil;
-        if (rescueEffects.event) addMatchEvent(rescueEffects.event, now);
+        if (rescueEffects.event) {
+          const next = pushMatchEvent({ events: matchEvents, nextId: matchEventId }, rescueEffects.event, now);
+          matchEvents = next.events;
+          matchEventId = next.nextId;
+        }
         for (const sound of rescueEffects.sounds) matchAudio.play(sound.name, sound.volume);
         for (const effect of rescueEffects.bursts) burst(effect.x, effect.y, effect.color, effect.count);
         for (const line of rescueEffects.logs) log(line);
       }
-      if (!suddenDeath) timer -= dt;
-      if (!suddenDeath && timer <= 0) {
-        const blueHeld = players.filter(
-          (p) => p.team === 'red' && p.state === 'PRISONER',
-        ).length;
-        const redHeld = players.filter(
-          (p) => p.team === 'blue' && p.state === 'PRISONER',
-        ).length;
-        const blueUnique = new Set(
-          players
-            .filter((p) => p.team === 'blue')
-            .flatMap((p) => p.capturedIds),
-        ).size;
-        const redUnique = new Set(
-          players.filter((p) => p.team === 'red').flatMap((p) => p.capturedIds),
-        ).size;
-        if (blueHeld !== redHeld)
-          winRound(blueHeld > redHeld ? 'blue' : 'red', 'WAKTU HABIS');
-        else if (blueUnique !== redUnique)
-          winRound(blueUnique > redUnique ? 'blue' : 'red', 'TANGKAPAN UNIK');
-        else {
-          suddenDeath = true;
-          timer = 0;
-          announcement = 'SUDDEN DEATH';
-          log('Skor seri—tag atau rebut benteng berikutnya menang.');
-          beep(760, 0.22);
-        }
-      }
-      refills = refills.filter((item) => item.expiresAt > now);
-      if (now >= nextRefillSpawn && refills.length < 9) {
-        refillId = spawnRefill(refills, refillId, spawnGeo(), now);
-        nextRefillSpawn = now + 8000 + Math.random() * 4000;
-      }
+      ({ timer, suddenDeath, announcement } = stepSuddenDeath(
+        players,
+        { timer, suddenDeath, announcement },
+        dt,
+        { onWinRound: winRound, onLog: log, onTone: playTone },
+      ));
+      ({
+        refills,
+        nextId: refillId,
+        nextSpawn: nextRefillSpawn,
+      } = tickRefills(refills, refillId, nextRefillSpawn, spawnGeo(worldWidth, obstacles, studioMap ?? null), now));
       players.forEach((player) => recoverFromObstacle(player, now, collisionWorld));
       players.forEach((player) => {
         player.lastX = player.x;
@@ -2462,98 +1492,76 @@ export function BentenganPrototype() {
       const me = players[0];
       let dx = 0,
         dy = 0;
-      if (ULTIMATE_CHARACTER_IDS.has(me.characterId))
-        ultimateMeter = clamp(
-          ultimateMeter + (dt * 100) / RAJA_ULTIMATE_RECHARGE_SECONDS,
-          0,
-          100,
-        );
+      ultimateMeter = tickUltimateMeter(
+        ultimateMeter,
+        ULTIMATE_CHARACTER_IDS.has(me.characterId),
+        dt,
+        RAJA_ULTIMATE_RECHARGE_SECONDS,
+      );
       if (keys.current.has('capslock')) {
         keys.current.delete('capslock');
-        const actionAvailable =
-          ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
-          ultimateMeter >= 100 &&
-          me.state === 'ACTIVE' &&
-          !(field.id === 'kanal2' && me.waterEnteredAt) &&
-          now >= me.parkourUntil &&
-          (!me.action || now >= me.actionUntil);
-        if (actionAvailable) {
-          const meUltimate = CHARACTER_BY_ID[me.characterId]?.ultimate;
-          const castDuration = meUltimate?.castMs ?? RAJA_ULTIMATE_CAST_MS;
-          ultimateMeter = 0;
-          ultimateImpactAt = now + castDuration;
-          ultimateImpactApplied = false;
-          me.action = 'ultimate';
-          me.actionUntil = ultimateImpactAt;
-          me.vx = 0;
-          me.vy = 0;
-          boostBurstUntil = 0;
-          setUltimateBannerVisible(true);
-          window.clearTimeout(bannerTimeout);
-          bannerTimeout = window.setTimeout(
-            () => setUltimateBannerVisible(false),
-            meUltimate?.bannerMs ?? 820,
-          );
-          burst(me.x, me.y, meUltimate?.castBurst ?? '#ef233c', 14);
-          beep(meUltimate?.castBeepHz ?? 180, 0.2);
-          log(meUltimate?.castLog ?? 'RAJA memanggil TITAH HALILINTAR.');
+        const cast = beginUltimateCast(
+          me,
+          ultimateMeter,
+          now,
+          RAJA_ULTIMATE_CAST_MS,
+          {
+            isKanal: isKanalField(field.id),
+            onBanner: (durationMs) => {
+              setUltimateBannerVisible(true);
+              window.clearTimeout(bannerTimeout);
+              bannerTimeout = window.setTimeout(
+                () => setUltimateBannerVisible(false),
+                durationMs,
+              );
+            },
+            onBurst: (x, y, color, count) => burst(x, y, color, count),
+            onTone: (frequency, duration) => playTone(frequency, duration),
+            onLog: (text) => log(text),
+          },
+        );
+        if (cast) {
+          ultimateMeter = cast.meter;
+          ultimateImpactAt = cast.ultimateImpactAt;
+          ultimateImpactApplied = cast.ultimateImpactApplied;
+          boostBurstUntil = cast.boostBurstUntil;
         }
       }
       const ultimateCasting =
         ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
         me.action === 'ultimate' &&
         now < me.actionUntil;
-      if (
-        ultimateImpactAt &&
-        !ultimateImpactApplied &&
-        now >= ultimateImpactAt
-      ) {
-        ultimateImpactApplied = true;
-        ultimateImpactAt = 0;
-        if (CHARACTER_BY_ID[me.characterId]?.ultimate?.kind === 'shield') {
-          ultimateShieldUntil = now + KAKA_ULTIMATE_SHIELD_MS;
-          players
-            .filter((player) => player.team === me.team)
-            .forEach((player) => {
-              player.ultimateShieldUntil = ultimateShieldUntil;
-            });
-          burst(me.x, me.y, '#35f477', 34);
-          burst(me.x, me.y, '#baffc9', 18);
-          beep(540, 0.32);
-          log(
-            'PERISAI HIJAU · seluruh rekan kebal TAG selama 5 detik.',
-          );
-        } else {
-          ultimateBuffUntil = now + RAJA_ULTIMATE_BUFF_MS;
-          burst(me.x, me.y, '#ef233c', 28);
-          burst(me.x, me.y, '#b54a32', 18);
-          beep(118, 0.32);
-          log(
-            'TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +40% selama 5 detik.',
-          );
-        }
-      }
+      ({
+        ultimateImpactAt,
+        ultimateImpactApplied,
+        ultimateShieldUntil,
+        ultimateBuffUntil,
+      } = applyUltimateImpact(
+        me,
+        players,
+        { ultimateImpactAt, ultimateImpactApplied, ultimateShieldUntil, ultimateBuffUntil },
+        now,
+        {
+          shieldMs: KAKA_ULTIMATE_SHIELD_MS,
+          buffMs: RAJA_ULTIMATE_BUFF_MS,
+          onBurst: (x, y, color, count) => burst(x, y, color, count),
+          onTone: (frequency, duration) => playTone(frequency, duration),
+          onLog: (text) => log(text),
+        },
+      ));
       const rajaUltimateMultiplier = (player: Player) =>
-        player.team === me.team &&
-        player.state === 'ACTIVE' &&
-        now < ultimateBuffUntil
-          ? RAJA_ULTIMATE_SPEED_MULTIPLIER
-          : 1;
+        rajaUltimateMultiplierAt(player.team, player.state, me.team, now, ultimateBuffUntil);
       const playerComboMultiplier = teamComboSpeedMultiplier(
         teamCombos[me.team],
         now,
       );
       if (ultimateCasting) {
-        clearMouse();
-        players.forEach((player) => {
-          player.vx = 0;
-          player.vy = 0;
-          player.lastX = player.x;
-          player.lastY = player.y;
-        });
-        boostLatch = keys.current.has(' ');
-        parkourLatch = keys.current.has('shift');
-        return;
+        const castFreeze = freezeDuringUltimateCast(players, keys.current, ultimateCasting, clearMouse);
+        if (castFreeze) {
+          boostLatch = castFreeze.boostLatch;
+          parkourLatch = castFreeze.parkourLatch;
+          return;
+        }
       }
       if (keys.current.has('a') || keys.current.has('arrowleft')) dx--;
       if (keys.current.has('d') || keys.current.has('arrowright')) dx++;
@@ -2571,71 +1579,39 @@ export function BentenganPrototype() {
         }
       }
       const boostKey = keys.current.has(' ') || mouseBoost;
-      if (
-        boostKey &&
-        (!boostLatch || mouseBoost) &&
-        me.boost > 0 &&
-        !(field.id === 'kanal2' && me.waterEnteredAt) &&
-        (me.state === 'ACTIVE' || me.state === 'IN_BASE')
-      )
-        boostBurstUntil = now + GAME_RULES.boostDurationMs;
-      boostLatch = boostKey;
-      mouseBoost = false;
-      const boosting =
-        now < boostBurstUntil &&
-        me.boost > 0 &&
-        !(field.id === 'kanal2' && me.waterEnteredAt) &&
-        (dx || dy) &&
-        (me.state === 'ACTIVE' || me.state === 'IN_BASE');
-      if (boosting) {
-        me.boost = Math.max(
-          0,
-          me.boost -
-            selected.boostDrain * (playerComboMultiplier > 1 ? 0.8 : 1) * dt,
-        );
-        me.boostReadyAt = now + 20000;
-        mission.boost = true;
-      }
+      const boostTick = stepBoost(me, {
+        now,
+        dx,
+        dy,
+        isKanal: isKanalField(field.id),
+        boostKey,
+        boostLatch,
+        mouseBoost,
+        boostBurstUntil,
+        boostDrain: selected.boostDrain,
+        comboBoosted: playerComboMultiplier > 1,
+        dt,
+        onMissionBoost: () => { mission.boost = true; },
+      });
+      boostBurstUntil = boostTick.boostBurstUntil;
+      boostLatch = boostTick.boostLatch;
+      mouseBoost = boostTick.mouseBoost;
+      const boosting = boostTick.boosting;
       const parkourKey = keys.current.has('shift');
-      const parkourCost = 8 / selected.agility;
-      if (
-        parkourKey &&
-        !parkourLatch &&
-        me.boost >= parkourCost &&
-        now > me.parkourUntil &&
-        !(field.id === 'kanal2' && me.waterEnteredAt) &&
-        (dx || dy) &&
-        (me.state === 'ACTIVE' || me.state === 'IN_BASE')
-      ) {
-        const near =
-          obstacles.some(
-            (o) =>
-              me.x + 44 > o.x &&
-              me.x - 44 < o.x + o.w &&
-              me.y + 44 > o.y &&
-              me.y - 44 < o.y + o.h,
-          ) || isNearWater(me.x, me.y, { hasWater: Boolean(field.waterMask || studioMap), waterAt: (x, y) => isWaterAt(x, y) }) || !!studioMap?.objects.some(o => o.behavior === 'parkour' && studioContains({...o,x:o.x-40,y:o.y-40,w:o.w+80,h:o.h+80},me.x,me.y));
-        if (near) {
-          const parkourDistance = 54 * selected.agility;
-          const landing = findParkourLanding(
-            me,
-            { x: dx, y: dy },
-            parkourDistance,
-            now,
-          );
-          if (landing) {
-            me.parkourUntil = now + 360;
-            me.fallSafeUntil = now + (landing.crossedWater ? 620 : 430);
-            me.boost = Math.max(0, me.boost - parkourCost);
-            me.boostReadyAt = now + 20000;
-            me.x = landing.x;
-            me.y = landing.y;
-            mission.parkour = true;
-            burst(me.x, me.y, landing.crossedWater ? '#65e9ff' : '#f4df9a', 9);
-            beep(460);
-          }
-        }
-      }
+      tryParkourJump(me, dx, dy, now, {
+        parkourKey,
+        parkourLatch,
+        agility: selected.agility,
+        isKanal: isKanalField(field.id),
+        obstacles,
+        hasWater: Boolean(field.waterMask || studioMap),
+        waterAt: (x, y) => isWaterAt(x, y),
+        studioMap: studioMap ?? null,
+        findLanding: (direction, distance) => findParkourLanding(me, direction, distance, now),
+        onMissionParkour: () => { mission.parkour = true; },
+        onBurst: (x, y, color, count) => burst(x, y, color, count),
+        onTone: (frequency) => playTone(frequency),
+      });
       parkourLatch = parkourKey;
       const mouseBefore = { x: me.x, y: me.y };
       if (me.state === 'RETURNING') {
@@ -2670,1242 +1646,146 @@ export function BentenganPrototype() {
         me.vx = 0;
         me.vy = 0;
       }
-      if (mouseRoute.length) {
-        mouseStuckTime = distance(me, mouseBefore) < .1 ? mouseStuckTime + dt : 0;
-        if (mouseStuckTime > .6) clearMouse();
-      }
-      players.slice(1).forEach((p) => {
-        if (p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) {
-          p.vx = 0;
-          p.vy = 0;
-          return;
-        }
-        const stats = CHARACTER_BY_ID[p.characterId];
-        const enemyOfPlayer = p.team !== me.team;
-        const desired = aiVector(p, now);
-        const vector = navigateAroundHazards(
-          p,
-          desired,
-          now,
-          enemyOfPlayer ? aiProfile.steerDistance : 78,
-          Math.sin(p.aiSeed + now / 1700),
-        );
-        const far = Math.hypot(vector.x, vector.y) > 145;
-        const boostThreshold = AI_BOOST_THRESHOLD;
-        const boostAi =
-          p.state === 'ACTIVE' &&
-          !(field.id === 'kanal2' && p.waterEnteredAt) &&
-          p.boost > 10 &&
-          far &&
-          Math.sin(now / 950 + p.aiSeed) > boostThreshold;
-        if (boostAi) {
-          p.boost = Math.max(
-            0,
-            p.boost -
-              stats.boostDrain *
-                AI_BOOST_DRAIN_MULTIPLIER *
-                dt,
-          );
-          p.boostReadyAt = now + 20000;
-        }
-        const comboMultiplier = teamComboSpeedMultiplier(
-          teamCombos[p.team],
-          now,
-        );
-        move(
-          p,
-          vector.x,
-          vector.y,
-          stats.speed *
-            comboMultiplier *
-            rajaUltimateMultiplier(p) *
-            AI_SPEED_MULTIPLIER *
-            (boostAi ? stats.boostMultiplier : 1),
-          dt,
-          now,
-        );
+      mouseStuckTime = stepMouseStuckTimeout(
+        mouseRoute.length > 0,
+        me,
+        mouseBefore,
+        mouseStuckTime,
+        dt,
+        clearMouse,
+      );
+      stepBots(me, now, dt, {
+        players,
+        rescueRequest,
+        refills,
+        bases,
+        worldWidth,
+        worldHeight,
+        aiProfile,
+        isKanal: isKanalField(field.id),
+        teamCombos,
+        speedMultiplier: AI_SPEED_MULTIPLIER,
+        boostThreshold: AI_BOOST_THRESHOLD,
+        boostDrainMultiplier: AI_BOOST_DRAIN_MULTIPLIER,
+        move: (p, x, y, speed, stepDt, stepNow) => move(p as Player, x, y, speed, stepDt, stepNow),
+        navigate: (p, desired, stepNow, steerDistance, turnBias) =>
+          navigateAroundHazards(p as Player, desired, stepNow, steerDistance, turnBias),
+        rajaMultiplier: (p) => rajaUltimateMultiplier(p as Player),
       });
       resolvePlayerSpacing(now);
       riverFallCheck(now);
       // Only actual grounded movement produces footsteps (not pressing into a wall).
-      const travelled = previousSoundPosition ? distance(me, previousSoundPosition) : 0;
-      previousSoundPosition = { x: me.x, y: me.y };
-      const grounded = now >= me.parkourUntil && me.state !== 'PRISONER';
-      const movingForSound = grounded && travelled > .15 && travelled < 35;
-      if (movingForSound && now - lastFootstep > (boosting ? 170 : 270)) {
-        matchAudio.play('step', boosting ? .8 : .6);
-        lastFootstep = now;
-      }
-      if (boosting && !wasDashing && movingForSound) matchAudio.play('dash');
-      wasDashing = Boolean(boosting && movingForSound);
-      if (me.state === 'PRISONER') matchAudio.play('prison');
-      const inEnemyFort = me.state === 'ACTIVE' && distance(me, bases[other(me.team)]) < baseRadius;
-      if (inEnemyFort && !wasInEnemyFort) matchAudio.play('fort-enter');
-      wasInEnemyFort = inEnemyFort;
+      ({
+        previousSoundPosition,
+        lastFootstep,
+        wasDashing,
+        wasInEnemyFort,
+      } = stepMovementAudio(
+        me,
+        { previousSoundPosition, lastFootstep, wasDashing, wasInEnemyFort },
+        now,
+        boosting,
+        {
+          enemyBase: bases[other(me.team)],
+          baseRadius,
+          onStep: (volume) => matchAudio.play('step', volume),
+          onDash: () => matchAudio.play('dash'),
+          onPrison: () => matchAudio.play('prison'),
+          onFortEnter: () => matchAudio.play('fort-enter'),
+        },
+      ));
       const exitCandidates: Player[] = [];
       players.forEach((p) => baseCheck(p, dt, now, exitCandidates));
-      Array.from(new Map(exitCandidates.map((p) => [p.id, p])).values())
-        .sort((a, b) => tieHash(round, a.id) - tieHash(round, b.id))
-        .forEach((p) => {
-          p.state = 'ACTIVE';
-          p.exitOrder = ++exitCounter;
-          p.lastExitAt = now;
-          p.baseCharge = 0;
-          p.exitDeadline = 0;
-          p.rescueShieldUntil = 0;
-          if (p.controlled && p.exitOrder > 5) mission.refresh = true;
-          log(`${p.name} keluar sebagai urutan #${p.exitOrder}.`);
-          beep(p.controlled ? 520 : 380);
-        });
+      applyExitOrder(exitCandidates, now, {
+        round,
+        nextExitOrder: () => ++exitCounter,
+        onMissionRefresh: () => {
+          mission.refresh = true;
+        },
+        onLog: (text) => log(text),
+        onTone: (frequency) => playTone(frequency),
+      });
       refillCheck();
       tagCheck(now);
       rescueCheck(now);
       layoutPrisons(field.prisons, players, isKanalField(field.id));
-      (['blue', 'red'] as Team[]).forEach((team) => {
-        const allHeld = players
-          .filter((p) => p.team === other(team))
-          .every((p) => p.state === 'PRISONER' && p.prisonOwner === team);
-        totalCapture[team] = allHeld ? totalCapture[team] + dt : 0;
-        if (totalCapture[team] >= 2) winRound(team, 'SEMUA LAWAN DITANGKAP');
-      });
-      particles.forEach((p) => {
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.vx *= 0.94;
-        p.vy *= 0.94;
-        p.life -= dt;
-      });
-      particles = particles.filter((p) => p.life > 0);
-    };
-
-    const rounded = (x: number, y: number, w: number, h: number, r: number) =>
-      roundedOn(ctx, x, y, w, h, r);
-    const drawFieldAsset = (
-      target: CanvasRenderingContext2D,
-      asset: FieldAssetId,
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-      flip = false,
-      opacity = 1,
-    ) => {
-      const source = FIELD_OBJECT_ATLAS.assets[asset];
-      const atlas = asset.startsWith('kanalNusa') ? kanalObjectAtlas : fieldObjectAtlas;
-      if (!atlas?.complete || !atlas.naturalWidth) {
-        target.fillStyle = 'rgba(28,43,31,.34)';
-        roundedOn(target, x, y, w, h, Math.min(12, w / 5));
-        target.fill();
-        return;
-      }
-      target.save();
-      target.globalAlpha = opacity;
-      target.imageSmoothingEnabled = true;
-      target.imageSmoothingQuality = 'high';
-      if (isKanalField(field.id)) {
-        // Atlas sprites have transparent edges, so a shadow follows the true
-        // silhouette rather than drawing a rectangular backdrop.
-        target.shadowColor = 'rgba(5, 16, 12, .46)';
-        target.shadowBlur = 4;
-        target.shadowOffsetY = 5;
-      }
-      if (flip) {
-        target.translate(x * 2 + w, 0);
-        target.scale(-1, 1);
-      }
-      target.drawImage(
-        atlas,
-        source.x,
-        source.y,
-        source.width,
-        source.height,
-        x,
-        y,
-        w,
-        h,
+      updateCaptureHold(totalCapture, players, dt, (team, reason) =>
+        winRound(team, reason),
       );
-      target.restore();
+      particles = stepParticles(particles, dt);
     };
-    const drawAnimatedAsset = (
-      target: CanvasRenderingContext2D,
-      animationId: FieldAnimatedId,
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-      now: number,
-      flip = false,
-      opacity = 1,
-    ) => {
-      const animation = FIELD_ANIMATED_ATLAS.animations[animationId];
-      const frame =
-        animation.frames[
-          Math.floor((now * animation.fps) / 1000) % animation.frames.length
-        ];
-      if (!fieldAnimatedAtlas.complete || !fieldAnimatedAtlas.naturalWidth)
-        return;
-      target.save();
-      target.globalAlpha = opacity;
-      target.imageSmoothingEnabled = true;
-      target.imageSmoothingQuality = 'high';
-      if (flip) {
-        target.translate(x * 2 + w, 0);
-        target.scale(-1, 1);
-      }
-      target.drawImage(
-        fieldAnimatedAtlas,
-        frame.x,
-        frame.y,
-        frame.width,
-        frame.height,
-        x,
-        y,
-        w,
-        h,
-      );
-      target.restore();
-    };
-    const groundTileCanvas = (tile: GroundTileId) => {
-      const source = FIELD_GROUND_ATLAS.tiles[tile];
-      const surface = document.createElement('canvas');
-      surface.width = source.width;
-      surface.height = source.height;
-      const surfaceContext = surface.getContext('2d');
-      if (
-        surfaceContext &&
-        fieldGroundAtlas.complete &&
-        fieldGroundAtlas.naturalWidth
-      ) {
-        surfaceContext.drawImage(
-          fieldGroundAtlas,
-          source.x,
-          source.y,
-          source.width,
-          source.height,
-          0,
-          0,
-          source.width,
-          source.height,
-        );
-      }
-      return surface;
-    };
-    const drawStaticMap = (target: CanvasRenderingContext2D) => {
-      target.clearRect(0, 0, worldWidth, worldHeight);
-      target.imageSmoothingEnabled = true;
-      target.imageSmoothingQuality = 'high';
-      if (
-        fieldBackground?.complete &&
-        fieldBackground.naturalWidth &&
-        fieldBackground.naturalHeight
-      ) {
-        target.drawImage(fieldBackground, 0, 0, worldWidth, worldHeight);
-      } else {
-        const primaryPattern = target.createPattern(
-          groundTileCanvas(field.ground),
-          'repeat',
-        );
-        target.fillStyle = primaryPattern ?? '#7f815a';
-        target.fillRect(0, 0, worldWidth, worldHeight);
-      }
-      target.fillStyle = isKanalField(field.id)
-        ? 'rgba(19,27,21,.03)'
-        : 'rgba(19,27,21,.08)';
-      target.fillRect(0, 0, worldWidth, worldHeight);
-      // The authored reference already contains its finished plaza. Extra
-      // runtime guide rectangles make the ground look boxed-in at close range.
-      if (isKanalField(field.id) && field.paths.length > 0) {
-        // The cleared centre planters become quiet, walkable mini-plazas.
-        // This is terrain detail only: it deliberately adds no obstruction.
-        const scaleX = worldWidth / (field.designWidth ?? worldWidth);
-        const scaleY = worldHeight / (field.designHeight ?? worldHeight);
-        const plazaZones = [
-          { x: 568, y: 378, w: 202, h: 76 },
-          { x: 930, y: 378, w: 202, h: 76 },
-        ];
-        target.save();
-        plazaZones.forEach((zone) => {
-          const x = Math.round(zone.x * scaleX);
-          const y = Math.round(zone.y * scaleY);
-          const w = Math.round(zone.w * scaleX);
-          const h = Math.round(zone.h * scaleY);
-          const radius = Math.max(12, Math.min(w, h) * 0.22);
-          target.fillStyle = 'rgba(91, 73, 44, .14)';
-          roundedOn(target, x, y, w, h, radius);
-          target.fill();
-          target.strokeStyle = 'rgba(53, 43, 30, .16)';
-          target.lineWidth = 1;
-          roundedOn(target, x, y, w, h, radius);
-          target.stroke();
 
-          // A few low-contrast stones make the grass-to-plaza transition feel
-          // grounded without drawing a rigid grid or a visible white box.
-          const pebbles = [
-            [0.2, 0.3, 3],
-            [0.53, 0.68, 2],
-            [0.82, 0.38, 3],
-            [0.38, 0.47, 2],
-          ];
-          target.fillStyle = 'rgba(54, 44, 30, .17)';
-          pebbles.forEach(([px, py, size]) => {
-            target.beginPath();
-            target.ellipse(
-              x + w * px,
-              y + h * py,
-              size * scaleX,
-              size * 0.65 * scaleY,
-              -0.25,
-              0,
-              Math.PI * 2,
-            );
-            target.fill();
-          });
-        });
-        target.restore();
-      }
+    const drawNearbyFieldDetails = createDrawNearbyFieldDetails({
+      ctx,
+      field,
+      studioMap: studioMap ?? null,
+      drawMapObject,
+      isPlaying: () => mode === 'playing',
+      kanal: isKanalField(field.id),
+      bases,
+      fortWidth,
+      fortHeight,
+      fortAnchorY,
+      drawFieldAsset,
+    });
+    const drawFieldAnimations = createDrawFieldAnimations(ctx, drawAnimatedAsset, field.animated);
+    const drawKanalWater = createDrawKanalWater({
+      ctx,
+      kanal: isKanalField(field.id),
+      waterMaskPixels: () => waterMaskPixels,
+      glints: kanalWaterGlints,
+      worldWidth,
+      worldHeight,
+      field,
+      isWaterAt,
+    });
+    const drawColliderDebug = createColliderDebugDraw({
+      enabled: () => debugColliders,
+      kanal: isKanalField(field.id),
+      waterMaskPixels: () => waterMaskPixels,
+      waterMaskCanvas,
+      worldWidth,
+      worldHeight,
+      obstacles: solidObstacles,
+      fortRects: kanalFortRects,
+      ctx,
+    });
+    const drawRefill = createDrawRefill(ctx, drawAnimatedAsset);
+    const drawPlayer = createDrawPlayer({
+      getContext: () => ctx,
+      kanal: field.id === 'kanal2',
+      isWaterAt,
+      getPhase: () => phase,
+      getRoundWinner: () => roundWinner,
+      getTeamCombos: () => teamCombos,
+      getUltimateBuffUntil: () => ultimateBuffUntil,
+      getUltimateMeter: () => ultimateMeter,
+      rajaCastMs: RAJA_ULTIMATE_CAST_MS,
+      kakaCastMs: KAKA_ULTIMATE_CAST_MS,
+      kakaFrames: KAKA_ULTIMATE_FRAME_COUNT,
+      getSpriteImage,
+      getSeriesImage,
+      getSprintDustImage,
+      getKakaUltimateImage,
+      studioResolve: createStudioResolver(),
+    });
 
-      field.paths.forEach((pathConfig) => {
-        const pattern = target.createPattern(
-          groundTileCanvas(pathConfig.tile),
-          'repeat',
-        );
-        target.save();
-        target.globalAlpha = pathConfig.opacity;
-        roundedOn(
-          target,
-          pathConfig.x,
-          pathConfig.y,
-          pathConfig.w,
-          pathConfig.h,
-          pathConfig.radius,
-        );
-        target.clip();
-        target.fillStyle = pattern ?? '#88877a';
-        target.fillRect(pathConfig.x, pathConfig.y, pathConfig.w, pathConfig.h);
-        target.restore();
-        target.strokeStyle = 'rgba(255,245,211,.18)';
-        target.lineWidth = 3;
-        roundedOn(
-          target,
-          pathConfig.x,
-          pathConfig.y,
-          pathConfig.w,
-          pathConfig.h,
-          pathConfig.radius,
-        );
-        target.stroke();
-      });
-      if (!isKanalField(field.id)) {
-        target.strokeStyle = 'rgba(255,255,255,.13)';
-        target.lineWidth = 2;
-        target.setLineDash([16, 18]);
-        [worldY(296), worldY(506)].forEach((y) => {
-          target.beginPath();
-          target.moveTo(worldX(238), y);
-          target.lineTo(worldWidth - worldX(238), y);
-          target.stroke();
-        });
-        target.setLineDash([]);
-      }
-
-      const drawSceneryLayer = (underlay: boolean) => {
-        // Kanal's raised props are drawn at native atlas resolution on the
-        // live canvas below. Baking them into the scaled ground and drawing
-        // them again at close range caused soft/doubled silhouettes.
-        if (isKanalField(field.id) && !underlay) return;
-        const scenery = [
-          ...field.decorations
-            .filter((item) => Boolean(item.underlay) === underlay)
-            .map((item) => ({
-              baseline: item.y + item.h,
-              draw: () =>
-                drawFieldAsset(
-                  target,
-                  item.asset,
-                  item.x,
-                  item.y,
-                  item.w,
-                  item.h,
-                  item.flip,
-                  item.opacity,
-                ),
-            })),
-          ...visualObstacles
-            .filter(
-              (item) =>
-                !item.hidden && Boolean(item.underlay) === underlay,
-            )
-            .map((item) => ({
-              baseline: item.y + item.h,
-              draw: () =>
-                drawFieldAsset(
-                  target,
-                  item.asset,
-                  item.x + item.w / 2 - item.visualW / 2,
-                  item.y + item.h - item.visualH,
-                  item.visualW,
-                  item.visualH,
-                  item.flip,
-                ),
-            })),
-        ].sort((a, b) => a.baseline - b.baseline);
-        scenery.forEach((item) => item.draw());
-      };
-
-      // Border and perimeter art belongs below gameplay-critical structures.
-      drawSceneryLayer(true);
-
-      if (!isKanalField(field.id))
-        (['blue', 'red'] as Team[]).forEach((team) => {
-          const b = bases[team],
-            color = TEAM_COLOR[team];
-          target.fillStyle = `${color}20`;
-          target.beginPath();
-          target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
-          target.fill();
-          target.strokeStyle = `${color}68`;
-          target.lineWidth = 3;
-          target.beginPath();
-          target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
-          target.stroke();
-          const fortAsset: FieldAssetId =
-            team === 'blue' ? 'fortRed' : 'fortGreen';
-          if (!field.structuresInBackground && !field.basesInBackground)
-            drawFieldAsset(
-              target,
-              fortAsset,
-              b.x - fortWidth / 2,
-              b.y - fortAnchorY,
-              fortWidth,
-              fortHeight,
-              false,
-              0.96,
-            );
-        });
-
-      if (!field.structuresInBackground && !isKanalField(field.id))
-        (['blue', 'red'] as Team[]).forEach((team) => {
-          const prison = field.prisons[team];
-          drawFieldAsset(
-            target,
-            prison.floorAsset ?? 'prisonFloor',
-            prison.x,
-            prison.y,
-            prison.w,
-            prison.h,
-            prison.flip ?? team === 'red',
-            0.96,
-          );
-        });
-
-      drawSceneryLayer(false);
-
-      if (!field.background) {
-        target.fillStyle = 'rgba(20,31,23,.94)';
-        target.fillRect(0, 32, worldWidth, 34);
-        target.fillRect(0, worldHeight - 32, worldWidth, 32);
-        target.strokeStyle = 'rgba(255,241,205,.24)';
-        target.lineWidth = 2;
-        target.beginPath();
-        target.moveTo(0, 66);
-        target.lineTo(worldWidth, 66);
-        target.stroke();
-        target.font = '800 15px var(--font-heading)';
-        target.fillStyle = '#fff0cf';
-        target.textAlign = 'center';
-        target.fillText(
-          `${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`,
-          worldWidth / 2,
-          55,
-        );
-      }
-    };
-    const drawMap = () => {
-      if (studioMap) { drawMapTerrain(ctx, studioMap, performance.now()); return; }
-      if (staticLayerContext && staticMapDirty) {
-        staticLayerContext.setTransform(
-          staticMapScale,
-          0,
-          0,
-          staticMapScale,
-          0,
-          0,
-        );
-        drawStaticMap(staticLayerContext);
-        staticMapDirty = false;
-      }
-      if (staticLayerContext)
-        ctx.drawImage(
-          staticLayer,
-          0,
-          0,
-          staticLayer.width,
-          staticLayer.height,
-          0,
-          0,
-          worldWidth,
-          worldHeight,
-        );
-      else {
-        ctx.fillStyle = '#667556';
-        ctx.fillRect(0, 0, worldWidth, worldHeight);
-      }
-    };
-    const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
-      if (studioMap) {
-        studioMap.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z).forEach(o=>drawMapObject(ctx,o,performance.now()));
-      }
-      if (mode !== 'playing' && !isKanalField(field.id)) return;
-      // Kanal has few props, so draw every one at native atlas resolution in
-      // both cameras. This also prevents props vanishing at the view edge.
-      const showEverything = activeCamera === 'overview' || isKanalField(field.id);
-      const radiusSquared = NEAR_FIELD_DETAIL_RADIUS * NEAR_FIELD_DETAIL_RADIUS;
-      const isNearby = (x: number, y: number, w: number, h: number) => {
-        if (showEverything) return true;
-        const dx = x + w / 2 - me.x,
-          dy = y + h / 2 - me.y;
-        return dx * dx + dy * dy <= radiusSquared;
-      };
-      field.decorations.forEach((item) => {
-        if (
-          !item.underlay &&
-          (isKanalField(field.id) || !showEverything) &&
-          isNearby(item.x, item.y, item.w, item.h)
-        )
-          drawFieldAsset(
-            ctx,
-            item.asset,
-            item.x,
-            item.y,
-            item.w,
-            item.h,
-            item.flip,
-            item.opacity,
-          );
-      });
-      visualObstacles.forEach((item) => {
-        if (
-          (!isKanalField(field.id) && showEverything) ||
-          item.hidden ||
-          item.underlay ||
-          !isNearby(item.x, item.y, item.w, item.h)
-        )
-          return;
-        drawFieldAsset(
-          ctx,
-          item.asset,
-          item.x + item.w / 2 - item.visualW / 2,
-          item.y + item.h - item.visualH,
-          item.visualW,
-          item.visualH,
-          item.flip,
-        );
-      });
-      (['blue', 'red'] as Team[]).forEach((team) => {
-        const base = bases[team];
-        if (
-          !field.structuresInBackground &&
-          !field.basesInBackground &&
-          isNearby(
-            base.x - fortWidth / 2,
-            base.y - fortAnchorY,
-            fortWidth,
-            fortHeight,
-          )
-        )
-          drawFieldAsset(
-            ctx,
-            team === 'blue' ? 'fortRed' : 'fortGreen',
-            base.x - fortWidth / 2,
-            base.y - fortAnchorY,
-            fortWidth,
-            fortHeight,
-            false,
-            0.96,
-          );
-        const prison = field.prisons[team];
-        if (
-          !field.structuresInBackground &&
-          isNearby(prison.x, prison.y, prison.w, prison.h)
-        )
-          drawFieldAsset(
-            ctx,
-            prison.floorAsset ?? 'prisonFloor',
-            prison.x,
-            prison.y,
-            prison.w,
-            prison.h,
-            prison.flip ?? team === 'red',
-            0.96,
-          );
-      });
-    };
-    const drawFieldAnimations = (now: number) =>
-      field.animated.forEach((item) =>
-        drawAnimatedAsset(
-          ctx,
-          item.animation,
-          item.x,
-          item.y,
-          item.w,
-          item.h,
-          now,
-          item.flip,
-          item.opacity,
-        ),
-      );
-    const drawKanalWater = (now: number) => {
-      if (!isKanalField(field.id) || !waterMaskPixels) return;
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineWidth = 2.3;
-      ctx.strokeStyle = 'rgba(184, 243, 252, .46)';
-      for (const glint of kanalWaterGlints) {
-        const upper = glint.y < worldHeight * 0.36;
-        const lower = glint.y > worldHeight * 0.64;
-        const sideways = upper ? 0.55 : lower ? -0.55 : 0;
-        const dx = glint.x < worldWidth / 2 ? -sideways : sideways;
-        const drift = ((now * 0.018 + glint.phase) % 18) - 9;
-        const x = glint.x + dx * drift;
-        const y = glint.y + drift;
-        if (!isWaterAt(x, y)) continue;
-        ctx.globalAlpha = 0.42 + 0.18 * Math.sin(now / 650 + glint.phase);
-        ctx.beginPath();
-        ctx.moveTo(x - dx * 4, y - 4);
-        ctx.lineTo(x + dx * 4, y + 4);
-        ctx.stroke();
-      }
-      // A translucent falling sheet, bright crest, and downstream foam make
-      // the two canal drops readable even in the overview camera. This is
-      // visual-only; the water mask and movement rules are untouched.
-      const sx = worldWidth / (field.designWidth ?? MAP4_GUIDE_WIDTH);
-      const sy = worldHeight / (field.designHeight ?? MAP4_GUIDE_HEIGHT);
-      for (const drop of [{ y: 94, h: 22 }, { y: 798, h: 34 }]) {
-        const x = (field.id === 'kanal2' ? kanal2X(849) : 849) * sx;
-        const y = drop.y * sy;
-        if (!isWaterAt(x, y + 7 * sy)) continue;
-        const width = 55 * sx;
-        const fallHeight = drop.h * sy;
-        const fallingWater = ctx.createLinearGradient(x, y, x, y + fallHeight);
-        fallingWater.addColorStop(0, 'rgba(226, 253, 255, .8)');
-        fallingWater.addColorStop(0.42, 'rgba(112, 218, 238, .55)');
-        fallingWater.addColorStop(1, 'rgba(42, 143, 193, .2)');
-        ctx.globalAlpha = 0.7;
-        ctx.fillStyle = fallingWater;
-        ctx.beginPath();
-        ctx.moveTo(x - width * 0.46, y + 2 * sy);
-        ctx.lineTo(x + width * 0.46, y + 2 * sy);
-        ctx.lineTo(x + width * 0.4, y + fallHeight);
-        ctx.lineTo(x - width * 0.4, y + fallHeight);
-        ctx.closePath();
-        ctx.fill();
-        ctx.globalAlpha = 0.82;
-        ctx.lineWidth = 3.2 * sx;
-        ctx.strokeStyle = 'rgba(239, 255, 255, .9)';
-        ctx.beginPath();
-        ctx.ellipse(x, y, width / 2, 4 * sy, 0, 0, Math.PI);
-        ctx.stroke();
-        for (let index = -3; index <= 3; index++) {
-          const ribbonX = x + index * 7 * sx;
-          const fall = (now / 28 + index * 11) % fallHeight;
-          ctx.globalAlpha = 0.3 + 0.12 * Math.sin(now / 330 + index);
-          ctx.beginPath();
-          ctx.moveTo(ribbonX, y + 3 * sy + fall * 0.42);
-          ctx.lineTo(ribbonX + 1.5 * sx, y + 4 * sy + fall);
-          ctx.stroke();
-        }
-        ctx.globalAlpha = 0.62 + 0.08 * Math.sin(now / 260);
-        ctx.beginPath();
-        ctx.ellipse(x, y + fallHeight, width * 0.43, 5 * sy, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        for (let bubble = -2; bubble <= 2; bubble++) {
-          const bob = Math.sin(now / 310 + bubble * 1.7) * 2 * sy;
-          ctx.globalAlpha = 0.38 + 0.12 * Math.sin(now / 270 + bubble);
-          ctx.beginPath();
-          ctx.arc(x + bubble * 10 * sx, y + fallHeight + 6 * sy + bob, 2.6 * sx, 0, Math.PI * 2);
-          ctx.fillStyle = '#e7fcff';
-          ctx.fill();
-        }
-      }
-      ctx.restore();
-    };
-    const drawPrisonOverlays = (now: number) => {
-      if (field.structuresInBackground) return;
-      (['blue', 'red'] as Team[]).forEach((team) => {
-        const prison = field.prisons[team];
-        drawFieldAsset(
-          ctx,
-          prison.overlayAsset ?? 'prisonOverlay',
-          prison.x,
-          prison.y,
-          prison.w,
-          prison.h,
-          prison.flip ?? team === 'red',
-          0.98,
-        );
-      });
-    };
-    let debugLayer: HTMLCanvasElement | null = null;
-    let debugWaterSource: Uint8ClampedArray | null = null;
-    const drawColliderDebug = () => {
-      if (!debugColliders || (!isKanalField(field.id))) return;
-      if (!debugLayer || debugWaterSource !== waterMaskPixels) {
-        debugWaterSource = waterMaskPixels;
-        debugLayer = document.createElement('canvas');
-        debugLayer.width = Math.ceil(worldWidth);
-        debugLayer.height = Math.ceil(worldHeight);
-        const layer = debugLayer.getContext('2d')!;
-        layer.fillStyle = '#fff';
-        if (waterMaskPixels) layer.drawImage(waterMaskCanvas, 0, 0, worldWidth, worldHeight);
-        for (const box of [...solidObstacles, ...kanalFortRects]) layer.fillRect(box.x, box.y, box.w, box.h);
-        layer.fillRect(0, 0, 34, worldHeight);
-        layer.fillRect(worldWidth-34, 0, 34, worldHeight);
-        layer.fillRect(0, 0, worldWidth, 58);
-        layer.fillRect(0, worldHeight-32, worldWidth, 32);
-        const pixels = layer.getImageData(0, 0, debugLayer.width, debugLayer.height);
-        const solid = new Uint8Array(debugLayer.width * debugLayer.height);
-        for (let i=0; i<solid.length; i++) solid[i] = pixels.data[i*4] > 127 ? 1 : 0;
-        for (let i=0; i<solid.length; i++) {
-          const x=i%debugLayer.width, y=Math.floor(i/debugLayer.width);
-          const edge = solid[i] && (x===0 || y===0 || x===debugLayer.width-1 || y===debugLayer.height-1 ||
-            !solid[i-1] || !solid[i+1] || !solid[i-debugLayer.width] || !solid[i+debugLayer.width]);
-          pixels.data[i*4] = solid[i] ? 255 : 70;
-          pixels.data[i*4+1] = edge ? 242 : solid[i] ? 55 : 220;
-          pixels.data[i*4+2] = edge ? 130 : solid[i] ? 60 : 135;
-          pixels.data[i*4+3] = edge ? 255 : solid[i] ? 105 : 22;
-        }
-        layer.putImageData(pixels, 0, 0);
-      }
-      ctx.save();
-      ctx.drawImage(debugLayer, 0, 0, worldWidth, worldHeight);
-      ctx.restore();
-    };
-    const drawRefill = (item: Refill, now: number) => {
-      const animation: FieldAnimatedId =
-        item.grade === 100
-          ? 'boost100'
-          : item.grade === 75
-            ? 'boost75'
-            : item.grade === 40
-              ? 'boost40'
-              : 'boost25';
-      const pulse = 1 + Math.sin(now / 220 + item.id) * 0.08;
-      ctx.save();
-      ctx.translate(item.x, item.y);
-      ctx.scale(pulse, pulse);
-      drawAnimatedAsset(ctx, animation, -27, -30, 54, 58, now + item.id * 37);
-      ctx.restore();
-    };
-    const studioResolve = createStudioResolver();
-    const drawPlayer = (p: Player, me: Player, now: number) => {
-      const color = TEAM_COLOR[p.team],
-        outline = relationColor(p, me, now),
-        sinking = field.id === 'kanal2' && p.waterEnteredAt > 0,
-        waterFall = now < p.waterFallUntil,
-        fallProgress = sinking
-          ? clamp((now - p.waterEnteredAt) / 720, 0, 1)
-          : waterFall ? 1 - (p.waterFallUntil - now) / 720 : 0,
-        bob = now < p.parkourUntil
-          ? -15
-          : waterFall
-            ? Math.sin(fallProgress * Math.PI / 2) * 12
-            : 0;
-      const stats = CHARACTER_BY_ID[p.characterId],
-        image = getSpriteImage(p.characterId),
-        speed = Math.hypot(p.vx, p.vy);
-      const inWater =
-        p.state !== 'PRISONER' &&
-        now >= p.parkourUntil &&
-        isWaterAt(p.x, p.y);
-      const animation = characterAnimationMapping(p.characterId);
-      // Visual-only roster proportions; keep physics and the foot anchor unchanged.
-      const headOffset = 74 * (stats.visualScale - 1);
-      const dust = getSprintDustImage();
-      const direction = directionFromVelocity(p.vx, p.vy);
-      const sprinting = speed > stats.speed * 1.16;
-      const shieldUltimateActive =
-        CHARACTER_BY_ID[p.characterId]?.ultimate?.kind === 'shield' &&
-        p.action === 'ultimate' &&
-        now < p.actionUntil;
-      const dedicatedEast = characterUsesDedicatedEast(p.characterId);
-      let row = animation.directionRows[direction] ?? directionalRow(direction),
-        columns: readonly number[] = [0];
-      let mirror = characterMirrorsWest(p.characterId)
-        ? direction === 'west'
-        : shouldMirrorSprite(direction, dedicatedEast);
-      let oneShotColumn: number | undefined;
-      if (phase === 'ROUND_OVER' || phase === 'MATCH_OVER') {
-        const result =
-          roundWinner === p.team ? animation.victory : animation.defeat;
-        row = result.row;
-        columns = result.columns;
-        mirror = false;
-      } else if (p.state === 'PRISONER') {
-        row = animation.prisoner.row;
-        columns = animation.prisoner.columns;
-        mirror = false;
-      } else if (p.action && now < p.actionUntil) {
-        if (shieldUltimateActive) {
-          mirror = false;
-        } else if (p.action === 'ultimate' && animation.ultimate) {
-          row = animation.ultimate.row;
-          columns = animation.ultimate.columns;
-          const elapsed = clamp(
-            now - (p.actionUntil - RAJA_ULTIMATE_CAST_MS),
-            0,
-            RAJA_ULTIMATE_CAST_MS - 1,
-          );
-          oneShotColumn =
-            columns[
-              Math.min(
-                columns.length - 1,
-                Math.floor(elapsed / (RAJA_ULTIMATE_CAST_MS / columns.length)),
-              )
-            ];
-        } else if (p.action === 'tag' && animation.tagByDirection) {
-          row = animation.tag.row;
-          columns = [animation.tagByDirection[direction]];
-        } else {
-          const action = p.action === 'tag' ? animation.tag : animation.rescue;
-          row = action.row;
-          columns = action.columns;
-        }
-        mirror = false;
-      } else if (now < p.parkourUntil && animation.parkour) {
-        const parkour = animation.parkourByDirection?.[direction] ?? animation.parkour;
-        row = parkour.row;
-        columns = parkour.columns;
-        mirror = characterMirrorsWest(p.characterId)
-          ? direction === 'west'
-          : shouldMirrorSprite(direction, dedicatedEast);
-      } else if (speed > 8) {
-        const directionalColumns = sprinting
-          ? animation.boostColumnsByDirection?.[direction]
-          : animation.runColumnsByDirection?.[direction];
-        columns = directionalColumns ?? (sprinting ? animation.boostColumns : animation.runColumns);
-      }
-      const frameDuration = sprinting ? 62 : columns.length > 1 ? 92 : 180;
-      let renderImage = image;
-      let frame = spriteFrame(
-        image.naturalWidth || 896,
-        image.naturalHeight || 816,
-        oneShotColumn ??
-          columns[Math.floor(now / frameDuration) % columns.length],
-        row,
-      );
-      if (shieldUltimateActive) {
-        renderImage = getKakaUltimateImage();
-        const stripWidth = renderImage.naturalWidth || 4608;
-        const stripHeight = renderImage.naturalHeight || 424;
-        const cellWidth = stripWidth / KAKA_ULTIMATE_FRAME_COUNT;
-        const elapsed = clamp(
-          now - (p.actionUntil - KAKA_ULTIMATE_CAST_MS),
-          0,
-          KAKA_ULTIMATE_CAST_MS - 1,
-        );
-        const frameIndex = Math.min(
-          KAKA_ULTIMATE_FRAME_COUNT - 1,
-          Math.floor(
-            elapsed /
-              (KAKA_ULTIMATE_CAST_MS / KAKA_ULTIMATE_FRAME_COUNT),
-          ),
-        );
-        frame = {
-          x: Math.round(frameIndex * cellWidth),
-          y: 0,
-          width: Math.round(cellWidth),
-          height: stripHeight,
-        };
-      }
-      const series = seriesFrame(p.characterId, {
-        vx: p.vx, vy: p.vy, now, sprinting, state: p.state,
-        result: phase === 'ROUND_OVER' || phase === 'MATCH_OVER'
-          ? roundWinner === p.team ? 'win' : 'lose' : null,
-        action: now < p.actionUntil ? p.action : null,
-        parkour: now < p.parkourUntil,
-        tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
-      });
-      if (series) {
-        renderImage = getSeriesImage(p.characterId);
-        frame = series;
-        mirror = series.mirror;
-      }
-      const studio = studioResolve(p.characterId, p.id, {
-        vx: p.vx, vy: p.vy, now, state: p.state, ready: phase === 'COUNTDOWN',
-        result: phase === 'ROUND_OVER' || phase === 'MATCH_OVER'
-          ? roundWinner === p.team ? 'win' : 'lose' : null,
-        action: now < p.actionUntil ? p.action ?? null : null,
-        parkour: now < p.parkourUntil,
-        tagX: p.visualTagVector?.x, tagY: p.visualTagVector?.y,
-      });
-      if (studio) { renderImage = studio.image; frame = studio.frame; mirror = studio.clip.mirror; }
-
-      if (!sinking && p.state !== 'PRISONER' && teamCombos[p.team].surgeUntil > now) {
-        const pulse = 25 + Math.sin(now / 95 + p.aiSeed) * 4;
-        ctx.save();
-        ctx.globalAlpha = 0.7;
-        ctx.strokeStyle = '#f5cf45';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y - 4 + bob, pulse, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 0.16;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y - 4 + bob, pulse + 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-
-      if (
-        !sinking &&
-        p.state === 'ACTIVE' &&
-        p.team === me.team &&
-        now < ultimateBuffUntil
-      ) {
-        const trailLength = 20 + Math.min(28, speed * 0.08);
-        ctx.save();
-        ctx.globalAlpha = 0.72;
-        ctx.strokeStyle = '#ff263f';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(p.x - p.vx * 0.04, p.y - p.vy * 0.04);
-        ctx.lineTo(
-          p.x - p.vx * 0.04 - trailLength,
-          p.y - p.vy * 0.04 + Math.sin(now / 45 + p.aiSeed) * 7,
-        );
-        ctx.stroke();
-        ctx.globalAlpha = 0.34;
-        ctx.strokeStyle = '#ffb0a0';
-        ctx.beginPath();
-        ctx.arc(
-          p.x,
-          p.y - 4 + bob,
-          24 + Math.sin(now / 70) * 3,
-          0,
-          Math.PI * 2,
-        );
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      if (!sinking && now < p.ultimateShieldUntil) {
-        const pulse = 31 + Math.sin(now / 90 + p.aiSeed) * 3;
-        ctx.save();
-        ctx.globalAlpha = 0.22;
-        ctx.fillStyle = '#39f57a';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y - 7 + bob, pulse, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 0.92;
-        ctx.strokeStyle = '#63ff93';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y - 7 + bob, pulse, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      if (!sinking && sprinting && dust.complete && dust.naturalWidth) {
-        const dustColumn = Math.floor(now / 78) % 4;
-        ctx.save();
-        ctx.globalAlpha = 0.58;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.translate(p.x, p.y + 3);
-        ctx.rotate(sprintEffectRotation(direction));
-        ctx.drawImage(dust, dustColumn * 256, 0, 256, 192, -78, -29, 92, 69);
-        ctx.restore();
-      }
-      if (inWater) {
-        const ripple = 19 + Math.sin(now / 130 + p.aiSeed) * 3;
-        ctx.save();
-        ctx.globalAlpha = 0.5;
-        ctx.fillStyle = '#36c8f0';
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y + 12, ripple + 7, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 0.86;
-        ctx.strokeStyle = '#b8f8ff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y + 12, ripple, 6, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 0.48;
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y + 12, ripple + 12, 10, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        if (waterFall) {
-          ctx.globalAlpha = 0.86 - fallProgress * 0.34;
-          ctx.lineWidth = 3;
-          for (const offset of [-13, 0, 13]) {
-            ctx.beginPath();
-            ctx.moveTo(p.x + offset, p.y + 11);
-            ctx.quadraticCurveTo(
-              p.x + offset + (offset ? -offset / 2 : 0),
-              p.y - 11 - Math.sin(fallProgress * Math.PI) * 13,
-              p.x + offset / 2,
-              p.y - 2,
-            );
-            ctx.stroke();
-          }
-        }
-        ctx.restore();
-      }
-      ctx.save();
-      if (sinking) ctx.globalAlpha = Math.max(0, 1 - fallProgress);
-      ctx.fillStyle = 'rgba(0,0,0,.34)';
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y + 15, 22 * stats.visualScale, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = outline;
-      ctx.lineWidth = p.controlled ? 5 : 3;
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y + 10, 21 * stats.visualScale, 10, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y + 10, 16 * stats.visualScale, 7, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      if (p.state === 'PRISONER') {
-        ctx.strokeStyle = '#d5d0c4';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(p.x - 20, p.y + 2);
-        ctx.lineTo(p.x + 20, p.y + 2);
-        ctx.stroke();
-      }
-
-      if (renderImage.complete && renderImage.naturalWidth) {
-        const height = shieldUltimateActive
-            ? 238 * stats.visualScale * (frame.height / frame.width)
-            : (74 * stats.visualScale * frame.height) / 136 * (series ? 116 / 136 : 1),
-          width = shieldUltimateActive
-            ? 238 * stats.visualScale
-            : (height * frame.width) / frame.height;
-        const fallScale = sinking ? 1 - fallProgress * 0.8 : 1;
-        const drawHeight = height * fallScale;
-        const drawWidth = width * fallScale;
-        ctx.save();
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        if (studio) {
-          const placement = spritePlacement(studio.clip, frame, 74 * stats.visualScale);
-          ctx.translate(p.x + studio.clip.x, p.y + 18 + bob + studio.clip.y);
-          if (mirror) ctx.scale(-1, 1);
-          ctx.drawImage(renderImage, frame.x, frame.y, frame.width, frame.height,
-            -placement.width * studio.clip.pivotX, -placement.height * studio.clip.pivotY,
-            placement.width, placement.height);
-        } else {
-        if (mirror) {
-          ctx.translate(p.x * 2, 0);
-          ctx.scale(-1, 1);
-        }
-        ctx.drawImage(
-          renderImage,
-          frame.x,
-          frame.y,
-          frame.width,
-          frame.height,
-          p.x - drawWidth / 2,
-          p.y + 18 - drawHeight + bob,
-          drawWidth,
-          drawHeight,
-        );
-        }
-        ctx.restore();
-      } else {
-        ctx.fillStyle = color;
-        ctx.strokeStyle = outline;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y - 2 + bob, 14 * (sinking ? 1 - fallProgress * 0.8 : 1), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-      ctx.restore();
-      if (inWater) {
-        // A waterline over the lower body makes the character feel submerged,
-        // while the ripple below communicates that movement is still possible.
-        ctx.save();
-        ctx.globalAlpha = 0.42;
-        ctx.fillStyle = '#159cc5';
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y + 9 + bob, 19 * stats.visualScale, 7, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-      if (sinking) return;
-      if (now < p.ultimateShieldUntil) {
-        const shieldX = p.x - 24;
-        const shieldY = p.y - 49 - headOffset + bob;
-        ctx.save();
-        ctx.fillStyle = 'rgba(10,54,25,.9)';
-        ctx.strokeStyle = '#86ffab';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(shieldX, shieldY - 9);
-        ctx.lineTo(shieldX + 8, shieldY - 5);
-        ctx.lineTo(shieldX + 7, shieldY + 4);
-        ctx.quadraticCurveTo(shieldX, shieldY + 12, shieldX - 7, shieldY + 4);
-        ctx.lineTo(shieldX - 8, shieldY - 5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-      }
-      if (p.controlled) {
-        const hasUltimate = ULTIMATE_CHARACTER_IDS.has(p.characterId);
-        const hudWidth = 54;
-        const hudX = p.x - hudWidth / 2;
-        const hudY = p.y - 83 - headOffset + bob;
-        const stamina = Math.max(0, Math.min(1, p.boost / stats.boost));
-        const ultimate = Math.max(0, Math.min(1, ultimateMeter / 100));
-
-        ctx.save();
-        ctx.fillStyle = 'rgba(7,12,9,.9)';
-        rounded(hudX - 3, hudY - 3, hudWidth + 6, hasUltimate ? 18 : 11, 4);
-        ctx.fill();
-        ctx.fillStyle = '#1b251d';
-        rounded(hudX, hudY, hudWidth, 5, 2);
-        ctx.fill();
-        ctx.fillStyle = stamina > .3 ? '#f3ead4' : '#f5cf45';
-        rounded(hudX, hudY, hudWidth * stamina, 5, 2);
-        ctx.fill();
-        if (hasUltimate) {
-          const ultimateTrack = CHARACTER_BY_ID[p.characterId].ultimate;
-          const ultimateY = hudY + 8;
-          ctx.fillStyle = ultimateTrack?.trackEdge ?? '#2b2208';
-          rounded(hudX, ultimateY, hudWidth, 4, 2);
-          ctx.fill();
-          ctx.fillStyle = ultimateTrack?.trackFill ?? '#f5cf45';
-          rounded(hudX, ultimateY, hudWidth * ultimate, 4, 2);
-          ctx.fill();
-        }
-        ctx.restore();
-
-        ctx.fillStyle = '#fff4d1';
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y - 51 - headOffset + bob);
-        ctx.lineTo(p.x - 7, p.y - 62 - headOffset + bob);
-        ctx.lineTo(p.x + 7, p.y - 62 - headOffset + bob);
-        ctx.fill();
-      }
-      const label = p.controlled ? `★ ${p.name}` : p.name;
-      ctx.font = '900 9px Arial';
-      const labelWidth = Math.max(38, ctx.measureText(label).width + 14);
-      ctx.fillStyle = 'rgba(13,18,14,.92)';
-      rounded(p.x - labelWidth / 2, p.y + 23, labelWidth, 17, 5);
-      ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = p.controlled ? 2.5 : 1.5;
-      ctx.stroke();
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fff';
-      ctx.fillText(label, p.x, p.y + 35);
-      if (inWater) {
-        ctx.fillStyle = '#b8f8ff';
-        ctx.font = '900 7px Arial';
-        ctx.fillText('AIR DALAM · PARKOUR', p.x, p.y + 49);
-      }
-      if (p.state === 'ACTIVE') {
-        ctx.fillStyle = '#141a15';
-        ctx.beginPath();
-        ctx.arc(p.x + 23, p.y - 35 - headOffset + bob, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = outline;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fillStyle = '#fff';
-        ctx.font = '800 9px Arial';
-        ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 - headOffset + bob);
-      }
-      if (p.state === 'RETURNING') {
-        ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45';
-        ctx.font = '800 8px Arial';
-        ctx.fillText(
-          now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI',
-          p.x,
-          p.y - 55 - headOffset,
-        );
-      }
-      if (now < p.fallNoticeUntil) {
-        const noticeY = p.y - 78 - headOffset + bob;
-        ctx.font = '900 10px Arial';
-        const noticeWidth = ctx.measureText('OOOPSS... HATI-HATI').width + 18;
-        ctx.fillStyle = 'rgba(18,25,20,.94)';
-        rounded(p.x - noticeWidth / 2, noticeY - 15, noticeWidth, 21, 7);
-        ctx.fill();
-        ctx.strokeStyle = '#f5cf45';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fillStyle = '#fff4d1';
-        ctx.textAlign = 'center';
-        ctx.fillText('OOOPSS... HATI-HATI', p.x, noticeY);
-      }
-      if (p.state === 'IN_BASE' && p.baseCharge < stats.baseChargeTime) {
-        ctx.fillStyle = '#9b9d91';
-        ctx.fillRect(p.x - 18, p.y + 40, 36, 4);
-        ctx.fillStyle = '#60e6ff';
-        ctx.fillRect(
-          p.x - 18,
-          p.y + 40,
-          (36 * p.baseCharge) / stats.baseChargeTime,
-          4,
-        );
-      }
-      if (p.fortCharge > 0) {
-        ctx.fillStyle = '#f5cf45';
-        ctx.fillRect(
-          p.x - 18,
-          p.y + 40,
-          36 * Math.min(1, p.fortCharge / 1.5),
-          4,
-        );
-      }
-    };
     const draw = (now: number) => {
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
-        cw = canvas.clientWidth,
-        ch = canvas.clientHeight;
-      if (
-        canvas.width !== Math.round(cw * dpr) ||
-        canvas.height !== Math.round(ch * dpr)
-      ) {
-        canvas.width = Math.round(cw * dpr);
-        canvas.height = Math.round(ch * dpr);
-      }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, cw, ch);
       const me = players[0];
       const activeCamera = cameraModeRef.current;
-      const scale =
-        mode !== 'playing' || activeCamera === 'overview'
-          ? Math.min(cw / worldWidth, ch / worldHeight)
-          : activeCamera === 'tactical'
-            ? Math.max(cw / 1220, ch / 720)
-            : Math.max(cw / 980, ch / 620);
-      const halfW = cw / (2 * scale),
-        halfH = ch / (2 * scale);
-      const followsPlayer = mode === 'playing' && activeCamera !== 'overview';
-      const camX = followsPlayer
-        ? clamp(me.x, halfW, worldWidth - halfW)
-        : worldWidth / 2;
-      const camY = followsPlayer
-        ? clamp(me.y, halfH, worldHeight - halfH)
-        : worldHeight / 2;
-      view = { x: camX, y: camY, width: cw, height: ch, scale };
-      if (isKanalField(field.id) && !followsPlayer) {
-        // Contain-fitting is already correct. Letterboxing is necessary when
-        // the viewport and map ratios differ; give it an intentional matte.
-        ctx.fillStyle = '#14211c';
-        ctx.fillRect(0, 0, cw, ch);
-        const mapLeft=(cw-worldWidth*scale)/2, mapTop=(ch-worldHeight*scale)/2;
-        ctx.strokeStyle='rgba(210,195,143,.32)';
-        ctx.lineWidth=1;
-        ctx.strokeRect(mapLeft-1.5, mapTop-1.5, worldWidth*scale+3, worldHeight*scale+3);
-      }
+      const { cw, ch, scale, camX, camY } = computeFrameView({
+        canvas,
+        ctx,
+        mode,
+        activeCamera,
+        me,
+        worldWidth,
+        worldHeight,
+        kanal: isKanalField(field.id),
+        setView: (v) => {
+          view = v;
+        },
+      });
       if (scene3d) {
         try {
           for (const p of players) scene3d.updateActor(p.id, p.x, p.y, target => {
@@ -3924,17 +1804,13 @@ export function BentenganPrototype() {
       ctx.scale(scale, scale);
       ctx.translate(-camX, -camY);
       if (selectedFieldId !== 'kampung3d' || mode !== 'playing') {
-        drawMap();
+        staticMapLayer.drawMap();
         drawKanalWater(now);
         drawNearbyFieldDetails(me, activeCamera);
       }
       drawBase(ctx, bases.blue, baseRadius, isKanalField(field.id), 'blue', TEAM_COLOR.blue, fortOccupant(players, bases, baseRadius, isKanalField(field.id), 'blue')?.name);
       drawBase(ctx, bases.red, baseRadius, isKanalField(field.id), 'red', TEAM_COLOR.red, fortOccupant(players, bases, baseRadius, isKanalField(field.id), 'red')?.name);
-      if (mouseRoute.length) {
-        const target = mouseRoute[mouseRoute.length - 1];
-        ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
-        ctx.beginPath(); ctx.arc(target.x, target.y, 9, 0, Math.PI * 2); ctx.stroke();
-      }
+      drawRouteTargetAt(ctx, mouseRoute, scale);
       drawColliderDebug();
       if (mode === 'playing') {
         drawFieldAnimations(now);
@@ -3950,35 +1826,11 @@ export function BentenganPrototype() {
           .slice()
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now));
-        if (selectedFieldId !== 'kampung3d') drawPrisonOverlays(now);
+        if (selectedFieldId !== 'kampung3d')
+          drawPrisonOverlaysAt(ctx, field.prisons, drawFieldAsset, field.structuresInBackground);
         if (studioMap) studioMap.objects.filter(o=>o.layer==='foreground').sort((a,b)=>a.z-b.z).forEach(o=>drawMapObject(ctx,o,now));
-        const rescueRequester = rescueRequest
-          ? players.find((player) => player.id === rescueRequest?.requesterId)
-          : undefined;
-        if (rescueRequester?.state === 'PRISONER') {
-          const pulse = 18 + Math.sin(now / 120) * 4;
-          ctx.save();
-          ctx.strokeStyle = '#f5cf45';
-          ctx.fillStyle = '#15180f';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(rescueRequester.x, rescueRequester.y - 42, pulse, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = '#fff5be';
-          ctx.font = '900 20px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('!', rescueRequester.x, rescueRequester.y - 35);
-          ctx.restore();
-        }
-        particles.forEach((p) => {
-          ctx.globalAlpha = Math.max(0, p.life / 0.65);
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-          ctx.fill();
-        });
-        ctx.globalAlpha = 1;
+        drawRescueBubbleAt(ctx, players, rescueRequest?.requesterId, now);
+        drawParticlesAt(ctx, particles);
       }
       ctx.restore();
       if (mode === 'playing') {
@@ -4016,159 +1868,79 @@ export function BentenganPrototype() {
         if (activeRequest?.state === 'PRISONER')
           marker(activeRequest, '!', '#f5cf45');
       }
-      if (phase !== 'PLAYING') {
-        ctx.fillStyle = 'rgba(12,17,13,.52)';
-        ctx.fillRect(0, 0, cw, ch);
-        ctx.fillStyle = '#fff4d1';
-        ctx.font = `800 ${phase === 'COUNTDOWN' ? 90 : 54}px var(--font-heading)`;
-        ctx.textAlign = 'center';
-        ctx.fillText(announcement, cw / 2, ch / 2);
-      }
+      drawPhaseOverlayAt(ctx, cw, ch, phase, announcement);
     };
-    const writeSnapshot = (now: number) => {
-      if (now - lastHud > 100) {
-        lastHud = now;
-        const me = players[0],
-          blueLock = fortOccupant(players, bases, baseRadius, isKanalField(field.id), 'blue'),
-          redLock = fortOccupant(players, bases, baseRadius, isKanalField(field.id), 'red');
-        canvas.dataset.playerPosition = `${me.x.toFixed(1)},${me.y.toFixed(1)}`;
-        canvas.dataset.embeddedPlayers = String(
-          players.filter(
-            (p) => p.state !== 'PRISONER' && hitsObstacle(p.x, p.y),
-          ).length,
-        );
-        canvas.dataset.aiMoving = String(
-          players
-            .slice(1)
-            .filter((p) => p.state !== 'PRISONER' && Math.hypot(p.vx, p.vy) > 8)
-            .length,
-        );
-        canvas.dataset.enemyCaptures = String(
-          players
-            .filter((p) => p.team !== me.team)
-            .reduce((sum, p) => sum + p.captures, 0),
-        );
-        canvas.dataset.teamCombo = `${teamCombos[me.team].step}:${teamComboSeconds(teamCombos[me.team], now)}`;
-        const playerCombo = teamCombos[me.team];
-        setSnapshot({
-          blue: score.blue,
-          red: score.red,
-          round,
-          timer,
-          boost: (me.boost / selected.boost) * 100,
-          boostCountdown:
-            me.boost >= selected.boost || !me.boostReadyAt
-              ? 0
-              : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
-          order: me.exitOrder,
-          state: me.state,
-          paused,
-          logs,
-          mission: { ...mission },
-          team: players
-            .filter((p) => p.team === me.team)
-            .map((p) => ({
-              name: p.name,
-              characterId: p.characterId,
-              state: p.state,
-              boost: (p.boost / CHARACTER_BY_ID[p.characterId].boost) * 100,
-            })),
-          blueHeld: players.filter(
-            (p) => p.team === 'red' && p.state === 'PRISONER',
-          ).length,
-          redHeld: players.filter(
-            (p) => p.team === 'blue' && p.state === 'PRISONER',
-          ).length,
-          pickupCount: refills.length,
-          fortLock: blueLock
-            ? `Merah dikunci ${blueLock.name}`
-            : redLock
-              ? `Hijau dikunci ${redLock.name}`
-              : 'Benteng terbuka',
-          baseGrace:
-            me.state === 'IN_BASE' && me.exitDeadline
-              ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000))
-              : 0,
-          suddenDeath,
-          fieldWins: completedMatchesRef.current,
-          comboLevel: playerCombo.step,
-          comboRemaining:
-            playerCombo.surgeUntil > now
-              ? 0
-              : teamComboSeconds(playerCombo, now),
-          comboSurgeRemaining:
-            playerCombo.surgeUntil > now
-              ? teamComboSeconds(playerCombo, now)
-              : 0,
-          comboCallout: now < comboCalloutUntil ? comboCallout : '',
-          ultimateMeter: ULTIMATE_CHARACTER_IDS.has(me.characterId)
-            ? ultimateMeter
-            : 0,
-          ultimateBuffRemaining:
-            now <
-            (CHARACTER_BY_ID[me.characterId]?.ultimate?.kind === 'shield'
-              ? ultimateShieldUntil
-              : ultimateBuffUntil)
-              ? Math.ceil(
-                  ((CHARACTER_BY_ID[me.characterId]?.ultimate?.kind === 'shield'
-                    ? ultimateShieldUntil
-                    : ultimateBuffUntil) -
-                    now) /
-                    1000,
-                )
-              : 0,
-          ultimateCasting:
-            ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
-            me.action === 'ultimate' &&
-            now < me.actionUntil,
-          matchEvents: matchEvents.filter((event) => event.expiresAt > now),
-          rescueRequestActive:
-            rescueRequest?.requesterId === me.id && now < rescueRequest.expiresAt,
-          rescueRequestRemaining:
-            rescueRequest?.requesterId === me.id
-              ? Math.max(0, Math.ceil((rescueRequest.expiresAt - now) / 1000))
-              : 0,
-          rescueRequestCooldown: Math.max(
-            0,
-            Math.ceil((rescueRequestCooldownUntil - now) / 1000),
-          ),
-          roundResult: {
-            visible: Boolean(resultWinner) && now < resultAnnouncementUntil,
-            winner: resultWinner,
-            final: phase === 'MATCH_OVER',
-          },
-          statsBoard: buildStatsBoard(now),
-        });
-      }
-    };
+    const writeSnapshot = createSnapshotWriter({
+      canvas,
+      getLastHud: () => lastHud,
+      setLastHud: (value: number) => { lastHud = value; },
+      getPlayers: () => players,
+      bases,
+      baseRadius,
+      getFieldId: () => field.id,
+      hitsObstacle,
+      fortOccupant,
+      getTeamCombos: () => teamCombos,
+      teamComboSeconds,
+      getScore: () => score,
+      getRound: () => round,
+      getTimer: () => timer,
+      getLogs: () => logs,
+      getMission: () => mission,
+      getSelected: () => selected,
+      getCharacterBoost: (id: CharacterId) => CHARACTER_BY_ID[id].boost,
+      getUltimateMeter: () => ultimateMeter,
+      getUltimateShieldUntil: () => ultimateShieldUntil,
+      getUltimateBuffUntil: () => ultimateBuffUntil,
+      getUltimateKind: (id: CharacterId) => CHARACTER_BY_ID[id]?.ultimate?.kind,
+      getMatchEvents: () => matchEvents,
+      getRescueRequest: () => rescueRequest,
+      getRescueRequestCooldownUntil: () => rescueRequestCooldownUntil,
+      getResultWinner: () => resultWinner,
+      getResultAnnouncementUntil: () => resultAnnouncementUntil,
+      getPhase: () => phase,
+      getRoundEndReason: () => roundEndReason,
+      getPhaseUntil: () => phaseUntil,
+      getMatchStartedAt: () => matchStartedAt,
+      getFieldName: () => field.name,
+      getCompletedMatches: () => completedMatchesRef.current,
+      getComboCallout: () => comboCallout,
+      getComboCalloutUntil: () => comboCalloutUntil,
+      isLeaderboardOpen: () => leaderboardOpenRef.current,
+      buildStatsBoard,
+      getRefills: () => refills,
+      getPaused: () => paused,
+      getSuddenDeath: () => suddenDeath,
+      setSnapshot: (updater: (prev: Snapshot) => Snapshot) => setSnapshot((prev) => updater(prev)),
+      getSnapshot: () => snapshot,
+    });
     const stopLoop = startMatchLoop({
       tick: (dt, now) => update(dt, now),
       render: (now) => draw(now),
       commit: (now) => writeSnapshot(now),
     });
-    const pointerDown = (event: PointerEvent) => {
-      const me = players[0], now = performance.now();
-      if (event.pointerType !== 'mouse' || ![0, 2].includes(event.button) || mode !== 'playing' ||
-        phase !== 'PLAYING' || paused || !['ACTIVE', 'IN_BASE'].includes(me.state) ||
-        (field.id === 'kanal2' && me.waterEnteredAt > 0) ||
-        players.some(player => player.action === 'ultimate' && now < player.actionUntil)) return;
-      event.preventDefault();
-      const shell = canvas.closest('.playing-shell');
-      const matrix = shell ? new DOMMatrix(getComputedStyle(shell).transform) : new DOMMatrix();
-      const target = pointerWorld({ x: event.clientX, y: event.clientY }, canvas.getBoundingClientRect(), view, Math.abs(matrix.b - 1) < .01);
-      if (event.button === 2) {
-        mouseBoost = true;
-        return;
-      }
-      const passable = (x: number, y: number) => x >= 34 && x <= worldWidth - 34 && y >= 58 && y <= worldHeight - 32 && !blocked(x, y, me, now) && !isWaterAt(x, y);
-      const route = clickRoute(me, target, worldWidth, worldHeight, passable);
-      clearMouse();
-      if (!route.length) { log('Tujuan tidak dapat dijangkau. Pilih tanah kosong atau jalur jembatan.'); return; }
-      mouseRoute = route;
-    };
-    const contextMenu = (event: MouseEvent) => { if (mode === 'playing') event.preventDefault(); };
-    const stopForMenu = (event: PointerEvent) => { if (event.target instanceof Element && event.target.closest('button,input,select,[role="button"]')) clearMouse(); };
-    const stopWhenHidden = () => { if (document.hidden) clearMouse(); };
+    const pointerDown = (event: PointerEvent) =>
+      handlePointerDown(event, {
+        canvas,
+        getView: () => view,
+        getPlayers: () => players,
+        getMode: () => mode,
+        getPhase: () => phase,
+        getPaused: () => paused,
+        getFieldId: () => field.id,
+        isBlocked: (x, y, p, now) => blocked(x, y, p as Player, now),
+        isWaterAt,
+        worldWidth,
+        worldHeight,
+        clearMouse,
+        log,
+        setMouseRoute: (route) => { mouseRoute = route; },
+        setMouseBoost: () => { mouseBoost = true; },
+        now: () => performance.now(),
+      });
+    const contextMenu = (event: MouseEvent) => handleContextMenuAt(event, mode);
+    const stopForMenu = (event: PointerEvent) => handleStopForMenuAt(event, clearMouse);
+    const stopWhenHidden = () => handleStopWhenHiddenAt(document.hidden, clearMouse);
     canvas.addEventListener('pointerdown', pointerDown);
     canvas.addEventListener('contextmenu', contextMenu);
     window.addEventListener('blur', clearMouse);
@@ -4231,7 +2003,7 @@ export function BentenganPrototype() {
       stopLoop();
       scene3d?.dispose();
       matchAudio.close();
-      audio?.close();
+      closeToneAudio();
       window.clearTimeout(bannerTimeout);
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
       kanalObjectAtlas?.removeEventListener('load', invalidateStaticMap);
@@ -4283,12 +2055,12 @@ export function BentenganPrototype() {
     setRun((v) => v + 1);
   };
   const applyPendingFieldRotation = () => {
-    if (completedMatchesRef.current < 3) return;
-    const decision = fieldCycleDecision(
-      selectedFieldId,
+    const decision = pendingFieldRotation(
       completedMatchesRef.current,
+      selectedFieldId,
       selectedFieldId === 'kampung3d' ? ['kampung3d'] : FIELD_CONFIGS.filter(item => item.id !== 'kampung3d').map((item) => item.id),
     );
+    if (!decision) return;
     completedMatchesRef.current = decision.wins;
     setSelectedFieldId(decision.fieldId as FieldId);
   };
@@ -4328,9 +2100,7 @@ export function BentenganPrototype() {
   };
   const cycleCharacter = (direction: -1 | 1) => {
     if (!selectedFaction) return;
-    const roster = FIXED_ROSTERS[selectedFaction];
-    const index = roster.indexOf(selectedId);
-    const nextId = roster[(index + direction + roster.length) % roster.length];
+    const nextId = cycleRosterId(FIXED_ROSTERS[selectedFaction], selectedId, direction);
     highlightCharacterWithVoice(nextId);
   };
   const goBack = () => {
@@ -4402,14 +2172,12 @@ export function BentenganPrototype() {
         (key === 'arrowleft' || key === 'arrowright')
       ) {
         event.preventDefault();
-        const index = FIELD_CONFIGS.findIndex(
-          (field) => field.id === selectedFieldId,
-        );
         setSelectedFieldId(
-          FIELD_CONFIGS[
-            (index + (key === 'arrowleft' ? -1 : 1) + FIELD_CONFIGS.length) %
-              FIELD_CONFIGS.length
-          ].id,
+          stepFieldId(
+            selectedFieldId,
+            key === 'arrowleft' ? -1 : 1,
+            FIELD_CONFIGS.map((field) => field.id),
+          ),
         );
       }
       if (menuStep === 'field' && key === 'enter') start();
@@ -4459,33 +2227,21 @@ export function BentenganPrototype() {
     setLeaderboardOpen(false);
   };
   if (assetsLoading) return (
-    <main
-      className={`pregame-shell asset-loading-screen ${selectionLoading ? `loading-ui-${selectedFaction ?? 'red'}` : ''}`}
-      aria-busy={!loadError}
-      aria-label={`Memuat aset ${loadProgress}%`}
-    >
-      <ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />
-      {selectionLoading && (
-        <img
-          className="team-loading-frame"
-          src={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
-          alt=""
-          aria-hidden="true"
-        />
-      )}
-      <section className={`asset-loading-card ${selectionLoading ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`} aria-busy={!loadError} aria-live="polite">
-        <h1>{gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER'}</h1>
-        <p>{loadError || 'Memuat aset… Tunggu sebentar.'}</p>
-        <progress max={100} value={loadProgress} aria-label="Progres pemuatan aset" />
-        <p>{loadProgress}%</p>
-        {loadError && <button onClick={() => setLoadAttempt(v => v + 1)}>COBA LAGI</button>}
-        <button onClick={() => {
-          setGameLoading(false);
-          setMenuStep('team');
-          setLoadError('');
-        }}>KEMBALI KE PILIH TIM</button>
-      </section>
-    </main>
+    <AssetLoadingScreen
+      selectionLoading={selectionLoading}
+      gameLoading={gameLoading}
+      faction={selectedFaction ?? 'red'}
+      fieldId={selectedFieldId}
+      frameSrc={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
+      loadError={loadError}
+      loadProgress={loadProgress}
+      onRetry={() => setLoadAttempt(v => v + 1)}
+      onBack={() => {
+        setGameLoading(false);
+        setMenuStep('team');
+        setLoadError('');
+      }}
+    />
   );
   if (view === 'workshop')
     return (
@@ -4507,439 +2263,106 @@ export function BentenganPrototype() {
       >
         <div className="ink-noise" />
         {playerProfile && menuStep === 'splash' && (
-          <button
-            className="profile-trigger"
-            onClick={() => {
+          <ProfileTriggerButton
+            onOpen={() => {
               keys.current.clear();
               setProfileOpen(true);
             }}
-            aria-label="Buka profil pemain"
-          >
-            <UserRound size={19} />
-          </button>
+          />
         )}
         {menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />}
         {menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />}
         {menuStep === 'splash' && (
-          <section className="splash-screen" aria-labelledby="game-title">
-            <img
-              className="splash-hero splash-red"
-              src={uiAsset('heroes/red-active.webp')}
-              alt="Raja dari Tim Merah"
-            />
-            <img
-              className="splash-hero splash-green"
-              src={uiAsset('heroes/green-active.webp')}
-              alt="Kaka dari Tim Hijau"
-            />
-            <div className="splash-center">
-              <img
-                className="splash-logo"
-                src={landingLogoAsset()}
-                alt="Benteng Squad Tag"
-                id="game-title"
-              />
-              <button
-                className="enter-game"
-                onClick={() => {
-                  playAudioCue('press-play.mp3', 0.64);
-                  setMenuStep('team');
-                }}
-              >
-                <span>PRESS</span> SPACE <small>atau klik untuk masuk</small>
-              </button>
-            </div>
-          </section>
+          <SplashScreen
+            resolveAsset={uiAsset}
+            onEnter={() => {
+              playAudioCue('press-play.mp3', 0.64);
+              setMenuStep('team');
+            }}
+          />
         )}
 
         {menuStep === 'team' && (
-          <section className="team-screen" aria-labelledby="team-title">
-            <h1 id="team-title" className="sr-only">
-              Pilih tim
-            </h1>
-            <img
-              className="ghost-logo"
-              src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
-              alt=""
-            />
-            {(['red', 'green'] as Faction[]).map((faction) => (
-              <button
-                key={faction}
-                className={`team-pick team-pick-${faction} ${activeFaction === faction ? 'active' : ''}`}
-                onPointerEnter={() => setHoveredFaction(faction)}
-                onPointerLeave={() => setHoveredFaction(null)}
-                onFocus={() => setHoveredFaction(faction)}
-                onClick={() => {
-                  const firstId = FIXED_ROSTERS[faction][0];
-                  chooseFaction(faction);
-                  setMenuStep('character');
-                  playCharacterVoice(firstId);
-                }}
-                aria-label={`Pilih ${factionName(faction)}`}
-              >
-                <img
-                  className="team-hero"
-                  src={uiAsset(
-                    `heroes/${faction}-${activeFaction === faction ? 'active' : 'inactive'}.webp`,
-                  )}
-                  alt=""
-                />
-                <img
-                  className="team-banner"
-                  src={uiAsset(
-                    `controls/team-${faction}-${activeFaction === faction ? 'active' : 'normal'}.webp`,
-                  )}
-                  alt={factionName(faction)}
-                />
-              </button>
-            ))}
-            <div className="team-hint">
-              Arah kiri/kanan untuk memilih · Enter untuk lanjut
-            </div>
-          </section>
+          <TeamScreen
+            activeFaction={activeFaction}
+            logoSrc={publicAsset('brand/benteng-tag-logo.webp?v=9')}
+            resolveAsset={uiAsset}
+            onHover={(faction) => setHoveredFaction(faction)}
+            onPick={(faction) => {
+              const firstId = FIXED_ROSTERS[faction][0];
+              chooseFaction(faction);
+              setMenuStep('character');
+              playCharacterVoice(firstId);
+            }}
+          />
         )}
 
         {menuStep === 'character' && selectedFaction && (
-          <section
-            className={`roster-screen faction-${selectedFaction}`}
-            aria-labelledby="roster-title"
-          >
-            <video
-              className="roster-video"
-              src={characterSelectionVideo(selectedFaction)}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-hidden="true"
-            />
-            <header className="roster-branding">
-              <img
-                className="roster-team-main"
-                src={uiAsset(`controls/team-${selectedFaction}-active.webp`)}
-                alt={factionName(selectedFaction)}
-              />
-              <button
-                className="roster-team-swap"
-                onClick={() => {
-                  const next = selectedFaction === 'red' ? 'green' : 'red';
-                  const nextId = FIXED_ROSTERS[next][0];
-                  chooseFaction(next);
-                  playCharacterVoice(nextId);
-                }}
-                aria-label="Ganti tim"
-              >
-                <img
-                  src={uiAsset(
-                    `controls/team-${selectedFaction === 'red' ? 'green' : 'red'}-normal.webp`,
-                  )}
-                  alt={factionName(selectedFaction === 'red' ? 'green' : 'red')}
-                />
-              </button>
-            </header>
-            <h1 id="roster-title" className="sr-only">
-              Pilih karakter {factionName(selectedFaction)}
-            </h1>
-            <div className="roster-stage">
-              <button
-                className="carousel-arrow left"
-                onClick={() => cycleCharacter(-1)}
-                aria-label="Karakter sebelumnya"
-              >
-                ‹
-              </button>
-              <div className="character-carousel">
-                {availableCharacters.map((character, index) => (
-                  <button
-                    key={character.id}
-                    className={`carousel-character ${selectedId === character.id ? 'selected' : ''}`}
-                    style={
-                      {
-                        '--offset':
-                          index -
-                          availableCharacters.findIndex(
-                            (item) => item.id === selectedId,
-                          ),
-                      } as React.CSSProperties
-                    }
-                    /*onPointerEnter={(event) => {
-                      if (event.pointerType === 'mouse') {
-                        highlightCharacterWithVoice(character.id);
-                      }
-                    }}*/
-                    onFocus={() => highlightCharacterWithVoice(character.id)}
-                    onClick={() => highlightCharacterWithVoice(character.id)}
-                    aria-pressed={selectedId === character.id}
-                  >
-                    <SelectionPortrait
-                      id={character.id}
-                      alt={character.name}
-                      active={selectedId === character.id}
-                    />
-                    {ULTIMATE_CHARACTER_IDS.has(character.id) && (
-                      <strong className="ultimate-roster-badge">
-                        {ultimateIcon(character.ultimate?.icon ?? 'zap', 12)}
-                        ULTIMATE
-                      </strong>
-                    )}
-                    <span>{character.name}</span>
-                  </button>
-                ))}
-              </div>
-              <button
-                className="carousel-arrow right"
-                onClick={() => cycleCharacter(1)}
-                aria-label="Karakter berikutnya"
-              >
-                ›
-              </button>
-            </div>
-            <aside className={`ability-panel framed-character-panel ${selectedFaction}`}>
-              <img
-                className="character-panel-frame"
-                src={uiAsset(`panels/character-panel-${selectedFaction}.png`)}
-                alt=""
-                aria-hidden="true"
-              />
-              <header className="character-panel-identity">
-              <span className="character-panel-role">
-                {factionName(selectedFaction)} · {selected.role}
-              </span>
-              <h2 className="character-panel-name">{selected.name}</h2>
-              <p className="character-panel-summary">{selected.copy}</p>
-              </header>
-              <section className="character-panel-skill">
-                <small>KEMAMPUAN KHUSUS</small>
-                <b>{selected.passiveName}</b>
-                <p>{selected.passiveCopy}</p>
-              </section>
-              <dl className="character-panel-stats">
-                <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">
-                    Speed <b>{selected.speed}</b>
-                  </dt>
-                  <dd className="character-panel-stat-track">
-                    <i
-                      style={{ width: statPercent(selected.speed, 188, 240) }}
-                    />
-                  </dd>
-                </div>
-                <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">
-                    Boost <b>{selected.boost}</b>
-                  </dt>
-                  <dd className="character-panel-stat-track">
-                    <i
-                      style={{ width: statPercent(selected.boost, 84, 128) }}
-                    />
-                  </dd>
-                </div>
-                <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">
-                    Agility <b>{selected.agility.toFixed(2)}</b>
-                  </dt>
-                  <dd className="character-panel-stat-track">
-                    <i
-                      style={{
-                        width: statPercent(selected.agility, 0.82, 1.25),
-                      }}
-                    />
-                  </dd>
-                </div>
-              </dl>
-              <button
-                className="graffiti-primary character-panel-select"
-                onClick={() => {
-                  stopCharacterVoice();
-                  setMenuStep('field');
-                }}
-              >
-                <span>PILIH {selected.name}</span>
-              </button>
-            </aside>
-          </section>
+          <CharacterSelectScreen
+            faction={selectedFaction}
+            videoSrc={characterSelectionVideo(selectedFaction)}
+            characters={availableCharacters}
+            selectedId={selectedId}
+            selected={selected}
+            resolveAsset={uiAsset}
+            onCycle={cycleCharacter}
+            onHighlight={highlightCharacterWithVoice}
+            onSwapTeam={() => {
+              const next = selectedFaction === 'red' ? 'green' : 'red';
+              const nextId = FIXED_ROSTERS[next][0];
+              chooseFaction(next);
+              playCharacterVoice(nextId);
+            }}
+            onSelect={() => {
+              stopCharacterVoice();
+              setMenuStep('field');
+            }}
+          />
         )}
 
         {menuStep === 'field' && selectedFaction && (
-          <section
-            className={`field-select-screen faction-${selectedFaction}`}
-            aria-labelledby="field-title"
-          >
-            <header>
-              <span>LANGKAH TERAKHIR</span>
-              <h1 id="field-title">Pilih arena pertarungan</h1>
-              <p>
-                Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis
-                terjadi setelah tiga kemenangan.
-              </p>
-            </header>
-            <div className="arena-carousel">
-            <button className="arena-nav previous" aria-label="Arena sebelumnya" onClick={() => {
-              const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
-              setSelectedFieldId(FIELD_CONFIGS[(index + FIELD_CONFIGS.length - 1) % FIELD_CONFIGS.length].id);
-            }}>‹</button>
-            <div className="field-card-row" aria-label="Pilihan arena">
-              {FIELD_CONFIGS.map((field, index) => (
-                <button
-                  key={field.id}
-                  className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedFieldId(field.id)}
-                  aria-pressed={selectedFieldId === field.id}
-                  style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + FIELD_CONFIGS.length + 1) % FIELD_CONFIGS.length) - 1 } as React.CSSProperties}
-                >
-                  <img
-                    className="field-card-preview"
-                    src={uiAsset(`fields/${field.id}.webp`)}
-                    alt=""
-                    aria-hidden="true"
-                  />
-                  <small>0{index + 1}</small>
-                  <em>{field.difficulty}</em>
-                  <strong>{field.name}</strong>
-                  <span>{field.kicker}</span>
-                  <i>
-                    {selectedFieldId === field.id
-                      ? 'ARENA AKTIF'
-                      : 'PILIH ARENA'}
-                  </i>
-                </button>
-              ))}
-            </div>
-            <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => {
-              const index = FIELD_CONFIGS.findIndex(field => field.id === selectedFieldId);
-              setSelectedFieldId(FIELD_CONFIGS[(index + 1) % FIELD_CONFIGS.length].id);
-            }}>›</button>
-            </div>
-            <div className="match-lineup">
-              <div>
-                {squad.map((id, index) => (
-                  <figure key={id} className={index === 0 ? 'controlled' : ''}>
-                    <CharacterPreview
-                      id={id}
-                      alt={CHARACTER_BY_ID[id].name}
-                      eager={index === 0}
-                    />
-                    <figcaption>
-                      {index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </div>
-            <button
-              className={`graffiti-primary launch-${selectedFaction}`}
-              onClick={start}
-            >
-              <span>
-                <Play size={19} fill="currentColor" /> MULAI MATCH
-              </span>
-            </button>
-          </section>
+          <FieldSelectScreen
+            faction={selectedFaction}
+            selectedFieldId={selectedFieldId}
+            fields={FIELD_CONFIGS}
+            squad={squad}
+            resolveAsset={uiAsset}
+            onSelect={setSelectedFieldId}
+            onStep={(direction) =>
+              setSelectedFieldId(
+                stepFieldId(
+                  selectedFieldId,
+                  direction,
+                  FIELD_CONFIGS.map((field) => field.id),
+                ),
+              )
+            }
+            onStart={start}
+          />
         )}
 
         {menuStep !== 'splash' && (
-          <button
-            className="graffiti-back"
-            onClick={goBack}
-            aria-label="Kembali"
-          >
-            <img src={uiAsset('controls/back.webp')} alt="Kembali" />
-          </button>
+          <BackButton resolveAsset={uiAsset} onBack={goBack} />
         )}
-        <div className={`pregame-actions step-${menuStep}`}>
-          {menuStep === 'splash' && <button className="music-toggle" onKeyDown={event => event.stopPropagation()} onClick={() => setCreditsOpen(true)}>ABOUT DEVELOPER</button>}
-          <button
-            className={`sound-trigger ${musicMuted ? 'muted' : ''}`}
-            onClick={toggleBackgroundMusic}
-            aria-pressed={musicMuted}
-            aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
-          >
-            <img src={uiAsset(`controls/sound-trigger-${musicMuted ? 'off' : 'on'}.png`)} alt="" />
-          </button>
-          <button
-            className="rules-button graffiti-primary"
-            onClick={() => setRulesOpen(true)}
-          >
-            <span>GAME RULES</span>
-          </button>
-          <AudioSettings
-            onOpen={() => keys.current.clear()}
-            trigger={<img src={uiAsset('controls/settings-button.png')} alt="" />}
-          />
-        </div>
+        <MenuActionsRow
+          menuStep={menuStep}
+          musicMuted={musicMuted}
+          resolveAsset={uiAsset}
+          onAbout={() => setCreditsOpen(true)}
+          onToggleMusic={toggleBackgroundMusic}
+          onOpenRules={() => setRulesOpen(true)}
+          onAudioOpen={() => keys.current.clear()}
+        />
         {menuStep === 'character' && (
-          <button
-            className="workshop-link workshop-float"
-            onClick={() => {
+          <WorkshopLink
+            onOpen={() => {
               stopCharacterVoice();
               setView('workshop');
             }}
-          >
-            <Wrench size={14} /> Workshop
-          </button>
+          />
         )}
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
-        {rulesOpen && (
-          <div
-            className="rules-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rules-title"
-          >
-            <div className="rules-dialog">
-              <button
-                className="rules-close"
-                onClick={() => setRulesOpen(false)}
-                aria-label="Tutup"
-              >
-                ×
-              </button>
-              <span>BENTENGAN 5V5</span>
-              <h2 id="rules-title">Cara merebut kemenangan</h2>
-              <ol>
-                <li>
-                  <b>Isi kesiapan di benteng sendiri.</b> Setelah siap, keluar
-                  dalam 5 detik. Kembali ke benteng untuk memperbarui urutan.
-                </li>
-                <li>
-                  <b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara
-                  timmu.
-                </li>
-                <li>
-                  <b>Sentuh rekan terluar di penjara</b> untuk membebaskan
-                  seluruh rantai. Pemain bebas pulang otomatis dengan perisai
-                  singkat dan memilih jalan aman dari collider serta sungai.
-                </li>
-                <li>
-                  <b>Rangkai combo aksi tim.</b> Tag atau rescue dari rekan
-                  berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.
-                </li>
-                <li>
-                  <b>Menangkan ronde.</b> Tahan seluruh lawan selama 2 detik
-                  atau isi benteng lawan selama 1,5 detik. Pertandingan dimenangi
-                  tim pertama yang merebut 2 ronde.
-                </li>
-                <li>
-                  <b>Waktu normal 4 menit.</b> Skor seri berlanjut ke sudden
-                  death. Arena berganti setelah 3 kemenangan pertandingan.
-                </li>
-                <li>
-                  <b>Map Kanal:</b> seberangi sungai lewat jembatan atau parkour.
-                  Jatuh ke air mengembalikan pemain ke benteng.
-                </li>
-                <li>
-                  <b>Ultimate Raja dan Kaka.</b> Raja mempercepat rekan aktif;
-                  Kaka membuat seluruh tim kebal tag selama 5 detik.
-                </li>
-              </ol>
-              <p>
-                Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock
-                Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.
-              </p>
-            </div>
-          </div>
-        )}
+        {rulesOpen && <RulesOverlay onClose={() => setRulesOpen(false)} />}
         {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
         {playerProfile && profileOpen && (
           <Suspense fallback={null}>
@@ -4954,769 +2377,132 @@ export function BentenganPrototype() {
   }
   return (
     <main className="game-shell playing-shell">
-      <header className="game-topbar">
-        <div className="brand-lockup">
-          <img
-            className="game-logo"
-            src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
-            alt="Benteng Squad Tag"
-          />
-          <span className="brand-kicker">
-            <i /> Playable rules prototype
-            <br />
-            Field compact · guarded
-          </span>
-        </div>
-        <div className="top-actions">
-          {playerProfile && (
-            <button
-              className="icon-button profile-match-trigger"
-              onClick={() => {
-                keys.current.clear();
-                setProfileOpen(true);
-              }}
-              aria-label="Buka profil pemain"
-              title="Profil pemain"
-            >
-              <UserRound size={18} />
-            </button>
-          )}
-          <AudioSettings onOpen={() => keys.current.clear()} />
-          <button
-            className={`icon-button ${musicMuted ? 'muted' : ''}`}
-            onClick={toggleBackgroundMusic}
-            aria-pressed={musicMuted}
-            aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
-            title={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
-          >
-            {musicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-          </button>
-          <button
-            className="icon-button hud-menu-button"
-            onClick={() => setMissionOpen((value) => !value)}
-            aria-label="Buka menu misi"
-          >
-            <Menu size={19} />
-          </button>
-          <button
-            className="icon-button"
-            onClick={() => keys.current.add('p')}
-            aria-label="Jeda"
-          >
-            <Pause size={18} />
-          </button>
-        </div>
-      </header>
+      <PlayingTopbar
+        logoSrc={publicAsset('brand/benteng-tag-logo.webp?v=9')}
+        hasProfile={Boolean(playerProfile)}
+        musicMuted={musicMuted}
+        onOpenProfile={() => {
+          keys.current.clear();
+          setProfileOpen(true);
+        }}
+        onAudioOpen={() => keys.current.clear()}
+        onToggleMusic={toggleBackgroundMusic}
+        onToggleMission={() => setMissionOpen((value) => !value)}
+        onPause={() => keys.current.add('p')}
+      />
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas
             ref={canvasRef}
             aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`}
           />
-          {rendererError && <div className="renderer-error" role="alert">
-            <strong>MAP 3D TIDAK TERSEDIA</strong>
-            <p>{rendererError}</p>
-            <button onClick={() => { setRendererError(''); quit(); }}>KEMBALI KE MENU</button>
-          </div>}
-          <div
-            className="stage-hud"
-            role="button"
-            tabIndex={0}
-            aria-label="Buka leaderboard statistik match"
-            onClick={() => setLeaderboardOpen((value) => !value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                setLeaderboardOpen((value) => !value);
-              }
-            }}
-          >
-            <div className="hud-red">
-              <span>{snapshot.blue}</span>
-              <b>
-                TIM MERAH<small>{snapshot.blueHeld}/5 TAHANAN</small>
-              </b>
-            </div>
-            <time>
-              {snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}
-              <small>WAKTU</small>
-            </time>
-            <div className="hud-green">
-              <b>
-                HIJAU<small>{snapshot.redHeld}/5 TAHANAN</small>
-              </b>
-              <span>{snapshot.red}</span>
-            </div>
-          </div>
-          {snapshot.matchEvents.length > 0 && (
-            <aside className="match-event-feed" aria-live="polite">
-              {snapshot.matchEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className={`match-event-toast ${event.kind}`}
-                >
-                  <img src={MATCH_EVENT_FRAME[event.kind]} alt="" />
-                  <p>
-                    {event.kind === 'tag' && (
-                      <>
-                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                        menangkap{' '}
-                        <strong className={event.targetTeam}>{event.targetName}</strong>
-                      </>
-                    )}
-                    {event.kind === 'rescue' && (
-                      <>
-                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                        menyelamatkan tim
-                      </>
-                    )}
-                    {event.kind === 'rescue-request' && (
-                      <>
-                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                        meminta rescue!
-                      </>
-                    )}
-                  </p>
-                </div>
-              ))}
-            </aside>
+          {rendererError && (
+            <RendererErrorNotice
+              error={rendererError}
+              onBack={() => { setRendererError(''); quit(); }}
+            />
           )}
-          {snapshot.roundResult.visible && snapshot.roundResult.winner && (
-            <section
-              className={`round-result-announcement ${FACTION_FOR_TEAM[snapshot.roundResult.winner]}`}
-              aria-live="assertive"
-              aria-label={`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'match' : 'ronde'}`}
-            >
-              <img
-                src={ROUND_RESULT_ASSET[snapshot.roundResult.winner]}
-                alt=""
-              />
-              <p>
-                <strong>{teamName(snapshot.roundResult.winner).toUpperCase()}</strong>{' '}
-                {snapshot.roundResult.final ? 'MENANG MATCH!' : 'MENANG RONDE!'}
-              </p>
-            </section>
-          )}
+          <StageHud
+            snapshot={snapshot}
+            onToggle={() => setLeaderboardOpen((value) => !value)}
+          />
+          <MatchEventFeed events={snapshot.matchEvents} frames={MATCH_EVENT_FRAME} />
+          <RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET} />
           {showStatsBoard && (
-            <section
-              className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
-              role="dialog"
-              aria-modal={statsBoard.visible}
-              aria-labelledby="round-stats-title"
-            >
-              <div className="round-stats-panel">
-                <header className="round-stats-head">
-                  <div>
-                    <span>
-                      {statsBoard.final
-                        ? 'MATCH SELESAI'
-                        : leaderboardOpen && !statsBoard.visible
-                          ? 'MATCH LEADERBOARD'
-                          : `REKAP RONDE ${statsBoard.round}`}
-                    </span>
-                    <h2 id="round-stats-title">
-                      {statsBoard.winner
-                        ? `${teamName(statsBoard.winner).toUpperCase()} UNGGUL`
-                        : 'STATISTIK PEMAIN'}
-                    </h2>
-                    <p>
-                      {statsBoard.final
-                        ? 'Pilih aksi berikutnya untuk lanjut.'
-                        : statsBoard.visible
-                          ? `Lanjut otomatis ${statsBoard.countdown}s`
-                          : 'Tekan Tab atau klik skor untuk melihat statistik match.'}
-                    </p>
-                  </div>
-                  <div className="round-match-meta" aria-label="Info match">
-                    <span>
-                      <Gauge size={14} />
-                      <small>DURASI</small>
-                      <b>{formatTime(statsBoard.duration)}</b>
-                    </span>
-                    <span>
-                      <Flag size={14} />
-                      <small>FORMAT</small>
-                      <b>{statsBoard.format.toUpperCase()}</b>
-                    </span>
-                    <span>
-                      <MapIcon size={14} />
-                      <small>MAP</small>
-                      <b>{statsBoard.mapName.toUpperCase()}</b>
-                    </span>
-                  </div>
-                  {!statsBoard.visible && (
-                    <button
-                      className="round-stats-close"
-                      onClick={closeLeaderboard}
-                      aria-label="Tutup leaderboard"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </header>
-                <div className="round-scoreline" aria-label="Skor match">
-                  <span>
-                    TIM MERAH <b>{statsBoard.score.blue}</b>
-                  </span>
-                  <i>BEST OF 3</i>
-                  <span>
-                    <b>{statsBoard.score.red}</b> HIJAU
-                  </span>
-                </div>
-                <div className="round-stats-grid">
-                  {(['blue', 'red'] as Team[]).map((team) => (
-                    <article key={team} className={`round-team-card ${team}`}>
-                      <h3>{teamName(team).toUpperCase()}</h3>
-                      {statsBoard.teams[team].map((player) => (
-                        <div
-                          key={player.id}
-                          className={`round-stat-row ${player.controlled ? 'controlled' : ''} ${player.mvp ? 'mvp' : ''}`}
-                        >
-                          <CharacterPreview id={player.characterId} alt="" />
-                          <b>{player.controlled ? 'KAMU' : player.name}</b>
-                          <span title="Tag musuh">
-                            <Zap size={13} /> {player.tags}
-                          </span>
-                          <span title="Masuk penjara">
-                            <Lock size={13} /> {player.prisons}
-                          </span>
-                          <span title="Rescue teman">
-                            <Shield size={13} /> {player.rescues}
-                          </span>
-                          <strong title="Contribution score">
-                            {player.contribution}
-                          </strong>
-                        </div>
-                      ))}
-                    </article>
-                  ))}
-                </div>
-                {statsBoard.mvpName && (
-                  <aside className="round-mvp-card">
-                    <b>MVP</b>
-                    <span>
-                      {statsBoard.mvpName} · Kontribusi tertinggi di match ini
-                    </span>
-                  </aside>
-                )}
-                <footer className="round-stats-actions">
-                  {statsBoard.final ? (
-                    <>
-                      <button className="primary" onClick={rematch}>
-                        <RotateCcw size={16} /> REMATCH
-                      </button>
-                      <button onClick={backToCharacterSelect}>
-                        <Users size={16} /> PILIH KARAKTER
-                      </button>
-                      <button onClick={backToFieldSelect}>
-                        <MapIcon size={16} /> GANTI MAP
-                      </button>
-                      <button className="danger" onClick={quit}>
-                        <LogOut size={16} /> KELUAR
-                      </button>
-                    </>
-                  ) : statsBoard.visible ? (
-                    <>
-                      <button className="primary" onClick={requestNextRound}>
-                        <Play size={16} fill="currentColor" /> RONDE BERIKUTNYA
-                      </button>
-                      <button className="danger" onClick={quit}>
-                        <LogOut size={16} /> KELUAR
-                      </button>
-                    </>
-                  ) : (
-                    <button className="primary" onClick={closeLeaderboard}>
-                      <Check size={16} /> TUTUP
-                    </button>
-                  )}
-                </footer>
-              </div>
-            </section>
+            <RoundStatsOverlay
+              statsBoard={statsBoard}
+              leaderboardOpen={leaderboardOpen}
+              onCloseLeaderboard={closeLeaderboard}
+              onRequestNextRound={requestNextRound}
+              onRematch={rematch}
+              onBackToCharacterSelect={backToCharacterSelect}
+              onBackToFieldSelect={backToFieldSelect}
+              onQuit={quit}
+            />
           )}
-          <div className="arena-intel" aria-label="Status aturan pertandingan">
-            <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
-              <Flag size={12} />
-              {snapshot.baseGrace > 0
-                ? `KELUAR ${snapshot.baseGrace}s`
-                : 'BASE AMAN'}
-            </span>
-            <span
-              className={
-                snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
-              }
-            >
-              <Lock size={12} /> {snapshot.fortLock.toUpperCase()}
-            </span>
-            <span>
-              <BatteryCharging size={12} /> REFILL {snapshot.pickupCount}
-            </span>
-            <span>
-              <RotateCcw size={12} /> ROTASI {snapshot.fieldWins}/3
-            </span>
-          </div>
-          {false && (
-            <div className="start-panel character-select">
-              <div className="character-select-heading">
-                <div>
-                  <p>LANGKAH 1 · PILIH TIM</p>
-                  <h1>
-                    Merah atau Hijau.
-                    <br />
-                    Tentukan pihakmu.
-                  </h1>
-                </div>
-                <span>
-                  Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan.
-                  Setiap tim memiliki tujuh karakter tetap dan membawa lima
-                  pemain ke field.
-                </span>
-              </div>
-              <div className="team-chooser" aria-label="Pilih tim">
-                {(['red', 'green'] as Faction[]).map((faction) => (
-                  <button
-                    key={faction}
-                    className={`${faction} ${selectedFaction === faction ? 'selected' : ''}`}
-                    onClick={() => chooseFaction(faction)}
-                    aria-pressed={selectedFaction === faction}
-                  >
-                    <span>
-                      <b>{factionName(faction)}</b>
-                      <small>
-                        {GAME_RULES.teams[faction].side} · 7 karakter
-                      </small>
-                    </span>
-                    <span className="team-mini-roster">
-                      {FIXED_ROSTERS[faction].map((id) => (
-                        <CharacterPreview
-                          key={id}
-                          id={id}
-                          alt={CHARACTER_BY_ID[id].name}
-                        />
-                      ))}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {selectedFaction && (
-                <div className={`selection-step ${selectedFaction}`}>
-                  <div className="selection-step-head">
-                    <span>
-                      LANGKAH 2 · PILIH KARAKTER{' '}
-                      {factionName(selectedFaction!).toUpperCase()}
-                    </span>
-                    <b>2 cadangan · 5 turun ke field</b>
-                  </div>
-                  <div className="character-row">
-                    {availableCharacters.map((character) => (
-                      <button
-                        key={character.id}
-                        className={
-                          selectedId === character.id ? 'selected' : ''
-                        }
-                        onPointerEnter={(event) => {
-                          if (event.pointerType === 'mouse') {
-                            highlightCharacterWithVoice(character.id);
-                          }
-                        }}
-                        onFocus={() => highlightCharacterWithVoice(character.id)}
-                        onClick={() => highlightCharacterWithVoice(character.id)}
-                        aria-pressed={selectedId === character.id}
-                      >
-                        <CharacterPreview
-                          id={character.id}
-                          alt={`Portrait ${character.name}`}
-                          eager={selectedId === character.id}
-                        />
-                        <span>
-                          <b>{character.name}</b>
-                          <small>{character.role}</small>
-                          <em>{character.passiveName}</em>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <div
-                    className="selected-character"
-                    style={{ borderColor: selected.accent }}
-                  >
-                    <CharacterPreview
-                      id={selected.id}
-                      alt={`Portrait ${selected.name}`}
-                      eager
-                    />
-                    <div className="selected-summary">
-                      <span>
-                        {factionName(selectedFaction!)} · {selected.role}
-                      </span>
-                      <b>{selected.name}</b>
-                      <small>{selected.copy}</small>
-                      <div className="character-passive">
-                        <strong>{selected.passiveName}</strong>
-                        <i>{selected.passiveCopy}</i>
-                      </div>
-                    </div>
-                    <dl>
-                      <div>
-                        <dt>
-                          Speed <b>{selected.speed}</b>
-                        </dt>
-                        <dd>
-                          <i>
-                            <span
-                              style={{
-                                width: statPercent(selected.speed, 188, 240),
-                              }}
-                            />
-                          </i>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>
-                          Boost <b>{selected.boost}</b>
-                        </dt>
-                        <dd>
-                          <i>
-                            <span
-                              style={{
-                                width: statPercent(selected.boost, 84, 128),
-                              }}
-                            />
-                          </i>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>
-                          Agility <b>{selected.agility.toFixed(2)}</b>
-                        </dt>
-                        <dd>
-                          <i>
-                            <span
-                              style={{
-                                width: statPercent(
-                                  selected.agility,
-                                  0.82,
-                                  1.25,
-                                ),
-                              }}
-                            />
-                          </i>
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-              )}
-              <div className="field-row">
-                <span>LANGKAH 3 · PILIH FIELD</span>
-                {FIELD_CONFIGS.map((field) => (
-                  <button
-                    key={field.id}
-                    className={selectedFieldId === field.id ? 'selected' : ''}
-                    onClick={() => setSelectedFieldId(field.id)}
-                    aria-pressed={selectedFieldId === field.id}
-                  >
-                    <b>{field.name}</b>
-                    <small>{field.kicker}</small>
-                  </button>
-                ))}
-              </div>
-              {selectedFaction ? (
-                <div className={`squad-preview ${selectedFaction}`}>
-                  <span>
-                    {factionName(selectedFaction!).toUpperCase()} · LINEUP 5v5
-                  </span>
-                  <div>
-                    {squad.map((id, index) => (
-                      <figure
-                        key={`ally-${id}`}
-                        className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}
-                      >
-                        <CharacterPreview
-                          id={id}
-                          alt={CHARACTER_BY_ID[id].name}
-                          eager={index === 0}
-                        />
-                        <figcaption>
-                          {index === 0
-                            ? 'KAMU'
-                            : selectedFaction === 'red'
-                              ? 'M'
-                              : 'H'}
-                        </figcaption>
-                      </figure>
-                    ))}
-                    <i>VS</i>
-                    {opponentSquad.map((id) => (
-                      <figure
-                        key={`enemy-${id}`}
-                        className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}
-                      >
-                        <CharacterPreview
-                          id={id}
-                          alt={CHARACTER_BY_ID[id].name}
-                        />
-                        <figcaption>
-                          {selectedFaction === 'red' ? 'H' : 'M'}
-                        </figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                  <button className="start-button" onClick={start}>
-                    <Play size={18} fill="currentColor" /> Main sebagai{' '}
-                    {selected.name}
-                  </button>
-                </div>
-              ) : (
-                <div className="choose-team-hint">
-                  Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.
-                </div>
-              )}
-            </div>
-          )}
+          <ArenaIntel
+            baseGrace={snapshot.baseGrace}
+            fortLock={snapshot.fortLock}
+            pickupCount={snapshot.pickupCount}
+            fieldWins={snapshot.fieldWins}
+          />
           {mode === 'playing' && (
             <>
-              <div className="status-ribbon">
-                <span className={`state-dot ${snapshot.state.toLowerCase()}`} />
-                <span>
-                  <b>{selected.name}</b>
-                  {selectedFaction ? factionName(selectedFaction) : ''}
-                </span>
-                <strong>{snapshot.state.replace('_', ' ')}</strong>
-                <em>PRIORITAS #{snapshot.order || '—'}</em>
-              </div>
-              {snapshot.state === 'PRISONER' && !snapshot.paused && (
-                <div className="prisoner-notice" role="status">
-                  <Lock size={22} />
-                  <span>
-                    <b>MENUNGGU DIBEBASKAN</b>
-                    <small>
-                      {snapshot.rescueRequestActive
-                        ? `Sinyal aktif ${snapshot.rescueRequestRemaining}s`
-                        : snapshot.rescueRequestCooldown
-                          ? `Sinyal siap ${snapshot.rescueRequestCooldown}s`
-                          : 'Kirim sinyal ke rekan tim.'}
-                    </small>
-                  </span>
-                  <button
-                    className="rescue-request-button"
-                    onClick={() => tapKey('r')}
-                    disabled={snapshot.rescueRequestCooldown > 0}
-                    aria-label="Minta rescue"
-                  >
-                    <BellRing size={16} />
-                    {snapshot.rescueRequestActive
-                      ? 'BANTUAN DIKIRIM'
-                      : snapshot.rescueRequestCooldown
-                        ? `${snapshot.rescueRequestCooldown}s`
-                        : 'MINTA RESCUE'}
-                  </button>
-                </div>
-              )}
-              <button
-                className="active-objective"
-                onClick={() => setMissionOpen(true)}
-                aria-label={`Tujuan aktif: ${missionCount} dari 6`}
-                data-progress={missionCount}
-              >
-                <Flag size={20} />
-                <span>
-                  <small>TUJUAN AKTIF · {missionCount}/6</small>
-                  <b>
-                    {missionCount === 6
-                      ? 'Semua misi selesai'
-                      : 'Buktikan core loop'}
-                  </b>
-                </span>
-                <i>›</i>
-              </button>
-              <div className={`character-hud ${selectedFaction} ${snapshot.state === 'PRISONER' ? 'prisoner' : ''}`}>
-                <CharacterPreview id={selected.id} eager />
-                <span>
-                  <b>{selected.name}</b>
-                  <small>
-                    {selectedFaction ? factionName(selectedFaction) : ''} ·{' '}
-                    {selected.passiveName}
-                  </small>
-                  <em>{snapshot.state.replace('_', ' ')}</em>
-                </span>
-                {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                  <div
-                    className={`character-ultimate ${selected.ultimate?.hudClass ?? ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                    aria-label={`Charge ultimate ${Math.floor(snapshot.ultimateMeter)} persen`}
-                  >
-                    <span>
-                      {ultimateIcon(selected.ultimate?.icon ?? 'zap', 12)}
-                      {selected.ultimate?.shortLabel ?? 'TITAH'}
-                    </span>
-                    <b>{Math.floor(snapshot.ultimateMeter)}%</b>
-                    <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
-                  </div>
-                )}
-              </div>
-              <div
-                className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''} ${snapshot.comboLevel || snapshot.comboSurgeRemaining ? '' : 'context-hidden'}`}
-                aria-label="Status combo aksi tim"
-              >
-                <Users size={17} />
-                <span>
-                  <small>
-                    {snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM'}
-                  </small>
-                  <b>
-                    {snapshot.comboSurgeRemaining
-                      ? `SQUAD SURGE ${snapshot.comboSurgeRemaining}s`
-                      : snapshot.comboLevel
-                        ? `LINK ${snapshot.comboLevel}/3 · ${snapshot.comboRemaining}s`
-                        : 'RANGKAI 3 AKSI'}
-                  </b>
-                </span>
-                <i>
-                  {[1, 2, 3].map((step) => (
-                    <u
-                      key={step}
-                      className={
-                        snapshot.comboSurgeRemaining ||
-                        snapshot.comboLevel >= step
-                          ? 'filled'
-                          : ''
-                      }
-                    />
-                  ))}
-                </i>
-              </div>
-              {snapshot.comboCallout && (
-                <div
-                  className={`combo-callout ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}
-                >
-                  <Users size={22} />
-                  <span>{snapshot.comboCallout}</span>
-                </div>
-              )}
-              <div
-                className="camera-switcher camera-map"
-                aria-label="Pilihan kamera"
-              >
-                <span>
-                  <MapIcon size={13} /> PETA
-                </span>
-                {CAMERA_OPTIONS.map((camera) => (
-                  <button
-                    key={camera.id}
-                    className={cameraMode === camera.id ? 'selected' : ''}
-                    onClick={() => setCameraMode(camera.id)}
-                    aria-pressed={cameraMode === camera.id}
-                  >
-                    {camera.label}
-                  </button>
-                ))}
-              </div>
-              <div className="boost-stack">
-                <div className="boost-label">
-                  <span>⚡ STAMINA</span>
-                  <b>{Math.round(snapshot.boost)}%</b>
-                  <em>
-                    {snapshot.boostCountdown
-                      ? `PULIH ${snapshot.boostCountdown}s`
-                      : 'SIAP'}
-                  </em>
-                </div>
-                <div className="stamina-bar">
-                  <span style={{ width: `${snapshot.boost}%` }} />
-                </div>
-              </div>
+              <StatusRibbon
+                playerName={selected.name}
+                factionLabel={selectedFaction ? factionName(selectedFaction) : ''}
+                state={snapshot.state}
+                order={snapshot.order}
+              />
+              <PrisonerNotice
+                prisoner={snapshot.state === 'PRISONER'}
+                paused={snapshot.paused}
+                requestActive={snapshot.rescueRequestActive}
+                requestRemaining={snapshot.rescueRequestRemaining}
+                requestCooldown={snapshot.rescueRequestCooldown}
+                onRequest={() => tapKey('r')}
+              />
+              <ActiveObjective
+                missionCount={missionCount}
+                onOpen={() => setMissionOpen(true)}
+              />
+              <CharacterHud
+                characterId={selected.id}
+                playerName={selected.name}
+                faction={selectedFaction}
+                factionLabel={selectedFaction ? factionName(selectedFaction) : ''}
+                passiveName={selected.passiveName}
+                state={snapshot.state}
+                meter={snapshot.ultimateMeter}
+                ultimate={
+                  ULTIMATE_CHARACTER_IDS.has(selectedId)
+                    ? selected.ultimate
+                    : undefined
+                }
+              />
+              <TeamComboHud
+                faction={selectedFaction}
+                surgeRemaining={snapshot.comboSurgeRemaining}
+                comboLevel={snapshot.comboLevel}
+                comboRemaining={snapshot.comboRemaining}
+              />
+              <ComboCallout
+                callout={snapshot.comboCallout}
+                surge={Boolean(snapshot.comboSurgeRemaining)}
+              />
+              <CameraSwitcher
+                options={CAMERA_OPTIONS}
+                cameraMode={cameraMode}
+                onSelect={(id) => setCameraMode(id as CameraMode)}
+              />
+              <BoostStack boost={snapshot.boost} boostCountdown={snapshot.boostCountdown} />
               {snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                <div
-                  className={`ultimate-meter-hud ${selected.ultimate?.shieldClass ?? ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                  aria-label={`Meter Ultimate ${selected.name} ${Math.floor(snapshot.ultimateMeter)} persen`}
-                >
-                  <span>
-                    {ultimateIcon(selected.ultimate?.icon ?? 'zap', 14)}
-                    {` ${selected.ultimate?.hudTitle.toUpperCase() ?? 'TITAH HALILINTAR'}`}
-                  </span>
-                  <b>{Math.floor(snapshot.ultimateMeter)}%</b>
-                  <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
-                  <small>{snapshot.ultimateMeter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30'}</small>
-                </div>
+                <UltimateMeterHud
+                  playerName={selected.name}
+                  icon={selected.ultimate?.icon ?? 'zap'}
+                  hudTitle={selected.ultimate?.hudTitle ?? 'TITAH HALILINTAR'}
+                  shieldClass={selected.ultimate?.shieldClass}
+                  meter={snapshot.ultimateMeter}
+                />
               )}
-              <div
-                className={`action-dock ${playerMechanicsLocked ? 'mechanics-inactive' : ''} ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}
-                aria-label="Aksi pemain"
-                aria-disabled={playerMechanicsLocked}
-              >
-                <div className="arena-intel dock-status" aria-label="Status aturan pertandingan">
-                  <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
-                    <Flag size={12} />
-                    {snapshot.baseGrace > 0
-                      ? `KELUAR ${snapshot.baseGrace}s`
-                      : 'BASE AMAN'}
-                  </span>
-                  <span
-                    className={
-                      snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
-                    }
-                  >
-                    <Lock size={12} /> {snapshot.fortLock.toUpperCase()}
-                  </span>
-                  <span>
-                    <BatteryCharging size={12} /> REFILL {snapshot.pickupCount}
-                  </span>
-                  <span>
-                    <RotateCcw size={12} /> ROTASI {snapshot.fieldWins}/3
-                  </span>
-                </div>
-                <span className="ready-action">
-                  <Zap size={19} />
-                  <b>SPACE</b>
-                  <small>SPRINT</small>
-                </span>
-                <span>
-                  <Gauge size={19} />
-                  <b>SHIFT</b>
-                  <small>PARKOUR</small>
-                </span>
-                <span
-                  className={snapshot.comboSurgeRemaining ? 'combo-ready' : ''}
-                >
-                  <Users size={19} />
-                  <b>AUTO</b>
-                  <small>COMBO</small>
-                </span>
-                <span>
-                  <Shield size={19} />
-                  <b>AUTO</b>
-                  <small>RESCUE</small>
-                </span>
-                {ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
-                  <button
-                    className={`ultimate-action ${selected.ultimate?.actionClass ?? ''} ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
-                    onClick={() => tapKey('capslock')}
-                    disabled={
-                      snapshot.ultimateMeter < 100 || playerMechanicsLocked
-                    }
-                    aria-label={`${selected.ultimate?.hudTitle ?? 'Titah Halilintar'} ${Math.floor(snapshot.ultimateMeter)} persen`}
-                  >
-                    {ultimateIcon(selected.ultimate?.icon ?? 'zap', 18)}
-                    <b>CAPS</b>
-                    <small>
-                      {snapshot.ultimateCasting
-                        ? 'CASTING'
-                        : snapshot.ultimateMeter >= 100
-                          ? 'ULT READY'
-                          : `ULT ${Math.floor(snapshot.ultimateMeter)}%`}
-                    </small>
-                    <i style={{ width: `${snapshot.ultimateMeter}%` }} />
-                  </button>
-                ) : (
-                  <span className="locked">
-                    <Lock size={16} />
-                    <b>—</b>
-                  </span>
-                )}
-                <span className="locked">
-                  <Lock size={16} />
-                  <b>—</b>
-                </span>
-              </div>
+              <ActionDock
+                mechanicsLocked={playerMechanicsLocked}
+                state={snapshot.state}
+                intel={{
+                  baseGrace: snapshot.baseGrace,
+                  fortLock: snapshot.fortLock,
+                  pickupCount: snapshot.pickupCount,
+                  fieldWins: snapshot.fieldWins,
+                }}
+                comboSurge={Boolean(snapshot.comboSurgeRemaining)}
+                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
+                meter={snapshot.ultimateMeter}
+                casting={snapshot.ultimateCasting}
+                ultimateActionClass={selected.ultimate?.actionClass ?? ''}
+                ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
+                ultimateIconId={selected.ultimate?.icon ?? 'zap'}
+                onTapUltimate={() => tapKey('capslock')}
+              />
               {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
                 <div className={`ultimate-buff-indicator ${selected.ultimate?.indicatorClass ?? ''}`}>
                   {ultimateIcon(selected.ultimate?.icon ?? 'zap', 13)}
@@ -5724,267 +2510,49 @@ export function BentenganPrototype() {
                   {snapshot.ultimateBuffRemaining}s
                 </div>
               )}
-              <div className={`control-ribbon ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}>
-                <b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR{' '}
-                {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                  <>
-                    <b>CAPS LOCK</b> ULTIMATE{' '}
-                  </>
-                )}
-                <b>P</b> JEDA
-              </div>
-              <div className={`mobile-controls ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`} aria-label="Kontrol sentuh">
-                <div className="touch-dpad">
-                  <button
-                    aria-label="Gerak atas"
-                    disabled={playerMechanicsLocked}
-                    {...touchControl('w')}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    aria-label="Gerak kiri"
-                    disabled={playerMechanicsLocked}
-                    {...touchControl('a')}
-                  >
-                    ◀
-                  </button>
-                  <button
-                    aria-label="Gerak kanan"
-                    disabled={playerMechanicsLocked}
-                    {...touchControl('d')}
-                  >
-                    ▶
-                  </button>
-                  <button
-                    aria-label="Gerak bawah"
-                    disabled={playerMechanicsLocked}
-                    {...touchControl('s')}
-                  >
-                    ▼
-                  </button>
-                </div>
-                <div className="touch-actions">
-                  <button
-                    className="touch-boost"
-                    aria-label="Sprint"
-                    disabled={playerMechanicsLocked}
-                    {...touchControl(' ')}
-                  >
-                    SPRINT
-                  </button>
-                  <button
-                    aria-label="Parkour"
-                    disabled={playerMechanicsLocked}
-                    {...touchControl('shift')}
-                  >
-                    PARKOUR
-                  </button>
-                  {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                    <button
-                      className={`touch-ultimate ${selected.ultimate?.actionClass ?? ''}`}
-                      aria-label={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
-                      disabled={
-                        snapshot.ultimateMeter < 100 || playerMechanicsLocked
-                      }
-                      {...touchControl('capslock')}
-                    >
-                      ULT {Math.floor(snapshot.ultimateMeter)}%
-                    </button>
-                  )}
-                </div>
-              </div>
+              <ControlRibbon
+                state={snapshot.state}
+                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
+              />
+              <MobileControls
+                state={snapshot.state}
+                playerMechanicsLocked={playerMechanicsLocked}
+                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
+                meter={snapshot.ultimateMeter}
+                ultimateActionClass={selected.ultimate?.actionClass ?? ''}
+                ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
+                touch={touchControl}
+              />
               {snapshot.paused && (
-                <div className="pause-overlay">
-                  <div>
-                    <small>PERMAINAN DIJEDA</small>
-                    <h2>
-                      Ambil napas.
-                      <br />
-                      Lanjut saat siap.
-                    </h2>
-                    <button onClick={() => keys.current.add('p')}>
-                      <Play size={17} fill="currentColor" /> Lanjutkan
-                    </button>
-                    <button
-                      onClick={toggleBackgroundMusic}
-                      aria-pressed={musicMuted}
-                    >
-                      {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-                      {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
-                    </button>
-                    <button onClick={() => setRun((value) => value + 1)}>
-                      <RotateCcw size={17} /> Mulai ulang
-                    </button>
-                    <button onClick={quit}>
-                      <LogOut size={17} /> Keluar ke menu
-                    </button>
-                  </div>
-                </div>
+                <PauseOverlay
+                  musicMuted={musicMuted}
+                  onResume={() => keys.current.add('p')}
+                  onToggleMusic={toggleBackgroundMusic}
+                  onRestart={() => setRun((value) => value + 1)}
+                  onQuit={quit}
+                />
               )}
             </>
           )}
           {ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-            <div
-              className={`ultimate-banner ${selected.ultimate?.bannerClass ?? ''}`}
-              role="status"
-              aria-label={
-                `${selected.name} mengaktifkan ${selected.ultimate?.hudTitle ?? 'Titah Halilintar'}`
-              }
-            >
-              <img
-                src={
-                  ULTIMATE_BANNERS[selected.ultimate?.icon ?? 'zap']()
-                }
-                alt={selected.ultimate?.bannerAlt ?? 'TITAH HALILINTAR'}
-                decoding="async"
-              />
-            </div>
+            <UltimateBanner
+              playerName={selected.name}
+              icon={selected.ultimate?.icon ?? 'zap'}
+              hudTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
+              bannerAlt={selected.ultimate?.bannerAlt ?? 'TITAH HALILINTAR'}
+              bannerClass={selected.ultimate?.bannerClass}
+            />
           )}
         </div>
-        <aside
-          className={`mission-panel ${missionOpen ? 'open' : ''}`}
-          aria-hidden={!missionOpen}
-        >
-          <button
-            className="mission-close"
-            onClick={() => setMissionOpen(false)}
-            aria-label="Tutup tujuan"
-          >
-            <X size={20} />
-          </button>
-          <div className="mission-head">
-            <span>Rules test · {missionCount}/6</span>
-            <h2>Buktikan core loop</h2>
-          </div>
-          <div className="mission-progress">
-            <span style={{ width: `${missionCount * (100 / 6)}%` }} />
-          </div>
-          <div className="computed-status">
-            <span>
-              Keluar base{' '}
-              <b>{snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—'}</b>
-            </span>
-            <span>
-              Status benteng <b>{snapshot.fortLock}</b>
-            </span>
-            <span>
-              Refill aktif <b>{snapshot.pickupCount}</b>
-            </span>
-            <span>
-              Rotasi arena <b>{snapshot.fieldWins}/3</b>
-            </span>
-          </div>
-          <ul className="mission-list">
-            <li className={snapshot.mission.refresh ? 'done' : ''}>
-              {snapshot.mission.refresh ? (
-                <Check size={18} />
-              ) : (
-                <Flag size={18} />
-              )}
-              <div>
-                <b>Refresh prioritas</b>
-                <span>
-                  Kembali ke benteng dan keluar lagi sebagai urutan terbaru.
-                </span>
-              </div>
-            </li>
-            <li className={snapshot.mission.boost ? 'done' : ''}>
-              <BatteryCharging size={18} />
-              <div>
-                <b>Sprint terbatas</b>
-                <span>
-                  Tekan Space untuk ledakan lari{' '}
-                  {GAME_RULES.boostDurationMs / 1000} detik. Pulih 20 detik atau
-                  ambil refill.
-                </span>
-              </div>
-            </li>
-            <li className={snapshot.mission.parkour ? 'done' : ''}>
-              <Gauge size={18} />
-              <div>
-                <b>Parkour kontekstual</b>
-                <span>
-                  Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel,
-                  gunakan tombol PARKOUR di sisi kanan.
-                </span>
-              </div>
-            </li>
-            <li className={snapshot.mission.tag ? 'done' : ''}>
-              <Zap size={18} />
-              <div>
-                <b>Menangkap target</b>
-                <span>
-                  Outline hijau = keluar lebih dulu dan boleh ditangkap.
-                </span>
-              </div>
-            </li>
-            <li className={snapshot.mission.rescue ? 'done' : ''}>
-              <Shield size={18} />
-              <div>
-                <b>Bebaskan penjara</b>
-                <span>
-                  Jangkau rekan terluar untuk membebaskan seluruh rantai.
-                </span>
-              </div>
-            </li>
-            <li className={snapshot.mission.combo ? 'done' : ''}>
-              <Users size={18} />
-              <div>
-                <b>Combo aksi tim</b>
-                <span>
-                  Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik
-                  untuk Squad Surge.
-                </span>
-              </div>
-            </li>
-          </ul>
-          {mode === 'playing' ? (
-            <>
-              <div className={`team-status ${selectedFaction}`}>
-                <span>
-                  {selectedFaction
-                    ? factionName(selectedFaction).toUpperCase()
-                    : 'TIM'}{' '}
-                  · 5 PEMAIN UNIK
-                </span>
-                {snapshot.team.map((member, index) => (
-                  <div key={`${member.name}-${index}`}>
-                    <CharacterPreview id={member.characterId} />
-                    <b>{member.name}</b>
-                    <i style={{ width: `${Math.min(100, member.boost)}%` }} />
-                    <em>{member.state.replace('_', ' ')}</em>
-                  </div>
-                ))}
-              </div>
-              <div className="event-feed">
-                {snapshot.logs.map((entry, index) => (
-                  <p key={`${entry}-${index}`}>{entry}</p>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="reference-card">
-              <img
-                src={publicAsset('characters.webp?v=8')}
-                alt="Referensi karakter Benteng Squad Tag"
-              />
-              <div>
-                <b>Empat belas sprite produksi terpasang</b>
-                <span>
-                  Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi
-                  arah, tag, rescue, tahanan, menang, dan kalah.
-                </span>
-              </div>
-            </div>
-          )}
-          <div className="audio-note">
-            {musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-            {musicMuted
-              ? 'Musik latar mati. Suara arena dan efek tetap aktif.'
-              : 'Musik menu dan pertandingan aktif setelah interaksi pertama.'}
-          </div>
-        </aside>
+        <MissionPanel
+          open={missionOpen}
+          onClose={() => setMissionOpen(false)}
+          missionCount={missionCount}
+          snapshot={snapshot}
+          mode={mode}
+          selectedFaction={selectedFaction}
+          musicMuted={musicMuted}
+        />
       </section>
       {playerProfile && profileOpen && (
         <Suspense fallback={null}>

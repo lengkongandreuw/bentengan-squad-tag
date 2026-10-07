@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import { kanalObjectPolygons, kanalObjectRects, pointInPolygon } from '../lib/kanal-footprints.js';
-import { pointHitsExpandedRect } from '../lib/collision-navigation.js';
+import { kanalObjectPolygons, kanalObjectRects, pointInPolygon } from '../modules/world/kanal-footprints.ts';
+import { pointHitsExpandedRect } from '../modules/gameplay/collision-navigation.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
 const source = (await readFile(path.join(root, 'app/prototype.tsx'), 'utf8')).replace(/\r\n/g,'\n');

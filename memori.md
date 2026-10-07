@@ -471,15 +471,334 @@ Tanyakan hanya jika informasi yang hilang akan mengubah hasil secara material, m
   test, kembalikan def 4 baris). Prototype 5994 → 5996 (+2: objek eksplisit
   lebih mahal dari def yang dihapus — biaya jujur kontrak eksplisit).
   Gates: tsc bersih, lint 119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `spacingPositionAllowed` →
+  `collision-navigation.ts` (+`SpacingWorld`; predikat 3-guard murni, 2 situs
+  via `spacingWorldFor`; revert = hapus blok + test, kembalikan def 13
+  baris). Prototype 5996 → 6006 (+10: konstruksi dunia eksplisit). Gates:
+  tsc bersih (setelah facet dipangkas lalu x/y dikembalikan untuk read
+  fort-core), lint 120 (drift pre-existing terverifikasi, 0 di file seam),
+  audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `drawPrisonOverlays` → `draw-base.ts`
+  (+`PrisonAssets`; loop overlay murni, 1 situs; revert = hapus blok + test,
+  kembalikan def 16 baris). Prototype 6006 → 5994. Gates: tsc bersih
+  (setelah param opsional dipindah terakhir), lint 119, audit 21
+  pre-existing (setelah 1 asersi audit di-repoint ke lokasi baru —
+  cek sama, lokasi baru), build PASS.
+- Selesai tervalidasi (2026-10-05): `baseVector` → `collision-navigation.ts`
+  (murni 4 baris, 3 situs via forwarder 1 baris; revert = hapus blok + test,
+  kembalikan def 4 baris). Prototype 5994 → 5991. Gates: tsc bersih, lint
+  119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): tim/faksi/roster tables →
+  `modules/world/team-tables.ts` (7 helpers config-derived; ~25 situs tak
+  berubah teks; revert = hapus modul + test, kembalikan blok 7 def).
+  Prototype 5991 → 5971. Gates: tsc bersih (setelah JSON import attribute),
+  lint 119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `findParkourLanding` →
+  `collision-navigation.ts` (+`ParkourProbe`; probe murni 2-predikat, 1 situs;
+  revert = hapus blok + test, kembalikan def 31 baris). Prototype 5971 →
+  5952. Gates: tsc bersih, lint 119, audit 21 pre-existing (setelah 1 asersi
+  audit di-repoint — cek sama, lokasi baru), build PASS.
+- Selesai tervalidasi (2026-10-05): `blocked` → `collision-navigation.ts`
+  (+`BlockedWorld`; predikat 6-guard murni, 5 situs via 1 `blockedWorld`;
+  revert = hapus blok + test, kembalikan def 40 baris). Prototype 5952 →
+  5934. Gates: tsc bersih, lint 119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `move` → `collision-navigation.ts`
+  (+`MoveWorld`; stepper 2-sumbu murni, 4 situs via adapter tipis; revert =
+  hapus blok + test, kembalikan def 24 baris). Prototype 5934 → 5925.
+  Gates: tsc bersih, lint 119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-05): `directionIsTraversable` →
+  `collision-navigation.ts` (+`TraverseProbe`; raycast murni 2-predikat, 3
+  situs; revert = hapus blok + test, kembalikan def 19 baris). Prototype
+  5925 → 5916. Gates: tsc bersih, lint 119, audit 21 pre-existing
+  (setelah 1 asersi audit di-repoint — cek sama, lokasi baru), build PASS.
 - P1.1 aktual: `chargeUltimateMeter(meter, controlled, id, amount)` murni di
   `modules/gameplay/bars-score.ts`; 2 situs tag/rescue; konstanta bonus 20/30
   beku; revert = kembalikan definisi lokal + 2 situs.
-- Backlog `pushMatchEvent` SELESAI (jadi seam aktif, bukan lagi backlog).
-  Kandidat berikut: mutator `log`/`burst`, slice `input-navigation`,
-  slice `snapshot-write` (survey terkecil dulu).
+- Selesai tervalidasi (2026-10-06): `navigateAroundHazards` wrapper →
+  `collision-navigation.ts` (`navigateAroundHazardsForPlayer` +
+  `NavigationWorld`; import duplikat di-header dirapikan; adapter dunia
+  eksplisit di situs panggil). Prototype 5916 → 5893. Gates: tsc bersih,
+  lint 119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-06): `beep` → `modules/audio/audio-tone.ts`
+  (`playTone` + `closeToneAudio`; AudioContext milik modul; 12 situs
+  diganti; teardown panggil `closeToneAudio`). Prototype 5893 → 5874.
+  Gates: tsc bersih, lint 119, audit 21 pre-existing, build PASS.
+- Selesai tervalidasi (2026-10-06): `aiVector` →
+  `modules/gameplay/ai-vector.ts` (file baru; `AiProfile` dimuluskan ke 4
+  field yang dibaca fungsi; `PlayerFacet` subset struktural `Player`;
+  body verbatim; 1 situs). Audit: 2 asersi di-repoint (kesulitan +
+  navigasi AI — cek sama, pin pindah ke `ai-vector.ts`), 21 gagal
+  pre-existing tetap. Test: `scripts/test-ai-vector.mjs` (8 cabang).
+  Prototype 5874 → 5808 (−66). Gates: tsc bersih, lint 117 (≤119), audit
+  21 pre-existing, build PASS. Revert = hapus `ai-vector.ts` +
+  test-nya, pulihkan def lokal + import, revert 2 asersi audit.
+- Batch otonom 2026-10-06 (keputusan pengguna): (1) modul UI terpisah
+  `effects-log.ts`/`effects-particles.ts`, bukan gabungan; buat file hanya
+  saat ekstraksi nyata. (2) `AiVectorWorld` kontrak paling sempit;
+  `rescueRequest` nullable, jangan optional. (3) `TeamActionWorld` wajib
+  callback sempit (`onComboCallout`, `onPlayerBoost`) untuk efek milik
+  domain lain; mutasi langsung hanya untuk state milik subsistem itu
+  sendiri. (4) capture/tagCheck/rescueCheck boleh dalam batch yang sama
+  sebagai 3 seam terpisah; nilai ultimate Kaka/Raja hanya boleh
+  dipindahkan verbatim (Q2 hard stop). (5) Setiap seam wajib direct test
+  assert-based; audit bukan pengganti.
+- Batch 2026-10-06 SELESAI (8 seam dibangun, 2 ditunda): `aiVector` →
+  `ai-vector.ts`, `registerTeamAction` → `team-combo-actions.ts`,
+  `capture` → `capture.ts`, `tagCheck` → `tag-check.ts`, `rescueCheck` →
+  `rescue-check.ts`, `refillCheck` → `refill-check.ts`, `applyFallReset` →
+  `fall-reset.ts`, `riverFallCheck` → `river-fall.ts`. Prototype 5808 →
+  5661 (−147). Semua punya test direct sendiri; 6 asersi audit di-repoint
+  (cek sama, lokasi baru — tidak pernah disembunyikan). Q2:
+  `RAJA_ULTIMATE_TAG_BONUS=20` pindah verbatim ke `capture.ts`,
+  `RAJA_ULTIMATE_RESCUE_BONUS=30` verbatim ke `rescue-check.ts`;
+  `KANAL2_FALL_RESET_MS=3000` verbatim ke `river-fall.ts`. `riverFallCheck`
+  memanggil `applyFallReset` modul langsung — forwarder lokal sudah
+  dihapus (nol pemanggil). `onTeamAction(rescuer,...)` di rescue: cast
+  `as Player` aman (objek Player asli). Batch record: CHECKPOINT 8 entri
+  + entri batch; revert notes per seam.
+- `log`/`burst` SELESAI di batch 2 (2026-10-06) dengan desain kontrak
+  PURE berbeda dari yang pernah ditolak: `pushLog(logs, text) => string[]`
+  (`effects-log.ts`) dan `burst(...) => Particle[]`
+  (`effects-particles.ts`) — modul murni, mutasi tetap di forwarder
+  prototype (`logs = pushLog(...)`, `particles.push(...)`); 14 situs
+  burst + 18 situs log tidak berubah. Bila keputusan lama dianggap
+  berlaku, revert dua file kecil ini saja.
+- Batch 2 SELESAI (2026-10-06, 10 seam: 27-36): `burst` ->
+  `effects-particles.ts`, `log` -> `effects-log.ts`, `baseCheck` ->
+  `base-check.ts`, `resolvePlayerSpacing`+`spacingWorldFor` ->
+  `collision-navigation.ts`, `makePlayer`/`makePlayers` -> `roster.ts`,
+  `kanalPrisonWalls` -> `prison.ts`, `isWaterAt` -> `water.ts`
+  (`createWaterAt`, pixels via getter karena load async), 
+  `beginKanal2WaterFall` -> `water.ts`, `cacheWaterMask` ->
+  `world/water-mask.ts` (`extractWaterMask` return-based), `applyExitOrder`
+  -> `base-check.ts`. Prototype 5661 -> 5372 (-289). 10 test direct baru
+  semua PASS; audit pins batch2 di-repoint: spacing, floorAsset, jitter
+  (2 klausul), plus `test-audio-port.mjs` (situs pindah ke rumah modul
+  sebagai literal `onAudio(...)`; 9 referensi prototype = 6 direct + 3
+  forwarder). `tieHash`/`Obstacle`/`studioWaterAt`/`TEAM_FOR_FACTION`
+  import dibersihkan setelah kepindahan.
+- Batch 3 SELESAI (2026-10-06, 10 seam: 37-46): P1 finish (`stepParticles`,
+  `updateCaptureHold`) + P2 render (`field-assets.ts` blitters+anim,
+  `draw-refill`, `ground-tiles`, `collider-debug`, `static-map-layer.ts`
+  −262 baris, `draw-kanal-water`, `draw-nearby-details`). Prototype 5372 →
+  4806 (−566). Total dari awal: 8570 → 4806 (−44%). 10 test direct baru.
+  5 audit pin di-repoint (STATIC_MAP_SCALE/cache/scenery, radius/overview,
+  hidden/underlay). `ctx` di root itu `let` (di-swap saat pre-render
+  player) — factory yang baca ctx per-frame pakai getter `getContext()`;
+  yang cuma dipakai top-level draw boleh capture nilai. import lib chain
+  (map-studio.ts → characters extensionless) membuat test gagal load →
+  inject fungsi lib (`drawMapTerrain`, `drawMapObject`) sebagai world param
+  (type-only import OK, runtime import tidak).
+- Batch 4 SELESAI (2026-10-06, 3 seam: 47-49; draw() SISA KEMBALI KE
+  DESIGN): inline forwarder `drawPrisonOverlays` (−5); `drawPlayer` (468
+  baris) → `modules/ui/draw-player.ts` (factory16 field: getter live
+  `getContext`/phase/meters/teamCombos, 4 image-getter callback,
+  `studioResolve` di-inject via type-only import agar rantai lib tidak
+  ikut load; `spriteFrame` pindah verbatim; ekstraksi via skrip
+  substitusi sistematis bukan salin-tangan;7 audit pin di-repoint)
+  (−478); camera/view/letterbox `draw()` → `modules/ui/frame-view.ts`
+  (`computeFrameView`,9 input sempit, `setView` callback untuk assignment
+  `view` root, `clamp` di-import bukan diulang) (−24). Prototype 4806 →
+  4304. Sisa `draw()` (135 baris) DITOLAK diekstrak dengan bukti:
+  38 dependensi + mutasi root state di dalam badan (`ctx = target/previous`
+  saat pre-render 3D, `paused=`, `scene3d=`, setState React) → melewati
+  ambang ~28 binding dan lintas domain (canvas/React/scene3d/input/match
+  display) → kembali ke Design sesuai Option B.5 pengguna. Kandidat
+  sub-slice untuk Design: blok scene3d, world-layer pass, edge markers,
+  phase dim.
+- PENTING INCIDENT + POLA SPLICE (2026-10-06): splice berbasis marker
+  HAPUS 1.130 baris karena marker `const { drawFieldAsset...` terjadi 2×
+  (findIndex ambil yang pertama). Pemulihan dari snapshot opencode:
+  `~/.local/share/opencode/snapshot/<repo>/<session>/objects/` (format git
+  loose object: zlib(`blob <size>\0<content>`) — WAJIB strip header + cek
+  ukuran). Simpan salinan ke %TEMP% segera. POLA WAJIB ke depan: hitung
+  jumlah kemunculan marker dulu, `assert(hits.length === N)` SEBELUM
+  splice; jangan pernah pakai findIndex pada marker non-unik.
+- PENTING suite: `test-kampung3d.mjs` dan `test-kanal2-layout.mjs` gagal
+  SEJAK HEAD (dibuktikan: slice `const DESIGN_W =` kosong di HEAD;
+  `kanalGuide` sudah di guide-fields.ts di HEAD) = 2 kegagalan map-suite
+  pre-existing; jangan biarkan ini terbaca sebagai regresi batch. Semua
+  51 test file lain PASS. `npm run audit` chain berhenti di kampung3d
+  (&& ) — hitung kegagalan audit-game saja untuk gate.
+- Diundur dengan alasan: `winRound`/`resetRound`/`buildStatsBoard`/
+  `addMatchEvent` -> P3 (plan: buildStatsBoard "stays for P3"; winRound
+  sentuh ~10 state closure); `playUiTone`/`playUiSample` -> `uiAudio`
+  dipakai guard hover (coupled); key handlers -> P4 (urutan terkunci);
+  draw helpers -> P2; `prepare()` -> P6.
+- Backlog kandidat batch berikut: `stepParticles` (ekor fisika
+  effects-particles), `staticMapScale`/`invalidateStaticMap` (P2),
+  akumulator `allHeld` capture-win (perlu coupling winRound), P3
+  snapshot/write, lalu urutan P2-P6 sesuai plan.
 - Baseline verifikasi: `tsc` bersih, lint 119, audit 21 gagal pre-existing
   (7 game + 14 metadata sprite; file di luar diff, isu asset-pipeline),
   `build:pages` PASS. Jangan sentuh baseline untuk menutupi regresi.
 - Pengguna yang merge ke `main`; asisten tidak pernah merge/push ke `main`.
 - Shell default pwsh 7.6.6; dilarang `npm run format` telanjang (pernah
   memformat 316 file; sudah di-revert).
+- Aturan import modul/test Node (2026-10-06): JANGAN runtime-import path lib
+  tanpa ekstensi (`lib/field-assets.generated`, `lib/audio-settings`,
+  `lib/map-studio`) — gagal `ERR_MODULE_NOT_FOUND` pada
+  `node --experimental-strip-types`. Selalu pakai ekstensi `.ts` eksplisit
+  (`lib/characters.ts` terbukti loadable via `roster.ts`) atau inject
+  dependency sebagai parameter (pola `UiAssetSources`/resolver).
+  `import type` selalu aman (terhapus saat load). `lib/characters.ts`
+  runtime juga menarik `react`/`lucide-react` — hindari bila modul harus
+  ringan; `CHARACTER_VOICE_FILES`-style table + injected resolver adalah
+  pola default untuk kasus itu.
+
+## Naming rules refactor (2026-10-06, berlaku untuk semua seam tersisa)
+
+Berlaku SAAT INI tanpa batch rename kosmetik — hanya dipakai ketika membuat
+atau memodifikasi module. Rename dicatat di CHECKPOINT.md + memori.md.
+
+- Folder top-level tetap: `audio`, `game-core`, `gameplay`, `storage`, `ui`,
+  `world`. Tanpa subfolder baru kecuali folder datar benar-benar membingungkan.
+- Nama: bahasa domain sehari-hari, file = responsibility yang dimiliki,
+  istilah game > detail implementasi; hindari nama ambigu (`base.ts`,
+  `water.ts`, `format.ts`, `roster.ts`, `effects.ts`, `util.ts`, `helpers.ts`).
+- Jangan pakai akhiran `*-check.ts` bila file berisi transisi state, mutasi,
+  side effects, atau orkestrasi — pakai `*-rules.ts` / `*-control.ts` /
+  `*-actions.ts` / `*-layout.ts` / nama domain langsung.
+- Jangan membuat `effects.ts` gabungan; log dan particle tetap terpisah
+  (`arena-effects-log.ts`, `arena-particles.ts`).
+- Rename HANYA bila: (a) file sedang disentuh seam aktif, (b) pindah ke owner
+  final, (c) nama menyebabkan kesalahan ownership/import nyata, (d) nama
+  materially salah melaporkan responsibility. Jangan rename hanya karena
+  terdengar lebih bagus. Jangan campur rename kosmetik dengan ekstraksi
+  gameplay yang tak terkait. Pertahankan behavior/exports/imports/test paths.
+- Validasi setiap rename: direct test modul + R1 + `npx tsc --noEmit` +
+  `npm run lint` + `npm run audit` + `npm run build:pages` (+ verifikasi
+  in-match/browser bila menyentuh render).
+- `collision-navigation.ts` JANGAN di-rename otomatis; `format.ts` hanya
+  setelah responsibility-nya diinspeksi.
+- Output wajib di akhir tiap batch: file yang di-rename (old/new/reason/
+  perubahan exports/validasi), nama ambigu yang ditunda, mismatch ownership.
+- Nama yang berhasil hanya bila cocok dengan responsibility nyata — refactor
+  TIDAK dianggap lebih baik hanya karena file berganti nama.
+
+## Perilaku autonomous refactor (2026-10-06)
+
+Per seam: analisis seam+dependensi langsung → 1 seam reversible → direct test
++ karakterisasi → semua gate → verifikasi in-match/browser bila perlu →
+update CHECKPOINT/memori → lanjut. Tanpa izin per seam biasa.
+
+DILARANG: global event bus; storage backend kedua tanpa kebutuhan nyata;
+global singleton; public runtime god object; framework DI; layer utility
+generik spekulatif; dependency runtime baru; repo split/monorepo.
+
+STOP + minta keputusan hanya bila: mengubah gameplay/balance/aset/map/UI-UX;
+mengubah nilai ultimate Kaka/Raja (Q2); bertentangan Design G/amandemen L1;
+cross-domain move luas; keputusan arsitektur baru; membuat `prototype.tsx`
+atau module lain jadi god module; mengubah arah ownership/dependency yang
+disetujui; gagal validasi di luar seam aktif; operasi Git tak diminta.
+
+Target akhir: kode modular yang sehat — bukan sekadar angka baris rendah
+atau banyak file ganti nama. `prototype.tsx` = composition/wiring saja;
+selesaikan G3, R10 (tanpa game rules di `lib/`), R11 (`components/`+`hooks/`
+→ screens `modules/ui/`), lalu G4 verify vs baseline G0.
+
+G4-PRECURSOR (2026-10-06): metrik vs baseline G0 (e0c5921) — tsc 0=sama,
+lint 122→110 (−12), audit gagal 8→21 (7 persist + roster-sync DIPERBAIKI
++14 sprite-metadata pre-existing tersingkap oleh fix G2 — disclosure,
+bukan regresi), build PASS, test 4 suite→90 file/88 PASS, prototype
+8570→2567 (−70%), R10 7→0 file rules di lib, R11 2→0 orphan dir,
+R6 `characterId ===` 12→0. 7 safeguards pasca-G3 SEMUA LULUS (S5
+parsial — lihat variance). §17: 6 PASS, 2 REMOVED-DEFERRED, 2
+DEFERRED/PENDING, 1 VARIANCE. VARIANCE 500-line: ownership komposisi
+TERBUKTI; sisa 2567 = wiring/effects/tick-shell + 2 blok Design-
+excluded (phase-gate, draw()) + navigate — 500 TETAP target bukan
+gate (amendmen 1); tanpa splitting kosmetik; kejar 500 butuh ruling
+Design untuk 3 blok itu.
+
+Batch 16 SELESAI (2026-10-06): **R10 + R11 tuntas dengan bukti.**
+R10: 7 file rule-bearing pindah dari lib/ (field-cycle→match-control,
+tag-contact→tag-check, team-combo→gameplay/team-combo.ts,
+click-navigation→gameplay/, collision-navigation.js→merge module,
+kanal-footprints→world/, gameplay-audio→audio/) — sprite-motion +
+character-animation TETAP di lib (data/mapping, bukan rules). Proof:
+7 path hilang + nol residual import. R11: components/ DAN hooks/ TIDAK
+ADA LAGI — leaf4 → modules/ui/, player-profile/ → modules/ui/, 61
+primitif → modules/ui/primitives/ (alias @/components/ui/* →
+@/modules/ui/primitives/*), use-mobile → modules/ui/. Depth fix
+wajib saat pindah 1 tingkat: components/X → modules/ui/X = '../lib'
+harus jadi '../../lib' (parent chain berbeda!). package.json: audit
+chain + test:map-studio + admin:maps kini pakai
+--experimental-strip-types (Node 22.13 min). Kesimpulan: audit 21,
+lint 110, tsc 0, sweep 88/90, build PASS, browser nol error.
+PRE-EXISTING ditemukan: test:map-studio 2 gagal sejak G2 (templates()
+men-slice `const DESIGN_W =` dari prototype yang sudah pindah) —
+backlog terpisah, jangan dikaitkan batch ini.
+
+Batch 15 SELESAI (2026-10-06): 5 chrome menu → `modules/ui/`
+(asset-loading-screen, menu-actions-row, back-button,
+profile-trigger-button, workshop-link). Prototype 2608 → 2571 (−37).
+Browser sweep all-green nol error (loading screen terlihat live saat
+start, actions row/back/profile/workshop berfungsi). Gates: tsc 0,
+lint 110, audit 21 (0 pin tersentuh), sweep 88/90, build PASS.
+INVENTARIS WIRING (penting): sisa prototype = state + effects +
+factory wiring + navigate/draw excluded — wiring adalah TARGET G3
+("composition and wiring only"), BUKAN cacat; jangan ekstraksi wiring.
+
+Batch 14 SELESAI (2026-10-06): 6 layar menu/result → `modules/ui/`
+(round-result-announcement, splash, team, rules, field-select,
+character-select 161 baris). Prototype 2748 → 2608 (−140). Browser
+sweep menu-flow all-green nol error (carousel cycle RAJA→ROBOT, swap
+tim, ULT badge, 3 stat bar, step + start wiring). Gates: tsc 0, lint
+110 (prune import mati incl. opponentSquad peninggalan dead-JSX B9),
+audit 21 (2 pin repoint), sweep 88/90, build PASS. Aturan: string aset
+sensitif pin (logo) diinjeksi via props agar pin tak patah — JANGAN
+tulis raw string di komponen.
+
+Batch 13 SELESAI (2026-10-06): 14 widget HUD diekstrak ke `modules/ui/`
+(renderer-error, status-ribbon, combo-callout, control-ribbon, camera,
+boost-stack, ultimate-meter-hud, character-hud, ultimate-banner,
+prisoner-notice, active-objective, team-combo-hud, mobile-controls,
+action-dock). Prototype 2960 → 2748 (−212). Browser sweep desktop +
+mobile all-green nol error: semua widget render, prisoner notice muncul
+alami + tombol rescue berfungsi, touch dpad 4 + aksi 3. Gates: tsc 0,
+lint 110 (prune ikon mati), audit 21 (5 klausa repoint), sweep 88/90,
+build PASS. Aturan pin audit: `disabled={playerMechanicsLocked}`
+sekarang dicocokkan di mobile-controls (prop dinamai sama persis);
+submenu: jangan normalisasi template `${selectedFaction}` ("null"
+verbatim). Sisa shell: menu return + character-select + wiring canvas.
+
+Batch 12 SELESAI (2026-10-06): 4 komponen playing-shell — `arena-intel`
+(DEDUPE: blok kembar ×2 jadi 1 komponen + className override),
+`stage-hud`, `playing-topbar`, `pause-overlay`. Prototype 3078 → 2960
+(−118). Browser sweep all-green nol error (topbar, stage-hud click→
+stats, intel 2 instance, pause buka/tutup). Gates: tsc 0, lint 117,
+audit 21 (3 klausa pin repoint: arena-intel, pause-overlay, Keluar ke
+menu), sweep 88/90, build PASS. Pola: guard di owner, callback sempit,
+AudioSettings onOpen ≠ profile open (keys-clear saja — jangan disatukan).
+
+Batch 11 SELESAI (2026-10-06): 5 layar menu/result diekstrak ke
+`modules/ui/` — `round-result-announcement`, `splash-screen`,
+`team-screen`, `rules-overlay`, `field-select-screen`. Prototype
+3256 → 3078 (−178). Semua diverifikasi browser Playwright (splash/
+rules/team/field flow penuh sampai in-match, carousel step + start
+wiring teruji, nol error); round-result card structural-only (trigger
+butuh ronde selesai — dinyatakan). Gates: tsc 0, lint 117, audit 21
+(1 pin repoint: `Ultimate Raja dan Kaka` → rules-overlay), sweep 88/90,
+build PASS. Pola konsisten: guard di owner, state/callback diinjeksi,
+string aset sensitif pin (logo) tetap di prototype via props.
+
+Batch 10 SELESAI (2026-10-06): 3 komponen layar JSX diekstrak ke
+`modules/ui/` — `match-event-feed.tsx`, `round-stats-overlay.tsx`,
+`mission-panel.tsx` — masing-masing diverifikasi browser Playwright
+(toast tag live dari aksi bot; leaderboard hold-Tab buka/tutup;
+mission panel play-branch 5 member + close). Prototype 3551 → 3256.
+Gates: tsc 0, lint 117 (di bawah baseline setelah pembersihan import
+mati), audit 21 (2 pin repoint), sweep 88/90, build PASS, nol error
+browser. Verifikasi JSX = gates + Playwright (bukan node test — JSX
+tidak bisa load di strip-types).
+
+Batch 9 SELESAI (2026-10-06): hapus dead-JSX `{false && …}` (−219 baris,
+splice ber-assert kemunculan marker unik + copy ke %TEMP%) + 4 seam P1:
+`tickUltimateMeter`+`beginUltimateCast`, `tryParkourJump`, `stepBots`,
+`stepBoost`. RENAME pertama & tercatat: `ai-vector.ts` → `ai-movement.ts`
+(file kini punya vector decisions + bot stepping; exports `aiVector` tetap,
+test file name dipertahankan, 3 importer diupdate: prototype/audit/test).
+Prototype 3846 → 3551 (−295). Gate live: tsc 0, lint 119, audit 21 (3 pin
+di-repoint), sweep 88/90 (2 pre-existing), build PASS. R10 survey: inventory
+7+ file `lib/` berisi game rules + tujuan modul ada di CHECKPOINT Batch 9 —
+dieksekusi batch khusus setelah Batch 10 (JSX screens + Playwright).

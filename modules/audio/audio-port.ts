@@ -1,4 +1,4 @@
-import { GameplayAudio, type GameplaySound } from '../../lib/gameplay-audio.ts';
+import { GameplayAudio, type GameplaySound } from './gameplay-audio.ts';
 
 export type { GameplaySound };
 

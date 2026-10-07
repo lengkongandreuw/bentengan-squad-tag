@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import { kanalObjectPolygons } from '../../lib/kanal-footprints.js';
+import { kanalObjectPolygons } from '../../modules/world/kanal-footprints.ts';
 // Evaluate trusted repository definitions only, never uploaded map data.
 export async function templates(root) {
   const source = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { sweptContactDistance } from '../lib/tag-contact.js';
+import { sweptContactDistance } from '../modules/gameplay/tag-check.ts';
 // Static pair 3-4-5 apart stays 5.
 assert.equal(
   sweptContactDistance(

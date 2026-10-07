@@ -1,5 +1,5 @@
-import { PLAYER_PROFILE_STORAGE_KEY } from './defaults';
-import { parsePlayerProfile } from './migrations';
+import { PLAYER_PROFILE_STORAGE_KEY } from './defaults.ts';
+import { parsePlayerProfile } from './migrations.ts';
 import type { LocalPlayerProfile } from './types';
 
 export const loadPlayerProfile = (): LocalPlayerProfile | null => {

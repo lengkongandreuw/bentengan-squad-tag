@@ -1,6 +1,6 @@
 import type { Team } from '../world/map-data/field-types';
 import type { PlayerState } from '../game-core/match-types';
-import type { Prison } from '../world/map-data/field-types';
+import type { Obstacle, Prison } from '../world/map-data/field-types';
 
 // Minimal player facet for prison layout. Only these fields cross the seam.
 type PrisonerFacet = {
@@ -53,3 +53,35 @@ export const layoutPrisons = (
       });
   });
 };
+
+// Kanal's prison uses a thin U-frame: walls block traversal, while the
+// wide front gate and entire interior remain open for rescues. No other
+// arena receives these additional collision rules. Pure geometry.
+export const kanalPrisonWalls = (
+  prisons: Record<Team, Prison>,
+  kanal: boolean,
+): Obstacle[] =>
+  kanal
+    ? Object.values(prisons).flatMap((prison): Obstacle[] => {
+        const thickness = Math.max(12, Math.round(Math.min(prison.w, prison.h) * 0.09));
+        const gateWidth = Math.max(76, Math.round(prison.w * 0.48));
+        const shoulderWidth = Math.round((prison.w - gateWidth) / 2);
+        const hiddenWall = (x: number, y: number, w: number, h: number): Obstacle => ({
+          asset: prison.floorAsset ?? 'prisonFloor',
+          x,
+          y,
+          w,
+          h,
+          visualW: 1,
+          visualH: 1,
+          hidden: true,
+        });
+        return [
+          hiddenWall(prison.x, prison.y, prison.w, thickness),
+          hiddenWall(prison.x, prison.y + thickness, thickness, prison.h - thickness),
+          hiddenWall(prison.x + prison.w - thickness, prison.y + thickness, thickness, prison.h - thickness),
+          hiddenWall(prison.x, prison.y + prison.h - thickness, shoulderWidth, thickness),
+          hiddenWall(prison.x + prison.w - shoulderWidth, prison.y + prison.h - thickness, shoulderWidth, thickness),
+        ];
+      })
+    : [];

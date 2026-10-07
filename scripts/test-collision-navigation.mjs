@@ -3,7 +3,7 @@ import {
   depenetrateFromRects,
   pointHitsExpandedRect,
   steerAroundRects,
-} from '../lib/collision-navigation.js';
+} from '../modules/gameplay/collision-navigation.ts';
 const box = { x: 0, y: 0, w: 10, h: 10 };
 assert.equal(pointHitsExpandedRect(5, 5, box), true);
 assert.equal(pointHitsExpandedRect(100, 100, box), false);

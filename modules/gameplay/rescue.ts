@@ -23,6 +23,20 @@ export type RescueRequestEffects = {
   logs: string[];
 };
 
+export const expireRescueRequest = (
+  request: RescueRequest | null,
+  players: RescuePlayerFacet[],
+  now: number,
+): RescueRequest | null => {
+  if (
+    !request ||
+    (now < request.expiresAt &&
+      players.find((player) => player.id === request.requesterId)?.state === 'PRISONER')
+  )
+    return request;
+  return null;
+};
+
 // Pure rescue-request decision. Computes the new request (or none) and
 // returns every side effect for the orchestrator to apply: match event,
 // sounds, bursts, and log lines. Never touches audio, particles, or HUD.

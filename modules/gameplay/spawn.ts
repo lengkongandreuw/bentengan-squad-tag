@@ -25,6 +25,12 @@ export type SpawnGeometry = {
   studioMap: StudioMap | null;
 };
 
+export const spawnGeo = (
+  worldWidth: number,
+  obstacles: Obstacle[],
+  studioMap: StudioMap | null,
+): SpawnGeometry => ({ worldWidth, obstacles, studioMap });
+
 export const randomGrade = (): Grade => {
   const roll = Math.random();
   return roll < 0.52 ? 25 : roll < 0.78 ? 40 : roll < 0.95 ? 75 : 100;
@@ -78,6 +84,21 @@ export const spawnRefill = (
   return nextId;
 };
 
+export const tickRefills = (
+  refills: Refill[],
+  nextId: number,
+  nextSpawn: number,
+  geo: SpawnGeometry,
+  now: number,
+): { refills: Refill[]; nextId: number; nextSpawn: number } => {
+  const kept = refills.filter((item) => item.expiresAt > now);
+  if (now >= nextSpawn && kept.length < 9) {
+    const spawned = spawnRefill(kept, nextId, geo, now);
+    return { refills: kept, nextId: spawned, nextSpawn: now + 8000 + Math.random() * 4000 };
+  }
+  return { refills: kept, nextId, nextSpawn };
+};
+
 // Fresh six-pack for match setup and round reset.
 export const seedRefills = (
   geo: SpawnGeometry,
@@ -91,7 +112,7 @@ export const seedRefills = (
 
 // Minimal player facet for fall resets. Mutated fields are exactly the ones
 // reset below; read fields drive placement and effect gating.
-type FallenPlayerFacet = {
+export type FallenPlayerFacet = {
   id: string;
   team: Team;
   controlled?: boolean;

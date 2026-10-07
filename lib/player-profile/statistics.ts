@@ -1,4 +1,4 @@
-import { TARGET_RESCUES_PER_MATCH, TARGET_TAGS_PER_MATCH } from './defaults';
+import { TARGET_RESCUES_PER_MATCH, TARGET_TAGS_PER_MATCH } from './defaults.ts';
 import type { LocalPlayerProfile, PlayerProfileMetrics } from './types';
 
 const clamp = (value: number, minimum: number, maximum: number) =>

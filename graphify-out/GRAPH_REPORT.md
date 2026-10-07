@@ -1,36 +1,36 @@
-# Graph Report - bentengan-squad-tag  (2026-10-05)
+# Graph Report - bentengan-squad-tag  (2026-10-06)
 
 ## Corpus Check
-- 249 files · ~16,024,148 words
+- 261 files · ~16,015,665 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2937 nodes · 4506 edges · 301 communities (198 shown, 103 thin omitted)
-- Extraction: 86% EXTRACTED · 1% INFERRED · 13% AMBIGUOUS · INFERRED: 47 edges (avg confidence: 0.68)
+- 3030 nodes · 4698 edges · 312 communities (207 shown, 105 thin omitted)
+- Extraction: 86% EXTRACTED · 1% INFERRED · 12% AMBIGUOUS · INFERRED: 59 edges (avg confidence: 0.65)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e0c5921d`
+- Built from commit: `210a4041`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - prototype.tsx
 - [image] guide-pasar-senggol.png (Assets/map/map2)
-- map-studio-model.js
+- character-admin/editor.js
 - build-field-assets.mjs
 - profile-service.ts
 - ui-v2/manifest.json
 - build-series-sprites.mjs
 - build-ui-assets.mjs
 - audit-game.mjs
-- characters.ts
+- build-sprites.mjs
 - Phase 2 — Step 1: Solution Proposal Bucket (Low-Fidelity)
 - Kampung3D
 - memori.md
-- publicAsset
-- characters/manifest.json
 - BentenganPrototype
+- characters/manifest.json
+- collision-navigation.js
 - [image] button tim merah.png (asset-inbox/2026-09-01-ui-refresh-v3/buttons)
 - Phase 2 — Step 2: ATAM (Architecture Trade-off Analysis Method)
 - Characters Runtime Bundle public characters
@@ -55,13 +55,13 @@
 - guide-fields.ts
 - test-kanal2-layout.mjs
 - Phase 2 — Step 3: Quality Attribute (Weighted Scoring)
-- character-admin/server.mjs
+- publicAsset
 - command.tsx
 - bentengan-refactor — Phase 3: Implementation Plan
 - item.tsx
 - Rencana Fitur: Radar Chart Profil Pemain Lokal
 - context-menu.tsx
-- character-admin/editor.js
+- map-studio-model.js
 - test-team-combo.mjs
 - carousel.tsx
 - alert.tsx
@@ -70,17 +70,18 @@
 - attachment.tsx
 - selection-preview-assets.ts
 - .oxlintrc.json
-- character-workshop.tsx
+- team-tables.ts
 - bentengan-refactor — context
 - map2Center
 - bubble.tsx
-- @cloudflare/vite-plugin
+- characters.ts
 - field-types.ts
 - atlas
 - Match Event Toast Notification System
+- selection-portrait.tsx
 - Local Character Preview Studio
 - kanalNusaBalaiDesa
-- [image] background.webp (public/ui-v2/credits)
+- isNearWater
 - [image] characters.webp (public)
 - kanalNusaBarrierCorner
 - test-recover-obstacle.mjs
@@ -260,14 +261,15 @@
 - bars-score.ts
 - graphify.js
 - 2026-09-01-roster-expansion-v1/README.md
-- marker.tsx
-- oxlint-tsgolint
+- test-match-event.mjs
+- test-parkour-landing.mjs
 - tailwindcss
 - @tailwindcss/postcss
 - @types/react
 - ignorePatterns
 - ignorePatterns
 - @types/three
+- test-prison-layout.mjs
 - @vitejs/plugin-rsc
 - wrangler
 - [image] button tim hijau.png (asset-inbox/2026-09-01-ui-refresh-v3/buttons)
@@ -303,13 +305,22 @@
 - Design E — State ownership first
 - Design F — Move-then-carve (wild)
 - Design G — Lifecycle cut, then subsystem re-cut
-- test-rescue-request.mjs
+- navigation-menu.tsx
+- plugins
+- marker.tsx
 - vite
 - collision-navigation.ts
-- plugins
-- test-kampung3d.mjs
-- navigation-menu.tsx
-- test-draw-base.mjs
+- character-admin/server.mjs
+- test-canvas-shapes.mjs
+- spacingPositionAllowed
+- @openai/sites-vite-plugin
+- test-direction-traversable.mjs
+- [image] background.webp (public/ui-v2/credits)
+- oxlint-tsgolint
+- test-rescue-request.mjs
+- hitsObstacle
+- test-blocked.mjs
+- test-move-player.mjs
 - [image] guide-final.png (Assets/map/map4)
 - vite.github.config.ts
 - 2026-09-01-ui-mockups/README.md
@@ -317,7 +328,7 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 343 edges
-2. `BentenganPrototype()` - 110 edges
+2. `BentenganPrototype()` - 117 edges
 3. `assets` - 91 edges
 4. `react` - 51 edges
 5. `publicAsset()` - 24 edges
@@ -350,15 +361,15 @@
 - **Runtime asset pipeline builders** — scripts_build_field_assets_build, scripts_build_sprites_build, scripts_build_series_sprites_build [INFERRED 0.85]
 - **Gameplay audit and sprite test coverage** — scripts_audit_game_audit, scripts_test_series_sprites_check, scripts_test_kampung3d_check [INFERRED 0.75]
 
-## Communities (301 total, 103 thin omitted)
+## Communities (312 total, 105 thin omitted)
 
 ### Community 0 - "prototype.tsx"
 Cohesion: 0.04
-Nodes (53): arenaValidationErrors, CAMERA_OPTIONS, CameraMode, CHARACTER_VOICE_FILES, FACTION_FOR_TEAM, FIELD_BY_ID, fieldImages, FIXED_ROSTERS (+45 more)
+Nodes (49): arenaValidationErrors, CAMERA_OPTIONS, CameraMode, CHARACTER_VOICE_FILES, FIELD_BY_ID, fieldImages, getKakaUltimateImage(), getSpriteImage() (+41 more)
 
-### Community 2 - "map-studio-model.js"
-Cohesion: 0.08
-Nodes (44): BEHAVIORS, BUILTIN_IDS, builtinId(), contains(), LAYERS, local(), mapIssues(), maskWaterAt() (+36 more)
+### Community 2 - "character-admin/editor.js"
+Cohesion: 0.23
+Nodes (15): api(), clearUploads(), controls(), localUrls, lock(), markDirty(), message(), original() (+7 more)
 
 ### Community 3 - "build-field-assets.mjs"
 Cohesion: 0.02
@@ -366,7 +377,7 @@ Nodes (109): [image] 1x1_map1.png (Assets/map), [image] 1x2_map1.png (Assets/map
 
 ### Community 4 - "profile-service.ts"
 Cohesion: 0.08
-Nodes (45): KdaSummary, KdaSummaryProps, compactPlayerId(), PlayerProfilePanel(), PlayerProfilePanelProps, PlayerProfileSetup(), PlayerProfileSetupProps, axes (+37 more)
+Nodes (46): KdaSummary, KdaSummaryProps, compactPlayerId(), PlayerProfilePanel(), PlayerProfilePanelProps, PlayerProfileSetup(), PlayerProfileSetupProps, axes (+38 more)
 
 ### Community 5 - "ui-v2/manifest.json"
 Cohesion: 0.03
@@ -384,9 +395,9 @@ Nodes (53): [image] backbutton.png (asset-inbox/2026-08-31-character-select-v1/b
 Cohesion: 0.05
 Nodes (38): [image] raja new sprites.png (sprite-sources), assert(), bridgeWorldWidths, characterFiles, collisionRect, comboState, crossingA, crossingB (+30 more)
 
-### Community 9 - "characters.ts"
-Cohesion: 0.06
-Nodes (69): [image] atlas-runtime.webp (public/characters/bebe), [image] atlas.webp (public/characters/bebe), [image] portrait.webp (public/characters/bebe), [image] atlas-runtime.webp (public/characters/boke), [image] atlas.webp (public/characters/boke), [image] portrait.webp (public/characters/boke), [image] atlas-runtime.webp (public/characters/buto), [image] atlas.webp (public/characters/buto) (+61 more)
+### Community 9 - "build-sprites.mjs"
+Cohesion: 0.09
+Nodes (33): [image] atlas-runtime.webp (public/characters/bebe), [image] atlas.webp (public/characters/bebe), [image] atlas-runtime.webp (public/characters/boke), [image] atlas-runtime.webp (public/characters/buto), [image] atlas.webp (public/characters/buto), [image] atlas-runtime.webp (public/characters/ciici), [image] atlas-runtime.webp (public/characters/jago), [image] atlas.webp (public/characters/jago) (+25 more)
 
 ### Community 10 - "Phase 2 — Step 1: Solution Proposal Bucket (Low-Fidelity)"
 Cohesion: 0.25
@@ -400,17 +411,17 @@ Nodes (5): Field Baseline Hashes, Field Asset Atlas, Kampung3D, KampungScene, po
 Cohesion: 0.11
 Nodes (18): [image] objects-layout.png (Assets/map/map2), [image] objects-layout.png (Assets/map/map3), [image] terrain.png (Assets/map/map3), [image] terrain.png (Assets/map/map4), [image] animated.webp (public/field), [image] grounds.webp (public/field), [image] kampung-map.webp (public/field), [image] kanal-map.webp (public/field) (+10 more)
 
-### Community 13 - "publicAsset"
-Cohesion: 0.09
-Nodes (31): getFieldImage(), getSeriesImage(), getSprintDustImage(), loadingUiFrame(), uiAsset(), [image] benteng-tag-logo.webp (public/brand), ArenaBackdrop(), arenaImage() (+23 more)
+### Community 13 - "BentenganPrototype"
+Cohesion: 0.08
+Nodes (33): Home(), BentenganPrototype(), FIELD_CONFIGS, getPresentationImage(), isKanalField(), LOADING_UI_FRAMES, spriteFrame(), Game Rules (+25 more)
 
 ### Community 14 - "characters/manifest.json"
 Cohesion: 0.07
 Nodes (17): [image] boke.png (asset-inbox/2026-09-20-preview-refresh), [image] kodo.png (asset-inbox/2026-09-20-preview-refresh), [image] bebe.png (sprite-sources), [image] boke.png (sprite-sources), [image] buto.png (sprite-sources), [image] ciici.png (sprite-sources), [image] jago.png (sprite-sources), [image] kaka.png (sprite-sources) (+9 more)
 
-### Community 15 - "BentenganPrototype"
-Cohesion: 0.09
-Nodes (27): Home(), BentenganPrototype(), factionName(), FIELD_CONFIGS, formatTime(), getPresentationImage(), isKanalField(), lineupFor() (+19 more)
+### Community 15 - "collision-navigation.js"
+Cohesion: 0.14
+Nodes (15): DEFAULT_BOUNDS, depenetrateFromRects(), hasLineOfSight(), pathIsClear(), pointHitsExpandedRect(), segmentHitsRect(), steerAroundRects(), isInsideFortCore() (+7 more)
 
 ### Community 17 - "Phase 2 — Step 2: ATAM (Architecture Trade-off Analysis Method)"
 Cohesion: 0.04
@@ -426,7 +437,7 @@ Nodes (5): hasSpriteSeries(), seriesDirection(), seriesFrame(), input, vectors
 
 ### Community 20 - "map-studio/editor.js"
 Cohesion: 0.09
-Nodes (43): add(), animate(), api(), blank(), builtins, builtinTemplates, cache, canvas (+35 more)
+Nodes (44): add(), animate(), api(), blank(), builtins, builtinTemplates, cache, canvas (+36 more)
 
 ### Community 21 - "combobox.tsx"
 Cohesion: 0.09
@@ -462,11 +473,11 @@ Nodes (6): body, heading, metadata, [image] favicon-bst.png (public), nextConfig
 
 ### Community 29 - "sprite-studio/editor.js"
 Cohesion: 0.12
-Nodes (34): api(), canvas, clearSource(), ctx, drafts, draw(), fileNotice(), ground (+26 more)
+Nodes (33): api(), canvas, clearSource(), ctx, drafts, fileNotice(), ground, job() (+25 more)
 
 ### Community 30 - "rescue.ts"
-Cohesion: 0.09
-Nodes (25): statPercent(), clamp(), distance(), other(), MatchEvent, MatchEventKind, PlayerState, RescueRequest (+17 more)
+Cohesion: 0.08
+Nodes (28): distance(), other(), MatchEventInput, MatchEventQueue, pushMatchEvent(), MatchEvent, MatchEventKind, PlayerState (+20 more)
 
 ### Community 31 - "Bentengan Squad Tag"
 Cohesion: 0.16
@@ -497,16 +508,16 @@ Cohesion: 0.08
 Nodes (42): buildFieldConfigs(), GUIDE_FIELD_CONFIGS, guideCollider(), guideObstacle(), kanal2Item(), kanal2SmallPlanters, kanal2X(), kanalGuide (+34 more)
 
 ### Community 38 - "test-kanal2-layout.mjs"
-Cohesion: 0.09
-Nodes (26): DEFAULT_BOUNDS, depenetrateFromRects(), hasLineOfSight(), pathIsClear(), pointHitsExpandedRect(), segmentHitsRect(), steerAroundRects(), box (+18 more)
+Cohesion: 0.12
+Nodes (21): ellipse(), KANAL_FOOTPRINTS, kanalFortPolygon(), kanalObjectPolygons(), kanalObjectRects(), pointInPolygon(), polygonToRects(), addedPlanters (+13 more)
 
 ### Community 39 - "Phase 2 — Step 3: Quality Attribute (Weighted Scoring)"
 Cohesion: 0.08
 Nodes (23): 10. Handover, 1. Purpose, 2. Quality Attributes, 3.1 How industry normally runs this step, 3.2 The named sources, 3.3 What good practice adds beyond the arithmetic, 3.4 Where this assessment departs, 3. Industry standard analysis (+15 more)
 
-### Community 40 - "character-admin/server.mjs"
-Cohesion: 0.29
-Nodes (9): previewDefaults(), previewStyle(), validatePreviewDocument(), command(), directory, inspectImage(), mime, root (+1 more)
+### Community 40 - "publicAsset"
+Cohesion: 0.10
+Nodes (28): getFieldImage(), getSeriesImage(), getSprintDustImage(), loadingUiFrame(), uiAsset(), [image] benteng-tag-logo.webp (public/brand), ArenaBackdrop(), arenaImage() (+20 more)
 
 ### Community 41 - "command.tsx"
 Cohesion: 0.12
@@ -528,9 +539,9 @@ Nodes (16): Aksesibilitas dan UX, Aturan Anti God Object, Dampak Performa, Data 
 Cohesion: 0.12
 Nodes (9): ContextMenuCheckboxItem(), ContextMenuContent(), ContextMenuItem(), ContextMenuLabel(), ContextMenuRadioItem(), ContextMenuSeparator(), ContextMenuShortcut(), ContextMenuSubTrigger() (+1 more)
 
-### Community 46 - "character-admin/editor.js"
-Cohesion: 0.23
-Nodes (15): api(), clearUploads(), controls(), localUrls, lock(), markDirty(), message(), original() (+7 more)
+### Community 46 - "map-studio-model.js"
+Cohesion: 0.06
+Nodes (53): BEHAVIORS, BUILTIN_IDS, builtinId(), contains(), LAYERS, local(), mapIssues(), maskWaterAt() (+45 more)
 
 ### Community 47 - "test-team-combo.mjs"
 Cohesion: 0.19
@@ -557,16 +568,16 @@ Cohesion: 0.20
 Nodes (11): Attachment(), AttachmentAction(), AttachmentActions(), AttachmentContent(), AttachmentDescription(), AttachmentGroup(), AttachmentMedia(), attachmentMediaVariants (+3 more)
 
 ### Community 53 - "selection-preview-assets.ts"
-Cohesion: 0.21
-Nodes (13): CharacterPreview(), SelectionPortrait(), Sprite Baseline Hashes, characterAsset(), characterFullBodyPortrait(), CharacterId, loadSelectionPreview(), pending (+5 more)
+Cohesion: 0.33
+Nodes (8): imageReady(), videoReady(), loadSelectionPreview(), pending, ready, selectionPreviewEntry(), selectionPreviewUrls(), previewEntry()
 
 ### Community 54 - ".oxlintrc.json"
 Cohesion: 0.18
 Nodes (10): categories, correctness, env, browser, builtin, node, options, typeAware (+2 more)
 
-### Community 55 - "character-workshop.tsx"
-Cohesion: 0.15
-Nodes (16): characterMirrorsWest(), CHARACTERS, characterUsesDedicatedEast(), BOOST_COLUMNS, directionalRow(), directionFromVelocity(), IDLE_COLUMNS, RUN_COLUMNS (+8 more)
+### Community 55 - "team-tables.ts"
+Cohesion: 0.38
+Nodes (8): Faction, FACTION_FOR_TEAM, factionName(), FIXED_ROSTERS, lineupFor(), TEAM_COLOR, TEAM_FOR_FACTION, teamName()
 
 ### Community 56 - "bentengan-refactor — context"
 Cohesion: 0.18
@@ -580,9 +591,13 @@ Nodes (5): map2Center, height, width, x, y
 Cohesion: 0.38
 Nodes (6): Bubble(), BubbleContent(), BubbleGroup(), BubbleReactions(), bubbleReactionsVariants, bubbleVariants
 
+### Community 59 - "characters.ts"
+Cohesion: 0.09
+Nodes (22): [image] atlas.webp (public/characters/boke), [image] atlas.webp (public/characters/ciici), [image] atlas-runtime.webp (public/characters/kodo), [image] atlas.webp (public/characters/kumis), [image] atlas.webp (public/characters/robot), [image] kaka-perisai-hijau.webp (public/ui-v2/skills), [image] raja-titah-halilintar.webp (public/ui-v2/skills), CHARACTER_ASSET_VERSION (+14 more)
+
 ### Community 60 - "field-types.ts"
 Cohesion: 0.08
-Nodes (28): FIELD_ANIMATED_ATLAS, FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAnimatedId, FieldAssetId, GroundTileId, layoutPrisons() (+20 more)
+Nodes (27): FIELD_ANIMATED_ATLAS, FIELD_ASSET_VERSION, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAnimatedId, FieldAssetId, GroundTileId, BASE_LABELS (+19 more)
 
 ### Community 61 - "atlas"
 Cohesion: 0.33
@@ -592,6 +607,10 @@ Nodes (6): atlas, columns, minimumCell, padding, rows, runtimeScale
 Cohesion: 0.40
 Nodes (6): Notification Priority Queue, Match Event Toast Notification System, Rescue Help Marker, Minta Rescue Request, Manual Leaderboard via Tab and Score HUD, Round Stats and Match Leaderboard Panel
 
+### Community 63 - "selection-portrait.tsx"
+Cohesion: 0.11
+Nodes (20): CharacterPreview(), [image] portrait.webp (public/characters/bebe), [image] portrait.webp (public/characters/boke), [image] portrait.webp (public/characters/buto), [image] portrait.webp (public/characters/ciici), [image] portrait.webp (public/characters/jago), [image] portrait.webp (public/characters/kaka), [image] portrait.webp (public/characters/kodo) (+12 more)
+
 ### Community 64 - "Local Character Preview Studio"
 Cohesion: 0.67
 Nodes (3): Character Admin Editor UI, Local Character Preview Studio, Selection Portrait UI Contract
@@ -599,6 +618,10 @@ Nodes (3): Character Admin Editor UI, Local Character Preview Studio, Selection 
 ### Community 65 - "kanalNusaBalaiDesa"
 Cohesion: 0.33
 Nodes (6): kanalNusaBalaiDesa, atlas, height, width, x, y
+
+### Community 66 - "isNearWater"
+Cohesion: 0.33
+Nodes (4): isNearWater(), WaterQuery, dry, query
 
 ### Community 67 - "[image] characters.webp (public)"
 Cohesion: 0.50
@@ -674,7 +697,7 @@ Nodes (6): kanalNusaFountain, atlas, height, width, x, y
 
 ### Community 149 - "devDependencies"
 Cohesion: 0.11
-Nodes (19): @cloudflare/workers-types, @openai/sites-vite-plugin, oxfmt, oxlint, devDependencies, @cloudflare/workers-types, @openai/sites-vite-plugin, oxfmt (+11 more)
+Nodes (19): @cloudflare/vite-plugin, @cloudflare/workers-types, oxfmt, oxlint, devDependencies, @cloudflare/vite-plugin, @cloudflare/workers-types, oxfmt (+11 more)
 
 ### Community 150 - "scripts"
 Cohesion: 0.08
@@ -713,8 +736,8 @@ Cohesion: 0.33
 Nodes (6): kanalNusaWarung, atlas, height, width, x, y
 
 ### Community 160 - "spawn.ts"
-Cohesion: 0.09
-Nodes (23): tieHash(), PlayerAction, FallenPlayerFacet, FallResetEffects, Grade, randomGrade(), Refill, resetFallenPlayer() (+15 more)
+Cohesion: 0.08
+Nodes (24): tieHash(), PlayerAction, FallenPlayerFacet, FallResetEffects, Grade, randomGrade(), Refill, resetFallenPlayer() (+16 more)
 
 ### Community 161 - "AGENTS.md — bentengan-squad-tag"
 Cohesion: 0.20
@@ -1045,12 +1068,16 @@ Cohesion: 0.50
 Nodes (3): Data dan arsitektur, Mengedit, Sprite Studio — animasi dalam game
 
 ### Community 244 - "bars-score.ts"
-Cohesion: 0.18
-Nodes (15): ULTIMATE_CHARACTER_IDS, addStat(), chargeUltimateMeter(), contributionScore(), createStatsStore(), emptyStats(), ensureStats(), PlayerStats (+7 more)
+Cohesion: 0.11
+Nodes (24): ULTIMATE_CHARACTER_IDS, addStat(), BoardPlayerFacet, BoardRow, boardRows(), chargeUltimateMeter(), contributionScore(), createStatsStore() (+16 more)
 
-### Community 247 - "marker.tsx"
-Cohesion: 0.50
-Nodes (4): Marker(), MarkerContent(), MarkerIcon(), markerVariants
+### Community 247 - "test-match-event.mjs"
+Cohesion: 0.18
+Nodes (10): before, dropped, held, input, q, req, rescue, stale (+2 more)
+
+### Community 248 - "test-parkour-landing.mjs"
+Cohesion: 0.40
+Nodes (5): band, dry(), landing, probe(), wetBand
 
 ### Community 252 - "ignorePatterns"
 Cohesion: 0.22
@@ -1059,6 +1086,10 @@ Nodes (8): ignorePatterns, next-env.d.ts, build/**, coverage/**, dist/**, out/**
 ### Community 253 - "ignorePatterns"
 Cohesion: 0.18
 Nodes (10): ignorePatterns, printWidth, $schema, singleQuote, sortPackageJson, bun.lock, bun.lockb, package-lock.json (+2 more)
+
+### Community 255 - "test-prison-layout.mjs"
+Cohesion: 0.20
+Nodes (7): blue, frozen, held, kanal, mixed, prisons, red
 
 ### Community 261 - "CHECKPOINT.md"
 Cohesion: 0.22
@@ -1100,29 +1131,45 @@ Nodes (5): Architecture, Data Model, Design F — Move-then-carve (wild), Trade-
 Cohesion: 0.40
 Nodes (5): Architecture, Data Model, Design G — Lifecycle cut, then subsystem re-cut, Trade-offs at this design level, UI/UX approach
 
-### Community 293 - "test-rescue-request.mjs"
-Cohesion: 0.22
-Nodes (5): active, bases, prev, query, result
-
-### Community 296 - "collision-navigation.ts"
-Cohesion: 0.19
-Nodes (8): CollisionWorld, isNearWater(), kanalWaterBlocks(), recoverFromObstacle(), StuckPlayerFacet, WaterQuery, dry, query
-
-### Community 297 - "plugins"
-Cohesion: 0.29
-Nodes (7): plugins, eslint, import, jsx-a11y, nextjs, oxc, unicorn
-
-### Community 299 - "test-kampung3d.mjs"
-Cohesion: 0.29
-Nodes (6): typescript, configSource, experiment, fields, original, rules
-
-### Community 301 - "navigation-menu.tsx"
+### Community 292 - "navigation-menu.tsx"
 Cohesion: 0.22
 Nodes (9): NavigationMenu(), NavigationMenuContent(), NavigationMenuIndicator(), NavigationMenuItem(), NavigationMenuLink(), NavigationMenuList(), NavigationMenuPositioner(), NavigationMenuTrigger() (+1 more)
 
-### Community 302 - "test-draw-base.mjs"
-Cohesion: 0.25
-Nodes (5): BASE_LABELS, drawBase(), locked, plain, red
+### Community 293 - "plugins"
+Cohesion: 0.29
+Nodes (7): plugins, eslint, import, jsx-a11y, nextjs, oxc, unicorn
+
+### Community 294 - "marker.tsx"
+Cohesion: 0.50
+Nodes (4): Marker(), MarkerContent(), MarkerIcon(), markerVariants
+
+### Community 296 - "collision-navigation.ts"
+Cohesion: 0.11
+Nodes (20): baseVector(), BlockedPlayerFacet, BlockedWorld, CollisionWorld, directionIsTraversable(), findParkourLanding(), FortCoreWorld, isBlocked() (+12 more)
+
+### Community 297 - "character-admin/server.mjs"
+Cohesion: 0.29
+Nodes (9): previewDefaults(), previewStyle(), validatePreviewDocument(), command(), directory, inspectImage(), mime, root (+1 more)
+
+### Community 298 - "test-canvas-shapes.mjs"
+Cohesion: 0.40
+Nodes (3): roundedOn(), flat, target
+
+### Community 299 - "spacingPositionAllowed"
+Cohesion: 0.50
+Nodes (3): spacingPositionAllowed(), base(), free()
+
+### Community 301 - "test-direction-traversable.mjs"
+Cohesion: 0.60
+Nodes (3): dry(), free(), probe()
+
+### Community 304 - "test-rescue-request.mjs"
+Cohesion: 0.22
+Nodes (5): active, bases, prev, query, result
+
+### Community 307 - "test-move-player.mjs"
+Cohesion: 0.83
+Nodes (3): base(), dry(), free()
 
 ### Community 353 - "[image] guide-final.png (Assets/map/map4)"
 Cohesion: 0.40
@@ -2295,9 +2342,9 @@ Nodes (3): plugin, $schema, .opencode/plugins/graphify.js
   public/characters/tui/animations.json · relation: references
 
 ## Knowledge Gaps
-- **1531 isolated node(s):** `$schema`, `.opencode/plugins/graphify.js`, `$schema`, `singleQuote`, `printWidth` (+1526 more)
+- **1569 isolated node(s):** `$schema`, `.opencode/plugins/graphify.js`, `$schema`, `singleQuote`, `printWidth` (+1564 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **103 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **105 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

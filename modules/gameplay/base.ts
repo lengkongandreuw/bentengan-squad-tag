@@ -3,7 +3,7 @@ import type { PlayerState } from '../game-core/match-types';
 import { distance } from '../../lib/math.ts';
 
 // Minimal player facet for fort queries. Only these fields cross the seam.
-type FortPlayerFacet = {
+export type FortPlayerFacet = {
   id: string;
   name: string;
   team: Team;

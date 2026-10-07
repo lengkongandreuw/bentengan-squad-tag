@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { hasLineOfSight, segmentHitsRect } from '../lib/collision-navigation.js';
+import { hasLineOfSight, segmentHitsRect } from '../modules/gameplay/collision-navigation.ts';
 
 const wall = { x: 100, y: 0, w: 20, h: 200 };
 

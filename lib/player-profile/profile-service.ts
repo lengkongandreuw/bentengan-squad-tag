@@ -3,8 +3,8 @@ import {
   PLAYER_PROFILE_SCHEMA_VERSION,
   USERNAME_MAX_LENGTH,
   USERNAME_MIN_LENGTH,
-} from './defaults';
-import { loadPlayerProfile, savePlayerProfile } from './storage';
+} from './defaults.ts';
+import { loadPlayerProfile, savePlayerProfile } from './storage.ts';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
 

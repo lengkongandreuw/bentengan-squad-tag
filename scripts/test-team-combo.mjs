@@ -6,7 +6,7 @@ import {
   createTeamComboState,
   teamComboSeconds,
   teamComboSpeedMultiplier,
-} from '../lib/team-combo.js';
+} from '../modules/gameplay/team-combo.ts';
 const now = 100000;
 const fresh = createTeamComboState();
 assert.deepEqual(fresh, {

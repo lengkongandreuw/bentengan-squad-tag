@@ -40,3 +40,16 @@ export const BASES = {
 };
 export const worldX = (value: number) => Math.round(value * WORLD_SCALE_X);
 export const worldY = (value: number) => Math.round(value * WORLD_SCALE_Y);
+
+export type FortGeometry = {
+  fortWidth: number;
+  fortHeight: number;
+  fortAnchorY: number;
+};
+
+// Fort footprint scales with the field's object scale (HEAD factors verbatim).
+export const fortGeometry = (fieldObjectScale: number): FortGeometry => ({
+  fortWidth: Math.round(168 * fieldObjectScale),
+  fortHeight: Math.round(188 * fieldObjectScale),
+  fortAnchorY: Math.round(130 * fieldObjectScale),
+});

@@ -1,5 +1,5 @@
-import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults';
-import { CHARACTERS, type CharacterId } from '../characters';
+import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults.ts';
+import { CHARACTERS, type CharacterId } from '../characters.ts';
 import type { LocalPlayerProfile, PlayerKdaStats } from './types';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

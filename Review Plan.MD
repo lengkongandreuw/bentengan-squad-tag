@@ -386,6 +386,26 @@ Moves the workshop and HUD before their data contracts exist. Imports churn twic
 | No single file holds all game logic | F1 exit criterion (composition + wiring only, under 500 lines) |
 | New-dev readability gate | F0–F10 collectively. F7 lib purity is the sharpest test |
 
+## G4 re-score (2026-10-06, formal — measured against G0 `e0c5921`)
+
+G0 deltas: tsc 0→0 · lint 122→110 (−12) · audit fails 8→21 (7 persist + roster-sync fixed; +14 pre-existing sprite metadata surfaced by G2, disclosed not regressed) · build PASS→PASS · tests 4 suites→90 files/88 pass (2 known pre-existing) · prototype 8570→2567 (−70%) · rules in lib/ 7→0 (R10) · components/+hooks/ orphans→0 (R11) · `characterId ===` 12→0 (R6). Post-G3 safeguards: 0 localStorage in app/ · 0 gameplayAudio in prototype · ui→gameplay imports 0 · all 21 gameplay modules ≥1 direct test.
+
+| §17 criterion | G4 verdict |
+|---|---|
+| Audio change doesn't touch gameplay | PASS — `gameplayAudio.play` count in app/ is 0; audio-port contract; gameplay emits callbacks only |
+| Progression change doesn't touch maps | DEFERRED — no progression module (per active constraints) |
+| Map change doesn't touch character logic | PASS — `modules/world/map-data` vs `config/characters/*.json`; R10 kanal-footprints in world/ |
+| Profile change doesn't touch match logic | PASS — profile isolated; single boundary call `recordCompletedMatch` at match end |
+| Tools produce config the game uses | PASS — `config/game-rules.json` consumed via JSON import attribute; audit roster-sync green |
+| Storage swappable via adapter | REMOVED — per this table + deferred second backend (constraints) |
+| UI developable with mock data | PASS — ui→gameplay import edges 0; screens take injected props; Playwright sweeps render from snapshot |
+| Per-module Codex tasks narrow scope | DEFERRED — findings only, per scoping answer |
+| Prod build needs no tools | PENDING Q1 — workshop in bundle until product decision |
+| No single file holds all game logic | VARIANCE — composition ownership proved (variance owners in CHECKPOINT G4-precursor); 2567 vs 500 target; R5 stays target-not-gate per amendment 1; reaching 500 needs Design ruling on phase-gate + draw() remainder + navigate |
+| New-dev readability gate | PASS — R10 sharpest test 0 files; R11 0 orphans; plain-domain ownership names |
+
+G4 sign-off status: measurements recorded; merge to `main` deferred by user (work stays on `Refactor-Clio`); remaining user decisions: Design ruling for 500 target (optional), Q1 product call, merge/publish timing.
+
 ---
 
 ## Appendix A — Orphan-asset triage (cleanup, not modularity)
