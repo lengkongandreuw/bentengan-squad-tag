@@ -5466,23 +5466,14 @@ p {
   }
   .pregame-shell,
   .playing-shell {
-    position: fixed;
-    top: -100vw;
-    left: 0;
-    width: 100svh;
-    height: 100vw;
+    width: 100%;
+    height: 100dvh;
     min-height: 0 !important;
-    transform: rotate(90deg);
-    transform-origin: bottom left;
   }
   .player-profile-overlay {
-    inset: auto;
-    top: -100vw;
-    left: 0;
-    width: 100svh;
-    height: 100vw;
-    transform: rotate(90deg);
-    transform-origin: bottom left;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
   }
 }
 

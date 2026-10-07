@@ -8,6 +8,9 @@
   color-scheme: dark;
   --accent: #b5ed82;
 }
+#versionBadge { display:block; padding:9px; border:1px solid var(--accent); border-radius:6px; margin-top:8px; }
+#versionDetails { overflow-wrap:anywhere; }
+aside[inert], aside section[inert] { opacity:.6; }
 * {
   box-sizing: border-box;
 }

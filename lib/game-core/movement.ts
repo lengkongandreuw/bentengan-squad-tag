@@ -7,6 +7,9 @@ export type CollisionWorld={
   width:number;height:number;bases:Record<LegacyTeam,Point>;baseRadius:number;kanal:boolean;kanal2:boolean;
   obstacles:{x:number;y:number;w:number;h:number;asset:string;hidden?:boolean}[];
   studioSolidAt?: (x:number,y:number,r:number,jumping?:boolean)=>boolean;
+  studioFlightSolidAt?: (x:number,y:number,r:number)=>boolean;
+  obstacleAt?: (x:number,y:number,r:number)=>boolean;
+  flightObstacleAt?: (x:number,y:number,r:number)=>boolean;
   waterAt:(x:number,y:number)=>boolean;waterBlocks:(x:number,y:number)=>boolean;
   fortCoreAt:(x:number,y:number)=>boolean;
   fortOccupied:(team:LegacyTeam,exceptId?:string)=>boolean;
@@ -16,11 +19,11 @@ export type CollisionWorld={
 const clamp=(n:number,min:number,max:number)=>Math.max(min,Math.min(max,n));
 const distance=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function hitsSolid(world:CollisionWorld,x:number,y:number) {
-  return !!world.studioSolidAt?.(x,y,13)||world.obstacles.some(o=>pointHitsExpandedRect(x,y,o,13));
+  return !!world.studioSolidAt?.(x,y,13)||(world.obstacleAt ? world.obstacleAt(x,y,13) : world.obstacles.some(o=>pointHitsExpandedRect(x,y,o,13)));
 }
 export function movementBlocked(world:CollisionWorld,x:number,y:number,p:RuntimeActor,now:number) {
-  if(isFlying(p))return !!world.studioSolidAt?.(x,y,13,true)||
-    world.obstacles.some(o=>!flightPassesObstacle(o)&&pointHitsExpandedRect(x,y,o,13))||world.fortCoreAt(x,y);
+  if(isFlying(p))return !!(world.studioFlightSolidAt ? world.studioFlightSolidAt(x,y,13) : world.studioSolidAt?.(x,y,13,true))||
+    (world.flightObstacleAt ? world.flightObstacleAt(x,y,13) : world.obstacles.some(o=>!flightPassesObstacle(o)&&pointHitsExpandedRect(x,y,o,13)))||world.fortCoreAt(x,y);
   if(world.studioSolidAt?.(x,y,13,now<p.parkourUntil))return true;
   if(world.kanal&&world.waterBlocks(x,y))return true;
   const entersCore=world.kanal&&!world.fortCoreAt(p.x,p.y)&&world.fortCoreAt(x,y);

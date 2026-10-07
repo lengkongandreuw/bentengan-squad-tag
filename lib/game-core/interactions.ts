@@ -12,12 +12,21 @@ export type InteractionEvent=
   |{type:'forced-exit'|'boost-recovered';actorId:EntityId}
   |{type:'objective';team:LegacyTeam;reason:'BENTENG DIREBUT'|'SEMUA LAWAN DITANGKAP'};
 
-function tagEligible(a:RuntimeActor,b:RuntimeActor,now:number,rules:InteractionRules,ignoreCooldown=false) {
+export function tagEligible(a:RuntimeActor,b:RuntimeActor,now:number,rules:Pick<InteractionRules,'kanal2'>,ignoreCooldown=false) {
   return a.team!==b.team&&!flightBusy(a)&&!flightBusy(b)&&
     !(rules.kanal2&&(a.waterEnteredAt||b.waterEnteredAt))&&
     a.state==='ACTIVE'&&a.exitOrder>b.exitOrder&&(ignoreCooldown||a.tagCooldown<=now)&&
     now>=a.parkourUntil&&now>=b.parkourUntil&&now>=b.ultimateShieldUntil&&
     (b.state==='ACTIVE'||(b.state==='RETURNING'&&now>=b.rescueShieldUntil));
+}
+/** Presentation only: eligibility, not contact/range or a promise of capture. */
+export function tagRelationship(me:RuntimeActor,target:RuntimeActor,now:number,kanal2:boolean) {
+  if(me.team===target.team||target.state==='PRISONER'||target.state==='IN_BASE')return 'neutral';
+  if(flightBusy(target)||now<target.parkourUntil||now<target.ultimateShieldUntil||
+    target.state==='RETURNING'&&now<target.rescueShieldUntil||kanal2&&target.waterEnteredAt)return 'protected';
+  if(tagEligible(me,target,now,{kanal2}))return 'target';
+  if(tagEligible(target,me,now,{kanal2}))return 'danger';
+  return 'neutral';
 }
 /** Contacts are sorted using legacy tie keys, not newly assigned network IDs. */
 export function tagContacts(players:RuntimeActor[],now:number,rules:InteractionRules) {

@@ -218,6 +218,30 @@ const actor=(overrides={})=>({entityId:'entity-0001',controller:'local',id:'you'
   lastExitAt:0,tagCooldown:0,parkourUntil:0,boostReadyAt:0,fortCharge:0,prisonIndex:0,captures:0,aiSeed:0,
   rescueShieldUntil:0,ultimateShieldUntil:0,fallSafeUntil:0,fallNoticeUntil:0,waterEnteredAt:0,waterFallUntil:0,capturedIds:[],actionUntil:0,...overrides});
 const enemy=(overrides={})=>actor({entityId:'entity-0002',controller:'bot',id:'enemy1',controlled:false,team:'red',x:220,y:200,lastX:220,lastY:200,exitOrder:2,...overrides});
+test('UI tag indicators share eligibility, cooldown, flight and protection without mutating actors',()=>{
+  const me=actor(),target=enemy(),before=structuredClone([me,target]);
+  assert.equal(interactions.tagRelationship(me,target,1000,false),'target');
+  assert.equal(interactions.tagRelationship(target,me,1000,false),'danger');
+  assert.deepEqual([me,target],before);
+  for(const stage of ['FLIGHT_TAKEOFF','FLYING','FLIGHT_LANDING']){
+    target.flight={stage};assert.equal(interactions.tagRelationship(me,target,1000,false),'protected');
+    assert.equal(interactions.tagEligible(me,target,1000,{kanal2:false}),false);
+  }
+  target.flight=null;
+  for(const protection of [{parkourUntil:2000},{ultimateShieldUntil:2000},{state:'RETURNING',rescueShieldUntil:2000}])
+    assert.equal(interactions.tagRelationship(me,{...target,...protection},1000,false),'protected');
+  assert.equal(interactions.tagRelationship({...me,tagCooldown:2000},target,1000,false),'neutral');
+  assert.equal(interactions.tagRelationship({...me,flight:{stage:'FLYING'}},target,1000,false),'neutral');
+  assert.equal(interactions.tagRelationship(me,{...target,state:'IN_BASE'},1000,false),'neutral');
+  assert.equal(interactions.tagRelationship(me,{...target,waterEnteredAt:100},1000,true),'protected');
+  assert.equal(interactions.tagRelationship(me,{...target,waterEnteredAt:100},1000,false),'target');
+});
+test('HUD preferences reject malformed values and clamp scale without touching gameplay',()=>{
+  const {normalizeHudPreferences}=load('lib/hud-preferences.ts');
+  for(const value of [null,undefined,'large',{}, {scale:NaN,contrast:'true'}])assert.deepEqual(normalizeHudPreferences(value),{scale:1,contrast:false});
+  assert.deepEqual(normalizeHudPreferences({scale:100,contrast:true}),{scale:1.3,contrast:true});
+  assert.deepEqual(normalizeHudPreferences({scale:-2}),{scale:1,contrast:false});
+});
 const prisons={blue:{x:40,y:400,w:240,h:180},red:{x:700,y:400,w:240,h:180}};
 const world=(overrides={})=>({width:1000,height:800,bases:{blue:{x:100,y:100},red:{x:900,y:100}},baseRadius:80,kanal:false,kanal2:false,
   obstacles:[],waterAt:()=>false,waterBlocks:()=>false,fortCoreAt:()=>false,fortOccupied:()=>false,baseChargeTime:()=>.8,speedAt:()=>1,...overrides});
@@ -611,5 +635,82 @@ void test('runtime adapters are connected and core has no DOM/audio/React depend
   for(const file of ['input','tick','movement','interactions','state','entities']){
     const core=fs.readFileSync(`lib/game-core/${file}.ts`,'utf8').replace(/\/\/[^\n]*/g,'');
     assert.doesNotMatch(core,/from ['"]react|\b(?:window|document|Audio|AudioContext|CanvasRenderingContext2D)\b/);
+  }
+});
+
+test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison, water and immutable migration',async()=>{
+  const {templates}=await import('./map-studio/templates.mjs');
+  const {prepareArenaMap,kanalPrisonWalls,arenaRulesFor}=await import('../lib/map-arena-rules.js');
+  const {kanalObjectRects,kanalFortPolygon,polygonToRects}=await import('../lib/kanal-footprints.js');
+  const {createMapQueries}=await import('../lib/map-runtime-index.js');
+  const {validateMap}=await import('../lib/map-studio-model.js');
+  const catalog=await templates(process.cwd()),reference=catalog.builtinTemplates.find(m=>m.replaces==='kanal2');
+  // Stable synthetic legacy template: future intentional edits to a user's
+  // saved draft must not be mistaken for regressions in the original rules.
+  const raw=structuredClone(reference);delete raw.rulesVersion;delete raw.arenaRules;
+  raw.objects=raw.objects.map(({nativeCollision,...o})=>({...o,behavior:nativeCollision?'solid':o.behavior}));
+  const saved=JSON.parse(fs.readFileSync('config/map-studio.json')).maps.find(m=>m.replaces==='kanal2');
+  if(saved){const savedBefore=JSON.stringify(saved),prepared=prepareArenaMap(validateMap(saved),reference.objects);
+    assert.equal(JSON.stringify(saved),savedBefore);assert.equal(prepared.enabled,saved.enabled);}
+  const before=JSON.stringify(raw),draft=prepareArenaMap(validateMap(raw),reference.objects),q=createMapQueries(draft);
+  assert.equal(JSON.stringify(raw),before);assert.equal(draft.enabled,raw.enabled);
+  assert.equal(arenaRulesFor(draft),'kanal2');assert.ok(draft.objects.some(o=>o.nativeCollision));
+  const src=fs.readFileSync('app/prototype.tsx','utf8'),start=src.indexOf('const DESIGN_W ='),end=src.indexOf('// Custom maps are');
+  const ctx={GAME_RULES:JSON.parse(fs.readFileSync('config/game-rules.json')),structuredClone,isKanalField:id=>id==='kanal2',result:null};
+  vm.runInNewContext(ts.transpile(src.slice(start,end)+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),ctx);
+  const field=JSON.parse(JSON.stringify(ctx.result)).find(f=>f.id==='kanal2');
+  // Evaluate actual runtime field projection with an enabled detached draft;
+  // never activate it in the real user's config.
+  const fixtureMap={...draft,enabled:true};
+  const projected={...ctx,studioMaps:[fixtureMap],studioBuiltinStates:{},studioMapById:{[draft.id]:fixtureMap},
+    arenaRulesFor,prepareArenaMap,kanalColliderObjects:(await import('../lib/map-arena-rules.js')).kanalColliderObjects,
+    kanalObjectPolygons:(await import('../lib/kanal-footprints.js')).kanalObjectPolygons};
+  projected.isKanalField=id=>id==='kanal2'||arenaRulesFor(projected.studioMapById[id])==='kanal2';
+  vm.runInNewContext(ts.transpile(src.slice(start,src.indexOf('const FIELD_BY_ID ='))+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),projected);
+  const replacement=JSON.parse(JSON.stringify(projected.result)).find(f=>f.id===draft.id);
+  assert.ok(replacement);assert.ok(!projected.result.some(f=>f.id==='kanal2'));
+  for(const k of ['baseRadius','objectScale','designWidth','designHeight'])assert.equal(replacement[k],field[k]);
+  for(const owner of ['blue','red'])assert.deepEqual(replacement.prisons[owner],field.prisons[owner]);
+  const walls=kanalPrisonWalls(field.prisons),rects=field.obstacles.flatMap(kanalObjectRects);
+  const scale=field.objectScale,fortRects=Object.values(field.bases).flatMap(b=>polygonToRects(kanalFortPolygon(b,Math.round(168*scale),Math.round(188*scale),Math.round(130*scale))));
+  const common=world({width:field.width,height:field.height,bases:field.bases,baseRadius:field.baseRadius,kanal:true,kanal2:true,
+    waterAt:q.waterAt,waterBlocks:(x,y)=>{if(q.waterAt(x,y))return true;for(let i=0;i<16;i++)if(q.waterAt(x+Math.cos(i*Math.PI/8)*13,y+Math.sin(i*Math.PI/8)*13))return true;return false;},
+    fortCoreAt:collision.createRectQuery(fortRects)});
+  const native={...common,obstacles:[...rects,...walls]},editor={...common,obstacles:walls,studioSolidAt:q.solidAt,studioFlightSolidAt:q.flightSolidAt};
+  const point=draft.objects.find(o=>o.name==='Batas kanalNusaPlanterLong');
+  assert.equal(movement.movementBlocked(editor,point.x+point.w/2,point.y+point.h/2,actor({x:900,y:700,parkourUntil:2000}),1000),false);
+  assert.equal(movement.movementBlocked(editor,461.5,415.5,actor({x:900,y:700,parkourUntil:0}),1000),true);
+  let waterPoint;
+  for(let y=100;!waterPoint&&y<field.height-100;y+=31)for(let x=100;x<field.width-100;x+=31)if(q.waterAt(x,y)){waterPoint={x,y};break;}
+  assert.ok(waterPoint);
+  const fallA=actor({x:900,y:700,parkourUntil:0,fallSafeUntil:0}),fallB=structuredClone(fallA);
+  assert.equal(movement.enterWaterFall(native,fallA,1000,waterPoint.x,waterPoint.y),true);
+  assert.equal(movement.enterWaterFall(editor,fallB,1000,waterPoint.x,waterPoint.y),true);
+  assert.deepEqual(fallB,fallA);assert.equal(fallB.waterFallUntil,1720);
+  for(const p of [actor({x:900,y:700,parkourUntil:0}),actor({x:900,y:700,parkourUntil:2000}),actor({x:900,y:700,flight:{stage:'FLYING'}})])
+    for(let y=58;y<field.height-32;y+=23)for(let x=34;x<field.width-34;x+=23)
+      assert.equal(movement.movementBlocked(editor,x,y,p,1000),movement.movementBlocked(native,x,y,p,1000),`${x},${y} ${p.flight?.stage??p.parkourUntil}`);
+  for(const owner of ['blue','red'])for(let count=1;count<=5;count++){
+    const held=Array.from({length:count},(_,i)=>actor({id:String(i),state:'PRISONER',prisonOwner:owner}));
+    const copy=structuredClone(held);interactions.layoutPrisoners(held,field.prisons,true);interactions.layoutPrisoners(copy,draft.prisons,arenaRulesFor(draft)==='kanal2');
+    assert.deepEqual(copy,held);
+  }
+  const changed=structuredClone(raw),o=changed.objects.find(o=>o.id===point.id);o.x+=3;
+  assert.equal(prepareArenaMap(validateMap(changed),reference.objects).objects.find(v=>v.id===o.id).behavior,'solid','custom geometry is not overwritten');
+  assert.equal(arenaRulesFor({...draft,replaces:undefined,id:'studio-copy-kanal'}),'kanal2');
+  assert.doesNotMatch(src,/field\.id\s*===\s*'kanal2'/,'no simulation branch may depend on mutable content ID');
+});
+
+test('performance rectangle broadphase remains exact at seams, outside map and flight filtering',()=>{
+  const rects=Array.from({length:1500},(_,i)=>({x:(i%50)*57-30,y:Math.floor(i/50)*39-20,w:17+(i%7),h:5.05,asset:'bush',hidden:!!(i%2)}));
+  const query=collision.createRectQuery(rects);
+  for(const radius of [0,13,32,130])for(let i=0;i<4000;i++){
+    const x=(i*71.13)%3050-100,y=(i*37.09)%1500-100;
+    assert.equal(query(x,y,radius),rects.some(r=>collision.pointHitsExpandedRect(x,y,r,radius)));
+  }
+  const base=world({obstacles:rects}),indexed={...base,obstacleAt:query,flightObstacleAt:collision.createRectQuery(rects.filter(o=>!flight.flightPassesObstacle(o)))};
+  for(const p of [actor(),actor({parkourUntil:2000}),actor({flight:{stage:'FLYING'}})])for(let i=0;i<2000;i++){
+    const x=(i*83.2)%1000,y=(i*24.7)%800;
+    assert.equal(movement.movementBlocked(indexed,x,y,p,1000),movement.movementBlocked(base,x,y,p,1000));
   }
 });

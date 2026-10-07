@@ -101,7 +101,8 @@ export async function templates(root) {
             h,
             shape: 'polygon',
             points: poly.map((p) => ({ x: (p[0] - x) / w, y: (p[1] - y) / h })),
-            behavior: 'solid',
+            behavior: 'parkour',
+            nativeCollision: o.hidden ? 'rect' : 'bands',
           });
         }
       } else
@@ -153,6 +154,7 @@ export async function templates(root) {
     return {
       id: `studio-edit-${field.id}`,
       replaces: field.id,
+      ...(field.id === 'kanal2' ? {arenaRules:'kanal2', rulesVersion:1} : {}),
       name: field.name,
       description:
         field.kicker + ' · Versi editor; sebagian grafik menyatu di terrain.',
@@ -199,6 +201,7 @@ export async function templates(root) {
       baseRadius: f.baseRadius ?? 118,
       structuresInBackground: !!f.structuresInBackground,
       background: f.background,
+      prisons: f.prisons,
     })),
     library: Object.keys(atlas.assets).map((id) => ({
       name: id,

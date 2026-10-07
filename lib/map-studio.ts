@@ -1,4 +1,6 @@
 import config from '../config/map-studio.json';
+import runtime from '../config/map-runtime.json';
+import {runtimeResource, runtimeFrameKey, type RuntimeManifest} from './studio-runtime-resource';
 import {
   validateDocument,
   frameAt,
@@ -16,13 +18,25 @@ export const studioMapById = Object.fromEntries(
   studioMaps.map((m) => [m.id, m]),
 );
 const cache = new Map<string, HTMLImageElement>();
+export function retainMapImages(maps: readonly StudioMap[]) {
+  const used=new Set(maps.flatMap(m=>[m.terrain,m.icon,...m.objects.map(o=>o.asset)].filter((a):a is MapAsset=>!!a).map(a=>resource(a).asset)));
+  for(const [asset,image]of cache)if(!used.has(asset)){image.removeAttribute('src');cache.delete(asset);}
+}
+const resources=new WeakMap<MapAsset,ReturnType<typeof runtimeResource>>();
+function resource(a:MapAsset) {
+  let entry=resources.get(a);
+  if(!entry){entry=runtimeResource(runtime as RuntimeManifest,a);resources.set(a,entry);}
+  return entry;
+}
 export function mapImage(a: MapAsset) {
-  if (!cache.has(a.asset)) {
+  const asset=resource(a).asset;
+  if (!cache.has(asset)) {
     const image = new Image();
-    image.src = publicAsset(a.asset);
-    cache.set(a.asset, image);
+    image.decoding='async';
+    image.src = publicAsset(asset);
+    cache.set(asset, image);
   }
-  return cache.get(a.asset)!;
+  return cache.get(asset)!;
 }
 export function mapImages(m: StudioMap) {
   return [
@@ -45,7 +59,10 @@ function drawAsset(
   const image = mapImage(a);
   if (!image.complete || !image.naturalWidth) return;
   const f = frameAt(a, now);
-  ctx.drawImage(image, f.x, f.y, f.width, f.height, x, y, w, h);
+  const packed=resource(a).packed?.[runtimeFrameKey(f)];
+  if(packed)ctx.drawImage(image,packed.x,packed.y,packed.width,packed.height,
+    x+packed.left/f.width*w,y+packed.top/f.height*h,packed.width/f.width*w,packed.height/f.height*h);
+  else ctx.drawImage(image, f.x, f.y, f.width, f.height, x, y, w, h);
 }
 let terrainTile: { key: string; canvas: HTMLCanvasElement; patterns:WeakMap<CanvasRenderingContext2D,CanvasPattern> } | null = null;
 export function drawMapTerrain(

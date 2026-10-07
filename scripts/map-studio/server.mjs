@@ -13,6 +13,7 @@ import {
   BUILTIN_IDS,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
+import { prepareArenaMap } from '../../lib/map-arena-rules.js';
 import { waitForPagesDeployment, PAGES_URL } from './deployment.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   root = path.resolve(here, '../..'),
@@ -73,10 +74,17 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
     token = randomBytes(32).toString('hex');
   let busy = false,
     job = { status: 'idle', message: '' };
+  let catalogPromise;
+  const catalog = () => catalogPromise ??= templates(projectRoot);
   const read = async () => {
     const b = await readFile(config);
+    const document = validateDocument(JSON.parse(b));
+    if (document.maps.some(m=>m.replaces==='kanal2' && !m.rulesVersion)) {
+      const reference = (await catalog()).builtinTemplates.find(m=>m.replaces==='kanal2');
+      document.maps = document.maps.map(m=>prepareArenaMap(m,reference.objects));
+    }
     return {
-      document: validateDocument(JSON.parse(b)),
+      document,
       revision: hash(b),
       mapRevision: hash(JSON.stringify(JSON.parse(b))),
     };
@@ -282,19 +290,22 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
         if (url.pathname === '/api/state')
           return json(200, { ...(await read()), token, job });
         if (url.pathname === '/api/templates')
-          return json(200, await templates(projectRoot));
+          return json(200, await catalog());
         if (url.pathname === '/api/job') return json(200, job);
         const local = {
           '/': 'index.html',
           '/editor.js': 'editor.js',
           '/editor.css': 'editor.css',
           '/catalog.mjs': 'catalog.mjs',
+          '/map-versions.mjs': 'map-versions.mjs',
           '/editor-tools.js': 'editor-tools.js',
         };
         let file;
         if (local[url.pathname]) file = path.join(here, local[url.pathname]);
         else if (url.pathname === '/model.js')
           file = path.join(projectRoot, 'lib/map-studio-model.js');
+        else if (['/kanal-footprints.js','/collision-navigation.js','/map-arena-rules.js'].includes(url.pathname))
+          file = path.join(projectRoot, 'lib', url.pathname.slice(1));
         else if (
           /^\/map-studio\/[a-f0-9]{64}\.webp$/.test(url.pathname) ||
           /^\/ui-v2\/fields\/(kampung|pasar|taman|kanal|kanal2)\.webp$/.test(url.pathname) ||

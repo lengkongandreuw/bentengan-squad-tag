@@ -90,8 +90,19 @@ test('16 clients ignore forged/stale lobby states and protocol rejects malformed
 });
 test('14–16 transport unused never runs networking in single-player; session does not write gameplay/profile',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');assert.ok(source.includes('const MultiplayerPanel = lazy'));
-  assert.ok(source.includes('multiplayerOpen&&<Suspense'));assert.ok(source.includes('if (profileOpen || multiplayerOpen) return'));
+  assert.ok(source.includes('multiplayerOpen&&playerProfile&&<Suspense'));assert.ok(source.includes('if (profileOpen || multiplayerOpen) return'));
   for(const file of ['transport.ts','lobby.ts','session.ts'])assert.doesNotMatch(fs.readFileSync(`lib/multiplayer/${file}`,'utf8'),/\b(?:localStorage|recordMatchProgression|resolveTag|moveActor|stepUltimate)\b/);
+});
+test('UI invite carries host arena, rejects unknown content and preserves the content handshake',()=>{
+  const {createInvite,parseInvite}=load('lib/multiplayer/invite.ts');
+  const code='BNT-ABCDEFGH-abcdefghijklmnopqrst',arenas=[{id:'kampung'}];
+  const invite=createInvite('https://example.test/benteng/?build=abc',code,'kampung');
+  assert.deepEqual(parseInvite(invite,arenas),{code,arenaId:'kampung'});
+  assert.equal(new URL(invite).searchParams.get('build'),'abc');
+  assert.deepEqual(parseInvite(code,arenas),{code,arenaId:null});
+  for(const invalid of ['bad',invite.replace('kampung','unknown'),invite.replace(code,'bad')])assert.equal(parseInvite(invalid,arenas),null);
+  assert.throws(()=>createInvite('https://example.test','bad','kampung'));
+  assert.ok(fs.readFileSync('lib/multiplayer/session.ts','utf8').includes('contentMismatch'));
 });
 
 const remote=load('lib/multiplayer/remote-input.ts'),interpolation=load('lib/multiplayer/interpolation.ts'),content=load('lib/multiplayer/content.ts');

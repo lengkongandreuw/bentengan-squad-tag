@@ -24,6 +24,7 @@ import {
   mapIssues,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
+import {mapVersions} from './map-versions.mjs';
 import { validateCatalog } from './catalog.mjs';
 import { startMapStudio } from './server.mjs';
 import { waitForPagesDeployment } from './deployment.mjs';
@@ -31,6 +32,24 @@ const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../..',
 );
+test('P2 map versions distinguish active originals, inactive drafts and active replacements without mutation',()=>{
+  const original={...map(),id:'studio-edit-taman',replaces:'taman',name:'Native Taman'},draft={...original,name:'Saved draft',objects:[object()]};
+  const document={maps:[draft],builtinStates:{}},before=JSON.stringify(document);
+  const builtins=[{id:'taman',name:'Taman Kota',editable:true}];
+  assert.ok(mapVersions({maps:[]},builtins,[original])[0].active,'native with no saved draft remains selectable');
+  let entries=mapVersions(document,builtins,[original]);
+  const native=entries.find(e=>e.value==='builtin:taman'),edit=entries.find(e=>e.value===draft.id);
+  assert.ok(native.active&&native.readOnly);assert.equal(native.map.name,'Native Taman');assert.equal(native.map.objects.length,0);
+  assert.ok(!edit.active&&!edit.readOnly);assert.equal(edit.map.name,'Saved draft');assert.match(edit.label,/Draft nonaktif/);
+  assert.equal(JSON.stringify(document),before);
+  draft.enabled=true;entries=mapVersions(document,builtins,[original]);
+  assert.ok(!entries.find(e=>e.kind==='native').active);
+  assert.ok(entries.find(e=>e.value==='live:'+draft.id).readOnly);
+  assert.ok(entries.find(e=>e.value===draft.id).active);assert.match(entries.find(e=>e.value===draft.id).label,/Edit versi aktif/);
+  draft.archived=true;document.builtinStates.taman='archived';
+  assert.equal(mapVersions(document,builtins,[original]).length,0);
+  assert.ok(mapVersions(document,builtins,[original],true).every(e=>!e.active));
+});
 const object = (behavior = 'solid') => ({
   id: 'obj-test',
   name: 'Test',

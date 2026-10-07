@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import {
@@ -37,6 +38,7 @@ import { CharacterLockBadge } from '../components/character-lock-badge';
 import { MatchProgressionSummary } from '../components/match-progression-summary';
 import { UltimateUpgradePanel } from '../components/ultimate-upgrade-panel';
 import { UnlockNotificationPanel } from '../components/unlock-notification-panel';
+import { GameplayGuidance, HudSettings, useHudPreferences } from '../components/gameplay-guidance';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
 import { landingLogoAsset } from '../lib/branding';
 import { clickRoute, pointerWorld } from '../lib/click-navigation';
@@ -51,6 +53,7 @@ import { createRenderAdapter, type RenderFrame } from '../lib/game-core/render-s
 import { createSnapshot, type GameSnapshot } from '../lib/game-core/snapshot';
 import type {MultiplayerSession} from '../lib/multiplayer/session';
 import {createContentIdentity} from '../lib/multiplayer/content';
+import {parseInvite} from '../lib/multiplayer/invite';
 import {createRemoteInputBuffer,createRemoteHumanMovement,wireInput} from '../lib/multiplayer/remote-input';
 import {createSnapshotBuffer,snapshotRenderState} from '../lib/multiplayer/interpolation';
 import {NETWORK_RATES} from '../lib/multiplayer/rates';
@@ -61,15 +64,16 @@ import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../l
 import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../lib/game-core/ultimate';
 import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../lib/game-core/match-rules';
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../lib/game-core/movement';
-import { resolveTag, tagContacts, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../lib/game-core/interactions';
+import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../lib/game-core/interactions';
 import type { CanonicalGameState } from '../lib/game-core/types';
 import { createRouteScheduler } from '../lib/route-scheduler';
 import { studioImages, retainStudioImages, createStudioResolver } from '../lib/sprite-studio';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
-import { studioMaps, studioBuiltinStates, studioMapById, mapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
-import { contains as studioContains } from '../lib/map-studio-model.js';
+import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
+import { contains as studioContains, collisionRects } from '../lib/map-studio-model.js';
+import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../lib/map-arena-rules.js';
 import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
-import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight } from '../lib/flight-ultimate.js';
+import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../lib/flight-ultimate.js';
 import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
@@ -108,6 +112,7 @@ import {
   validatePlayableContent,
   resolvePlayableContent,
   getCharacterSelectionState,
+  getNextCharacterGoal,
   type LocalPlayerProfile,
   type PlayerKdaStats,
   type ProgressionResult,
@@ -135,6 +140,7 @@ import {
   depenetrateFromRects,
   pointHitsExpandedRect,
   steerAroundRects,
+  createRectQuery,
 } from '../lib/collision-navigation.js';
 import {
   advanceTeamCombo,
@@ -155,7 +161,7 @@ type Faction = 'red' | 'green';
 type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
 type Grade = 25 | 40 | 75 | 100;
 type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kanal2' | 'kampung3d' | `studio-${string}`;
-const isKanalField = (id: FieldId) => id === 'kanal2';
+const isKanalField = (id: FieldId) => id === 'kanal2' || arenaRulesFor(studioMapById[id]) === 'kanal2';
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
 type DifficultyId = 'easy' | 'normal' | 'hard';
@@ -2667,6 +2673,8 @@ if (arenaValidationErrors.length > 0)
 // Custom maps are already in world coordinates. Existing arena definitions remain untouched.
 const replacedFields = new Set(studioMaps.map(map => map.replaces));
 const nativeFieldConfigs = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field]));
+const kanalReference = kanalColliderObjects(nativeFieldConfigs.kanal2.obstacles, kanalObjectPolygons);
+const runtimeStudioMapById = Object.fromEntries(studioMaps.map(map=>[map.id,prepareArenaMap(map,kanalReference)]));
 for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
   const id = FIELD_CONFIGS[index].id;
   if (replacedFields.has(id) || ['archived','deleted'].includes(studioBuiltinStates[id])) FIELD_CONFIGS.splice(index, 1);
@@ -2674,7 +2682,12 @@ for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
 FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
   id: map.id, name: map.name, kicker: map.description, difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
   aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined, ground: 'kampungGround', width: map.width, height: map.height,
-  bases: map.bases, prisons: map.prisons, paths: [], obstacles: [], decorations: [], animated: [],
+  bases: map.bases, prisons: Object.fromEntries(Object.entries(map.prisons).map(([team,p])=>[team,{
+    ...(map.replaces ? nativeFieldConfigs[map.replaces].prisons[team as Team] : arenaRulesFor(map)==='kanal2' ? nativeFieldConfigs.kanal2.prisons[team as Team] : {}),...p,
+  }])) as FieldConfig['prisons'], paths: [], obstacles: [], decorations: [], animated: [],
+  ...(arenaRulesFor(map)==='kanal2' ? {designWidth:nativeFieldConfigs.kanal2.designWidth,designHeight:nativeFieldConfigs.kanal2.designHeight,
+    objectScale:map.replaces ? nativeFieldConfigs[map.replaces].objectScale : nativeFieldConfigs.kanal2.objectScale,
+    baseRadius:map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : nativeFieldConfigs.kanal2.baseRadius} : {}),
   structuresInBackground: !!(map.replaces && nativeFieldConfigs[map.replaces].structuresInBackground &&
     map.terrain?.asset === `field/${nativeFieldConfigs[map.replaces].background}`),
 })));
@@ -2923,6 +2936,9 @@ const getFieldImage = (asset: string) => {
 };
 
 export function BentenganPrototype() {
+  const [hudPreferences,setHudPreferences]=useHudPreferences();
+  const hudPreferencesRef=useRef(hudPreferences);
+  hudPreferencesRef.current=hudPreferences;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
   const characterVoiceRef = useRef<HTMLAudioElement | null>(null); // === CHARACTER SELECTION VOICE ===
@@ -2940,6 +2956,7 @@ export function BentenganPrototype() {
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');
   const [multiplayerOpen,setMultiplayerOpen]=useState(false);
+  useEffect(()=>{let active=true;queueMicrotask(()=>{if(active&&parseInvite(window.location.href,FIELD_CONFIGS))setMultiplayerOpen(true);});return()=>{active=false;};},[]);
   const [networkSession,setNetworkSession]=useState<MultiplayerSession|null>(null);
   useEffect(()=>{
     if(!networkSession)return;
@@ -3065,8 +3082,11 @@ export function BentenganPrototype() {
         }
         images.push(getSprintDustImage(), getKakaUltimateImage());
         for (const asset of ['objects.webp', 'animated.webp', 'grounds.webp']) images.push(getFieldImage(asset));
-        // Preload the rotation too, so later rounds cannot expose an unloaded map.
-        for (const field of FIELD_CONFIGS) {
+        if(isKanalField(selectedFieldId))images.push(getFieldImage('kanal-object-atlas.webp'));
+        // Decode only the selected arena. Rotation uses the same readiness gate
+        // instead of retaining all custom animated atlases throughout a match.
+        retainMapImages(studioMapById[selectedFieldId] ? [studioMapById[selectedFieldId]] : []);
+        for (const field of [FIELD_BY_ID[selectedFieldId]]) {
           if (studioMapById[field.id]) images.push(...mapImages(studioMapById[field.id]));
           if (field.background) images.push(getFieldImage(field.background));
 
@@ -3626,7 +3646,7 @@ export function BentenganPrototype() {
     const clearMouse = () => { mouseRoute = []; mouseBoost = false; mouseStuckTime = 0; };
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
-    const studioMap = studioMapById[selectedFieldId];
+    const studioMap = runtimeStudioMapById[selectedFieldId];
     const studioQueries = studioMap ? createMapQueries(studioMap) : null;
     const studioLayers = {
       background:studioMap?.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z)??[],
@@ -3677,8 +3697,8 @@ export function BentenganPrototype() {
       : null;
 
     const waterMaskCanvas = document.createElement('canvas');
-    waterMaskCanvas.width = field.waterMaskWidth ?? 1;
-    waterMaskCanvas.height = field.waterMaskHeight ?? 1;
+    waterMaskCanvas.width = studioMap?.waterMask?.width ?? field.waterMaskWidth ?? 1;
+    waterMaskCanvas.height = studioMap?.waterMask?.height ?? field.waterMaskHeight ?? 1;
     const waterMaskContext = waterMaskCanvas.getContext('2d', {
       willReadFrequently: true,
     });
@@ -3698,32 +3718,38 @@ export function BentenganPrototype() {
 
     const kanalWaterGlints: { x: number; y: number; phase: number }[] = [];
     const cacheWaterMask = () => {
-      if (
+      if (!studioMap?.waterMask && (
         !fieldWaterMask ||
         !waterMaskContext ||
         !fieldWaterMask.naturalWidth ||
         !fieldWaterMask.naturalHeight
-      )
+      ))
         return;
-      waterMaskContext.clearRect(
+      if (studioMap?.waterMask) {
+        const mask=studioMap.waterMask;
+        waterMaskPixels=new Uint8ClampedArray(mask.width*mask.height*4);
+        mask.rows.forEach((row,y)=>{for(let i=0;i<row.length;i+=2)for(let x=row[i];x<row[i+1];x++)waterMaskPixels![(y*mask.width+x)*4]=255;});
+      } else {
+      waterMaskContext!.clearRect(
         0,
         0,
         waterMaskCanvas.width,
         waterMaskCanvas.height,
       );
-      waterMaskContext.drawImage(
-        fieldWaterMask,
+      waterMaskContext!.drawImage(
+        fieldWaterMask!,
         0,
         0,
         waterMaskCanvas.width,
         waterMaskCanvas.height,
       );
-      waterMaskPixels = waterMaskContext.getImageData(
+      waterMaskPixels = waterMaskContext!.getImageData(
         0,
         0,
         waterMaskCanvas.width,
         waterMaskCanvas.height,
       ).data;
+      }
       if (waterDebugContext) {
         const overlay = waterDebugContext.createImageData(
           waterMaskCanvas.width,
@@ -3770,8 +3796,10 @@ export function BentenganPrototype() {
         ? 0.75
         : STATIC_MAP_SCALE;
     const staticLayer = document.createElement('canvas');
-    staticLayer.width = Math.round(worldWidth * staticMapScale);
-    staticLayer.height = Math.round(worldHeight * staticMapScale);
+    // Studio terrain is drawn directly at source resolution. It never uses
+    // the native static layer, so do not allocate an unused multi-MB canvas.
+    staticLayer.width = studioMap ? 1 : Math.round(worldWidth * staticMapScale);
+    staticLayer.height = studioMap ? 1 : Math.round(worldHeight * staticMapScale);
     const staticLayerContext = staticLayer.getContext('2d');
     let staticMapDirty = true;
     const invalidateStaticMap = () => {
@@ -3784,7 +3812,7 @@ export function BentenganPrototype() {
 
     fieldWaterMask?.addEventListener('load', cacheWaterMask);
 
-    if (fieldWaterMask?.complete) cacheWaterMask();
+    if (fieldWaterMask?.complete || studioMap?.waterMask) cacheWaterMask();
 
 
     const gameplayAudio = new GameplayAudio();
@@ -3906,7 +3934,7 @@ export function BentenganPrototype() {
     const myEntityId=players[0].entityId;
     const humanIdentities=players.filter(p=>p.ownerPeerId).map(p=>({peerId:p.ownerPeerId!,entityId:p.entityId}));
     const networkUltimates=createNetworkUltimates(humanIdentities);
-    const networkUltimateRules=(p:Player)=>({supported:ULTIMATE_CHARACTER_IDS,kanal2:field.id==='kanal2',
+    const networkUltimateRules=(p:Player)=>({supported:ULTIMATE_CHARACTER_IDS,kanal2:isKanalField(field.id),
       rechargeSeconds:RAJA_ULTIMATE_RECHARGE_SECONDS,castMs:p.characterId==='kaka'?KAKA_ULTIMATE_CAST_MS:RAJA_ULTIMATE_CAST_MS,
       durationMs:p.characterId==='kaka'?KAKA_ULTIMATE_SHIELD_MS:RAJA_ULTIMATE_BUFF_MS,speedMultiplier:RAJA_ULTIMATE_SPEED_MULTIPLIER});
     let lastNetworkFrame:Extract<ProtocolMessage,{type:'MATCH_FRAME'}>|null=null,networkEventSerial=0;
@@ -4221,7 +4249,7 @@ export function BentenganPrototype() {
       });
     };
     const fortOccupant = (baseTeam:Team,exceptId?:string) =>
-      coreFortOccupant(players,bases,baseRadius,baseTeam,field.id==='kanal2',exceptId);
+      coreFortOccupant(players,bases,baseRadius,baseTeam,isKanalField(field.id),exceptId);
     const tieHash = (id: string) => {
       let value = (2166136261 ^ round) >>> 0;
       for (let i = 0; i < id.length; i++) {
@@ -4247,35 +4275,19 @@ export function BentenganPrototype() {
     // Kanal's prison uses a thin U-frame: walls block traversal, while the
     // wide front gate and entire interior remain open for rescues. No other
     // arena receives these additional collision rules.
-    const kanalPrisonWalls = isKanalField(field.id)
-      ? Object.values(field.prisons).flatMap((prison): Obstacle[] => {
-          const thickness = Math.max(12, Math.round(Math.min(prison.w, prison.h) * 0.09));
-          const gateWidth = Math.max(76, Math.round(prison.w * 0.48));
-          const shoulderWidth = Math.round((prison.w - gateWidth) / 2);
-          const hiddenWall = (x: number, y: number, w: number, h: number): Obstacle => ({
-            asset: prison.floorAsset ?? 'prisonFloor',
-            x,
-            y,
-            w,
-            h,
-            visualW: 1,
-            visualH: 1,
-            hidden: true,
-          });
-          return [
-            hiddenWall(prison.x, prison.y, prison.w, thickness),
-            hiddenWall(prison.x, prison.y + thickness, thickness, prison.h - thickness),
-            hiddenWall(prison.x + prison.w - thickness, prison.y + thickness, thickness, prison.h - thickness),
-            hiddenWall(prison.x, prison.y + prison.h - thickness, shoulderWidth, thickness),
-            hiddenWall(prison.x + prison.w - shoulderWidth, prison.y + prison.h - thickness, shoulderWidth, thickness),
-          ];
-        })
-      : [];
+    const kanalPrisonWalls: Obstacle[] = isKanalField(field.id) ? createKanalPrisonWalls(field.prisons) : [];
     const solidObstacles = [...obstacles, ...kanalPrisonWalls];
+    const recoveryObstacles = studioMap ? [
+      ...studioMap.objects.filter(o=>o.nativeCollision&&o.shape==='polygon'&&['solid','parkour'].includes(o.behavior)).flatMap(collisionRects),
+      ...solidObstacles,
+    ] : solidObstacles;
+    const obstacleAt = createRectQuery(solidObstacles);
+    const flightObstacleAt = createRectQuery(solidObstacles.filter(o=>!flightPassesObstacle(o)));
     const kanalFortPolygons = isKanalField(field.id)
       ? Object.values(bases).map(base => kanalFortPolygon(base, fortWidth, fortHeight, fortAnchorY))
       : [];
     const kanalFortRects = kanalFortPolygons.flatMap(polygon => polygonToRects(polygon));
+    const fortRectAt = createRectQuery(kanalFortRects);
 
 
 
@@ -4290,15 +4302,13 @@ export function BentenganPrototype() {
       return true;
     };
     const hitsObstacle = (x: number, y: number) =>
-      (studioQueries ? studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS) : false) || solidObstacles.some((o) =>
-        pointHitsExpandedRect(x, y, o, PLAYER_COLLISION_RADIUS),
-      );
+      (studioQueries ? studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS) : false) || obstacleAt(x,y,PLAYER_COLLISION_RADIUS);
     // The fort core is solid while its capture circle remains walkable. This
     // prevents walking through the tower but preserves the original base
     // entry, capture, and return rules.
     const isInsideFortCore = (x: number, y: number) =>
       isKanalField(field.id)
-        ? kanalFortRects.some(rect => pointHitsExpandedRect(x, y, rect, PLAYER_COLLISION_RADIUS))
+        ? fortRectAt(x,y,PLAYER_COLLISION_RADIUS)
         : Object.values(bases).some(
         (base) => Math.hypot(x - base.x, y - base.y) < Math.max(48, fortWidth * (isKanalField(field.id) ? 0.48 : 0.38)),
       );
@@ -4327,8 +4337,10 @@ export function BentenganPrototype() {
     };
     const movementWorld: CollisionWorld = {
       width:worldWidth,height:worldHeight,bases,baseRadius,
-      kanal:isKanalField(field.id),kanal2:field.id==='kanal2',obstacles:solidObstacles,
+      kanal:isKanalField(field.id),kanal2:isKanalField(field.id),obstacles:solidObstacles,
       studioSolidAt:studioQueries?.solidAt,waterAt:isWaterAt,waterBlocks:kanalWaterBlocks,
+      studioFlightSolidAt:studioQueries?.flightSolidAt,
+      obstacleAt,flightObstacleAt,
       fortCoreAt:isInsideFortCore,fortOccupied:(team,id)=>!!fortOccupant(team,id),
       baseChargeTime:p=>CHARACTER_BY_ID[p.characterId].baseChargeTime,
       speedAt:(x,y)=>studioQueries?.speedAt(x,y)??1,
@@ -4362,14 +4374,14 @@ export function BentenganPrototype() {
       if (
         isFlying(p) ||
         p.state === 'PRISONER' ||
-        (field.id === 'kanal2' && p.waterEnteredAt) ||
+        (isKanalField(field.id) && p.waterEnteredAt) ||
         now < p.parkourUntil ||
         !hitsObstacle(p.x, p.y)
       )
         return;
       const recovered = depenetrateFromRects(
         p,
-        solidObstacles,
+        recoveryObstacles,
         PLAYER_COLLISION_RADIUS,
         { minX: 34, maxX: worldWidth - 34, minY: 58, maxY: worldHeight - 32 },
       );
@@ -4396,7 +4408,7 @@ export function BentenganPrototype() {
       return true;
     };
     const resolvePlayerSpacing = (now: number) => {
-      const visible = players.filter((p) => !flightBusy(p) && p.state !== 'PRISONER' && !(field.id === 'kanal2' && p.waterEnteredAt));
+      const visible = players.filter((p) => !flightBusy(p) && p.state !== 'PRISONER' && !(isKanalField(field.id) && p.waterEnteredAt));
       for (let i = 0; i < visible.length; i++)
         for (let j = i + 1; j < visible.length; j++) {
           const a = visible[i],
@@ -4459,7 +4471,7 @@ export function BentenganPrototype() {
     ) => {
       if (studioMap) {
         const target = { x: clamp(p.x + desired.x, 34, worldWidth - 34), y: clamp(p.y + desired.y, 58, worldHeight - 32) };
-        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !studioQueries!.solidAt(x,y,PLAYER_COLLISION_RADIUS) && !studioQueries!.waterAt(x,y);
+        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !hitsObstacle(x,y) && (!isKanalField(field.id)||!isInsideFortCore(x,y)) && !studioQueries!.waterAt(x,y);
         const cached = studioRoutes.get(p.id);
         if (!cached || now > cached.until || distance(target,cached.target)>100) {
           routeScheduler.request(p.id,()=>{
@@ -4535,7 +4547,7 @@ export function BentenganPrototype() {
     };
     const riverFallCheck = (now: number) => {
       if (!studioMap && (!field.waterMask || !waterMaskPixels)) return;
-      if (field.id === 'kanal2') {
+      if (isKanalField(field.id)) {
         players.forEach((p) => {
           if (p.waterEnteredAt) {
             if (now - p.waterEnteredAt >= KANAL2_FALL_RESET_MS) resetFallenPlayer(p, now);
@@ -4615,7 +4627,7 @@ export function BentenganPrototype() {
       }
     };
     const interactionRules = {
-      kanal2:field.id==='kanal2',
+      kanal2:isKanalField(field.id),
       tagRange:(p:Player)=>CHARACTER_BY_ID[p.characterId].tagRange,
       tagCooldownMs:(p:Player)=>CHARACTER_BY_ID[p.characterId].tagCooldownMs,
       lineOfSight:hasLineOfSight,
@@ -4694,12 +4706,12 @@ export function BentenganPrototype() {
     };
     const rescueCheck = (now: number) => {
       players
-        .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
+        .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(isKanalField(field.id) && p.waterEnteredAt))
         .forEach((rescuer) => {
           const rescuerStats = CHARACTER_BY_ID[rescuer.characterId];
           const events:GameEvent[]=[];
           const event=resolveRescue(players,rescuer.entityId,now,{
-            kanal2:field.id==='kanal2',range:rescuerStats.rescueRange,shieldMs:rescuerStats.rescueShieldMs,
+            kanal2:isKanalField(field.id),range:rescuerStats.rescueRange,shieldMs:rescuerStats.rescueShieldMs,
           },facts=>events.push(...facts));
           if(event?.type==='rescue') {
             const held=event.targetIds.map(id=>players.find(p=>p.entityId===id)!);
@@ -4723,7 +4735,7 @@ export function BentenganPrototype() {
           (p) =>
             !flightBusy(p) &&
             p.state === 'ACTIVE' &&
-            !(field.id === 'kanal2' && p.waterEnteredAt) &&
+            !(isKanalField(field.id) && p.waterEnteredAt) &&
             p.boost < CHARACTER_BY_ID[p.characterId].boost,
         )
         .forEach((p) => {
@@ -4750,7 +4762,7 @@ export function BentenganPrototype() {
       const stats=CHARACTER_BY_ID[p.characterId];
       const facts:GameEvent[]=[];
       const events=resolveBase(players,p,dt,now,exitCandidates,{
-        bases,radius:baseRadius,kanal2:field.id==='kanal2',boost:stats.boost,
+        bases,radius:baseRadius,kanal2:isKanalField(field.id),boost:stats.boost,
         chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,
       },events=>facts.push(...events));
       presentInteractionEvents(facts,now);
@@ -4860,7 +4872,7 @@ export function BentenganPrototype() {
       // Numeric match snapshot feeds authority; presentation consumes returned facts.
       const ultimateState = {meter:ultimateMeter,impactAt:ultimateImpactAt,impactApplied:ultimateImpactApplied,buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil};
       const ultimateRules = {
-        supported:ULTIMATE_CHARACTER_IDS,kanal2:field.id==='kanal2',
+        supported:ULTIMATE_CHARACTER_IDS,kanal2:isKanalField(field.id),
         rechargeSeconds:playerUltimateStats?.rechargeSeconds ?? RAJA_ULTIMATE_RECHARGE_SECONDS,
         castMs:ultimateCastMsFor(me),
         durationMs:playerUltimateStats?.durationMs ?? (me.characterId==='kaka'?KAKA_ULTIMATE_SHIELD_MS:RAJA_ULTIMATE_BUFF_MS),
@@ -4925,7 +4937,7 @@ export function BentenganPrototype() {
         !flightBusy(me) &&
         (!boostLatch || sprintPulse) &&
         me.boost > 0 &&
-        !(field.id === 'kanal2' && me.waterEnteredAt) &&
+        !(isKanalField(field.id) && me.waterEnteredAt) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       )
         boostBurstUntil = now + GAME_RULES.boostDurationMs;
@@ -4935,7 +4947,7 @@ export function BentenganPrototype() {
         !flightBusy(me) &&
         now < boostBurstUntil &&
         me.boost > 0 &&
-        !(field.id === 'kanal2' && me.waterEnteredAt) &&
+        !(isKanalField(field.id) && me.waterEnteredAt) &&
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE');
       if (boosting) {
@@ -4950,7 +4962,7 @@ export function BentenganPrototype() {
         !parkourLatch &&
         me.boost >= parkourCost &&
         now > me.parkourUntil &&
-        !(field.id === 'kanal2' && me.waterEnteredAt) &&
+        !(isKanalField(field.id) && me.waterEnteredAt) &&
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       ) {
@@ -5032,11 +5044,11 @@ export function BentenganPrototype() {
       for(const p of players)if(p.controller==='remote'||network&&p.controller==='bot'&&p.flight)remoteMovement(p,humanFrames.get(p.entityId)??localInput.sample(p.entityId,new Set()),CHARACTER_BY_ID[p.characterId],dt,now,{
         move,landing:findParkourLanding,near:p=>obstacles.some(o=>p.x+44>o.x&&p.x-44<o.x+o.w&&p.y+44>o.y&&p.y-44<o.y+o.h)||isNearWater(p.x,p.y)||!!studioMap?.objects.some(o=>o.behavior==='parkour'&&studioContains({...o,x:o.x-40,y:o.y-40,w:o.w+80,h:o.h+80},p.x,p.y)),
         returnVector:(p,now)=>navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
-        combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:field.id==='kanal2',boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
+        combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:isKanalField(field.id),boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
       });
       botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
-        kanal2:field.id==='kanal2',localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
+        kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
         navigate:navigateAroundHazards,
       },now,(p,intent)=>{
         if(network&&p.flight)return;
@@ -5489,6 +5501,7 @@ export function BentenganPrototype() {
       const showEverything = activeCamera === 'overview' || isKanalField(field.id);
       const radiusSquared = NEAR_FIELD_DETAIL_RADIUS * NEAR_FIELD_DETAIL_RADIUS;
       const isNearby = (x: number, y: number, w: number, h: number) => {
+        if(isKanalField(field.id))return x+w>=visibleWorld.left&&x<=visibleWorld.right&&y+h>=visibleWorld.top&&y<=visibleWorld.bottom;
         if (showEverything) return true;
         const dx = x + w / 2 - me.x,
           dy = y + h / 2 - me.y;
@@ -5516,7 +5529,7 @@ export function BentenganPrototype() {
           (!isKanalField(field.id) && showEverything) ||
           item.hidden ||
           item.underlay ||
-          !isNearby(item.x, item.y, item.w, item.h)
+          !isNearby(item.x+item.w/2-item.visualW/2, item.y+item.h-item.visualH, item.visualW, item.visualH)
         )
           return;
         drawFieldAsset(
@@ -5589,6 +5602,7 @@ export function BentenganPrototype() {
       ctx.lineWidth = 2.3;
       ctx.strokeStyle = 'rgba(184, 243, 252, .46)';
       for (const glint of kanalWaterGlints) {
+        if(glint.x<visibleWorld.left-24||glint.x>visibleWorld.right+24||glint.y<visibleWorld.top-24||glint.y>visibleWorld.bottom+24)continue;
         const upper = glint.y < worldHeight * 0.36;
         const lower = glint.y > worldHeight * 0.64;
         const sideways = upper ? 0.55 : lower ? -0.55 : 0;
@@ -5609,7 +5623,7 @@ export function BentenganPrototype() {
       const sx = worldWidth / (field.designWidth ?? MAP4_GUIDE_WIDTH);
       const sy = worldHeight / (field.designHeight ?? MAP4_GUIDE_HEIGHT);
       for (const drop of [{ y: 94, h: 22 }, { y: 798, h: 34 }]) {
-        const x = (field.id === 'kanal2' ? kanal2X(849) : 849) * sx;
+        const x = (isKanalField(field.id) ? kanal2X(849) : 849) * sx;
         const y = drop.y * sy;
         if (!isWaterAt(x, y + 7 * sy)) continue;
         const width = 55 * sx;
@@ -5677,7 +5691,7 @@ export function BentenganPrototype() {
       const b = bases[team],
         color = TEAM_COLOR[team],
         occupant = render.players.find(p=>p.team!==team&&!flightBusy(p)&&p.state==='ACTIVE'&&
-          !(field.id==='kanal2'&&p.waterEnteredAt)&&distance(p,b)<baseRadius);
+          !(isKanalField(field.id)&&p.waterEnteredAt)&&distance(p,b)<baseRadius);
       ctx.strokeStyle = occupant ? '#f5cf45' : color;
       ctx.lineWidth = occupant ? 7 : 4;
       ctx.setLineDash(occupant ? [3, 5] : [8, 7]);
@@ -5754,24 +5768,15 @@ export function BentenganPrototype() {
     const relationColor = (p: Player, me: Player, now: number) => {
       if (p.team === me.team) return '#9fd0ff';
       if (p.state === 'PRISONER') return '#8f8d84';
-      if (p.state === 'RETURNING' && now < p.rescueShieldUntil)
-        return '#60e6ff';
-      if (me.state !== 'ACTIVE') return '#f1d46c';
-      if (
-        (p.state === 'ACTIVE' || p.state === 'RETURNING') &&
-        me.exitOrder > p.exitOrder
-      )
-        return '#b9ee3d';
-      return p.state === 'ACTIVE' && p.exitOrder > me.exitOrder
-        ? '#ff544b'
-        : '#f1d46c';
+      const relation=tagRelationship(me,p,now,isKanalField(field.id));
+      return relation==='protected'?'#60e6ff':relation==='target'?'#b9ee3d':relation==='danger'?'#ff544b':'#f1d46c';
     };
     const studioResolve = createStudioResolver();
     const drawPlayer = (p: Player, me: Player, now: number, render:RenderFrame) => {
       const {phase,roundWinner,ultimateMeter,ultimateBuffUntil,teamCombos}=render;
       const color = TEAM_COLOR[p.team],
         outline = relationColor(p, me, now),
-        sinking = field.id === 'kanal2' && p.waterEnteredAt > 0,
+        sinking = isKanalField(field.id) && p.waterEnteredAt > 0,
         waterFall = now < p.waterFallUntil,
         fallProgress = sinking
           ? clamp((now - p.waterEnteredAt) / 720, 0, 1)
@@ -6190,7 +6195,7 @@ export function BentenganPrototype() {
         ctx.fill();
       }
       const label = p.controlled ? `★ ${p.name}` : p.name;
-      ctx.font = '900 9px Arial';
+      ctx.font = `900 ${11*hudPreferencesRef.current.scale}px Arial`;
       const labelWidth = Math.max(38, ctx.measureText(label).width + 14);
       ctx.fillStyle = 'rgba(13,18,14,.92)';
       rounded(p.x - labelWidth / 2, p.y + 23, labelWidth, 17, 5);
@@ -6201,6 +6206,14 @@ export function BentenganPrototype() {
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
       ctx.fillText(label, p.x, p.y + 35);
+      const relation=tagRelationship(me,p,now,isKanalField(field.id));
+      if(relation!=='neutral') {
+        const text=relation==='target'?'+ TAG':relation==='danger'?'! AWAS':'◇ KEBAL';
+        ctx.save();ctx.font=`900 ${11*hudPreferencesRef.current.scale}px Arial`;
+        const width=ctx.measureText(text).width+12;
+        ctx.fillStyle='#08100ef2';rounded(p.x-width/2,p.y+42,width,20,4);ctx.fill();
+        ctx.fillStyle=outline;ctx.textAlign='center';ctx.fillText(text,p.x,p.y+56);ctx.restore();
+      }
       if (inWater) {
         ctx.fillStyle = '#b8f8ff';
         ctx.font = '900 7px Arial';
@@ -6544,7 +6557,8 @@ export function BentenganPrototype() {
           state: me.state,
           paused,
           logs,
-          mission: { ...mission },
+          mission: { ...mission,tag:mission.tag||(matchStats[me.id]?.tags??0)>0,
+            rescue:mission.rescue||(matchStats[me.id]?.rescues??0)>0 },
           team: players
             .filter((p) => p.team === me.team)
             .map((p) => ({
@@ -6637,7 +6651,7 @@ export function BentenganPrototype() {
       const me = players[0], now = performance.now();
       if (event.pointerType !== 'mouse' || ![0, 2].includes(event.button) || mode !== 'playing' ||
         phase !== 'PLAYING' || paused || !['ACTIVE', 'IN_BASE'].includes(me.state) ||
-        (field.id === 'kanal2' && me.waterEnteredAt > 0) ||
+        (isKanalField(field.id) && me.waterEnteredAt > 0) ||
         (flightBusy(me) && !isFlying(me)) ||
         players.some(player => player.action === 'ultimate' && now < player.actionUntil)) return;
       event.preventDefault();
@@ -6803,10 +6817,10 @@ export function BentenganPrototype() {
     setRun((v) => v + 1);
   };
   const applyPendingFieldRotation = () => {
-    if (completedMatchesRef.current < 3) return;
+    if (completedMatchesRef.current < 3) return false;
     const allowed = getPlayableArenaIds(loadPlayerProfile() ?? playerProfileRef.current,
       FIELD_CONFIGS.filter(item => item.id !== 'kampung3d').map(item => item.id));
-    if (!allowed.length) { setContentGateError('Tidak ada arena terbuka untuk rotasi.'); return; }
+    if (!allowed.length) { setContentGateError('Tidak ada arena terbuka untuk rotasi.'); return false; }
     const decision = fieldCycleDecision(
       selectedFieldId,
       completedMatchesRef.current,
@@ -6814,6 +6828,7 @@ export function BentenganPrototype() {
     );
     completedMatchesRef.current = decision.wins;
     setSelectedFieldId(decision.fieldId);
+    return decision.fieldId !== selectedFieldId;
   };
   const rematch = () => {
     if(networkSession){quit();return;}
@@ -6822,10 +6837,11 @@ export function BentenganPrototype() {
     keys.current.clear();
     postRoundActionRef.current = null;
     setLeaderboardOpen(false);
-    applyPendingFieldRotation();
+    const rotated=applyPendingFieldRotation();
     setSnapshot(initialSnapshot);
     setMissionOpen(false);
-    setRun((v) => v + 1);
+    if(rotated){setMode('menu');setGameLoading(true);}
+    else setRun((v) => v + 1);
   };
   const backToCharacterSelect = () => {
     if(networkSession){quit();return;}
@@ -6873,6 +6889,9 @@ export function BentenganPrototype() {
       setContentGateError('Karakter belum terbuka atau tidak tersedia di tim ini.'); return;
     }
     stopCharacterVoice();
+    const playable=resolvePlayableContent(playerProfileRef.current,selectedId,selectedFieldId,
+      FIXED_ROSTERS[selectedFaction],fieldIds);
+    if(playable)setSelectedFieldIdState(playable.arenaId as FieldId);
     setMenuStep('field');
   };
   const restartMatch = () => {
@@ -7087,7 +7106,9 @@ export function BentenganPrototype() {
               >
                 <span>PRESS</span> SPACE <small>atau klik untuk masuk</small>
               </button>
-              <button type="button" className="multiplayer-open" style={{marginTop:12,padding:'10px 18px',background:'#172419',color:'#e9f1d6',border:'1px solid #c9ee5f',borderRadius:8,cursor:'pointer'}} onClick={()=>setMultiplayerOpen(true)}>MULTIPLAYER · LOBBY</button>
+              <button type="button" className="multiplayer-open" aria-label="MULTIPLAYER · LOBBY" onClick={()=>setMultiplayerOpen(true)}>
+                <img src={uiAsset('controls/multiplayer.webp')} alt="" width="1024" height="366" />
+              </button>
             </div>
           </section>
         )}
@@ -7302,18 +7323,15 @@ export function BentenganPrototype() {
             </aside>
             {playerProfile && <UltimateUpgradePanel key={selectedId} profile={playerProfile}
               characterId={selectedId} onRefresh={refreshPlayerProfile} />}
-            <div className="character-unlock-list" role="group" aria-label="Status unlock karakter">
-              {availableCharacters.map(character => {
-                const state = getCharacterSelectionState(playerProfile, character.id);
-                return <button key={character.id} disabled={state.locked}
-                  className={state.locked ? 'locked' : 'unlocked'}
-                  aria-pressed={selectedId === character.id}
-                  onClick={() => highlightCharacterWithVoice(character.id)}>
-                  <b>{character.name}</b>
-                  <small>{state.locked ? `LOCKED · LV.${state.requiredLevel}` : 'TERBUKA'}</small>
-                </button>;
-              })}
+            <div className="character-mobile-summary">
+              <p>{selected.passiveCopy}</p>
+              <b>Speed {selected.speed} · Boost {selected.boost} · Agility {selected.agility.toFixed(2)}</b>
             </div>
+            {playerProfile&&<div className="character-next-goal" aria-label="Target unlock berikutnya">
+              {(()=>{const goal=getNextCharacterGoal(playerProfile);return goal
+                ? `Target berikutnya: ${CHARACTER_BY_ID[goal.characterId].name} · Lv.${goal.minLevel} · ${goal.xpRemaining} XP lagi`
+                : 'Semua karakter telah terbuka';})()}
+            </div>}
           </section>
         )}
 
@@ -7538,7 +7556,7 @@ export function BentenganPrototype() {
                 <li>
                   <b>Ultimate Raja, Kaka, Bebe dan Ciici.</b> Raja mempercepat rekan aktif;
                   Kaka membuat seluruh tim kebal tag selama 5 detik.
-                  Bebe/Ciici terbang 4 detik untuk berpindah posisi: kebal tag dan melewati rintangan rendah, tetapi tidak bisa tag, rescue, pickup atau merebut benteng. Takeoff/landing tetap rentan tag.
+                  Bebe/Ciici kebal tag sejak takeoff, selama terbang, hingga landing selesai. Selama ultimate ini mereka tidak bisa tag, rescue, pickup atau merebut benteng. Hanya tahap terbang yang melewati rintangan rendah; durasi mengikuti level upgrade.
                 </li>
               </ol>
               <p>
@@ -7557,9 +7575,19 @@ export function BentenganPrototype() {
             />
           </Suspense>
         )}
-        {multiplayerOpen&&<Suspense fallback={<output>Memuat panel multiplayer…</output>}><MultiplayerPanel
+        {multiplayerOpen&&playerProfile&&<Suspense fallback={<output>Memuat panel multiplayer…</output>}><MultiplayerPanel
+          initialName={playerProfile?.username}
           arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
-          prepareContent={id=>createContentIdentity(id,{field:FIELD_BY_ID[id as FieldId],studio:studioMapById[id]??null})}
+          prepareContent={async id=>{
+            const field=FIELD_BY_ID[id as FieldId],map=runtimeStudioMapById[id];
+            retainMapImages(map?[map]:[]);
+            const images=[...['objects.webp','animated.webp','grounds.webp'].map(getFieldImage),
+              ...(isKanalField(field.id)?[getFieldImage('kanal-object-atlas.webp')]:[]),
+              ...(field.background?[getFieldImage(field.background)]:[]),...(field.waterMask?[getFieldImage(field.waterMask)]:[]),
+              ...(map?mapImages(map):[])];
+            await Promise.all(images.map(image=>imageReady(image)));
+            return createContentIdentity(id,{field,studio:map??null});
+          }}
           onLaunch={session=>{const state=session.read(),local=state.lobby!.participants.find(p=>p.peerId===state.localPeerId)!;
             keys.current.clear();setSelectedFaction(local.team);setSelectedIdState(local.characterId);setSelectedFieldIdState(session.content.arenaId as FieldId);
             setNetworkSession(session);setMultiplayerOpen(false);setSnapshot(initialSnapshot);setMode('playing');}}
@@ -7568,7 +7596,8 @@ export function BentenganPrototype() {
     );
   }
   return (
-    <main className="game-shell playing-shell">
+    <main className={`game-shell playing-shell ${hudPreferences.contrast?'hud-high-contrast':''}`}
+      style={{'--hud-text-scale':hudPreferences.scale} as CSSProperties}>
       {contentGateError && <div className="content-gate-notice" role="alert">
         {contentGateError}<button onClick={() => setContentGateError('')} aria-label="Tutup pesan">×</button>
       </div>}
@@ -7586,6 +7615,7 @@ export function BentenganPrototype() {
           </span>
         </div>
         <div className="top-actions">
+          <HudSettings value={hudPreferences} onChange={setHudPreferences} onOpen={()=>keys.current.clear()}/>
           {playerProfile && (
             <button
               className="icon-button profile-match-trigger"
@@ -7631,6 +7661,11 @@ export function BentenganPrototype() {
             ref={canvasRef}
             aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`}
           />
+          <div className="orientation-hint">Putar perangkat untuk arena yang lebih luas. Kontrol tetap tersedia di bawah.</div>
+          {!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
+            tagged={snapshot.mission.tag} rescued={snapshot.mission.rescue}
+            captured={snapshot.statsBoard.reason==='BENTENG DIREBUT'&&snapshot.statsBoard.winner===(selectedFaction==='red'?'blue':'red')}
+            state={snapshot.state}/>}
           {rendererError && <div className="renderer-error" role="alert">
             <strong>MAP 3D TIDAK TERSEDIA</strong>
             <p>{rendererError}</p>

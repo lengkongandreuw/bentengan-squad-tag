@@ -24,6 +24,7 @@ export interface MapObject {
   visible: boolean;
   locked: boolean;
   mirror: boolean;
+  nativeCollision?: true | 'rect' | 'bands';
 }
 export interface StudioMap {
   id: `studio-${string}`;
@@ -35,6 +36,8 @@ export interface StudioMap {
   archived?: boolean;
   deleted?: boolean;
   replaces?: string;
+  arenaRules?: 'kanal2';
+  rulesVersion?: 1;
   waterMask?: { width: number; height: number; rows: number[][] };
   terrain: MapAsset | null;
   icon: MapAsset | null;
@@ -69,6 +72,8 @@ export function solidAt(
   jumping?: boolean,
 ): boolean;
 export function speedAt(m: StudioMap, x: number, y: number): number;
+export function flightSolidAt(m: StudioMap, x: number, y: number, r?: number): boolean;
+export function collisionRects(o:MapObject): {x:number;y:number;w:number;h:number}[];
 export function frameAt(a: MapAsset, ms: number): MapAsset['frames'][number];
 export function mapIssues(
   m: StudioMap,

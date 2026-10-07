@@ -11,7 +11,8 @@ try{
   for(const page of [host,client]){page.on('pageerror',e=>errors.push(e.message));await page.goto(new URL('scripts/fixtures/multiplayer-smoke.html',base).href);}
   await host.getByLabel('Nama pemain',{exact:true}).fill('Host QA');await host.getByRole('button',{name:'HOST MATCH',exact:true}).click();
   await host.locator('code').waitFor();const code=await host.locator('code').textContent();
-  await client.getByLabel('Nama pemain',{exact:true}).fill('Client QA');await client.getByLabel('Kode room dari host',{exact:true}).fill(code);
+  await client.getByRole('button',{name:'Gabung room',exact:true}).click();
+  await client.getByLabel('Nama pemain',{exact:true}).fill('Client QA');await client.getByLabel('Kode atau link undangan dari host',{exact:true}).fill(code);
   await client.getByRole('button',{name:'JOIN MATCH',exact:true}).click();
   await client.getByText('Lobby terhubung',{exact:false}).waitFor({timeout:25000});await host.getByText('Client QA',{exact:true}).waitFor();
   await client.getByLabel('Tim',{exact:true}).selectOption('red');

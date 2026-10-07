@@ -34,8 +34,12 @@ try{
   }
   const host=pages[0];await host.getByRole('button',{name:'HOST MATCH',exact:true}).click();await host.locator('dialog code').waitFor();
   const code=await host.locator('dialog code').textContent();
+  const invitation=await host.getByLabel('Link undangan (arena otomatis)',{exact:true}).inputValue();
   for(let index=1;index<humans;index++){
-    const page=pages[index];await page.getByLabel('Kode room dari host',{exact:true}).fill(code);await page.getByRole('button',{name:'JOIN MATCH',exact:true}).click();
+    const page=pages[index];await page.getByRole('button',{name:'Gabung room',exact:true}).click();
+    await page.getByLabel('Kode atau link undangan dari host',{exact:true}).fill(process.env.BENTENG_INVITE_CODE_ONLY==='1'?code:invitation);
+    if(process.env.BENTENG_INVITE_CODE_ONLY!=='1'&&!await page.getByLabel('Arena multiplayer',{exact:true}).isDisabled())throw Error('Invite did not select/lock host arena');
+    await page.getByRole('button',{name:'JOIN MATCH',exact:true}).click();
     await page.getByText('Lobby terhubung',{exact:false}).waitFor({timeout:25000});
     await page.getByLabel('Tim',{exact:true}).selectOption(index%2?'green':'red');
     await page.getByLabel('Karakter',{exact:true}).selectOption(characters[index]);

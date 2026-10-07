@@ -22,7 +22,20 @@
         ],
         "fps": 12
       },
-      "icon": null,
+      "icon": {
+        "asset": "map-studio/cb52f8609a32507c106a3628198fb1d2991363819148c3086c28b55b3e8bc1fb.webp",
+        "width": 648,
+        "height": 368,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 648,
+            "height": 368
+          }
+        ],
+        "fps": 12
+      },
       "terrainMode": "stretch",
       "tileSize": 256,
       "objects": [
@@ -12336,12 +12349,12 @@
             "fps": 12
           },
           "x": 465,
-          "y": 405,
+          "y": 403.23986091236077,
           "w": 1004,
           "h": 302,
           "rotation": 0,
           "opacity": 0.99,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
           "behavior": "decoration",
           "slow": 0.5,

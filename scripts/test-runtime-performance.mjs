@@ -1,4 +1,6 @@
 import {test} from 'node:test';
+import ts from 'typescript';
+import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {performance} from 'node:perf_hooks';
@@ -37,7 +39,14 @@ test('offscreen culling preserves rotated extents and objects reappearing at vie
 });
 test('runtime checks contact range before expensive LOS; original quality settings retained',()=>{
   const code=readFileSync('app/prototype.tsx','utf8'),section=code.slice(code.indexOf('const tagCheck ='),code.indexOf('const rescueCheck ='));
-  assert.ok(section.indexOf('contactDistance > Math.max')<section.indexOf('hasLineOfSight(a,b)'));
+  assert.ok(section.includes('tagContacts(players,now,interactionRules)'));
+  const core=readFileSync('lib/game-core/interactions.ts','utf8');
+  const exports={},context={exports,tagEligible:()=>true,distance:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),sweptContactDistance:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)};
+  vm.runInNewContext(ts.transpileModule(core.slice(core.indexOf('export function tagContacts('),core.indexOf('export function resolveTag(')),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,context);
+  let lineTests=0;const rules={tagRange:()=>20,lineOfSight:()=>{lineTests++;return true;}};
+  const actors=[{id:'a',x:0,y:0,exitOrder:2},{id:'b',x:1000,y:0,exitOrder:1}];
+  assert.equal(exports.tagContacts(actors,0,rules).length,0);assert.equal(lineTests,0);
+  actors[1].x=10;assert.equal(exports.tagContacts(actors,0,rules).length,1);assert.equal(lineTests,1);
   assert.ok(code.includes("imageSmoothingQuality = 'high'"));
   assert.ok(code.includes('studioLayers.world.filter(objectVisible)'));
   assert.ok(code.includes('createMapQueries(studioMap)'));

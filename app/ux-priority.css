@@ -1,0 +1,139 @@
+/* P0/P1 layout layer: all surfaces share the real viewport, never CSS rotation. */
+.multiplayer-open { display:block; width:clamp(220px,24vw,320px); max-width:70vw; margin:8px auto 0; padding:0; border:0; background:transparent; cursor:pointer; transition:transform .15s ease,filter .15s ease; }
+.multiplayer-open img { display:block; width:100%; height:auto; }
+.multiplayer-open:hover { transform:scale(1.04); filter:drop-shadow(0 0 9px #ffa72688); }
+.multiplayer-open:focus-visible { outline:3px solid #fff16a; outline-offset:5px; border-radius:10px; }
+.multiplayer-open:active { transform:scale(.98); }
+@media (max-height:500px) { .multiplayer-open { width:200px; margin-top:2px; } }
+@media (prefers-reduced-motion:reduce) { .multiplayer-open { transition:none; } }
+.pregame-shell,.playing-shell { height:100dvh;min-height:0; }
+.pregame-actions { pointer-events:none; }
+.pregame-actions > * { pointer-events:auto; }
+.playing-shell { --hud-text-scale:1; }
+.rules-overlay { position:fixed;inset:0;padding:12px;z-index:1000; }
+.rules-dialog { max-height:calc(100dvh - 24px);overflow:auto;clip-path:none;padding-top:56px; }
+.rules-close { position:sticky;display:block;z-index:2;width:44px;height:44px;top:0;right:auto;margin:-44px -10px 0 auto;background:#171717;color:#fff;border-radius:6px; }
+.player-profile-overlay { max-height:100dvh;overflow:auto; }
+.audio-settings-art-panel { position:fixed;inset:0;max-height:calc(100dvh - 24px); }
+.character-next-goal { position:absolute;bottom:20px;left:4%;max-width:44%;padding:8px 12px;border:1px solid #fff5;background:#101612e8;font-size:12px;z-index:10; }
+.selection-economy { bottom:18px; }
+.pregame-shell .selection-economy button { background:#17211c;color:#fff;border:1px solid #aaa; }
+.framed-character-panel .character-panel-select { bottom:-76px;z-index:15;min-height:52px;color:#101710;background:#d9fa4a;border:2px solid #fff;width:225px; }
+.playing-shell .camera-map { width:260px; }
+.playing-shell .camera-map button { font-size:calc(12px * var(--hud-text-scale))!important;min-height:36px; }
+.playing-shell .camera-map > span { font-size:calc(12px * var(--hud-text-scale)); }
+.playing-shell .dock-status span { font-size:calc(11px * var(--hud-text-scale))!important; }
+.playing-shell .action-dock button { font-size:calc(12px * var(--hud-text-scale));min-height:44px; }
+.playing-shell .stage-hud b { font-size:calc(13px * var(--hud-text-scale)); }
+.playing-shell .stage-hud { min-width:500px;width:min(44vw,650px);z-index:121; }
+.playing-shell .stage-hud > div { flex:1;width:auto;min-width:0;padding:6px 12px; }
+.playing-shell .stage-hud :is(b,span,time,small) { color:#fff; }
+.playing-shell .stage-hud b small,.playing-shell .stage-hud time small { font-size:calc(11px * var(--hud-text-scale)); }
+.playing-shell .action-dock:not(.context-hidden) { width:min(540px,calc(100% - 580px)); }
+.playing-shell .action-dock .dock-status { display:grid;grid-template-columns:repeat(4,minmax(0,1fr)); }
+.playing-shell .action-dock .dock-status span { white-space:normal;overflow-wrap:anywhere;text-align:center;padding:3px;line-height:1.2; }
+.playing-shell .action-dock:not(.context-hidden) { padding-top:48px; }
+.playing-shell .action-dock > :is(span,button) { display:grid;place-items:center;gap:2px;flex:1;width:auto;min-width:56px;height:70px;padding:4px; }
+.playing-shell .action-dock :is(b,small) { position:static;font-size:calc(10px * var(--hud-text-scale));line-height:1.1;text-align:center; }
+.character-mobile-summary { display:none; }
+.hud-settings-dialog { position:fixed;inset:0;margin:auto;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:20px;border:2px solid #c4eb67;border-radius:12px;background:#111e17;color:#fff;font:15px/1.5 Arial; }
+.hud-settings-dialog::backdrop { background:#000c; }
+.hud-settings-dialog header { display:flex;align-items:center;justify-content:space-between;gap:16px; }
+.hud-settings-dialog h2 { margin:0;font-size:20px; }
+.hud-settings-dialog label { display:block;margin:18px 0; }
+.hud-settings-dialog input[type=range] { display:block;width:100%;margin-top:14px;min-height:44px; }
+.hud-settings-dialog button { min-height:44px;padding:8px 14px;border:1px solid #9cae98;border-radius:6px;background:#243d2c;color:#fff; }
+.gameplay-guidance { position:absolute;top:112px;left:18px;z-index:22;width:min(320px,calc(100% - 36px));padding:10px 12px;color:#fff;background:#08100eea;border:1px solid #74816e;border-radius:10px;font:calc(13px * var(--hud-text-scale))/1.4 Arial; }
+.gameplay-guidance header { display:flex;justify-content:space-between;align-items:center;gap:12px; }
+.gameplay-guidance p { margin:6px 0;font:inherit; }
+.gameplay-guidance button { background:#162b20;color:#fff;min-height:32px;padding:4px 8px;border:1px solid #71866e;border-radius:5px;font:inherit;cursor:pointer; }
+.gameplay-guidance nav { display:flex;gap:4px;flex-wrap:wrap; }
+.gameplay-guidance button[aria-current] { background:#d9fa4a;color:#101710; }
+.gameplay-guidance small { display:block;margin-top:6px;font-size:11px; }
+.orientation-hint { display:none; }
+.framed-character-panel .character-panel-stats { gap:0; }
+.hud-high-contrast :is(.stage-hud,.camera-map,.gameplay-guidance,.action-dock,.prisoner-notice) { background:#050b08!important;border:2px solid #fff!important;color:#fff; }
+.hud-high-contrast .stage-hud :is(b,span,time,small),.hud-high-contrast .camera-map > span { color:#fff; }
+button:focus-visible { outline:3px solid #ffe477;outline-offset:3px; }
+@media (max-width:1024px) {
+  .pregame-shell .profile-trigger { top:auto;bottom:12px;left:12px;right:auto; }
+  .touch-actions button { font-size:12px;padding:0; }
+  .playing-shell .brand-lockup { display:none; }
+  .playing-shell .game-topbar { height:56px;padding:4px 8px; }
+  .playing-shell .top-actions { top:4px;right:8px;gap:4px; }
+  .playing-shell .icon-button { width:44px;height:44px; }
+  .playing-shell .stage-hud { left:8px;transform:none;min-width:0;width:350px;height:56px;padding:0 8px;clip-path:none; }
+  .playing-shell .stage-hud > div { width:auto;flex:1;padding:3px 6px;gap:5px; }
+  .playing-shell .stage-hud span { font-size:24px; }
+  .playing-shell .stage-hud b { font-size:calc(11px * var(--hud-text-scale));line-height:1.2;white-space:nowrap; }
+  .playing-shell .stage-hud b small,.playing-shell .stage-hud time small { font-size:calc(10px * var(--hud-text-scale));margin-top:2px;line-height:1.1; }
+  .playing-shell .stage-hud time { min-width:64px;font-size:calc(18px * var(--hud-text-scale));line-height:1.1;padding:3px 6px; }
+  .playing-shell .camera-map { top:64px!important;bottom:auto;left:auto;right:8px!important;width:240px;padding:4px!important; }
+  .playing-shell .camera-map > span { display:none; }
+  .playing-shell .camera-map button { min-height:36px; }
+  .playing-shell .active-objective { top:110px;right:8px;width:44px;height:44px; }
+  .playing-shell .arena-intel:not(.dock-status) { display:none; }
+  .playing-shell .mobile-controls { bottom:max(12px,env(safe-area-inset-bottom)); }
+  .gameplay-guidance { top:64px;left:8px;width:min(320px,calc(100% - 280px));font-size:12px; }
+  .gameplay-guidance.collapsed { width:auto;max-width:calc(100% - 280px);padding:4px; }
+  .gameplay-guidance button { min-height:36px; }
+  .playing-shell .prisoner-notice { bottom:120px;max-width:calc(100% - 24px); }
+}
+@media (max-height:620px) and (orientation:landscape) {
+  .audio-settings-art-panel { width:min(94vw,calc((100dvh - 36px) * 1.4),700px); }
+  .audio-settings-art-header h1 { font-size:24px; }
+  .pregame-shell .graffiti-back { width:64px;height:64px;top:8px;left:8px; }
+  .pregame-actions { top:8px;bottom:auto;right:8px;gap:8px; }
+  .roster-stage { top:68px;bottom:65px;left:2%;height:auto;width:46%; }
+  .pregame-shell .framed-character-panel { top:24%;right:2%;width:52%;bottom:auto; }
+  .carousel-character:not(.selected) .character-lock-badge { display:none; }
+  .framed-character-panel .character-panel-skill b { font-size:16px; }
+  .framed-character-panel .character-panel-skill p { font-size:11px; }
+  .framed-character-panel .character-panel-stat-label { font-size:10px; }
+  .framed-character-panel .character-panel-select { position:fixed;right:18px;bottom:70px;width:220px;min-height:48px;height:48px; }
+  .selection-economy { right:18px;bottom:12px;max-width:55%; }
+  .selection-economy button { font-size:12px; }
+  .character-next-goal { bottom:12px;left:12px;max-width:42%;font-size:11px;padding:6px; }
+  .map-selection-start { bottom:12px;height:52px;width:280px; }
+  .playing-shell .camera-map { width:240px; }
+  .gameplay-guidance { max-width:340px; }
+}
+@media (max-width:620px) and (orientation:portrait) {
+  .pregame-shell .graffiti-back { top:8px;left:8px;width:60px;height:60px; }
+  .pregame-actions { top:12px;bottom:auto;right:8px;gap:6px; }
+  .pregame-actions .sound-trigger { width:44px; }
+  .pregame-actions .audio-settings.image-trigger summary { width:76px;min-height:44px; }
+  .pregame-actions .music-toggle { display:none; }
+  .splash-center { top:22%;bottom:auto;width:90%; }
+  .splash-logo { width:100%;max-height:42dvh;object-fit:contain; }
+  .pregame-actions .rules-button { min-width:90px;width:auto;height:44px;padding:6px;font-size:12px; }
+  .roster-stage { top:105px;bottom:auto;left:0;width:100%;height:38%; }
+  .pregame-shell .framed-character-panel { top:50%;right:2%;width:96%;bottom:auto; }
+  .framed-character-panel .character-panel-skill { top:35%; }
+  .framed-character-panel .character-panel-skill b { font-size:14px; }
+  .framed-character-panel .character-panel-skill p { font-size:10px; }
+  .framed-character-panel .character-panel-stat-label { font-size:9px; }
+  .framed-character-panel .character-panel-select { position:fixed;right:12px;bottom:80px;width:230px;height:52px; }
+  .selection-economy { right:12px;bottom:18px;max-width:calc(100% - 24px); }
+  .character-next-goal { top:auto;bottom:144px;left:12px;max-width:calc(100% - 24px);font-size:12px; }
+  .character-mobile-summary { display:block;position:absolute;z-index:10;left:12px;right:12px;bottom:192px;padding:8px 10px;background:#101612ed;border:1px solid #fff5;font-size:12px;line-height:1.4; }
+  .character-mobile-summary p { font:inherit;margin:0 0 4px; }
+  .framed-character-panel .character-panel-skill p,.framed-character-panel .character-panel-stat-label { display:none; }
+  .carousel-character:not(.selected) .character-lock-badge { display:none; }
+  .map-selection-main { top:60px;height:50%;aspect-ratio:auto; }
+  .map-selection-info { top:55%;width:100%;right:0; }
+  .map-selection-info .map-selection-details p { font-size:12px; }
+  .map-selection-stage > .map-selection-nav { top:34%;width:44px;height:80px; }
+  .map-selection-start { width:80%;bottom:24px;height:56px; }
+  .playing-shell .stage-hud { top:56px;left:8px;width:calc(100% - 16px); }
+  .playing-shell .top-actions { width:calc(100% - 16px);justify-content:flex-end; }
+  .playing-shell .camera-map { top:120px!important;right:8px!important;width:240px; }
+  .playing-shell .active-objective { top:120px;left:8px;right:auto; }
+  .orientation-hint { position:absolute;top:168px;left:8px;right:8px;display:block;padding:6px;background:#0b1610ed;color:#fff;font-size:12px;z-index:22;text-align:center; }
+  .gameplay-guidance,.gameplay-guidance.collapsed { top:215px;left:8px;width:calc(100% - 16px);max-width:none;font-size:13px; }
+  .playing-shell .mission-panel { top:56px;bottom:120px; }
+  .touch-dpad { grid-template-columns:repeat(3,44px);gap:3px; }
+  .touch-dpad button { min-width:44px; }
+  .touch-actions { grid-template-columns:56px 64px;gap:4px; }
+  .touch-actions .touch-boost { width:64px; }
+}

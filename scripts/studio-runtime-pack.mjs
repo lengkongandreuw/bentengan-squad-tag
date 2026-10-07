@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import {createHash} from 'node:crypto';
 
 export const frameKey = f => `${f.x},${f.y},${f.width},${f.height}`;
 
@@ -36,19 +37,33 @@ export function packRects(items, limit=4096) {
 export async function optimizeAtlas(input, frames) {
   const {data,info}=await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject:true});
   const unique=[...new Map(frames.map(f=>[frameKey(f),f])).values()];
-  const items=unique.map(f=>({key:frameKey(f),frame:f,...trimFrame(data,info.width,f)}))
-    .sort((a,b)=>b.height-a.height||b.width-a.width||a.key.localeCompare(b.key));
+  const aliases=[],contents=new Map();
+  for(const f of unique){
+    const item={key:frameKey(f),frame:f,...trimFrame(data,info.width,f)};
+    const pixels=Buffer.alloc(item.width*item.height*4);
+    for(let y=0;y<item.height;y++){
+      const start=((f.y+item.top+y)*info.width+f.x+item.left)*4;
+      data.copy(pixels,y*item.width*4,start,start+item.width*4);
+    }
+    // RGB of fully transparent pixels is not visible; canonicalize it so
+    // identical poses with different transparent padding share texture storage.
+    for(let i=0;i<pixels.length;i+=4)if(!pixels[i+3])pixels.fill(0,i,i+3);
+    const key=`${item.width},${item.height}:`+createHash('sha256').update(pixels).digest('hex');
+    let canonical=contents.get(key);
+    if(!canonical){canonical={...item,pixels};contents.set(key,canonical);}
+    aliases.push({item,canonical});
+  }
+  const items=[...contents.values()].sort((a,b)=>b.height-a.height||b.width-a.width||a.key.localeCompare(b.key));
   const packed=packRects(items);
   if(!packed||packed.width*packed.height>=info.width*info.height)return null;
   const pixels=Buffer.alloc(packed.width*packed.height*4),mapping={};
   for(let i=0;i<items.length;i++) {
     const item=items[i],position=packed.placements[i];
-    for(let y=0;y<item.height;y++) {
-      const start=((item.frame.y+item.top+y)*info.width+item.frame.x+item.left)*4;
-      data.copy(pixels,((position.y+y)*packed.width+position.x)*4,start,start+item.width*4);
-    }
-    mapping[item.key]={...position,width:item.width,height:item.height,left:item.left,top:item.top};
+    for(let y=0;y<item.height;y++)item.pixels.copy(pixels,((position.y+y)*packed.width+position.x)*4,y*item.width*4,(y+1)*item.width*4);
+    item.position=position;
   }
+  aliases.sort((a,b)=>b.item.height-a.item.height||b.item.width-a.item.width||a.item.key.localeCompare(b.item.key));
+  for(const {item,canonical}of aliases)mapping[item.key]={...canonical.position,width:item.width,height:item.height,left:item.left,top:item.top};
   // Lossless encoding retains visible source pixels (source WebP is never rewritten).
   const output=await sharp(pixels,{raw:{width:packed.width,height:packed.height,channels:4}}).webp({lossless:true,effort:4}).toBuffer();
   return {output,width:packed.width,height:packed.height,sourceWidth:info.width,sourceHeight:info.height,frames:mapping};

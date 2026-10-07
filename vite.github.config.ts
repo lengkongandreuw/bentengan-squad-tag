@@ -21,7 +21,7 @@ function treeHash(roots:string[],sourceOnly=false) {
   for(const file of files.sort())hash.update(relative(process.cwd(),file).replaceAll('\\','/')).update('\0').update(readFileSync(file)).update('\0');
   return hash.digest('hex');
 }
-const contentManifest={buildVersion:treeHash(['app','lib','config'],true),mapAssetsRevision:treeHash(['public/field','public/map-studio'])};
+const contentManifest={buildVersion:treeHash(['app','lib','config'],true),mapAssetsRevision:treeHash(['public/field','public/map-studio','public/map-runtime'])};
 
 const githubPagesCacheCompatibility: Plugin = {
   name: 'github-pages-cache-compatibility',

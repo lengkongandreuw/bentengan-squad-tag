@@ -1,4 +1,5 @@
 import { validateCatalog } from '/catalog.mjs';
+import {mapVersions} from '/map-versions.mjs';
 import {
   closestEdge,
   polygonBounds,
@@ -33,6 +34,8 @@ let state,
   library = [],
   selected = '',
   dirty = false,
+  inspectOnly = false,
+  choiceValue = '',
   history = [],
   future = [],
   drag = null,
@@ -86,6 +89,7 @@ async function api(route, data) {
   return v;
 }
 function remember() {
+  if(inspectOnly)throw new Error('Preview hanya baca. Klik Buka draft editor terlebih dahulu.');
   history.push(structuredClone(map));
   if (history.length > 40) history.shift();
   future = [];
@@ -94,10 +98,19 @@ function remember() {
 }
 function publishSummary() {
   if (!map) return;
-  $('saveState').textContent = dirty ? '● Belum disimpan' : '✓ Tersimpan lokal';
+  if(choiceValue==='builtin:kampung3d'){
+    $('versionBadge').textContent='MAP 3D · PENGELOLAAN DAFTAR SAJA';
+    $('versionDetails').textContent=`Sumber: kampung3d · Revisi dokumen ${state.revision.slice(0,8)}`;
+    $('saveState').textContent='Tidak ada editor visual 3D';
+    $('activationState').textContent='Canvas sebelumnya bukan preview map 3D.';return;
+  }
+  const current=mapVersions(state.document,builtins,builtinTemplates,true).find(e=>e.value===choiceValue);
+  $('versionBadge').textContent=inspectOnly ? (current?.active?'AKTIF LOKAL · PREVIEW HANYA BACA':'VERSI ASLI · PREVIEW HANYA BACA') : dirty?'EDIT · PERUBAHAN BELUM DISIMPAN':map.archived?'ARSIP':map.deleted?'SAMPAH':map.enabled?'VERSI EDITOR · AKTIF LOKAL':'DRAFT EDITOR · NONAKTIF';
+  $('versionDetails').textContent=`Sumber: ${current?.kind==='native'?map.replaces:map.id} · Revisi dokumen ${state.revision.slice(0,8)}${dirty?' · perubahan belum disimpan':''}`;
+  $('saveState').textContent = inspectOnly ? 'Preview hanya baca · tidak mengubah draft' : dirty ? '● Belum disimpan' : '✓ Tersimpan lokal';
   $('saveState').className = dirty ? 'warning' : '';
   $('activationState').textContent =
-    map.enabled && !map.archived && !map.deleted
+    inspectOnly ? 'Status aktif mengikuti konfigurasi lokal, bukan verifikasi deployment GitHub Pages.' : dirty ? 'Perubahan/aktivasi belum disimpan. Simpan terlebih dahulu; Build/publish diperlukan untuk deployment.' : map.enabled && !map.archived && !map.deleted
       ? 'Aktif: versi ini akan tampil setelah deployment selesai.'
       : 'DRAFT NONAKTIF: perubahan ini tidak akan tampil di game. Centang Aktifkan, lalu Simpan.';
 }
@@ -259,7 +272,7 @@ function blank() {
     },
   };
 }
-function open(m) {
+function open(m, options = {}) {
   if (loading) {
     notice('Tunggu upload selesai.', true);
     return;
@@ -272,6 +285,8 @@ function open(m) {
     return;
   }
   map = structuredClone(m);
+  inspectOnly=!!options.readOnly;
+  choiceValue=options.value??m.id;
   $('save').disabled = false;
   $('test').disabled = false;
   $('duplicateMap').disabled = false;
@@ -279,8 +294,9 @@ function open(m) {
   document.querySelector('main > aside:last-child').inert = false;
   for (const id of ['mapName', 'description', 'width', 'height', 'enabled'])
     $(id).disabled = false;
-  dirty = !state.document.maps.some((v) => v.id === m.id);
+  dirty = !inspectOnly && !state.document.maps.some((v) => v.id === m.id);
   selected = '';
+  drag=null;pointsMode=false;selectedNode=-1;
   history = [];
   future = [];
   testing = false;
@@ -294,9 +310,23 @@ function open(m) {
   check();
   notice('Siap. Map asli tetap utuh.');
   mapChoices();
+  applyViewMode();
+}
+function applyViewMode() {
+  const allowed=new Set(['maps','showArchived','new','clone','duplicateMap','editVersion','zoom','fit','grid','bounds','cleanPreview','structures','validate']);
+  for(const el of document.querySelectorAll('main > aside:first-child input,main > aside:first-child textarea,main > aside:first-child select,main > aside:first-child button'))
+    if(!allowed.has(el.id))el.disabled=inspectOnly;
+  document.querySelector('main > aside:last-child').inert=inspectOnly;
+  const assets=document.querySelectorAll('main > aside:first-child section')[1];
+  if(assets)assets.inert=inspectOnly;
+  for(const id of ['save','undo','redo','test','polygon','solidArea'])$(id).disabled=inspectOnly;
+  $('resetMap').disabled=inspectOnly||!map.replaces;
+  $('editVersion').hidden=!inspectOnly;
+  const saved=state.document.maps.find(m=>m.id===map.id || map.replaces&&m.replaces===map.replaces);
+  $('editVersion').textContent=saved?'Buka versi editor tersimpan':'Buat draft dari versi ini';
 }
 function add(asset, name = 'Area baru') {
-  if (testing) return;
+  if (testing || inspectOnly) return;
   remember();
   const f = asset?.frames[0],
     w = f ? Math.min(240, f.width) : 160,
@@ -548,11 +578,11 @@ function drawDummy(now) {
 }
 function drawGameplayAssets(now, overlay = false) {
   if (!$('structures').checked) return;
-  const native = builtins.find(b => b.id === map.replaces);
+  const native = builtins.find(b => b.id === (map.replaces ?? map.arenaRules));
   // Authored Taman/Kanal backgrounds already contain the native structures.
   // Do not paint unrelated generic structures over the same pixels.
   if (native?.structuresInBackground && map.terrain?.asset === 'field/' + native.background) return;
-  const scale = builtins.find((b) => b.id === map.replaces)?.objectScale ?? 1;
+  const scale = native?.objectScale ?? 1;
   for (const t of ['blue', 'red']) {
     const b = map.bases[t],
       p = map.prisons[t];
@@ -572,7 +602,7 @@ function drawGameplayAssets(now, overlay = false) {
     if (t === 'red') ctx.scale(-1, 1);
     drawAsset(
       ctx,
-      clip(overlay ? 'prisonOverlay' : 'prisonFloor'),
+      clip(overlay ? native?.prisons?.[t]?.overlayAsset ?? 'prisonOverlay' : native?.prisons?.[t]?.floorAsset ?? 'prisonFloor'),
       0,
       0,
       p.w,
@@ -684,6 +714,7 @@ function animate(now) {
   drawAsset(ic, artwork, 0, 0, ic.canvas.width, ic.canvas.height, now);
 }
 canvas.onpointerdown = (e) => {
+  if(inspectOnly)return;
   canvas.focus();
   const p = position(e);
   if (drawing) {
@@ -791,6 +822,7 @@ canvas.onpointerdown = (e) => {
   }
 };
 canvas.onpointermove = (e) => {
+  if(inspectOnly)return;
   if (drawing) {
     pointer = position(e);
     return;
@@ -841,6 +873,7 @@ canvas.onpointerup = canvas.onpointercancel = () => {
   drag = null;
 };
 canvas.ondblclick = (e) => {
+  if(inspectOnly)return;
   const o = object();
   if (
     !o ||
@@ -859,6 +892,7 @@ canvas.ondblclick = (e) => {
   nodeFields();
 };
 document.addEventListener('keydown', (e) => {
+  if(inspectOnly)return;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.key === 'Escape') {
     if (drawing) cancelDrawing();
@@ -1095,12 +1129,9 @@ $('duplicateMap').onclick = () => {
 };
 $('maps').onchange = () => {
   const value = $('maps').value;
-  if (value.startsWith('builtin:')) {
-    const id = value.slice(8),
-      saved = state.document.maps.find((m) => m.replaces === id),
-      source = builtinTemplates.find((m) => m.replaces === id);
-    if (source) open(saved ?? source);
-    else {
+  const entry=mapVersions(state.document,builtins,builtinTemplates,$('showArchived').checked).find(v=>v.value===value);
+  if(entry?.map){open(entry.map,{value,readOnly:entry.readOnly});return;}
+  if (value === 'builtin:kampung3d') {
       if (
         dirty &&
         !confirm('Tinggalkan draft yang belum disimpan untuk mengelola map 3D?')
@@ -1109,6 +1140,12 @@ $('maps').onchange = () => {
         return;
       }
       dirty = false;
+      choiceValue=value;inspectOnly=true;
+      $('editVersion').hidden=true;
+      $('versionBadge').textContent='MAP 3D · PENGELOLAAN DAFTAR SAJA';
+      $('versionDetails').textContent=`Sumber: kampung3d · Revisi dokumen ${state.revision.slice(0,8)}`;
+      for(const id of ['archiveMap','deleteMap','restoreMap'])$(id).disabled=false;
+      $('resetMap').disabled=true;
       $('save').disabled = true;
       $('test').disabled = true;
       $('duplicateMap').disabled = true;
@@ -1121,11 +1158,17 @@ $('maps').onchange = () => {
       notice(
         'Edit visual map 3D belum didukung. Anda bisa mengatur Arsip/Sampah dari tombol di kiri.',
       );
-    }
-  } else {
-    const m = state.document.maps.find((m) => m.id === value);
-    if (m) open(m);
+      publishSummary();
   }
+  else if(!entry)mapChoices();
+};
+$('editVersion').onclick = () => {
+  if(!inspectOnly)return;
+  const saved=state.document.maps.find(m=>m.id===map.id || map.replaces&&m.replaces===map.replaces);
+  if(saved){open(saved,{value:saved.id});return;}
+  const draft=structuredClone(map);draft.enabled=false;
+  open(draft,{value:draft.id});
+  notice('Draft baru di memori. Versi aktif tetap utuh; Simpan bila sudah siap.');
 };
 $('showArchived').onchange = mapChoices;
 async function manageMap(action) {
@@ -1145,17 +1188,18 @@ async function manageMap(action) {
     )
   )
     return;
-  const id = value.startsWith('builtin:') ? value.slice(8) : value,
+  if(inspectOnly && value!=='builtin:kampung3d')throw new Error('Buka versi editor sebelum mengelola arena.');
+  const id = value.startsWith('builtin:') ? value.slice(8) : map.replaces ?? map.id,
     r = await api('/api/manage', { id, action });
   state.document = r.document;
   state.revision = r.revision;
   dirty = false;
   $('showArchived').checked = true;
-  if (value.startsWith('builtin:')) {
+  if (builtins.some(b=>b.id===id)) {
     const m =
       r.document.maps.find((m) => m.replaces === id) ??
       builtinTemplates.find((m) => m.replaces === id);
-    if (m) open(m);
+    if (m) {const saved=r.document.maps.some(v=>v.id===m.id);open(m,{value:saved?m.id:'builtin:'+id,readOnly:!saved});}
   } else {
     const m = r.document.maps.find((m) => m.id === id);
     if (m) open(m);
@@ -1252,31 +1296,23 @@ $('validate').onclick = safe(() => {
 });
 function mapChoices() {
   $('maps').replaceChildren(new Option('Pilih map…', ''));
-  const show = $('showArchived').checked;
-  const status = (m) =>
-    m.deleted ? 'Sampah' : m.archived ? 'Arsip' : m.enabled ? 'Aktif' : 'Draft';
-  for (const b of builtins) {
-    const m = state.document.maps.find((m) => m.replaces === b.id),
-      s = state.document.builtinStates?.[b.id] ?? 'active',
-      hidden = s !== 'active';
-    if (!show && hidden) continue;
-    $('maps').add(
-      new Option(
-        `[Bawaan${m ? ' · versi editor' : ''}${hidden ? ' · ' + (s === 'deleted' ? 'Sampah' : 'Arsip') : ''}] ${m?.name ?? b.name}${b.editable ? '' : ' · 3D (daftar saja)'}`,
-        'builtin:' + b.id,
-      ),
-    );
+  const entries=mapVersions(state.document,builtins,builtinTemplates,$('showArchived').checked),groups=new Map();
+  const hiddenSelected=mapVersions(state.document,builtins,builtinTemplates,true).find(e=>e.value===choiceValue);
+  if(hiddenSelected&&!entries.some(e=>e.value===choiceValue))entries.push(hiddenSelected);
+  for(const title of ['Aktif di konfigurasi lokal','Draft / versi editor untuk diedit','Versi asli / arsip']){
+    const group=document.createElement('optgroup');group.label=title;groups.set(title,group);$('maps').append(group);
   }
-  for (const m of state.document.maps)
-    if (!m.replaces && (show || (!m.archived && !m.deleted)))
-      $('maps').add(new Option(`[${status(m)}] ${m.name}`, m.id));
-  $('maps').value = map.replaces ? 'builtin:' + map.replaces : map.id;
-  $('resetMap').disabled = !map.replaces;
-  $('mapOrigin').textContent = map.replaces
-    ? `Versi pengganti ${map.replaces}. Simpan draft lalu Aktifkan untuk mengganti di game; Pulihkan versi asli untuk membatalkan. ${map.archived ? 'ARSIP. ' : ''}${map.deleted ? 'SAMPAH. ' : ''}Bangunan pada gambar terrain bawaan tetap menyatu di latar; gunakan Preview bersih untuk melihatnya tanpa garis collider.`
-    : 'Map buatan editor. Arsip/Sampah tidak menghapus aset. Perubahan daftar berlaku setelah Build/publish.';
+  for(const e of entries)groups.get(e.group).append(new Option(e.label,e.value));
+  if(!inspectOnly&&!entries.some(e=>e.value===choiceValue))groups.get('Draft / versi editor untuk diedit').append(new Option('[Belum disimpan] '+map.name,choiceValue||map.id));
+  $('maps').value=choiceValue||map.id;
+  $('resetMap').disabled=inspectOnly||!map.replaces;
+  $('mapOrigin').textContent=inspectOnly
+    ? 'Preview hanya baca. Memilih versi ini tidak menghapus atau menimpa draft. Buka versi editor tersimpan untuk mengedit; tidak perlu Pulihkan versi asli.'
+    : `Anda mengedit ${map.replaces?'pengganti '+map.replaces:'map buatan editor'}. ${map.enabled?'Aktif pada konfigurasi lokal; Build/publish diperlukan untuk deployment.':'Draft nonaktif: game tetap memakai versi aktif yang terpisah.'} Arsip/Sampah tidak menghapus aset.`;
+  publishSummary();
 }
 $('save').onclick = safe(async () => {
+  if(inspectOnly)throw new Error('Preview hanya baca. Buka versi editor sebelum menyimpan.');
   if (loading) return;
   if (drawing)
     throw new Error('Klik Selesai poligon atau Batal sebelum menyimpan.');
@@ -1420,6 +1456,7 @@ async function job(publish) {
 $('build').onclick = safe(() => job(false));
 $('publish').onclick = safe(() => job(true));
 async function uploadFile(f, target) {
+  if(inspectOnly)throw new Error('Preview hanya baca. Buka versi editor sebelum upload.');
   if (loading || testing) throw new Error('Selesaikan upload/uji cepat dahulu.');
   if ($('maps').value === 'builtin:kampung3d')
     throw new Error('Pilih map 2D untuk upload/edit.');
@@ -1511,7 +1548,7 @@ $('search').oninput = renderLibrary;
 canvas.ondragover = (e) => e.preventDefault();
 canvas.ondrop = (e) => {
   e.preventDefault();
-  if (testing || loading) return;
+  if (testing || loading || inspectOnly) return;
   const i = library.find(
     (i) => i.name === e.dataTransfer.getData('application/map-studio-asset'),
   );
@@ -1532,7 +1569,8 @@ void safe(async () => {
   builtinTemplates = t.builtinTemplates;
   builtins = t.builtins;
   library = t.library;
-  map = state.document.maps.find((m) => !m.archived && !m.deleted) ?? blank();
+  const first=mapVersions(state.document,builtins,builtinTemplates).find(e=>e.active&&e.map);
+  map=structuredClone(first?.map??blank());inspectOnly=!!first;choiceValue=first?.value??map.id;
   fields();
   fit();
   mapChoices();
@@ -1540,6 +1578,7 @@ void safe(async () => {
   check();
   document.querySelector('main').inert = false;
   for (const b of document.querySelectorAll('nav button')) b.disabled = false;
+  applyViewMode();
   notice(
     'Map Studio siap · lokal. Mulai dengan Map kosong atau Salin Kampung.',
   );
