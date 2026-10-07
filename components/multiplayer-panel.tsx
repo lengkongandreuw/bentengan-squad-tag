@@ -5,6 +5,7 @@ import {botPreview,canStartLobby,teamCharacters} from '../lib/multiplayer/lobby'
 import type {CharacterId} from '../lib/characters';
 import {testContent,type ContentIdentity} from '../lib/multiplayer/content';
 import './multiplayer-panel.css';
+import {LoadingMedia,loadingMediaFor} from './loading-media';
 import {createInvite,parseInvite} from '../lib/multiplayer/invite';
 
 export function MultiplayerPanel({onClose,arenas,prepareContent,onLaunch,onEnded,initialName}:{onClose:()=>void;initialName?:string;
@@ -92,6 +93,7 @@ export function MultiplayerPanel({onClose,arenas,prepareContent,onLaunch,onEnded
         </>}
         <button type="button" onClick={leave}>KELUAR ROOM</button>
       </>}
+      {(busy||state?.phase==='connecting'||pendingReady!==null)&&loadingMediaFor('multiplayer-connection')&&<div className="connection-loading-media"><LoadingMedia slot="multiplayer-connection"/></div>}
       {(error||state?.error)&&<p role="alert" className="multiplayer-error">{error||state?.error}</p>}
     </dialog>
   </div>;

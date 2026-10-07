@@ -6,6 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "admin:loading": "node scripts/loading-admin/server.mjs",
+    "test:loading-admin": "node --test scripts/loading-admin/test.mjs",
     "test:multiplayer": "node --test scripts/test-multiplayer.mjs",
     "test:multiplayer-browser": "node scripts/test-multiplayer-browser.mjs",
     "test:multiplayer-gameplay-browser": "node scripts/test-multiplayer-gameplay-browser.mjs",

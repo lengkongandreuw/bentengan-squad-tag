@@ -77,6 +77,7 @@ import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steer
 import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
 import { GraphicsSettings } from '../components/graphics-settings';
+import { LoadingMedia, LoadingPanel, loadingUsesBuiltinProgress } from '../components/loading-media';
 import { graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -7034,8 +7035,9 @@ export function BentenganPrototype() {
       aria-busy={!loadError}
       aria-label={`Memuat aset ${loadProgress}%`}
     >
-      <ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />
-      {selectionLoading && (
+      <LoadingMedia slot={gameLoading?'match':`character-${selectedFaction??'red'}`} arenaId={selectedFieldId}
+        fallback={<ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />}/>
+      {selectionLoading && loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) && (
         <img
           className="team-loading-frame"
           src={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
@@ -7043,7 +7045,7 @@ export function BentenganPrototype() {
           aria-hidden="true"
         />
       )}
-      <section className={`asset-loading-card ${selectionLoading ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`} aria-busy={!loadError} aria-live="polite">
+      <section className={`asset-loading-card ${selectionLoading&&loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`} aria-busy={!loadError} aria-live="polite">
         <h1>{gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER'}</h1>
         <p>{loadError || 'Memuat aset… Tunggu sebentar.'}</p>
         <progress max={100} value={loadProgress} aria-label="Progres pemuatan aset" />
@@ -7578,14 +7580,14 @@ export function BentenganPrototype() {
         )}
         {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
         {playerProfile && profileOpen && (
-          <Suspense fallback={null}>
+          <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…"/>}>
             <PlayerProfilePanel
               profile={playerProfile}
               onClose={() => setProfileOpen(false)}
             />
           </Suspense>
         )}
-        {multiplayerOpen&&playerProfile&&<Suspense fallback={<output>Memuat panel multiplayer…</output>}><MultiplayerPanel
+        {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label="Memuat panel multiplayer…"/>}><MultiplayerPanel
           initialName={playerProfile?.username}
           arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
           prepareContent={async id=>{
@@ -8659,7 +8661,7 @@ export function BentenganPrototype() {
         </aside>
       </section>
       {playerProfile && profileOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…"/>}>
           <PlayerProfilePanel
             profile={playerProfile}
             onClose={() => setProfileOpen(false)}
