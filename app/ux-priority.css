@@ -8,6 +8,24 @@
 @media (prefers-reduced-motion:reduce) { .multiplayer-open { transition:none; } }
 .pregame-shell,.playing-shell { height:100dvh;min-height:0; }
 .pregame-actions { pointer-events:none; }
+.pregame-actions { max-width:calc(100% - 24px);flex-wrap:wrap;justify-content:flex-end; }
+.graphics-settings-trigger { min-height:44px;padding:10px 16px;border:2px solid #d4ef67;border-radius:8px;background:#13211e;color:#eaffaa;font-weight:900;cursor:pointer; }
+.graphics-settings-trigger:focus-visible,.graphics-settings-panel button:focus-visible,.graphics-settings-panel input:focus-visible { outline:3px solid #fff;outline-offset:3px; }
+.graphics-settings-panel { width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;margin:auto;padding:24px;border:2px solid #c9ed65;border-radius:16px;background:#14211c;color:#fff;font-size:15px;line-height:1.5; }
+.graphics-settings-panel::backdrop { background:#000b; }
+.graphics-settings-panel header { display:flex;align-items:center;justify-content:space-between;gap:12px; }
+.graphics-settings-panel h2 { margin:0;font-size:22px; }
+.graphics-settings-panel button { min-height:44px;padding:8px 14px;background:#ceeb68;color:#13211e;border:0;border-radius:6px;font-weight:800;cursor:pointer; }
+.graphics-settings-panel fieldset { margin:16px 0;padding:0;border:0; }
+.graphics-settings-panel legend { margin-bottom:8px;font-weight:800; }
+.graphics-settings-panel label { display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:14px;border:2px solid #ffffff45;border-radius:10px;cursor:pointer; }
+.graphics-settings-panel label.selected { border-color:#d4ef67;background:#d4ef6715; }
+.graphics-settings-panel input { accent-color:#d4ef67;width:20px;height:20px;flex-shrink:0; }
+.graphics-settings-panel small { display:block;color:#e4e8dc;font-size:13px; }
+.graphics-settings-panel footer,.pause-settings-row { display:flex;flex-wrap:wrap;gap:10px;margin-top:14px; }
+.pause-settings-row .audio-settings { position:static; }
+.pause-settings-row .audio-settings summary { min-height:44px;padding:10px 16px;border:2px solid #d4ef67;border-radius:8px;cursor:pointer; }
+@media(max-height:500px) { .graphics-settings-panel { padding:12px 20px; } .graphics-settings-panel label { padding:8px;margin-bottom:6px; } .pause-overlay > div { max-height:calc(100dvh - 24px);overflow:auto; } }
 .pregame-actions > * { pointer-events:auto; }
 .playing-shell { --hud-text-scale:1; }
 .rules-overlay { position:fixed;inset:0;padding:12px;z-index:1000; }

@@ -7291,158 +7291,23 @@
         ],
         "fps": 12
       },
-      "icon": null,
+      "icon": {
+        "asset": "map-studio/b833b6ceff9ef1043a61c3276118ec99ed2e9077af7a9b49fb737776776763ad.webp",
+        "width": 640,
+        "height": 360,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 640,
+            "height": 360
+          }
+        ],
+        "fps": 12
+      },
       "terrainMode": "stretch",
       "tileSize": 256,
       "objects": [
-        {
-          "id": "obj-collider-0",
-          "name": "Batas warung",
-          "asset": null,
-          "x": 275.04875071455785,
-          "y": 92.92677716511051,
-          "w": 185.68297893245057,
-          "h": 124.63415378477515,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-1",
-          "name": "Batas hall",
-          "asset": null,
-          "x": 1145,
-          "y": 182,
-          "w": 166,
-          "h": 41,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-2",
-          "name": "Batas guardPost",
-          "asset": null,
-          "x": 1204,
-          "y": 1035,
-          "w": 169,
-          "h": 41,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-3",
-          "name": "Batas marketStallB",
-          "asset": null,
-          "x": 824,
-          "y": 1059,
-          "w": 151,
-          "h": 38,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
         {
           "id": "obj-visual-4",
           "name": "parkBarrier",
@@ -9271,117 +9136,6 @@
           "mirror": true
         },
         {
-          "id": "obj-collider-26",
-          "name": "Batas snackCart",
-          "asset": null,
-          "x": 68.82925340605945,
-          "y": 146.09758330554496,
-          "w": 115.80488549209223,
-          "h": 64.1062758974082,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-27",
-          "name": "Batas foodCart",
-          "asset": null,
-          "x": 608,
-          "y": 1033,
-          "w": 59,
-          "h": 32,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-28",
-          "name": "Batas snackCart",
-          "asset": null,
-          "x": 1143,
-          "y": 1104,
-          "w": 56,
-          "h": 31,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
           "id": "obj-ab9ba9017c874245a7a9490a68f34739",
           "name": "Batas drain",
           "asset": null,
@@ -9460,7 +9214,7 @@
           "name": "Batas parkBarrier salinan",
           "asset": null,
           "x": 0,
-          "y": 836,
+          "y": 837,
           "w": 1769,
           "h": 423,
           "rotation": 0,
@@ -10040,8 +9794,8 @@
           "id": "obj-51047f34394e40d5a50c4b7fe9191b5e",
           "name": "Batas kampungmerdekacharger",
           "asset": null,
-          "x": 803.0967741935485,
-          "y": 449.77423292590714,
+          "x": 806.1620018336347,
+          "y": 443.64414596133287,
           "w": 202.38718537361376,
           "h": 202.38718537361376,
           "rotation": 0,
@@ -11090,6 +10844,441 @@
           "visible": true,
           "locked": false,
           "mirror": false
+        },
+        {
+          "id": "obj-7833d73e9b21453892af640b7c01ca07",
+          "name": "coffeeStall",
+          "asset": {
+            "asset": "field/objects.webp",
+            "width": 2048,
+            "height": 2176,
+            "frames": [
+              {
+                "x": 1450,
+                "y": 963,
+                "width": 207,
+                "height": 206
+              }
+            ],
+            "fps": 12
+          },
+          "x": 736.5557777141701,
+          "y": 986.7702552532331,
+          "w": 121.87349306303884,
+          "h": 121.28473222698551,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-589c3c8d78c2411b99cf5ffed0ff4add",
+          "name": "Batas coffeeStall",
+          "asset": null,
+          "x": 735.023058661099,
+          "y": 988.30265860722,
+          "w": 121.87349306303884,
+          "h": 121.28473222698551,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-64abbd48bbab4a859b52c503dee9abf4",
+          "name": "coffeeStall salinan",
+          "asset": {
+            "asset": "field/objects.webp",
+            "width": 2048,
+            "height": 2176,
+            "frames": [
+              {
+                "x": 1450,
+                "y": 963,
+                "width": 207,
+                "height": 206
+              }
+            ],
+            "fps": 12
+          },
+          "x": 856.1726242591593,
+          "y": 986.8468017578128,
+          "w": 121.87349306303884,
+          "h": 121.28473222698551,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-13e960da6d68440481c5b80b8e59dc2c",
+          "name": "Batas coffeeStall salinan",
+          "asset": null,
+          "x": 856.1726242591593,
+          "y": 986.8468017578128,
+          "w": 121.87349306303884,
+          "h": 121.28473222698551,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-2ea808ca433b4f73b3ca4545750e0c8f",
+          "name": "hall",
+          "asset": {
+            "asset": "field/objects.webp",
+            "width": 2048,
+            "height": 2176,
+            "frames": [
+              {
+                "x": 1603,
+                "y": 1221,
+                "width": 222,
+                "height": 198
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1091.241168844289,
+          "y": 935.5977888436154,
+          "w": 196.30660695043093,
+          "h": 175.08427106389786,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-a7662a5127204c3ca42be3dae06503f5",
+          "name": "Batas hall",
+          "asset": null,
+          "x": 1091.241168844289,
+          "y": 935.5977888436154,
+          "w": 196.30660695043093,
+          "h": 175.08427106389786,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-bacdf80ddc024077a785944ec251957e",
+          "name": "clothesline",
+          "asset": {
+            "asset": "field/objects.webp",
+            "width": 2048,
+            "height": 2176,
+            "frames": [
+              {
+                "x": 1427,
+                "y": 1432,
+                "width": 206,
+                "height": 170
+              }
+            ],
+            "fps": 12
+          },
+          "x": 340,
+          "y": 122,
+          "w": 68,
+          "h": 55,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-b049f94ee1f94771857e90181012d477",
+          "name": "Batas clothesline",
+          "asset": null,
+          "x": 337.5556724811422,
+          "y": 122.0115819470636,
+          "w": 68.76630691002163,
+          "h": 56.74889405195959,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-7d6a8a46e63a46968e1e612eb133f0db",
+          "name": "Batas clothesline salinan",
+          "asset": null,
+          "x": 406.59778884361526,
+          "y": 155.80471170359647,
+          "w": 68.76630691002163,
+          "h": 56.74889405195959,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-5c5513b0d93f45e5918549eb91d6865d",
+          "name": "clothesline salinan",
+          "asset": {
+            "asset": "field/objects.webp",
+            "width": 2048,
+            "height": 2176,
+            "frames": [
+              {
+                "x": 1427,
+                "y": 1432,
+                "width": 206,
+                "height": 170
+              }
+            ],
+            "fps": 12
+          },
+          "x": 406.5978414601293,
+          "y": 151.20694916823817,
+          "w": 68.76630691002163,
+          "h": 56.74889405195959,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
         }
       ],
       "bases": {
@@ -11124,7 +11313,7 @@
       "description": "Lorong pasar · jalur rapat · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 1923,
       "height": 1082,
-      "enabled": false,
+      "enabled": true,
       "terrain": {
         "asset": "field/pasar-map.webp",
         "width": 1923,
@@ -11549,93 +11738,6 @@
           "y": 248,
           "w": 31,
           "h": 47,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-visual-5",
-          "name": "map2Cart",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 356,
-                "y": 1936,
-                "width": 101,
-                "height": 99
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1208.5,
-          "y": 183,
-          "w": 95,
-          "h": 95,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-5",
-          "name": "Batas map2Cart",
-          "asset": null,
-          "x": 1218,
-          "y": 202,
-          "w": 76,
-          "h": 76,
           "rotation": 0,
           "opacity": 1,
           "layer": "world",
@@ -12147,154 +12249,6 @@
           "mirror": false
         },
         {
-          "id": "obj-collider-21",
-          "name": "Batas marketStallA",
-          "asset": null,
-          "x": 310,
-          "y": 879,
-          "w": 162,
-          "h": 36,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-22",
-          "name": "Batas marketStallB",
-          "asset": null,
-          "x": 887,
-          "y": 959,
-          "w": 158,
-          "h": 36,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-23",
-          "name": "Batas marketStallC",
-          "asset": null,
-          "x": 1423,
-          "y": 879,
-          "w": 162,
-          "h": 36,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
-          "id": "obj-collider-24",
-          "name": "Batas snackCart",
-          "asset": null,
-          "x": 639,
-          "y": 913,
-          "w": 59,
-          "h": 32,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "background",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-collider-25",
           "name": "Batas foodCart",
           "asset": null,
@@ -12380,6 +12334,56 @@
           "visible": true,
           "locked": false,
           "mirror": false
+        },
+        {
+          "id": "obj-258ce8f3a6214c35944ce419c850b70e",
+          "name": "map2Trash salinan",
+          "asset": {
+            "asset": "field/objects.webp",
+            "width": 2048,
+            "height": 2176,
+            "frames": [
+              {
+                "x": 870,
+                "y": 2043,
+                "width": 47,
+                "height": 65
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1229.9391905586672,
+          "y": 883.9622641509433,
+          "w": 54.966469818691166,
+          "h": 76.01745825989204,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
         }
       ],
       "bases": {
@@ -12400,8 +12404,8 @@
           "h": 198
         },
         "red": {
-          "x": 1367,
-          "y": 138,
+          "x": 1355,
+          "y": 756,
           "w": 279,
           "h": 203
         }
@@ -17207,7 +17211,7 @@
       "description": "Kanal cincin · jembatan dan parkour · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 1954,
       "height": 1065,
-      "enabled": false,
+      "enabled": true,
       "terrain": {
         "asset": "field/kanal-map.webp",
         "width": 1699,
@@ -18809,6 +18813,8 @@
     {
       "id": "studio-edit-kanal2",
       "replaces": "kanal2",
+      "arenaRules": "kanal2",
+      "rulesVersion": 1,
       "waterMask": {
         "width": 1030,
         "height": 463,
@@ -22249,7 +22255,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -22288,7 +22294,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-1",
@@ -22352,7 +22359,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -22439,7 +22446,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-2",
@@ -22503,7 +22511,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -22590,7 +22598,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-3",
@@ -22654,7 +22663,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -22741,7 +22750,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-4",
@@ -22805,7 +22815,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -22892,7 +22902,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-5",
@@ -22956,7 +22967,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -22979,7 +22990,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-6",
@@ -23043,7 +23055,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23066,7 +23078,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-7",
@@ -23130,7 +23143,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23185,7 +23198,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-8",
@@ -23249,7 +23263,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23304,7 +23318,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": true,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-9",
@@ -23368,7 +23383,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23423,7 +23438,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-10",
@@ -23487,7 +23503,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23542,7 +23558,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": true,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-11",
@@ -23606,7 +23623,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23645,7 +23662,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-12",
@@ -23709,7 +23727,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23740,7 +23758,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-13",
@@ -23804,7 +23823,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23839,7 +23858,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-14",
@@ -23903,7 +23923,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -23934,7 +23954,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-15",
@@ -23998,7 +24019,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24037,7 +24058,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-16",
@@ -24101,7 +24123,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24140,7 +24162,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": true,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-17",
@@ -24204,7 +24227,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24243,7 +24266,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-18",
@@ -24307,7 +24331,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24346,7 +24370,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": true,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-19",
@@ -24410,7 +24435,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24465,7 +24490,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-20",
@@ -24529,7 +24555,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24584,7 +24610,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": true,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-21",
@@ -24648,7 +24675,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24679,7 +24706,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-22",
@@ -24743,7 +24771,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24774,7 +24802,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-23",
@@ -24838,7 +24867,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24869,7 +24898,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-24",
@@ -24933,7 +24963,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -24964,7 +24994,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-collider-25-0",
@@ -24978,7 +25009,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25001,7 +25032,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-26-0",
@@ -25015,7 +25047,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25038,7 +25070,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-27-0",
@@ -25052,7 +25085,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25075,7 +25108,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-28-0",
@@ -25089,7 +25123,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25112,7 +25146,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-29-0",
@@ -25126,7 +25161,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25149,7 +25184,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-30-0",
@@ -25163,7 +25199,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25186,7 +25222,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-31-0",
@@ -25200,7 +25237,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25223,7 +25260,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-collider-32-0",
@@ -25237,7 +25275,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25260,7 +25298,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "rect"
         },
         {
           "id": "obj-visual-33",
@@ -25324,7 +25363,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25411,7 +25450,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-visual-34",
@@ -25475,7 +25515,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "solid",
+          "behavior": "parkour",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -25562,7 +25602,8 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": false
+          "mirror": false,
+          "nativeCollision": "bands"
         },
         {
           "id": "obj-decoration-0",
@@ -25893,6 +25934,8 @@
   ],
   "builtinStates": {
     "kampung3d": "deleted",
-    "kampung": "active"
+    "kampung": "active",
+    "pasar": "active",
+    "kanal": "active"
   }
 }

@@ -76,6 +76,8 @@ import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-in
 import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../lib/flight-ultimate.js';
 import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
+import { GraphicsSettings } from '../components/graphics-settings';
+import { graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
 import { ArenaBackdrop, arenaImage } from '../components/arena-backdrop';
@@ -5601,7 +5603,8 @@ export function BentenganPrototype() {
       ctx.lineCap = 'round';
       ctx.lineWidth = 2.3;
       ctx.strokeStyle = 'rgba(184, 243, 252, .46)';
-      for (const glint of kanalWaterGlints) {
+      for (let glintIndex = 0; glintIndex < kanalWaterGlints.length; glintIndex += GRAPHICS_PRESETS[quality].waterStride) {
+        const glint = kanalWaterGlints[glintIndex];
         if(glint.x<visibleWorld.left-24||glint.x>visibleWorld.right+24||glint.y<visibleWorld.top-24||glint.y>visibleWorld.bottom+24)continue;
         const upper = glint.y < worldHeight * 0.36;
         const lower = glint.y > worldHeight * 0.64;
@@ -6276,10 +6279,13 @@ export function BentenganPrototype() {
       }
     };
     const renderAdapter = createRenderAdapter(players);
+    let quality: GraphicsPreset = graphicsPreset();
+    const qualityChanged = (event: Event) => { quality = (event as CustomEvent<GraphicsPreset>).detail ?? graphicsPreset(); };
+    window.addEventListener(GRAPHICS_SETTINGS_EVENT, qualityChanged);
     let pendingRenderFailure:string|null=null;
     const draw = (now: number, render:RenderFrame) => {
       const {players,refills,phase,rescueRequest}=render;
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
+      const dpr = graphicsPixelRatio(quality, window.devicePixelRatio || 1),
         cw = canvas.clientWidth,
         ch = canvas.clientHeight;
       if (
@@ -6290,6 +6296,7 @@ export function BentenganPrototype() {
         canvas.height = Math.round(ch * dpr);
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.dataset.graphicsPreset = quality;
       ctx.clearRect(0, 0, cw, ch);
       const me = players[0];
       const activeCamera = cameraModeRef.current;
@@ -6384,7 +6391,8 @@ export function BentenganPrototype() {
           ctx.fillText('!', rescueRequester.x, rescueRequester.y - 35);
           ctx.restore();
         }
-        particles.forEach((p) => {
+        particles.forEach((p, index) => {
+          if(index % GRAPHICS_PRESETS[quality].particleStride !== 0) return;
           ctx.globalAlpha = Math.max(0, p.life / 0.65);
           ctx.fillStyle = p.color;
           ctx.beginPath();
@@ -6748,6 +6756,7 @@ export function BentenganPrototype() {
     raf = requestAnimationFrame(loop);
     return () => {
       networkOff?.();networkStateOff?.();
+      window.removeEventListener(GRAPHICS_SETTINGS_EVENT, qualityChanged);
       canvas.removeEventListener('pointerdown', pointerDown);
       canvas.removeEventListener('contextmenu', contextMenu);
       window.removeEventListener('blur', clearMouse);
@@ -7503,6 +7512,7 @@ export function BentenganPrototype() {
             onOpen={() => keys.current.clear()}
             trigger={<img src={uiAsset('controls/settings-button.png')} alt="" />}
           />
+          <GraphicsSettings onOpen={() => keys.current.clear()} />
         </div>
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && (
@@ -8473,6 +8483,10 @@ export function BentenganPrototype() {
                       {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
                       {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
                     </button>
+                    <div className="pause-settings-row">
+                      <AudioSettings onOpen={() => keys.current.clear()} />
+                      <GraphicsSettings onOpen={() => keys.current.clear()} />
+                    </div>
                     <button onClick={restartMatch}>
                       <RotateCcw size={17} /> Mulai ulang
                     </button>
