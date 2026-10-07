@@ -5,6 +5,15 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### 2026-10-06 — G4 FORMAL + PUSHED to origin/Refactor-Clio (merge deferred per user)
+
+**G4 formal:** §17 traceability table in `Review Plan.MD` extended with measured "G4 re-score (2026-10-06)" section (G0 deltas + 11 verdicts + sign-off status). Plan text untouched; results appended with date.
+
+**Commit + push (shell pwsh, explicit user approval "push ke branch refactor clio"):**
+- Commit `d7f77b8` on `Refactor-Clio`: "Strangler refactor Batches 1-16 plus G4: extract gameplay, game-core, ui, audio, world modules; R10 lib purity; R11 screens mapping; G4 re-score" — 242 files, +24325/−12114. Pre-commit checks: status/diff/log reviewed, secret/junk scan clean (no .env/keys/dist), tsc 0.
+- `git push origin Refactor-Clio` → `210a404..d7f77b8`, success. Tree clean, tracking in sync. **No merge to main** (deferred per user).
+- **Remote drift note:** AGENTS.md names remote `github`; actual remote is **`origin`** (same URL). Did NOT edit AGENTS.md (frozen by user). Future pushes use `origin`.
+
 ### 2026-10-06 — G4-PRECURSOR COMPLETE (metrics vs G0 + §17 re-score + safeguards + 500-line variance review)
 
 **A. G0 metric deltas (baseline `e0c5921` 2026-10-04 → now):**

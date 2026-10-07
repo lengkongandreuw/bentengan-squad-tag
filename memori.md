@@ -697,6 +697,15 @@ atau banyak file ganti nama. `prototype.tsx` = composition/wiring saja;
 selesaikan G3, R10 (tanpa game rules di `lib/`), R11 (`components/`+`hooks/`
 → screens `modules/ui/`), lalu G4 verify vs baseline G0.
 
+G4 FORMAL + PUSH (2026-10-06): tabel §17 di Review Plan.MD diisi hasil
+re-score terukur (teks plan utuh, hasil di-append bertanggal). Commit
+`d7f77b8` di branch `Refactor-Clio` (242 file, +24325/−12114; scan
+secret/junk bersih, tsc 0) lalu `git push origin Refactor-Clio` sukses
+(210a404→d7f77b8). TIDAK merge ke main (tunda per user). CATATAN:
+remote aktual bernama `origin`, bukan `github` seperti tertulis di
+AGENTS.md (URL sama); AGENTS.md tidak disentuh (frozen) — push
+berikutnya pakai `origin`.
+
 G4-PRECURSOR (2026-10-06): metrik vs baseline G0 (e0c5921) — tsc 0=sama,
 lint 122→110 (−12), audit gagal 8→21 (7 persist + roster-sync DIPERBAIKI
 +14 sprite-metadata pre-existing tersingkap oleh fix G2 — disclosure,
