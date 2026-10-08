@@ -5,9 +5,11 @@ import { landingLogoAsset } from '../../lib/branding.ts';
 export const SplashScreen = ({
   resolveAsset,
   onEnter,
+  onMultiplayer,
 }: {
   resolveAsset: (file: string) => string;
   onEnter: () => void;
+  onMultiplayer: () => void;
 }) => (
   <section className="splash-screen" aria-labelledby="game-title">
     <img
@@ -29,6 +31,9 @@ export const SplashScreen = ({
       />
       <button className="enter-game" onClick={onEnter}>
         <span>PRESS</span> SPACE <small>atau klik untuk masuk</small>
+      </button>
+      <button type="button" className="multiplayer-open" aria-label="MULTIPLAYER · LOBBY" onClick={onMultiplayer}>
+        <img src={resolveAsset('controls/multiplayer.webp')} alt="" width="1024" height="366" />
       </button>
     </div>
   </section>

@@ -4083,6 +4083,7 @@ const spriteFrame = (
               playAudioCue('press-play.mp3', 0.64);
               setMenuStep('team');
             }}
+            onMultiplayer={() => setMultiplayerOpen(true)}
           />
         )}
 
