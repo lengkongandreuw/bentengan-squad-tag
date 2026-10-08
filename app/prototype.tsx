@@ -61,7 +61,7 @@ import { clickRoute, pointerWorld } from '../modules/gameplay/click-navigation.t
 import type { RuntimeActor, ActorStats as PlayerStats, CanonicalGameState } from '../lib/game-core/types';
 import { createEntityRegistry } from '../lib/game-core/entities.ts';
 import { createLocalInputAdapter, type PlayerInputFrame } from '../lib/game-core/input.ts';
-import { createBotAuthority } from '../lib/game-core/bot-ai.ts';
+import { createBotAuthority } from '../modules/gameplay/ai-movement.ts';
 import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-core/events.ts';
 import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick.ts';
 import { describeMatch } from '../lib/game-core/state.ts';
@@ -78,18 +78,18 @@ import {createMatchRoster,takeoverDisconnected} from '../lib/multiplayer/roster.
 import {createMatchResult,createResultHandoff,type MatchResultPacket} from '../lib/multiplayer/result.ts';
 import {createNetworkUltimates} from '../lib/multiplayer/ultimates.ts';
 import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol.ts';
-import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../lib/game-core/ultimate.ts';
-import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../lib/game-core/match-rules.ts';
-import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../lib/game-core/movement.ts';
-import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../lib/game-core/interactions.ts';
+import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../modules/gameplay/ultimate.ts';
+import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
+import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
+import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
 import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio.ts';
 import { contains as studioContains, collisionRects } from '../lib/map-studio-model.js';
-import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../lib/map-arena-rules.js';
-import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
-import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../lib/flight-ultimate.js';
+import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../modules/world/map-arena-rules.ts';
+import {createMapQueries,objectBounds,visibleBounds} from '../modules/world/map-runtime-index.ts';
+import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../modules/gameplay/flight-ultimate.ts';
 
 import GAME_RULES from '../config/game-rules.json' with { type: 'json' };
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings.ts';

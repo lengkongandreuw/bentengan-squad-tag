@@ -275,8 +275,8 @@ void test('22 each human has independent authoritative ultimate meter; Raja/Kaka
   assert.equal(step([],0,4601).facts.filter(e=>e.type==='ULTIMATE_APPLIED').length,0);
   authority.gain(actors[2],20,supported);assert.equal(authority.get('bebe').meter,20);assert.equal(authority.get('ciici').meter,0);
   authority.reset();assert.equal(authority.get('bebe').meter,20,'round reset retains charge like single-player');assert.equal(authority.get('raja').buffUntil,0);
-  const flight=load('lib/flight-ultimate.js');assert.equal(flight.flightBusy(actors[2]),true);assert.equal(flight.flightBusy(actors[3]),true);
-  const interactions=load('lib/game-core/interactions.ts'),attacker={...skillActor('attacker','robot'),exitOrder:99,tagCooldown:0};
+  const flight=load('modules/gameplay/flight-ultimate.ts');assert.equal(flight.flightBusy(actors[2]),true);assert.equal(flight.flightBusy(actors[3]),true);
+  const interactions=load('modules/gameplay/tag-combat.ts'),attacker={...skillActor('attacker','robot'),exitOrder:99,tagCooldown:0};
   for(const stage of ['FLIGHT_TAKEOFF','FLYING','FLIGHT_LANDING']){
     const target={...actors[2],exitOrder:1,flight:{...actors[2].flight,stage}};
     assert.equal(interactions.resolveTag([attacker,target],attacker.entityId,target.entityId,5000,{kanal2:false,tagRange:()=>500,tagCooldownMs:()=>500,lineOfSight:()=>true}),null);

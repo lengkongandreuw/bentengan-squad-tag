@@ -113,8 +113,8 @@ void test('countdown loading is optional and one-shot; result guard and player-o
   const game = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
   assert.match(game, /const outcome = endRound\(players, score, phase, team, reason, resultNow\);\s+if \(!outcome\) return;/);
   assert.match(game, /presentGameEvents\(\[\{type:outcome.type,team:outcome.team,reason:outcome.reason\}\]/);
-  const core = await readFile(new URL('../lib/game-core/match-rules.ts', import.meta.url), 'utf8');
-  assert.match(core, /if\(phase!=='PLAYING'\)return null/);
+  const core = await readFile(new URL('../modules/game-core/match-control.ts', import.meta.url), 'utf8');
+  assert.match(core, /if\s*\(\s*phase\s*!==\s*'PLAYING'\s*\)\s*return null/);
   assert.match(game, /else if \(winner.controlled\) gameplayAudio.playerTag\(now\)/);
   assert.match(game, /if \(!countdownSoundPlayed && now < phaseUntil\) countdownSoundPlayed = gameplayAudio.playCountdown/);
   assert.match(game, /gameplayAudio.play\(team === players\[0\].team \? 'victory' : 'defeat'\)/);

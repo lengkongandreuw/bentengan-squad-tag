@@ -9,7 +9,7 @@ Fitur ini hanya untuk profil, leaderboard manual, atau hasil match. Jangan menem
 ## Status Proyek Saat Ini
 
 - Proyek sudah memiliki dependency `recharts` versi `3.8.0`.
-- Wrapper chart internal sudah tersedia di `components/ui/chart.tsx`.
+- Wrapper chart internal sudah tersedia di `modules/ui/primitives/chart.tsx`.
 - Statistik match saat ini sudah mencatat `tags`, `prisons`, dan `rescues` di `app/prototype.tsx`.
 - Statistik gameplay diperbarui bersama snapshot HUD sekitar setiap 100 ms saat match berjalan.
 - Statistik saat ini masih hidup hanya selama sesi match; modul profil lokal akan menjadi sumber data permanen pada browser.
@@ -146,7 +146,7 @@ lib/player-profile/
   migrations.ts        # Upgrade data profile versi lama bila diperlukan.
   index.ts              # Public API modul yang dipakai UI/gameplay.
 
-components/player-profile/
+modules/ui/player-profile/
   player-profile-panel.tsx  # Layout panel profile.
   kda-summary.tsx           # Angka TAG / PRISON / RESCUE dan KDA ratio.
   radar-chart.tsx           # Visual SVG tiga sumbu, tanpa aturan statistik.
@@ -226,7 +226,7 @@ Radar chart aman untuk diterapkan sebagai visualisasi profil lokal tanpa library
 Implementasi awal sudah memakai struktur modul yang direkomendasikan.
 
 - `lib/player-profile/` menangani tipe, nilai awal, validasi/migrasi, localStorage, service event, dan perhitungan statistik.
-- `components/player-profile/` menangani setup username, ringkasan KDA, panel profil, serta radar chart.
+- `modules/ui/player-profile/` menangani setup username, ringkasan KDA, panel profil, serta radar chart.
 - `app/prototype.tsx` menampung tag, prison, dan rescue milik player selama match, kemudian menyimpan semuanya bersama hasil match melalui satu aksi atomik.
 - Match yang ditinggalkan sebelum selesai tidak mengubah statistik profil permanen.
 - Panel profil dimuat secara lazy. Radar memakai SVG lokal yang ringan dan tidak membawa Recharts ke bundle panel.

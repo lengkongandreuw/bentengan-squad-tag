@@ -210,14 +210,14 @@ function load(file){
 }
 const state=load('lib/game-core/state.ts'),entities=load('lib/game-core/entities.ts');
 const input=load('lib/game-core/input.ts'),tick=load('lib/game-core/tick.ts');
-const movement=load('lib/game-core/movement.ts'),interactions=load('lib/game-core/interactions.ts');
-const ultimate=load('lib/game-core/ultimate.ts'),matchRules=load('lib/game-core/match-rules.ts');
-const bots=load('lib/game-core/bot-ai.ts');
+const movement=load('modules/gameplay/movement.ts'),interactions=load('modules/gameplay/tag-combat.ts');
+const ultimate=load('modules/gameplay/ultimate.ts'),matchRules=load('modules/game-core/match-control.ts');
+const bots=load('modules/gameplay/ai-movement.ts');
 const gameEvents=load('lib/game-core/events.ts');
 const renderState=load('lib/game-core/render-state.ts');
 const snapshots=load('lib/game-core/snapshot.ts');
 const protocol=load('lib/multiplayer/protocol.ts');
-const flight=load('lib/flight-ultimate.js'),collision=load('modules/gameplay/collision-navigation.ts'),contact=load('modules/gameplay/tag-check.ts');
+const flight=load('modules/gameplay/flight-ultimate.ts'),collision=load('modules/gameplay/collision-navigation.ts'),contact=load('modules/gameplay/tag-check.ts');
 const actor=(overrides={})=>({entityId:'entity-0001',controller:'local',id:'you',name:'RAJA',characterId:'raja',team:'blue',controlled:true,
   x:200,y:200,vx:0,vy:0,lastX:200,lastY:200,state:'ACTIVE',exitOrder:10,boost:100,baseCharge:0,exitDeadline:0,
   lastExitAt:0,tagCooldown:0,parkourUntil:0,boostReadyAt:0,fortCharge:0,prisonIndex:0,captures:0,aiSeed:0,
@@ -293,8 +293,10 @@ void test('10 fort entry memory emits once, restores on reentry and excludes fli
 void test('10 event boundary stays finite and runtime connects presentation without moving profile writes into core',()=>{
   const p=actor(),score={blue:1,red:0},outcome=matchRules.endRound([p],score,'PLAYING','blue','TEST',1000);
   const event={type:outcome.type,team:outcome.team,reason:outcome.reason};assert.equal(event.type,'MATCH_ENDED');state.assertJsonData(event);
-  for(const file of ['events.ts','bot-ai.ts','interactions.ts','ultimate.ts','match-rules.ts'])
+  for(const file of ['events.ts'])
     assert.doesNotMatch(fs.readFileSync(`lib/game-core/${file}`,'utf8'),/\b(?:window|document|localStorage|AudioContext|gameplayAudio|recordMatchProgression)\b/);
+  for(const file of ['modules/gameplay/tag-combat.ts','modules/gameplay/ultimate.ts','modules/gameplay/ai-movement.ts','modules/game-core/match-control.ts'])
+    assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(?:window|document|localStorage|AudioContext|gameplayAudio|recordMatchProgression)\b/);
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   for(const anchor of ['botAuthority.run(simulationAuthority','presentInteractionEvents(events,now)','presentGameEvents(ultimateFacts',
     'presentGameEvents([{type:outcome.type','fortEntryEvents(players,bases','facts=>events.push(...facts)'])assert.ok(source.includes(anchor),anchor);
@@ -419,7 +421,7 @@ void test('08 best-of-three completion is guarded and clears flights without per
   for(const [phase,until,now,next,expected] of [['COUNTDOWN',3000,2999,false,'countdown'],['COUNTDOWN',3000,3000,false,'start-round'],
     ['ROUND_OVER',4500,4499,false,'continue'],['ROUND_OVER',4500,4499,true,'next-round'],['ROUND_OVER',4500,4500,false,'next-round'],
     ['MATCH_OVER',Infinity,9000,false,'finished']])assert.equal(matchRules.phaseTransition(phase,until,now,next),expected);
-  for(const file of ['ultimate.ts','match-rules.ts'])assert.doesNotMatch(fs.readFileSync(`lib/game-core/${file}`,'utf8'),/\b(?:window|document|localStorage|AudioContext)\b/);
+  for(const file of ['modules/gameplay/ultimate.ts','modules/game-core/match-control.ts'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(?:window|document|localStorage|AudioContext)\b/);
 });
 void test('08 actual runtime result adapter persists rewards and announces victory only once',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');
@@ -639,17 +641,19 @@ void test('07 all-held objective requires two seconds; broken hold resets',()=>{
 void test('runtime adapters are connected and core has no DOM/audio/React dependencies',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   for(const symbol of ['entityRegistry.assign(id)','localInput.sample(','advanceSimulationClock(','moveActor(','resolveTag(','resolveRescue(','resolveBase(','describeMatch(','coreHost.__bentengGameCore=coreProbe'])assert.ok(source.includes(symbol),symbol);
-  for(const file of ['input','tick','movement','interactions','state','entities']){
+  for(const file of ['input','tick','state','entities']){
     const core=fs.readFileSync(`lib/game-core/${file}.ts`,'utf8').replace(/\/\/[^\n]*/g,'');
     assert.doesNotMatch(core,/from ['"]react|\b(?:window|document|Audio|AudioContext|CanvasRenderingContext2D)\b/);
   }
+  for(const file of ['modules/gameplay/tag-combat.ts','modules/gameplay/movement.ts'])
+    assert.doesNotMatch(fs.readFileSync(file,'utf8').replace(/\/\/[^\n]*/g,''),/from ['"]react|\b(?:window|document|Audio|AudioContext|CanvasRenderingContext2D)\b/);
 });
 
 void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison, water and immutable migration',async()=>{
   const {templates}=await import('./map-studio/templates.mjs');
-  const {prepareArenaMap,kanalPrisonWalls,arenaRulesFor}=await import('../lib/map-arena-rules.js');
+  const {prepareArenaMap,kanalPrisonWalls,arenaRulesFor}=await import('../modules/world/map-arena-rules.ts');
   const {kanalObjectRects,kanalFortPolygon,polygonToRects}=await import('../modules/world/kanal-footprints.ts');
-  const {createMapQueries}=await import('../lib/map-runtime-index.js');
+  const {createMapQueries}=await import('../modules/world/map-runtime-index.ts');
   const {validateMap}=await import('../lib/map-studio-model.js');
   const catalog=await templates(process.cwd()),reference=catalog.builtinTemplates.find(m=>m.replaces==='kanal2');
   // Stable synthetic legacy template: future intentional edits to a user's
@@ -674,7 +678,7 @@ void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, pr
   const projected={structuredClone,
     FIELD_CONFIGS:JSON.parse(JSON.stringify(nativeFields)),
     studioMaps:[fixtureMap],studioBuiltinStates:{},
-    arenaRulesFor,prepareArenaMap,kanalColliderObjects:(await import('../lib/map-arena-rules.js')).kanalColliderObjects,
+    arenaRulesFor,prepareArenaMap,kanalColliderObjects:(await import('../modules/world/map-arena-rules.ts')).kanalColliderObjects,
     kanalObjectPolygons:(await import('../modules/world/kanal-footprints.ts')).kanalObjectPolygons,result:null};
   vm.runInNewContext(ts.transpile(src.slice(mergeStart,mergeEnd)+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),projected);
   const replacement=JSON.parse(JSON.stringify(projected.result)).find(f=>f.id===draft.id);

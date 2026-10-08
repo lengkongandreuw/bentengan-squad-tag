@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {performance} from 'node:perf_hooks';
 import {solidAt,waterAt,speedAt} from '../lib/map-studio-model.js';
-import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
+import {createMapQueries,objectBounds,visibleBounds} from '../modules/world/map-runtime-index.ts';
 
 void test('indexed map queries retain exact rotated polygon/ellipse/bridge/mask/slow rules',()=>{
   const map={width:800,height:800,waterMask:{width:4,height:4,rows:[[0,1],[2,4],[],[0,4]]},objects:[]};
@@ -40,7 +40,7 @@ void test('offscreen culling preserves rotated extents and objects reappearing a
 void test('runtime checks contact range before expensive LOS; original quality settings retained',()=>{
   const code=readFileSync('app/prototype.tsx','utf8'),section=code.slice(code.indexOf('const tagCheck ='),code.indexOf('const rescueCheck ='));
   assert.ok(section.includes('tagContacts(players,now,interactionRules)'));
-  const core=readFileSync('lib/game-core/interactions.ts','utf8');
+  const core=readFileSync('modules/gameplay/tag-combat.ts','utf8');
   const exports={},context={exports,tagEligible:()=>true,distance:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),sweptContactDistance:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)};
   vm.runInNewContext(ts.transpileModule(core.slice(core.indexOf('export function tagContacts('),core.indexOf('export function resolveTag(')),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,context);
   let lineTests=0;const rules={tagRange:()=>20,lineOfSight:()=>{lineTests++;return true;}};

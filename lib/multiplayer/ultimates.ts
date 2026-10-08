@@ -1,7 +1,7 @@
 import type {RuntimeActor} from '../game-core/types';
 import type {PlayerInputFrame} from '../game-core/input';
-import {stepUltimate,stepFlight,ultimateCasting,ultimateSpeed,type UltimateRules,type UltimateState} from '../game-core/ultimate.ts';
-import {flightConfig,flightSlot} from '../flight-ultimate.js';
+import {stepUltimate,stepFlight,ultimateCasting,ultimateSpeed,type UltimateRules,type UltimateState} from '../../modules/gameplay/ultimate.ts';
+import {flightConfig,flightSlot} from '../../modules/gameplay/flight-ultimate.ts';
 /** Match-local human states. Reuses existing skills, never trusts a client's meter. */
 export function createNetworkUltimates(humans:readonly {entityId:string}[]){
   const states=new Map(humans.map(p=>[p.entityId,{meter:0,impactAt:0,impactApplied:false,buffUntil:0,shieldUntil:0} satisfies UltimateState]));

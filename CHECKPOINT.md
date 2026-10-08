@@ -2830,3 +2830,19 @@ Commit terakhir: [hash atau belum dibuat]
 Jika limit hampir habis atau proses terinterupsi, simpan keadaan kerja apa adanya
 dan isi seluruh bagian di atas sebelum berhenti. Jangan menandai tahap sebagai
 selesai jika belum dibuktikan oleh pemeriksaan yang relevan.
+
+### 2026-10-08 — R10/R11 REMAINDER COMPLETE (Steps 1-6, all slices landed)
+
+**Goal:** No game rules in `lib/`, no orphan dirs, doc paths current (plan `local://r10-r11-remainder-plan.md`).
+**Done:**
+- Step 1 (R11 doc-gap): 3 hunks in `FEATURE_USER_PROFILE_RADAR_CHART.md` (chart + player-profile paths → `modules/ui/`).
+- Step 2: `modules/gameplay/flight-ultimate.ts` + `modules/gameplay/ultimate.ts` created; deleted `lib/flight-ultimate.js`, `lib/game-core/ultimate.ts`.
+- Step 3: `modules/gameplay/tag-combat.ts` created; deleted `lib/game-core/interactions.ts`.
+- Step 4: `modules/gameplay/movement.ts` created; `bot-ai.ts` merged as appended section into `modules/gameplay/ai-movement.ts` (`botDistance` rename avoids `distance` clash); deleted both `lib/game-core/` sources.
+- Step 5: match-rules merged into `modules/game-core/match-control.ts`; `modules/world/map-arena-rules.ts` + `modules/world/map-runtime-index.ts` created; deleted 3 `lib/` sources + stale `.d.ts`.
+- Step 5 server contingency: `scripts/map-studio/server.mjs` dead 3-file static allowlist arm dropped (no browser fetches it; 2 of 3 files no longer existed); server import repointed to `modules/world/`.
+- Step 6: no action (types/adapters/multiplayer/profile stay per plan rationale).
+- Test maintenance: all stale `lib/` path reads in `test-game-core`/`test-runtime-performance`/`test-gameplay-audio` repointed to new owners; one brittle whitespace regex loosened. No baselines touched.
+**Gates (final):** `npx tsc --noEmit` 0; behavior 87/88 (only known pre-existing `playerMovementLocked` failure, 0 hits at merge HEAD); `npm run audit` 21 ✗ = HEAD baseline; `npm run build:pages` PASS (stable `assets/app.js`); lint: 0 new errors in touched files (prototype hits pre-existing React-compiler notices). R10/R11 proof greps 0 stale refs; `components/`, `hooks/` absent.
+**Known pre-existing (untouched, out of scope):** `scripts/test-flight-ultimate.mjs` test 6 (`playerMovementLocked`); 21 audit asserts (sprite/UI/field baselines); prototype React-compiler lint notices.
+**Next action:** Commit + push to `github/main`, wait for Pages run.

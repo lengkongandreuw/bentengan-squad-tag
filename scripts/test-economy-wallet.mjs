@@ -312,7 +312,7 @@ void test('module09 runtime smoke executes actual ultimate block: base/upgraded 
   `;
   const output=ts.transpileModule(setup,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
   const initializeBlock=vm.runInThisContext(`(function(players,playerUltimateStats,core){${output}\n})`);
-  const initialize=(players,stats)=>initializeBlock(players,stats,load('lib/game-core/ultimate.ts'));
+  const initialize=(players,stats)=>initializeBlock(players,stats,load('modules/gameplay/ultimate.ts'));
   for(const id of ['raja','kaka'])for(const level of [0,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
     const stats=effective.snapshotUltimateStats(p,id);
