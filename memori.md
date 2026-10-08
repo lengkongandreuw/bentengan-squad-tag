@@ -1249,3 +1249,25 @@ Prototype 3846 → 3551 (−295). Gate live: tsc 0, lint 119, audit 21 (3 pin
 di-repoint), sweep 88/90 (2 pre-existing), build PASS. R10 survey: inventory
 7+ file `lib/` berisi game rules + tujuan modul ada di CHECKPOINT Batch 9 —
 dieksekusi batch khusus setelah Batch 10 (JSX screens + Playwright).
+
+Ponytail review fixes (2026-10-08, uncommitted): tag-combat 3 pola kompak
+dipulihkan agar literal-assert test-flight-ultimate lolos (perilaku sama,
+test tak diubah); persist() profile-service kini throw saat save gagal
+dengan window ada (konvensi recordMatchProgression), tanpa notify sukses
+palsu. Test baru di test-economy-wallet (sukses notify sekali, blocked
+throw + nol event + storage utuh). Gates: flight 5/6 (sisa pre-existing
+playerMovementLocked), economy 23/26 + test baru pass, game-core 40/40,
+tsc 0. Tanpa commit/push/deploy; origin/main utuh.
+
+Crash-safety + dead-code slice (2026-10-08, uncommitted on Refactor-Clio):
+panel try/catch + inline role=alert (picker stays open on failure) +
+`.profile-selection-error` style; `GameErrorBoundary` baru di
+`modules/ui/error-boundary.tsx` dipasang di `github-pages/main.tsx`
+(fallback `.renderer-error`, COBA LAGI/MUAT ULANG); `createWinRound` +
+`WinRoundWorld` dihapus (−121 baris, live site = prototype winRound);
+`distance`/`other`/`clamp` didedupe ke `lib/math.ts`; 2 pin audio-port
+di-repoint ke prototype. Gates: tsc 0, game-core 40/40, service test baru
+pass. Pre-existing (stale rescueEffects pin, wallet components/ path, flight
+test 6) dibuktikan sama di HEAD via stash. Panel UI test tidak ditambah
+(harness vm tak muat portal+document+CSS+JSON-with; service path covered).
+Manual browser verify pending. Tanpa commit/push/deploy.

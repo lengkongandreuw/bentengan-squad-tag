@@ -5,6 +5,25 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### 2026-10-08 — Crash-safety + dead-code (UNCOMMITTED on `Refactor-Clio`, no push/PR/deploy)
+
+**Scope (tandem split):** partner hardened `persist()` in `lib/player-profile/profile-service.ts` (throws on blocked storage) + service test in `scripts/test-economy-wallet.mjs`. This slice: panel catch, error boundary, WinRound deletion, distance/clamp/other dedupe, audio-port pin repoint.
+
+**Changed:**
+- `modules/ui/player-profile/player-profile-panel.tsx` — `selectFeaturedCharacter` try/catch; `selectionError` state shown via `<p role="alert" className="profile-selection-error">`; picker stays open on failure, closes + clears on success.
+- `modules/ui/player-profile/profile-poster.css` — `.profile-selection-error` style (matches `.multiplayer-error` red convention).
+- `modules/ui/error-boundary.tsx` (new) — `GameErrorBoundary` (React 19 class, `getDerivedStateFromError` + `componentDidCatch` → `console.warn('[bentengan] …')`); fallback reuses `.renderer-error` + `role="alert"`, COBA LAGI (reset state) / MUAT ULANG buttons.
+- `github-pages/main.tsx` — `<GameErrorBoundary>` around `<BentenganPrototype/>`. `app/page.tsx` (Next host) untouched; admin/sprite/map studios are non-React static pages (no composition point) — boundaries deferred there.
+- `modules/game-core/match-control.ts` — deleted `WinRoundWorld` + `createWinRound` (−121 lines) + now-unused `TEAM_COLOR`/`teamName`/`recordCompletedMatch` imports (`Team`, `MatchEvent` stay used elsewhere). Live fort-captured site is prototype winRound (`app/prototype.tsx:1591`).
+- `modules/gameplay/tag-combat.ts` — local `distance` + `other` replaced by `lib/math.ts` import (same pattern as `ai-movement.ts`); imports restored after a bad splice (verified).
+- `modules/gameplay/movement.ts` — local `clamp` + `distance` replaced by `lib/math.ts` import; dropped/duplicated type import repaired (verified).
+- `scripts/test-audio-port.mjs` — 2 orphaned `matchControlSource` pins repointed to the live prototype winRound literal + dead source read removed. Test file itself has a pre-existing failure (below).
+
+**Gates (focused only):** `npx tsc --noEmit` 0; `test-game-core` 40/40; new service test (`legacy match/profile writes…`) passes; `test-audio-port` fails ONLY on the pre-existing stale `rescueEffects` pin (line 17, fails identically at HEAD — my repointed fort-captured assert passes).
+**Pre-existing failures (proven identical via `git stash` on clean HEAD, NOT modified):** wallet tests 3 (stale `components/ultimate-upgrade-panel.tsx` path — dir does not exist); `test-flight-ultimate` 1 (`runtime retains existing team ultimates…`); panel lint flags (`no-img-element`, `role=dialog`); oxfmt drift in all touched old files (left untouched; only the new boundary file formatted).
+**Manual verification PENDING (no browser run this session):** blocked-storage selection (no crash, error shown, picker open), success path, boundary fallback render. Blocked-storage simulation exists in the service test (throwing `localStorage` mock). Panel-level UI test NOT added: module11 `vm` harness cannot hold the panel (portal + `document` gate + CSS import + JSON-`with` chain via `lib/characters.ts`); service throw path is covered instead.
+**Deferred findings 3–9:** rescueEffects stale pin; wallet `components/` staleness; flight test 6; progression suite (slow, skipped); admin/studio boundaries (non-React, no composition point).
+
 ### 2026-10-08 — MERGE origin/main (d75b0ed) INTO Refactor-Clio (LOCAL ONLY, no push/PR/deploy)
 
 **Merge completed locally on `Refactor-Clio`:** `ac10631` + `d75b0ed` → resolved merge commit, `app/prototype.tsx` only unmerged file, staged and committed locally. No push, no PR, no deploy, stayed on `Refactor-Clio`.
@@ -2847,3 +2866,14 @@ selesai jika belum dibuktikan oleh pemeriksaan yang relevan.
 **Known pre-existing (untouched, out of scope):** `scripts/test-flight-ultimate.mjs` test 6 (`playerMovementLocked`); 21 audit asserts (sprite/UI/field baselines); prototype React-compiler lint notices.
 **Next action:** Commit + push to `github/main`, wait for Pages run.
 **Publish hold (2026-10-08):** Pushed `1a34470` to `origin/Refactor-Clio` only. Push/merge to `origin/main` SKIPPED per user instruction ("don't push to origin main"). Pages deploy NOT triggered; no Pages run to wait on.
+
+### 2026-10-08 — PONYTAIL REVIEW FIXES APPLIED (findings 1+2, no push)
+
+**Goal:** Apply both approved ponytail-review findings; verify; no push/PR/deploy.
+**Done:**
+- Finding 1: restored 3 compact single-line expressions in `modules/gameplay/tag-combat.ts` (`!flightBusy(a)&&!flightBusy(b)`, `now>=b.ultimateShieldUntil`, `now>=a.parkourUntil&&now>=b.parkourUntil`) that `scripts/test-flight-ultimate.mjs` test 6 asserts literally. Behavior unchanged; test file untouched. HEAD already failed `oxfmt --check` on this file, so no new formatter debt.
+- Finding 2: hardened `persist()` in `lib/player-profile/profile-service.ts` — checks `savePlayerProfile()` boolean; throws `Profil belum tersimpan; penyimpanan browser gagal.` when storage exists but the write fails (matches `recordMatchProgression` convention); no success notify on failure. No-window callers (SSR/tests) keep in-memory behavior. Live game path safe: prototype `winRound` uses try/caught `recordMatchProgression`; `createWinRound` (sole `recordCompletedMatch` caller) has no live callers; `player-profile-setup.tsx` already try/catches `createPlayerProfile`.
+- New focused test in `scripts/test-economy-wallet.mjs` (`legacy match/profile writes notify once on success and throw without notify on blocked storage`): success path notifies once + returns updated totals; blocked storage throws `/belum tersimpan/`, emits zero events, leaves storage unchanged; unblocked recovery works.
+**Gates:** flight test 5/6 (only pre-existing `playerMovementLocked`, 0 hits in tree — confirmed absent pre/post move and at merge HEAD); economy-wallet 23/26 pass incl. new test (same 3 failures at HEAD baseline); game-core 40/40; `npx tsc --noEmit` 0. Progression suite timed out at 300s (unrelated to changed paths — no blocked-storage caller touches persist paths there; left out of gates).
+**Remaining pre-existing:** `playerMovementLocked` test-6 failure; 3 economy-wallet failures (= HEAD); progression suite timeout.
+**Publish hold:** no commit, no push, no PR, no deploy, `origin/main` untouched.

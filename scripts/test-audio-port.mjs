@@ -6,7 +6,6 @@ const source = await readFile(new URL('../app/prototype.tsx', import.meta.url), 
 const captureSource = await readFile(new URL('../modules/gameplay/capture.ts', import.meta.url), 'utf8');
 const rescueSource = await readFile(new URL('../modules/gameplay/rescue-check.ts', import.meta.url), 'utf8');
 const waterSource = await readFile(new URL('../modules/gameplay/water.ts', import.meta.url), 'utf8');
-const matchControlSource = await readFile(new URL('../modules/game-core/match-control.ts', import.meta.url), 'utf8');
 const movementAudioSource = await readFile(new URL('../modules/gameplay/movement-audio.ts', import.meta.url), 'utf8');
 // Per-site pins: every gameplay audio event still routes through the port.
 // Sites moved into gameplay modules are pinned there as narrow onAudio
@@ -30,11 +29,9 @@ for (const snippet of [
   "onFortEnter: () => matchAudio.play('fort-enter')",
 ]) assert.ok(source.includes(snippet), `missing port forwarder: ${snippet}`);
 // Moved sites: pinned at their module homes.
-// fort-captured moved with winRound (Seam 58): guard + volume math live in
-// match-control.ts, prototype routes them through the port via playFortCaptured.
-assert.ok(matchControlSource.includes("if (reason === 'BENTENG DIREBUT')"), 'fort-captured guard lives in match-control.ts');
-assert.ok(matchControlSource.includes('world.playFortCaptured(team, team === world.getPlayers()[0].team ? 1 : 0.55)'), 'fort-captured volume math lives in match-control.ts');
-assert.ok(source.includes("playFortCaptured: (team, volume) => matchAudio.play('fort-captured', volume)"), 'fort-captured routes through the port');
+// fort-captured lives in prototype's winRound: guard + volume math inline,
+// routed through the GameplayAudio engine (Seam 58 predates the match-audio port).
+assert.ok(source.includes("if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55)"), 'fort-captured guard + volume math live in prototype winRound');
 assert.ok(waterSource.includes("onAudio('dash', 0.38)"), 'kanal2 drowning dash cue lives in water.ts');
 assert.ok(captureSource.includes("onAudio('caught')"), 'caught cue lives in capture.ts');
 assert.ok(captureSource.includes("onAudio('tag')"), 'plain tag cue lives in capture.ts');

@@ -1,10 +1,8 @@
 import type { RuntimeActor, LegacyTeam, Point, EntityId } from '../../lib/game-core/types.ts';
+import { distance, other } from '../../lib/math.ts';
 import { flightBusy } from './flight-ultimate.ts';
 import { sweptContactDistance } from './tag-check.ts';
 import type { GameEventSink, GameEvent } from '../../lib/game-core/events.ts';
-
-const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
-const other = (team: LegacyTeam): LegacyTeam => (team === 'blue' ? 'red' : 'blue');
 type InteractionRules = {
   kanal2: boolean;
   tagRange: (p: RuntimeActor) => number;
@@ -25,16 +23,12 @@ export function tagEligible(
   ignoreCooldown = false,
 ) {
   return (
-    a.team !== b.team &&
-    !flightBusy(a) &&
-    !flightBusy(b) &&
+    a.team !== b.team && !flightBusy(a)&&!flightBusy(b) &&
     !(rules.kanal2 && (a.waterEnteredAt || b.waterEnteredAt)) &&
     a.state === 'ACTIVE' &&
     a.exitOrder > b.exitOrder &&
     (ignoreCooldown || a.tagCooldown <= now) &&
-    now >= a.parkourUntil &&
-    now >= b.parkourUntil &&
-    now >= b.ultimateShieldUntil &&
+    now>=a.parkourUntil&&now>=b.parkourUntil&&now>=b.ultimateShieldUntil &&
     (b.state === 'ACTIVE' || (b.state === 'RETURNING' && now >= b.rescueShieldUntil))
   );
 }

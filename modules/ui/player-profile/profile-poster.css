@@ -732,6 +732,14 @@
   box-shadow: inset 0 0 0 .12cqw #151c12;
 }
 
+.profile-selection-error {
+  margin: 0 0 .85cqw;
+  padding: .7cqw .9cqw;
+  color: #ffdbd7;
+  background: #592222;
+  border-radius: .4cqw;
+}
+
 .profile-character-picker-grid img {
   width: 5.5cqw;
   height: 5.1cqw;

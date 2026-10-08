@@ -10,8 +10,6 @@ import { seedRefills, spawnGeo as createSpawnGeo } from '../gameplay/spawn.ts';
 import type { Refill } from '../gameplay/spawn';
 import { createTeamComboState } from '../gameplay/team-combo.ts';
 import type { TeamComboState } from '../gameplay/team-combo.ts';
-import { TEAM_COLOR, teamName } from '../world/team-tables.ts';
-import { recordCompletedMatch } from '../../lib/player-profile/profile-service.ts';
 
 export type ResetRoundWorld = {
   clearMouse: () => void;
@@ -52,128 +50,6 @@ export type ResetRoundWorld = {
   setAnnouncement: (v: string) => void;
   log: (text: string) => void;
   now: () => number;
-};
-
-export type WinRoundWorld = {
-  getPhase: () => string;
-  playFortCaptured: (team: Team, volume: number) => void;
-  getPlayers: () => Array<{ team: Team }>;
-  score: Record<Team, number>;
-  setRoundWinner: (v: Team | undefined) => void;
-  setRoundEndReason: (v: string) => void;
-  setPhase: (v: string) => void;
-  setMatchEvents: (events: MatchEvent[]) => void;
-  setResultWinner: (v: Team | undefined) => void;
-  setResultAnnouncementUntil: (n: number) => void;
-  getPendingProfile: () => { tagMusuh?: number; masukPenjara?: number; rescueTeam?: number; [key: string]: unknown };
-  setPendingProfile: (v: Record<string, number>) => void;
-  getCompletedMatches: () => number;
-  setCompletedMatches: (n: number) => void;
-  getFieldRotationPending: () => boolean;
-  setFieldRotationPending: (v: boolean) => void;
-  playAudioCue: (file: string, volume: number) => void;
-  setPhaseUntil: (n: number) => void;
-  setAnnouncement: (v: string) => void;
-  playTone: (frequency: number, duration: number) => void;
-  burst: (x: number, y: number, color: string, count: number) => void;
-  getWorldWidth: () => number;
-  getWorldHeight: () => number;
-  log: (text: string) => void;
-  now: () => number;
-  emptyKda: Record<string, number>;
-};
-
-export const createResetRound = (world: ResetRoundWorld) => {
-  return (): void => {
-    world.clearMouse();
-    const players = makePlayers({
-      faction: world.getSelectedFaction(),
-      selectedId: world.getSelectedId(),
-      bases: world.getBases(),
-    });
-    world.setPlayers(players);
-    world.setRoundStats(
-      createStatsStore(
-        players.map((p: unknown) => (p as { id: string }).id),
-      ),
-    );
-    world.setMatchEvents([]);
-    world.setRescueRequest(null);
-    world.setRescueRequestCooldownUntil(0);
-    const matchStats = world.getMatchStats();
-    players.forEach((player: unknown) =>
-      ensureStats(matchStats, player as { id: string }),
-    );
-    const spawnGeometry = createSpawnGeo(
-      world.getWorldWidth(),
-      world.getObstacles(),
-      world.getStudioMap(),
-    );
-    const seeded = seedRefills(spawnGeometry);
-    world.setRefills(seeded.refills);
-    world.setRefillId(seeded.nextId);
-    world.setTimer(240);
-    world.setExitCounter(0);
-    world.setTotalCapture({ blue: 0, red: 0 });
-    world.setSuddenDeath(false);
-    world.setRoundWinner(undefined);
-    world.setRoundEndReason('');
-    world.setResultWinner(undefined);
-    world.setResultAnnouncementUntil(0);
-    world.setUltimateImpactAt(0);
-    world.setUltimateBuffUntil(0);
-    world.setUltimateShieldUntil(0);
-    world.setUltimateImpactApplied(false);
-    world.setUltimateBannerVisible(false);
-    world.setTeamCombos({
-      blue: createTeamComboState(),
-      red: createTeamComboState(),
-    });
-    world.setComboCallout('');
-    world.setComboCalloutUntil(0);
-    world.setPhase('COUNTDOWN');
-    world.setPhaseUntil(world.now() + 2800);
-    const round = world.getRound();
-    const announcement = `RONDE ${round}`;
-    world.setAnnouncement(announcement);
-    world.log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
-  };
-};
-
-export const createWinRound = (world: WinRoundWorld) => {
-  return (team: Team, reason: string): void => {
-    if (world.getPhase() !== 'PLAYING') return;
-    if (reason === 'BENTENG DIREBUT')
-      world.playFortCaptured(team, team === world.getPlayers()[0].team ? 1 : 0.55);
-    world.score[team]++;
-    world.setRoundWinner(team);
-    world.setRoundEndReason(reason);
-    const phase = world.score[team] >= 2 ? 'MATCH_OVER' : 'ROUND_OVER';
-    world.setPhase(phase);
-    const resultNow = world.now();
-    world.setMatchEvents([]);
-    world.setResultWinner(team);
-    world.setResultAnnouncementUntil(resultNow + 1500);
-    if (phase === 'MATCH_OVER') {
-      const pending = world.getPendingProfile();
-      const isWin = team === world.getPlayers()[0].team;
-      recordCompletedMatch(isWin ? 'win' : 'loss', pending as never);
-      world.setPendingProfile({ ...world.emptyKda });
-      const completed = world.getCompletedMatches() + 1;
-      world.setCompletedMatches(completed);
-      world.setFieldRotationPending(completed >= 3);
-      world.playAudioCue(team === world.getPlayers()[0].team ? 'victory.mp3' : 'defeat.mp3', 0.68);
-    }
-    world.setPhaseUntil(resultNow + (phase === 'MATCH_OVER' ? Number.POSITIVE_INFINITY : 4500));
-    const announcement =
-      phase === 'MATCH_OVER'
-        ? `${teamName(team).toUpperCase()} MENANG MATCH${world.getFieldRotationPending() ? ' · FIELD BERIKUTNYA' : ''}`
-        : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
-    world.setAnnouncement(announcement);
-    world.playTone(team === 'blue' ? 720 : 320, 0.25);
-    world.burst(world.getWorldWidth() / 2, world.getWorldHeight() / 2, TEAM_COLOR[team], 38);
-    world.log(announcement);
-  };
 };
 
 export type SuddenDeathPlayer = {

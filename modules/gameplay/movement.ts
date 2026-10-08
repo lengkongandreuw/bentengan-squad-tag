@@ -1,4 +1,5 @@
 import type { Point, RuntimeActor, LegacyTeam } from '../../lib/game-core/types.ts';
+import { clamp, distance } from '../../lib/math.ts';
 import { isFlying, flightPassesObstacle } from './flight-ultimate.ts';
 import { pointHitsExpandedRect } from './collision-navigation.ts';
 import type { PlayerInputFrame } from '../../lib/game-core/input.ts';
@@ -22,8 +23,6 @@ export type CollisionWorld = {
   baseChargeTime: (p: RuntimeActor) => number;
   speedAt: (x: number, y: number) => number;
 };
-const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 export function hitsSolid(world: CollisionWorld, x: number, y: number) {
   return (
     !!world.studioSolidAt?.(x, y, 13) ||

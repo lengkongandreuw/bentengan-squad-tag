@@ -20,7 +20,10 @@ const notifyProfileChanged = () => {
 };
 
 const persist = (profile: LocalPlayerProfile) => {
-  savePlayerProfile(profile);
+  // Absent storage (SSR/tests) keeps the in-memory profile; present but
+  // blocked browser storage throws like recordMatchProgression below.
+  if (!savePlayerProfile(profile) && typeof window !== 'undefined')
+    throw new Error('Profil belum tersimpan; penyimpanan browser gagal.');
   notifyProfileChanged();
   return profile;
 };

@@ -33,11 +33,19 @@ export function PlayerProfilePanel({
 }: PlayerProfilePanelProps) {
   const [isCharacterPickerOpen, setCharacterPickerOpen] = useState(false);
   const [hasCopiedPlayerId, setHasCopiedPlayerId] = useState(false);
+  const [selectionError, setSelectionError] = useState('');
   const metrics = getPlayerProfileMetrics(profile);
   const featuredCharacter = CHARACTER_BY_ID[profile.featuredCharacterId];
   const selectFeaturedCharacter = (characterId: typeof featuredCharacter.id) => {
-    setFeaturedCharacter(characterId);
-    setCharacterPickerOpen(false);
+    try {
+      setFeaturedCharacter(characterId);
+      setSelectionError('');
+      setCharacterPickerOpen(false);
+    } catch (error) {
+      // Blocked browser storage throws; keep the picker open so the user
+      // sees the failure instead of a silent no-op or a crash.
+      setSelectionError(error instanceof Error ? error.message : 'Foto profil gagal disimpan.');
+    }
   };
   const copyPlayerId = async () => {
     try {
@@ -141,6 +149,9 @@ export function PlayerProfilePanel({
                   ×
                 </button>
               </header>
+              {selectionError && (
+                <p role="alert" className="profile-selection-error">{selectionError}</p>
+              )}
               <div className="profile-character-picker-grid">
                 {CHARACTERS.map((character) => {
                   const isSelected = character.id === profile.featuredCharacterId;

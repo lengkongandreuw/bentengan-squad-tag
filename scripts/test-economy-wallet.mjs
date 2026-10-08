@@ -260,6 +260,22 @@ void test('module07 persistence writes once, reloads authoritative levels and re
   } finally {if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;}
 });
 
+void test('legacy match/profile writes notify once on success and throw without notify on blocked storage',()=>{
+  const previousWindow=globalThis.window,entries=new Map();let events=0,blocked=false;
+  globalThis.window={localStorage:{getItem:key=>entries.get(key)??null,setItem:(key,value)=>{if(blocked)throw new Error('blocked');entries.set(key,value);}},dispatchEvent:()=>{events++;return true;}};
+  try {
+    const before=events,profile=service.createPlayerProfile('PersistTest');
+    assert.equal(events,before+1);assert.equal(profile.menang,0);
+    const recorded=service.recordCompletedMatch('win',{tagMusuh:1,masukPenjara:0,rescueTeam:1});
+    assert.equal(recorded.menang,1);assert.equal(events,before+2);
+    blocked=true;const eventsBefore=events;
+    assert.throws(()=>service.recordCompletedMatch('win',{tagMusuh:1,masukPenjara:0,rescueTeam:0}),/belum tersimpan/);
+    assert.equal(events,eventsBefore,'blocked write notifies nothing');
+    assert.equal(storage.loadPlayerProfile().menang,1,'failed match record not durable');
+    blocked=false;assert.equal(service.recordCompletedMatch('loss',{tagMusuh:0,masukPenjara:1,rescueTeam:0}).kalah,1);
+  } finally {if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;}
+});
+
 void test('module08 all catalog tiers resolve, invalid/missing state is base and snapshots never leak to bots',()=>{
   for(const id of ['raja','kaka'])for(const level of [0,1,2,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
