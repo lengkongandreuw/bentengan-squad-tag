@@ -1,8 +1,13 @@
-export type GraphicsPreset = 'high' | 'balanced' | 'low';
+export type GraphicsPreset = 'auto' | 'high' | 'balanced' | 'low';
 export const GRAPHICS_SETTINGS_EVENT: string;
 export const GRAPHICS_STORAGE_KEY: string;
 export const GRAPHICS_PRESETS: Record<GraphicsPreset, {label:string;maxDpr:number;scale:number;particleStride:number;waterStride:number}>;
+export const DEFAULT_GRAPHICS: GraphicsPreset;
+export const AUTO_PIXEL_RATIO: {min:number;step:number;slowFrameMs:number;fastWorkMs:number;windowMs:number};
 export function normalizeGraphics(value: unknown): GraphicsPreset;
 export function graphicsPreset(): GraphicsPreset;
 export function saveGraphicsPreset(value: unknown): GraphicsPreset;
-export function graphicsPixelRatio(preset: unknown, deviceRatio: number): number;
+export function autoMaxPixelRatio(deviceRatio: number): number;
+export function autoInitialPixelRatio(deviceRatio: number): number;
+export function nextAutoPixelRatio(current: number, avgFrameMs: number, avgWorkMs: number, deviceRatio: number): number;
+export function graphicsPixelRatio(preset: unknown, deviceRatio: number, autoRatio?: number): number;

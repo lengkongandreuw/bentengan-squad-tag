@@ -2929,6 +2929,12 @@ p {
   object-fit: cover;
   opacity: 0.62;
 }
+.roster-screen:has(.roster-video[hidden]) {
+  /* Static team backdrop when the team video cannot be played. */
+  background:
+    radial-gradient(circle at 68% 42%, color-mix(in srgb, var(--team-accent) 34%, transparent), transparent 58%),
+    #050505;
+}
 .roster-screen::after {
   content: "";
   position: absolute;
@@ -4330,8 +4336,7 @@ p {
   display: grid;
   place-items: center;
   padding: 74px 18px 22px;
-  background: rgba(2, 5, 4, 0.62);
-  backdrop-filter: blur(3px);
+  background: rgba(2, 5, 4, 0.78);
 }
 .round-stats-panel {
   width: min(940px, 100%);

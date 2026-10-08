@@ -58,11 +58,12 @@ test('scheduler coalesces targets, is fair, bounded and cancellable',()=>{
   assert.deepEqual(calls,['latest',1,3,4,5,6,7,8,'next']);
   scheduler.request(0,()=>assert.fail());scheduler.clear();assert.equal(scheduler.run(),false);
 });
-test('runtime keeps rendering every frame and gates scoreboard work behind visibility',()=>{
+test('runtime renders every frame (throttled behind result overlay) and gates scoreboard work behind visibility',()=>{
   const code=readFileSync('app/prototype.tsx','utf8');
-  assert.ok(code.includes("if(!paused && phase==='PLAYING') routeScheduler.run()"));
+  assert.ok(code.includes("if(!clientOnly&&!paused && phase==='PLAYING') routeScheduler.run();"));
   assert.ok(code.includes("if(leaderboardOpenRef.current || phase==='ROUND_OVER' || phase==='MATCH_OVER')"));
   assert.ok(code.includes('statsBoard: cachedStatsBoard'));
-  assert.ok(code.includes('draw(now);'));
+  assert.ok(code.includes('draw(now,renderAdapter(clientPresentation??readCanonicalState(now,development)));'));
+  assert.ok(code.includes("if(!resultOverlayShown||localNow-lastDraw>=100)"));
   assert.ok(code.includes("get('performance') === '1'"));
 });
