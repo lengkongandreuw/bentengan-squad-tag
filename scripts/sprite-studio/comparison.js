@@ -1,6 +1,7 @@
-import {ACTIONS,frameAt,spritePlacement} from '/model.js';
+import {ACTIONS,FLIGHT_ACTIONS,frameAt,spritePlacement} from '/model.js';
 const $=id=>document.getElementById(id);
 const names={run:'Lari',tag:'Tag',parkour:'Parkour',idle:'Idle',prisoner:'Tertangkap',ready:'Bersiap',ultimate:'Ultimate',victory:'Menang',defeat:'Kalah',south:'Depan',north:'Belakang',east:'Kanan',west:'Kiri',northeast:'Kanan atas',northwest:'Kiri atas',southeast:'Kanan bawah',southwest:'Kiri bawah'};
+Object.assign(names,{ultimate_takeoff:'Ultimate Takeoff',ultimate_fly:'Ultimate Fly',ultimate_land:'Ultimate Landing'});
 let entries=[],cards=[],playing=true,elapsed=0,last=performance.now(),generation=0;
 const imageCache=new Map();
 const observer=new IntersectionObserver(changes=>{for(const change of changes){const card=cards.find(c=>c.canvas===change.target);if(card)card.visible=change.isIntersecting;}},{rootMargin:'100px'});
@@ -43,6 +44,6 @@ function animate(now){if(playing&&!document.hidden)elapsed+=Math.max(0,Math.min(
 }
 function leftEdge(c,p){return c.mirror?c.x-p.width*(1-c.pivotX):p.x;}
 for(const key of ['compareCharacter','compareAction','compareZoom'])$(key).onchange=render;
-for(const a of ACTIONS)option($('compareAction'),a,names[a]);
+for(const a of [...ACTIONS,...FLIGHT_ACTIONS])option($('compareAction'),a,names[a]);
 $('comparePlay').onclick=()=>{playing=!playing;$('comparePlay').textContent=playing?'Pause semua':'Play semua';};$('compareRestart').onclick=()=>{elapsed=0;};$('compareRefresh').onclick=refresh;
 await refresh();requestAnimationFrame(animate);

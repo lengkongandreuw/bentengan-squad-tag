@@ -79,6 +79,8 @@ export type Snapshot = {
   ultimateMeter: number;
   ultimateBuffRemaining: number;
   ultimateCasting: boolean;
+  flightFlying: boolean;
+  flightDebug: string;
   matchEvents: MatchEvent[];
   rescueRequestActive: boolean;
   rescueRequestRemaining: number;
@@ -121,6 +123,8 @@ export const initialSnapshot: Snapshot = {
   ultimateMeter: 0,
   ultimateBuffRemaining: 0,
   ultimateCasting: false,
+  flightFlying: false,
+  flightDebug: '',
   matchEvents: [],
   rescueRequestActive: false,
   rescueRequestRemaining: 0,

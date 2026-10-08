@@ -6,27 +6,35 @@ import sharp from 'sharp';
 import { kanalObjectPolygons } from '../../modules/world/kanal-footprints.ts';
 // Evaluate trusted repository definitions only, never uploaded map data.
 export async function templates(root) {
-  const source = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
-  const start = source.indexOf('const DESIGN_W ='),
-    end = source.indexOf('// Custom maps are');
-  if (start < 0 || end < start)
-    throw new Error('Definisi arena tidak ditemukan.');
-  const ctx = {
-    structuredClone,
-    GAME_RULES: JSON.parse(
-      await readFile(path.join(root, 'config/game-rules.json'), 'utf8'),
-    ),
-    isKanalField: (id) => id === 'kanal2',
-    result: null,
-  };
-  vm.runInNewContext(
-    ts.transpile(source.slice(start, end) + ';result=FIELD_CONFIGS;', {
-      target: ts.ScriptTarget.ES2022,
-    }),
-    ctx,
-    { timeout: 1000 },
-  );
-  const fields = JSON.parse(JSON.stringify(ctx.result));
+  let fields = null;
+  try {
+    const guide = await import('../../modules/world/map-data/guide-fields.ts');
+    if (guide?.buildFieldConfigs && guide?.GUIDE_FIELD_CONFIGS)
+      fields = JSON.parse(JSON.stringify(guide.buildFieldConfigs(guide.GUIDE_FIELD_CONFIGS)));
+  } catch { /* Fall back to the legacy prototype slice below. */ }
+  if (!fields) {
+    const source = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
+    const start = source.indexOf('const DESIGN_W ='),
+      end = source.indexOf('// Custom maps are');
+    if (start < 0 || end < start)
+      throw new Error('Definisi arena tidak ditemukan.');
+    const ctx = {
+      structuredClone,
+      GAME_RULES: JSON.parse(
+        await readFile(path.join(root, 'config/game-rules.json'), 'utf8'),
+      ),
+      isKanalField: (id) => id === 'kanal2',
+      result: null,
+    };
+    vm.runInNewContext(
+      ts.transpile(source.slice(start, end) + ';result=FIELD_CONFIGS;', {
+        target: ts.ScriptTarget.ES2022,
+      }),
+      ctx,
+      { timeout: 1000 },
+    );
+    fields = JSON.parse(JSON.stringify(ctx.result));
+  }
   const src = await readFile(
       path.join(root, 'lib/field-assets.generated.ts'),
       'utf8',
@@ -83,7 +91,7 @@ export async function templates(root) {
     });
     for (const [i, o] of field.obstacles.entries()) {
       const v = visual(o, `obj-visual-${i}`);
-      if (!o.hidden && !o.underlay) objects.push(v);
+      if (!o.hidden) objects.push(v);
       if (field.id === 'kanal2') {
         for (const [j, poly] of kanalObjectPolygons(o).entries()) {
           const x = Math.min(...poly.map((p) => p[0])),
@@ -101,7 +109,8 @@ export async function templates(root) {
             h,
             shape: 'polygon',
             points: poly.map((p) => ({ x: (p[0] - x) / w, y: (p[1] - y) / h })),
-            behavior: 'solid',
+            behavior: 'parkour',
+            nativeCollision: o.hidden ? 'rect' : 'bands',
           });
         }
       } else
@@ -118,7 +127,7 @@ export async function templates(root) {
         });
     }
     for (const [i, o] of field.decorations.entries())
-      if (!o.underlay) objects.push(visual(o, `obj-decoration-${i}`));
+      objects.push(visual(o, `obj-decoration-${i}`));
     const file = field.background,
       meta = await sharp(
         await readFile(path.join(root, 'public/field', file)),
@@ -148,9 +157,12 @@ export async function templates(root) {
       }
       waterMask = { width, height, rows };
     }
+    const iconFile = `ui-v2/fields/${field.id}.webp`,
+      iconMeta = await sharp(await readFile(path.join(root, 'public', iconFile))).metadata();
     return {
       id: `studio-edit-${field.id}`,
       replaces: field.id,
+      ...(field.id === 'kanal2' ? {arenaRules:'kanal2', rulesVersion:1} : {}),
       name: field.name,
       description:
         field.kicker + ' · Versi editor; sebagian grafik menyatu di terrain.',
@@ -164,7 +176,8 @@ export async function templates(root) {
         frames: [{ x: 0, y: 0, width: meta.width, height: meta.height }],
         fps: 12,
       },
-      icon: null,
+      icon: {asset: iconFile, width: iconMeta.width, height: iconMeta.height,
+        frames: [{x: 0, y: 0, width: iconMeta.width, height: iconMeta.height}], fps: 12},
       terrainMode: 'stretch',
       tileSize: 256,
       objects,
@@ -192,6 +205,11 @@ export async function templates(root) {
       id: f.id,
       name: f.name,
       editable: f.id !== 'kampung3d',
+      objectScale: f.objectScale ?? 1,
+      baseRadius: f.baseRadius ?? 118,
+      structuresInBackground: !!f.structuresInBackground,
+      background: f.background,
+      prisons: f.prisons,
     })),
     library: Object.keys(atlas.assets).map((id) => ({
       name: id,

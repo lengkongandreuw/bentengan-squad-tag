@@ -7,6 +7,12 @@ import {
 import { loadPlayerProfile, savePlayerProfile } from './storage.ts';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
+import { createDefaultProgression } from './progression';
+import { createDefaultEconomy } from './economy';
+import { createDefaultUltimateUpgrades } from './ultimate-upgrades';
+import { purchaseUltimateUpgrade } from './ultimate-purchase';
+import { applyMatchProgression, type MatchSummary } from './match-progression';
+import { createLocalId } from './match-identity';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')
@@ -30,23 +36,21 @@ export const usernameError = (value: string): string | null => {
   return null;
 };
 
-const profileId = () =>
-  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
 export const createPlayerProfile = (usernameInput: string): LocalPlayerProfile => {
   const error = usernameError(usernameInput);
   if (error) throw new Error(error);
   return persist({
     schemaVersion: PLAYER_PROFILE_SCHEMA_VERSION,
-    id: profileId(),
+    id: createLocalId(),
     username: normalizeUsername(usernameInput),
     firstJoin: new Date().toISOString(),
     menang: 0,
     kalah: 0,
     featuredCharacterId: 'raja',
     kda: { tagMusuh: 0, masukPenjara: 0, rescueTeam: 0 },
+    progression: createDefaultProgression(),
+    economy: createDefaultEconomy(),
+    ultimateUpgrades: createDefaultUltimateUpgrades(),
   });
 };
 
@@ -74,3 +78,27 @@ export const recordCompletedMatch = (
 
 export const setFeaturedCharacter = (featuredCharacterId: CharacterId) =>
   updateProfile((profile) => ({ ...profile, featuredCharacterId }));
+
+// Synchronous load/resolve/save using the latest stored profile. UI integration
+// comes later; this replaces (not supplements) the legacy match writer when used.
+export const recordMatchProgression = (summary: MatchSummary) => {
+  const profile = loadPlayerProfile();
+  if (!profile) return null;
+  const result = applyMatchProgression(profile, summary);
+  if (result.applied) {
+    if (!savePlayerProfile(result.profile)) throw new Error('Reward belum tersimpan; penyimpanan browser gagal.');
+    notifyProfileChanged();
+  }
+  return result;
+};
+
+export const purchasePlayerUltimateUpgrade = (characterId: string, transactionId: string, expectedPreviousLevel?: number) => {
+  const profile=loadPlayerProfile();
+  if(!profile)return null;
+  const result=purchaseUltimateUpgrade(profile,characterId,transactionId,expectedPreviousLevel);
+  if(!result.applied)return result;
+  if(!savePlayerProfile(result.profile))return {...result,profile,applied:false,reason:'storage_failed' as const,
+    currentBalance:result.previousBalance,currentLevel:result.previousLevel};
+  notifyProfileChanged();
+  return result;
+};

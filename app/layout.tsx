@@ -1,14 +1,19 @@
 import type { Metadata } from 'next';
-import { Barlow_Condensed, Inter } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import './globals.css';
+import './ux-priority.css';
 
-const heading = Barlow_Condensed({ variable: '--font-heading', subsets: ['latin'], weight: ['600', '700', '800'] });
-const body = Inter({ variable: '--font-body', subsets: ['latin'] });
+const body = Poppins({
+  variable: '--font-body',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+});
 
 export const metadata: Metadata = {
   icons: { icon: './favicon-bst.png?v=1' },
   title: 'Bentengan: Squad Tag — Playable Prototype',
-  description: 'Bentengan web 2,5D 5v5: pilih Tim Merah atau Hijau, mainkan 14 karakter unik di empat arena, sprint, parkour, penjara, dan rescue.',
+  description:
+    'Bentengan web 2,5D 5v5: pilih Tim Merah atau Hijau, mainkan 14 karakter unik di empat arena, sprint, parkour, penjara, dan rescue.',
 };
 
 export default function RootLayout({
@@ -18,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${heading.variable} ${body.variable}`}>{children}</body>
+      <body className={body.variable}>{children}</body>
     </html>
   );
 }

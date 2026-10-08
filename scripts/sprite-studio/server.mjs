@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { compileSprites } from './compile.mjs';
-import { SLOTS,validateClip,validateSpriteDocument } from '../../lib/sprite-studio-model.js';
+import { SLOTS,slotAllowed,slotLoop,isFlightSlot,validateClip,validateSpriteDocument } from '../../lib/sprite-studio-model.js';
 const directory=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(directory,'../..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.json':'application/json','.mp4':'video/mp4','.jpg':'image/jpeg','.gif':'image/gif','.woff2':'font/woff2','.ogg':'audio/ogg','.mp3':'audio/mpeg','.wav':'audio/wav'};
@@ -71,7 +71,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
       if(req.headers.host!==new URL(origin).host||(req.headers.origin&&req.headers.origin!==origin)||req.headers['sec-fetch-site']==='cross-site')return json(403,{error:'Gunakan panel lokal yang sama.'});
       const url=new URL(req.url,origin);
       if(req.method==='GET') {
-        if(url.pathname==='/api/state')return json(200,{...await readConfig(),roster,token,job});
+        if(url.pathname==='/api/state')return json(200,{...await readConfig(),roster,token,job,supportedSlots:Object.fromEntries(ids.map(id=>[id,SLOTS.filter(slot=>slotAllowed(id,slot))]))});
         if(url.pathname==='/api/job')return json(200,job);
         const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css','/comparison':'comparison.html','/comparison.js':'comparison.js'};
         if(editors[url.pathname]||url.pathname==='/model.js') {
@@ -116,7 +116,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
           }
           return json(200,{files});
         }
-        if(!ids.includes(data.id)||(url.pathname!=='/api/save-character'&&!SLOTS.includes(data.slot)))throw new Error('Karakter/slot tidak valid.');
+        if(!ids.includes(data.id)||(url.pathname!=='/api/save-character'&&!slotAllowed(data.id,data.slot)))throw new Error('Karakter/slot tidak valid. Jika memilih ultimate arah baru, simpan draft yang sudah diproses lalu restart server dengan npm run admin:sprites dan buka ulang panel.');
         if(url.pathname==='/api/compile') {
           const atlas=await compileSprites(data.files,data.options);
           const asset=`sprite-studio/${data.id}/${atlas.hash}.webp`;
@@ -124,16 +124,17 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
           const assetDir=await realpath(path.dirname(path.join(projectRoot,'public',asset))),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!assetDir.startsWith(publicDir+path.sep))throw new Error('Folder aset di luar proyek.');
           await writeFile(path.join(projectRoot,'public',asset),atlas.bytes,{flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});
-          return json(200,{clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:0,y:0,pivotX:.5,pivotY:1,mirror:false,loop:['run','idle','prisoner'].includes(data.slot.split('.')[0])}});
+          return json(200,{clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:0,y:0,pivotX:.5,pivotY:1,mirror:false,loop:slotLoop(data.slot)}});
         }
         const document=structuredClone(current.document);
         const changes=url.pathname==='/api/save-character'?data.clips:{[data.slot]:data.clip};
         if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length||Object.keys(changes).length>SLOTS.length)throw new Error('Daftar perubahan tidak valid.');
         // Validate all selected directions before any manifest write: one atomic character update.
         for(const [slot,value] of Object.entries(changes)) {
-          if(!SLOTS.includes(slot))throw new Error('Slot animasi tidak valid.');
+          if(!slotAllowed(data.id,slot))throw new Error('Slot animasi tidak valid untuk karakter ini.');
           if(value===null) {if(document.characters[data.id])delete document.characters[data.id][slot];continue;}
           const clip=validateClip(value,data.id);
+          if(isFlightSlot(slot))clip.loop=slotLoop(slot);
           const target=await realpath(path.join(projectRoot,'public',clip.asset)),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!target.startsWith(publicDir+path.sep))throw new Error('Aset di luar proyek.');
           const meta=await sharp(await readFile(target)).metadata();if(meta.width!==clip.width||meta.height!==clip.height)throw new Error('Ukuran atlas tidak cocok.');

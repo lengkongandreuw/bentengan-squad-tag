@@ -1,0 +1,446 @@
+// Frozen pre-refactor behavior from d576801. Compiled only by the parity harness.
+    const fortOccupant = (baseTeam: Team, exceptId?: string) =>
+      players.find(
+        (p) =>
+          p.id !== exceptId &&
+          !flightBusy(p) &&
+          !(field.id === 'kanal2' && p.waterEnteredAt) &&
+          p.state === 'ACTIVE' &&
+          p.team !== baseTeam &&
+          distance(p, bases[baseTeam]) < baseRadius,
+      );
+
+    const beginKanal2WaterFall = (p: Player, now: number, x: number, y: number) => {
+      if (
+        field.id !== 'kanal2' || p.id === '__collision_probe__' ||
+        isFlying(p) || p.waterEnteredAt || p.state === 'PRISONER' ||
+        now < p.fallSafeUntil || now < p.parkourUntil
+      ) return false;
+      let waterPoint = isWaterAt(x, y) ? { x, y } : null;
+      for (let side = 0; !waterPoint && side < 16; side++) {
+        const angle = side * Math.PI / 8;
+        const sample = {
+          x: x + Math.cos(angle) * PLAYER_COLLISION_RADIUS,
+          y: y + Math.sin(angle) * PLAYER_COLLISION_RADIUS,
+        };
+        if (isWaterAt(sample.x, sample.y)) waterPoint = sample;
+      }
+      if (!waterPoint) return false;
+      p.x = waterPoint.x;
+      p.y = waterPoint.y;
+      p.lastX = p.x;
+      p.lastY = p.y;
+      p.vx = 0;
+      p.vy = 0;
+      p.action = undefined;
+      p.actionUntil = 0;
+      p.waterEnteredAt = now;
+      p.waterFallUntil = now + 720;
+      burst(p.x, p.y + 7, '#65e9ff', 12);
+      if (p.controlled) {
+        clearMouse();
+        gameplayAudio.play('dash', 0.38);
+        log('TERJATUH KE AIR · kembali ke benteng sebentar lagi.');
+      }
+      return true;
+    };
+
+    const blocked = (
+      x: number,
+      y: number,
+      p: Player,
+      now: number,
+    ) => {
+      if (isFlying(p)) {
+        // Flight is not a global collision disable. Only authored low/parkour
+        // obstacles and jumpable water are bypassed; structures remain solid.
+        if (studioQueries && studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS, true)) return true;
+        if (solidObstacles.some(o => !flightPassesObstacle(o) && pointHitsExpandedRect(x,y,o,PLAYER_COLLISION_RADIUS))) return true;
+        if (isInsideFortCore(x,y)) return true;
+        return false;
+      }
+      if (studioQueries && studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS, now < p.parkourUntil)) return true;
+      // The canal's actual water mask is the collision source for its stone
+      // banks. This blocks the visible canal instead of inventing rectangles
+      // on clear ground, and bridges remain open because they are not water.
+      if (
+        isKanalField(field.id) &&
+        kanalWaterBlocks(x, y)
+      )
+        return true;
+      const entersFortCore =
+        isKanalField(field.id) &&
+        !isInsideFortCore(p.x, p.y) &&
+        isInsideFortCore(x, y);
+
+      if (
+        now >= p.parkourUntil &&
+        (hitsObstacle(x, y) || entersFortCore)
+      )
+        return true;
+      if (
+        p.state === 'IN_BASE' &&
+        p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
+        distance(p, bases[p.team]) < baseRadius &&
+        distance({ x, y }, bases[p.team]) >= baseRadius
+      )
+        return true;
+      for (const team of ['blue', 'red'] as Team[]) {
+        const entering =
+          distance({ x, y }, bases[team]) < baseRadius &&
+          distance(p, bases[team]) >= baseRadius;
+        if (entering && p.team !== team && fortOccupant(team, p.id))
+          return true;
+      }
+      return false;
+    };
+    const move = (
+      p: Player,
+      dx: number,
+      dy: number,
+      speed: number,
+      dt: number,
+      now: number,
+    ) => {
+      if (field.id === 'kanal2' && p.waterEnteredAt) {
+        p.vx = 0;
+        p.vy = 0;
+        return;
+      }
+      const len = Math.hypot(dx, dy) || 1;
+      if (studioQueries && !isFlying(p)) speed *= studioQueries.speedAt(p.x, p.y);
+      p.vx = (dx / len) * speed;
+      p.vy = (dy / len) * speed;
+      if(isFlying(p)) {
+        const steps=Math.max(1,Math.ceil(speed*dt/4));
+        for(let i=0;i<steps;i++) {
+          const x=clamp(p.x+p.vx*dt/steps,34,worldWidth-34),y=clamp(p.y+p.vy*dt/steps,58,worldHeight-32);
+          if(!blocked(x,p.y,p,now))p.x=x;
+          if(!blocked(p.x,y,p,now))p.y=y;
+        }
+        return;
+      }
+      const nx = clamp(p.x + p.vx * dt, 34, worldWidth - 34),
+        ny = clamp(p.y + p.vy * dt, 58, worldHeight - 32);
+      if (!blocked(nx, p.y, p, now)) p.x = nx;
+      else if (beginKanal2WaterFall(p, now, nx, p.y)) return;
+      if (!blocked(p.x, ny, p, now)) p.y = ny;
+      else beginKanal2WaterFall(p, now, p.x, ny);
+    };
+
+    const findParkourLanding = (
+      p: Player,
+      direction: { x: number; y: number },
+      nominalDistance: number,
+      now: number,
+    ) => {
+      const magnitude = Math.hypot(direction.x, direction.y);
+      if (magnitude < 0.01) return null;
+      const unitX = direction.x / magnitude;
+      const unitY = direction.y / magnitude;
+      const maximumDistance = Math.max(nominalDistance, 132);
+      let crossedWater = false;
+      for (let distanceAlong = 10; distanceAlong <= maximumDistance; distanceAlong += 6) {
+        const x = clamp(p.x + unitX * distanceAlong, 34, worldWidth - 34);
+        const y = clamp(p.y + unitY * distanceAlong, 58, worldHeight - 32);
+        const water = isWaterAt(x, y);
+        crossedWater ||= water;
+        if (
+          crossedWater &&
+          !water &&
+          distanceAlong >= nominalDistance * 0.72 &&
+          !blocked(x, y, p, now)
+        )
+          return { x, y, crossedWater: true };
+      }
+      const x = clamp(p.x + unitX * nominalDistance, 34, worldWidth - 34);
+      const y = clamp(p.y + unitY * nominalDistance, 58, worldHeight - 32);
+      if (!crossedWater && !blocked(x, y, p, now))
+        return { x, y, crossedWater: false };
+      return null;
+    };
+
+    const layoutPrisons = () => {
+      (['blue', 'red'] as Team[]).forEach((owner) => {
+        const prison = field.prisons[owner];
+        players
+          .filter((p) => p.state === 'PRISONER' && p.prisonOwner === owner)
+          .forEach((p, i) => {
+            p.prisonIndex = i;
+            if (isKanalField(field.id)) {
+              const column = i % 3;
+              const row = Math.floor(i / 3);
+              const leftToRight = prison.x + 34 + column * ((prison.w - 68) / 2);
+              p.x =
+                owner === 'blue'
+                  ? leftToRight
+                  : prison.x + prison.w - (leftToRight - prison.x);
+              p.y = prison.y + 76 + row * 30;
+              p.lastX = p.x;
+              p.lastY = p.y;
+              return;
+            }
+            p.x =
+              owner === 'blue'
+                ? prison.x + 62 + i * 31
+                : prison.x + prison.w - 62 - i * 31;
+            p.y =
+              owner === 'blue' ? prison.y + 116 + i * 6 : prison.y + 82 - i * 6;
+            p.lastX = p.x;
+            p.lastY = p.y;
+          });
+      });
+    };
+
+    const capture = (winner: Player, loser: Player, now: number) => {
+      if (flightBusy(winner) || flightBusy(loser) || now < loser.ultimateShieldUntil) return;
+      const targetable =
+        loser.state === 'ACTIVE' ||
+        (loser.state === 'RETURNING' && now >= loser.rescueShieldUntil);
+      if (
+        winner.state !== 'ACTIVE' ||
+        now < winner.parkourUntil ||
+        now < loser.parkourUntil ||
+        winner.tagCooldown > now ||
+        !targetable ||
+        winner.exitOrder <= loser.exitOrder
+      )
+        return;
+      winner.tagCooldown =
+        now + CHARACTER_BY_ID[winner.characterId].tagCooldownMs;
+      winner.captures++;
+      addStat(winner, 'tags');
+      addStat(loser, 'prisons');
+      if (winner.controlled) pendingProfileStatsRef.current.tagMusuh++;
+      if (loser.controlled) pendingProfileStatsRef.current.masukPenjara++;
+      addMatchEvent(
+        {
+          kind: 'tag',
+          actorName: winner.name,
+          actorTeam: winner.team,
+          targetName: loser.name,
+          targetTeam: loser.team,
+        },
+        now,
+      );
+      if (!winner.capturedIds.includes(loser.id))
+        winner.capturedIds.push(loser.id);
+      winner.action = 'tag';
+      winner.visualTagVector = { x: loser.x - winner.x, y: loser.y - winner.y };
+      winner.actionUntil = now + 420;
+      loser.state = 'PRISONER';
+      loser.flight = null;
+      loser.prisonOwner = winner.team;
+      loser.fortCharge = 0;
+      loser.rescueShieldUntil = 0;
+      burst(loser.x, loser.y, TEAM_COLOR[winner.team]);
+      if (loser.controlled) { gameplayAudio.resetTagStreak(); gameplayAudio.play('caught'); }
+      else if (winner.controlled) gameplayAudio.playerTag(now);
+      else if (distance(players[0], loser) < 300) gameplayAudio.play('tag', .22);
+      log(
+        `${winner.name} #${winner.exitOrder} menangkap ${loser.name} #${loser.exitOrder}.`,
+      );
+      registerTeamAction(winner, 'TAG', loser.x, loser.y, now);
+      chargeUltimate(winner, RAJA_ULTIMATE_TAG_BONUS);
+      if (winner.controlled) mission.tag = true;
+      layoutPrisons();
+      if (suddenDeath) winRound(winner.team, 'SUDDEN DEATH TAG');
+    };
+    const tagCheck = (now: number) => {
+      const contacts: Array<{ attacker: Player; target: Player }> = [];
+      for (let i = 0; i < players.length; i++)
+        for (let j = i + 1; j < players.length; j++) {
+          const a = players[i],
+            b = players[j],
+            contactDistance = Math.min(
+              distance(a, b),
+              sweptContactDistance(a, b),
+            );
+          if (
+            a.team === b.team ||
+            flightBusy(a) || flightBusy(b) ||
+            (field.id === 'kanal2' && (a.waterEnteredAt || b.waterEnteredAt)) ||
+            now < a.parkourUntil ||
+            now < b.parkourUntil ||
+            contactDistance > Math.max(CHARACTER_BY_ID[a.characterId].tagRange,CHARACTER_BY_ID[b.characterId].tagRange)+4
+          )
+            continue;
+          const aTargetable =
+            now >= a.ultimateShieldUntil &&
+            (a.state === 'ACTIVE' ||
+              (a.state === 'RETURNING' && now >= a.rescueShieldUntil));
+          const bTargetable =
+            now >= b.ultimateShieldUntil &&
+            (b.state === 'ACTIVE' ||
+              (b.state === 'RETURNING' && now >= b.rescueShieldUntil));
+          if (
+            a.state === 'ACTIVE' &&
+            bTargetable &&
+            a.exitOrder > b.exitOrder &&
+            contactDistance <= CHARACTER_BY_ID[a.characterId].tagRange + 4
+          ) {
+            if(hasLineOfSight(a,b))contacts.push({ attacker: a, target: b });
+          }
+          else if (
+            b.state === 'ACTIVE' &&
+            aTargetable &&
+            b.exitOrder > a.exitOrder &&
+            contactDistance <= CHARACTER_BY_ID[b.characterId].tagRange + 4
+          ) {
+            if(hasLineOfSight(a,b))contacts.push({ attacker: b, target: a });
+          }
+        }
+      contacts.sort(
+        (a, b) =>
+          b.attacker.exitOrder - a.attacker.exitOrder ||
+          b.target.exitOrder - a.target.exitOrder ||
+          a.attacker.id.localeCompare(b.attacker.id),
+      );
+      const resolved = new Set<string>();
+      contacts.forEach(({ attacker, target }) => {
+        if (resolved.has(attacker.id) || resolved.has(target.id)) return;
+        const before = target.state;
+        capture(attacker, target, now);
+        if (before !== 'PRISONER' && target.state === 'PRISONER') {
+          resolved.add(attacker.id);
+          resolved.add(target.id);
+        }
+      });
+    };
+    const rescueCheck = (now: number) => {
+      players
+        .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(field.id === 'kanal2' && p.waterEnteredAt))
+        .forEach((rescuer) => {
+          const held = players
+            .filter((p) => p.team === rescuer.team && p.state === 'PRISONER')
+            .sort((a, b) => b.prisonIndex - a.prisonIndex);
+          const rescuerStats = CHARACTER_BY_ID[rescuer.characterId];
+          if (
+            held[0] &&
+            distance(rescuer, held[0]) < rescuerStats.rescueRange
+          ) {
+            if (rescuer.controlled) gameplayAudio.play('rescue');
+            held.forEach((p) => {
+              p.state = 'RETURNING';
+              p.prisonOwner = undefined;
+              p.rescueShieldUntil = now + rescuerStats.rescueShieldMs;
+              p.x += rescuer.team === 'blue' ? -22 : 22;
+            });
+            rescuer.action = 'rescue';
+            rescuer.actionUntil = now + 460;
+            addStat(rescuer, 'rescues');
+            if (rescuer.controlled) pendingProfileStatsRef.current.rescueTeam++;
+            if (
+              rescueRequest &&
+              held.some((player) => player.id === rescueRequest?.requesterId)
+            )
+              rescueRequest = null;
+            addMatchEvent(
+              {
+                kind: 'rescue',
+                actorName: rescuer.name,
+                actorTeam: rescuer.team,
+                targetName: held.length === 1 ? held[0].name : undefined,
+                targetTeam: held.length === 1 ? held[0].team : undefined,
+                rescuedCount: held.length,
+              },
+              now,
+            );
+            burst(held[0].x, held[0].y, '#b9ee3d', 26);
+            if (held.some(p => p.controlled) || rescuer.controlled) gameplayAudio.play('rescued');
+            else if (distance(players[0], rescuer) < 300) gameplayAudio.play('rescued', .25);
+            log(`${rescuer.name} membebaskan ${held.length} rekan.`);
+            registerTeamAction(rescuer, 'RESCUE', held[0].x, held[0].y, now);
+            chargeUltimate(rescuer, RAJA_ULTIMATE_RESCUE_BONUS);
+            if (rescuer.controlled) mission.rescue = true;
+          }
+        });
+    };
+
+    const baseCheck = (
+      p: Player,
+      dt: number,
+      now: number,
+      exitCandidates: Player[],
+    ) => {
+      if (flightBusy(p) || p.state === 'PRISONER' || (field.id === 'kanal2' && p.waterEnteredAt)) return;
+      const stats = CHARACTER_BY_ID[p.characterId],
+        insideOwn = distance(p, bases[p.team]) < baseRadius,
+        maxBoost = stats.boost,
+        chargeTime = stats.baseChargeTime;
+      const contested = Boolean(fortOccupant(p.team));
+      if (insideOwn) {
+        if (contested) {
+          if (p.state === 'IN_BASE' || p.state === 'RETURNING')
+            exitCandidates.push(p);
+        } else if (
+          p.state === 'ACTIVE' &&
+          now - p.lastExitAt < BASE_REENTRY_COOLDOWN_MS
+        ) {
+          p.fortCharge = 0;
+        } else {
+          if (p.state !== 'IN_BASE') {
+            p.state = 'IN_BASE';
+            p.baseCharge = 0;
+            p.exitDeadline = 0;
+            p.fortCharge = 0;
+          }
+          const charging = players
+            .filter(
+              (q) =>
+                q.team === p.team &&
+                q.state === 'IN_BASE' &&
+                distance(q, bases[q.team]) < baseRadius,
+            )
+            .sort(
+              (a, b) =>
+                b.baseCharge - a.baseCharge || tieHash(a.id) - tieHash(b.id),
+            )
+            .slice(0, 3);
+          if (
+            charging.some((q) => q.id === p.id) &&
+            p.baseCharge < chargeTime
+          ) {
+            p.baseCharge = Math.min(chargeTime, p.baseCharge + dt);
+            if (p.baseCharge >= chargeTime && !p.exitDeadline)
+              p.exitDeadline = now + 5000;
+          }
+          p.boost = maxBoost;
+          p.boostReadyAt = 0;
+          if (
+            p.baseCharge >= chargeTime &&
+            p.exitDeadline > 0 &&
+            now >= p.exitDeadline
+          ) {
+            p.x =
+              bases[p.team].x +
+              (p.team === 'blue' ? baseRadius + 5 : -baseRadius - 5);
+            exitCandidates.push(p);
+            log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
+          }
+        }
+      } else if (p.state === 'IN_BASE' && p.baseCharge >= chargeTime) {
+        exitCandidates.push(p);
+      }
+      if (
+        p.state === 'ACTIVE' &&
+        distance(p, bases[other(p.team)]) < baseRadius
+      ) {
+        const defending = players.some(
+          (q) =>
+            q.team !== p.team &&
+            q.state === 'ACTIVE' &&
+            distance(q, bases[other(p.team)]) < baseRadius,
+        );
+        p.fortCharge = defending ? 0 : p.fortCharge + dt;
+        if (p.fortCharge >= 1.5) winRound(p.team, 'BENTENG DIREBUT');
+      } else p.fortCharge = 0;
+      if (p.boost < maxBoost && p.boostReadyAt > 0 && now >= p.boostReadyAt) {
+        p.boost = maxBoost;
+        p.boostReadyAt = 0;
+        if (p.controlled) {
+          log(`Boost ${p.name} pulih penuh setelah 20 detik.`);
+          beep(690, 0.13);
+        }
+      }
+    };

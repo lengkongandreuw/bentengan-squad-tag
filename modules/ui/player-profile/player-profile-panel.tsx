@@ -13,6 +13,7 @@ import {
   type LocalPlayerProfile,
 } from '../../../lib/player-profile';
 import { KdaSummary } from './kda-summary';
+import { TokenWallet } from '../token-wallet';
 import { PlayerRadarChart } from './radar-chart';
 import './profile-poster.css';
 
@@ -56,6 +57,7 @@ export function PlayerProfilePanel({
           <div>
             <span>PROFILE</span>
             <p>Bergabung {new Date(profile.firstJoin).toLocaleDateString('id-ID')}</p>
+            <TokenWallet profile={profile} />
           </div>
           <button className="profile-close" type="button" onClick={onClose} aria-label="Tutup profil">×</button>
         </header>

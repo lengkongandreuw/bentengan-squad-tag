@@ -21,11 +21,18 @@
       </nav>
     </header>
     <div id="status" role="status" aria-live="polite">Memuat…</div>
+    <div class="publish-strip">
+      <strong id="saveState">Memuat</strong><span id="activationState"></span>
+    </div>
     <main>
       <aside>
         <section>
           <h2>01 · Map</h2>
-          <label>Map tersimpan<select id="maps"></select></label>
+          <label>Map & versi<select id="maps"></select></label>
+          <strong id="versionBadge" role="status"></strong>
+          <p id="versionDetails"></p>
+          <button id="editVersion" hidden>Buka draft editor</button>
+          <p>“Aktif lokal” mengikuti konfigurasi repo ini. GitHub Pages baru berubah setelah Build/publish berhasil.</p>
           <label class="check"
             ><input type="checkbox" id="showArchived" />Tampilkan Arsip &
             Sampah</label
@@ -76,6 +83,13 @@
             Map asli tetap utuh. Simpan → Build untuk pertandingan. Draft
             nonaktif tidak muncul di game.
           </p>
+          <p id="unlockIdentity"></p>
+          <h2>Gambar map selection</h2>
+          <canvas id="iconPreview" width="240" height="135" aria-label="Preview map selection"></canvas>
+          <button id="chooseMapPreview">Ganti gambar preview</button>
+          <input id="mapPreviewFile" type="file" accept="image/png,image/gif,image/webp" hidden />
+          <button id="clearIcon">Gunakan preview bawaan</button>
+          <p>PNG / GIF / WebP. Gambar disesuaikan ke 16:9 tanpa dipotong. Simpan map untuk menerapkannya.</p>
         </section>
         <section>
           <h2>02 · Aset</h2>
@@ -110,14 +124,7 @@
                 min="32"
                 max="1024" /></label
             ><button id="clearTerrain">Hapus terrain</button
-            ><button id="clearIcon">Hapus ikon</button
-            ><button id="clearWaterMask">Hapus area air bawaan</button
-            ><canvas
-              id="iconPreview"
-              width="160"
-              height="90"
-              aria-label="Preview ikon"
-            ></canvas>
+            ><button id="clearWaterMask">Hapus area air bawaan</button>
           </details>
           <label
             >Cari objek bawaan<input id="search" placeholder="parkTree…"
@@ -135,11 +142,15 @@
               max="160"
               value="45" /><output id="zoomLabel"></output></label
           ><button id="fit">Fit map</button
+          ><label class="check"><input id="cleanPreview" type="checkbox" />Preview bersih (tanpa garis collider)</label
           ><label class="check"
             ><input id="grid" type="checkbox" /> Grid / snap 20</label
           ><label class="check"
             ><input id="bounds" type="checkbox" checked /> Collider &
             area</label
+          ><label class="check"
+            ><input id="structures" type="checkbox" checked /> Benteng &
+            penjara</label
           ><label
             >Layer tampak<select id="layerFilter">
               <option value="all">Semua</option>
@@ -148,6 +159,43 @@
               <option value="foreground">Foreground</option>
             </select></label
           >
+        </div>
+        <div class="tools quick-tools">
+          <button id="polygon" class="primary">
+            ＋ Gambar collider poligon</button
+          ><button id="solidArea">＋ Collider kotak kosong</button>
+        </div>
+        <div id="drawingTools" class="context-panel" hidden>
+          <strong>Gambar collider: klik canvas untuk tiap titik</strong
+          ><span id="drawingCount">0 titik</span
+          ><button id="finishPolygon" disabled>Selesai poligon · Enter</button
+          ><button id="cancelPolygon">Batal · Esc</button>
+          <p>
+            Minimal3 titik. Setelah selesai: seret node, klik tanda＋untuk
+            menambah titik. Collider ini tidak memiliki gambar.
+          </p>
+        </div>
+        <div id="testingTools" class="context-panel" hidden>
+          <strong>Uji karakter dummy</strong
+          ><output id="dummyStatus" aria-live="off"></output>
+          <div class="tools">
+            <button id="spawnRed">Reset ke benteng Merah</button
+            ><button id="spawnGreen">Reset ke benteng Hijau</button
+            ><button id="jumpDummy">Lompat · Shift</button
+            ><button id="boostDummy">Boost · Space</button>
+          </div>
+          <div class="tools">
+            <button data-move="w" aria-label="Dummy ke atas">↑</button
+            ><button data-move="a" aria-label="Dummy ke kiri">←</button
+            ><button data-move="s" aria-label="Dummy ke bawah">↓</button
+            ><button data-move="d" aria-label="Dummy ke kanan">→</button>
+          </div>
+          <p>
+            WASD/panah untuk bergerak. Klik area aman untuk memindahkan dummy.
+            Radius kaki13 unit; warna area menandai solid, parkour, air, lambat,
+            dan jembatan. Ini tes traversal/overlay, bukan simulasi tangkap atau
+            pertandingan penuh.
+          </p>
         </div>
         <p id="hint">
           Klik/seret objek; tarik sudut untuk ukuran. Koleksi aset dapat diseret
@@ -212,6 +260,19 @@
                   <option value="polygon">Polygon</option>
                 </select></label
               ><button id="editPoints">Edit titik polygon</button>
+              <div id="polygonTools" class="context-panel" hidden>
+                <strong id="nodeCount"></strong>
+                <div id="nodes" class="node-list"></div>
+                <div class="pair">
+                  <button id="addNode">＋ Tambah node</button
+                  ><button id="deleteNode">Hapus node dipilih</button>
+                </div>
+                <p>
+                  Klik nomor untuk memilih node. Seret titik di canvas. Klik＋di
+                  tengah sisi untuk menyisipkan node; minimal3, maksimal64
+                  titik.
+                </p>
+              </div>
               <p>
                 Geser titik; double-click untuk tambah; Shift+klik titik untuk
                 hapus.

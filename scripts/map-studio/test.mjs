@@ -24,12 +24,32 @@ import {
   mapIssues,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
+import {mapVersions} from './map-versions.mjs';
 import { validateCatalog } from './catalog.mjs';
 import { startMapStudio } from './server.mjs';
+import { waitForPagesDeployment } from './deployment.mjs';
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../..',
 );
+test('P2 map versions distinguish active originals, inactive drafts and active replacements without mutation',()=>{
+  const original={...map(),id:'studio-edit-taman',replaces:'taman',name:'Native Taman'},draft={...original,name:'Saved draft',objects:[object()]};
+  const document={maps:[draft],builtinStates:{}},before=JSON.stringify(document);
+  const builtins=[{id:'taman',name:'Taman Kota',editable:true}];
+  assert.ok(mapVersions({maps:[]},builtins,[original])[0].active,'native with no saved draft remains selectable');
+  let entries=mapVersions(document,builtins,[original]);
+  const native=entries.find(e=>e.value==='builtin:taman'),edit=entries.find(e=>e.value===draft.id);
+  assert.ok(native.active&&native.readOnly);assert.equal(native.map.name,'Native Taman');assert.equal(native.map.objects.length,0);
+  assert.ok(!edit.active&&!edit.readOnly);assert.equal(edit.map.name,'Saved draft');assert.match(edit.label,/Draft nonaktif/);
+  assert.equal(JSON.stringify(document),before);
+  draft.enabled=true;entries=mapVersions(document,builtins,[original]);
+  assert.ok(!entries.find(e=>e.kind==='native').active);
+  assert.ok(entries.find(e=>e.value==='live:'+draft.id).readOnly);
+  assert.ok(entries.find(e=>e.value===draft.id).active);assert.match(entries.find(e=>e.value===draft.id).label,/Edit versi aktif/);
+  draft.archived=true;document.builtinStates.taman='archived';
+  assert.equal(mapVersions(document,builtins,[original]).length,0);
+  assert.ok(mapVersions(document,builtins,[original],true).every(e=>!e.active));
+});
 const object = (behavior = 'solid') => ({
   id: 'obj-test',
   name: 'Test',
@@ -72,6 +92,133 @@ const map = () => ({
     blue: { x: 80, y: 100, w: 240, h: 160 },
     red: { x: 1480, y: 100, w: 240, h: 160 },
   },
+});
+const toolCode = (
+  await readFile(new URL('./editor-tools.js', import.meta.url), 'utf8')
+).replace(
+  "'./model.js'",
+  JSON.stringify(
+    new URL('../../lib/map-studio-model.js', import.meta.url).href,
+  ),
+);
+const { polygonBounds, closestEdge, moveDummy } = await import(
+  'data:text/javascript;base64,' + Buffer.from(toolCode).toString('base64')
+);
+test('visual polygon builder normalizes arbitrary nodes;64 node safety and nearest edge', () => {
+  const pts = [
+    { x: 100, y: 100 },
+    { x: 300, y: 100 },
+    { x: 350, y: 200 },
+    { x: 280, y: 300 },
+    { x: 150, y: 330 },
+    { x: 100, y: 200 },
+  ];
+  const bounds = polygonBounds(pts);
+  assert.equal(bounds.points.length, 6);
+  assert.equal(bounds.x, 100);
+  assert.equal(bounds.w, 250);
+  assert.ok(
+    bounds.points.every((p) => p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1),
+  );
+  const m = map();
+  m.objects = [{ ...object(), ...bounds, shape: 'polygon' }];
+  validateMap(m);
+  assert.ok(contains(m.objects[0], 200, 200));
+  assert.equal(closestEdge(object().points, { x: 0.5, y: 0.01 }, 300, 100), 0);
+  assert.throws(() => polygonBounds(pts.slice(0, 2)));
+  assert.throws(() => polygonBounds(Array(65).fill({ x: 0, y: 0 })));
+  assert.throws(() =>
+    polygonBounds([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+    ]),
+  );
+  const o = {
+    ...object(),
+    shape: 'polygon',
+    points: [
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 0, y: 1 },
+      { x: 1, y: 0 },
+    ],
+  };
+  assert.ok(
+    mapIssues({ ...m, objects: [o] }).some((i) =>
+      i.message.includes('bersilangan'),
+    ),
+  );
+});
+test('dummy traversal shares solid/parkour/slow/water/bridge and gameplay world margins', () => {
+  const m = map();
+  m.objects = [object()];
+  const p = { x: 383, y: 450 };
+  const stopped = moveDummy(m, p, 1, 0, 0.04, false);
+  assert.ok(stopped.blocked);
+  assert.ok(stopped.x < 387);
+  m.objects[0].behavior = 'parkour';
+  assert.ok(moveDummy(m, p, 1, 0, 0.04, false).blocked);
+  assert.ok(moveDummy(m, p, 1, 0, 0.04, true).x > 387);
+  m.objects[0].behavior = 'slow';
+  assert.equal(
+    moveDummy(m, { x: 450, y: 450 }, 1, 0, 0.04, false).multiplier,
+    0.5,
+  );
+  m.objects[0].behavior = 'water';
+  assert.ok(moveDummy(m, { x: 450, y: 450 }, 0, 0, 0.04, false).fallen);
+  assert.ok(!moveDummy(m, { x: 450, y: 450 }, 0, 0, 0.04, true).fallen);
+  m.objects.push({ ...object('bridge'), id: 'obj-bridge' });
+  assert.ok(!moveDummy(m, { x: 450, y: 450 }, 0, 0, 0.04, false).fallen);
+  assert.equal(moveDummy(m, { x: 34, y: 58 }, -1, -1, 0.04, false).x, 34);
+});
+test('publish verification waits for correct commit/revision, never treats push or stale public build as success', async () => {
+  const run = {
+    head_sha: 'abc',
+    path: '.github/workflows/pages.yml',
+    status: 'completed',
+    conclusion: 'success',
+    html_url: 'https://github.com/run',
+  };
+  let polls = 0;
+  const result = await waitForPagesDeployment({
+    commit: 'abc',
+    mapRevision: 'revision',
+    readRuns: async () => [run],
+    readPublic: async () =>
+      ++polls === 1
+        ? { commit: 'old', mapRevision: 'revision' }
+        : { commit: 'abc', mapRevision: 'revision' },
+    onProgress: () => {},
+    sleep: async () => {},
+    attempts: 3,
+  });
+  assert.equal(polls, 2);
+  assert.match(result.url, /build=abc/);
+  await assert.rejects(
+    waitForPagesDeployment({
+      commit: 'abc',
+      mapRevision: 'revision',
+      readRuns: async () => [{ ...run, conclusion: 'failure' }],
+      readPublic: async () => null,
+      onProgress: () => {},
+      sleep: async () => {},
+      attempts: 1,
+    }),
+    /failure/,
+  );
+  await assert.rejects(
+    waitForPagesDeployment({
+      commit: 'abc',
+      mapRevision: 'revision',
+      readRuns: async () => [],
+      readPublic: async () => null,
+      onProgress: () => {},
+      sleep: async () => {},
+      attempts: 1,
+    }),
+    /belum terkonfirmasi/,
+  );
 });
 test('schema rejects invalid numbers, duplicate IDs and unsafe paths', () => {
   assert.deepEqual(validateMap(map()), map());
@@ -125,10 +272,25 @@ test('polygon, animation speed and route validation', () => {
 test('Kampung template and library use normalized valid assets', async () => {
   const t = await templates(root);
   assert.equal(validateCatalog(t), t);
-  assert.throws(() => validateCatalog({ template: t.template, library: t.library }), /Server Map Studio/);
-  assert.throws(() => validateCatalog({ ...t, builtinTemplates: t.builtinTemplates.filter(m => m.replaces !== 'pasar') }), /pasar/);
+  assert.throws(
+    () => validateCatalog({ template: t.template, library: t.library }),
+    /Server Map Studio/,
+  );
+  assert.throws(
+    () =>
+      validateCatalog({
+        ...t,
+        builtinTemplates: t.builtinTemplates.filter(
+          (m) => m.replaces !== 'pasar',
+        ),
+      }),
+    /pasar/,
+  );
   validateMap(t.template);
   assert.ok(t.library.length > 50);
+  for (const name of ['fortRed', 'fortGreen', 'prisonFloor', 'prisonOverlay'])
+    assert.ok(t.library.some((a) => a.name === name));
+  assert.ok(t.builtins.every((b) => b.baseRadius > 0 && b.objectScale > 0));
   assert.ok(t.template.objects.length > 20);
   assert.deepEqual(mapIssues(t.template), []);
   t.library.forEach((a) => validateAsset(a.clip));
@@ -136,11 +298,19 @@ test('Kampung template and library use normalized valid assets', async () => {
   assert.equal(t.builtins.length, 6);
   assert.equal(t.builtinTemplates.length, 5);
   t.builtinTemplates.forEach(validateMap);
+  for (const m of t.builtinTemplates) {
+    assert.equal(m.icon.asset, `ui-v2/fields/${m.replaces}.webp`);
+    assert.equal(m.icon.frames.length, 1);
+  }
+  assert.ok(t.template.objects.some(o => o.asset && o.layer === 'background'), 'underlay artwork must not disappear');
+  const taman = t.builtinTemplates.find(m => m.replaces === 'taman');
+  assert.equal(taman.terrain.asset, 'field/taman-map.webp');
+  assert.ok(t.builtins.find(b => b.id === 'taman').structuresInBackground);
   assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
 });
 
 test('HTTP harness exposes built-in catalog and browser guard from running server', async () => {
-  const {server, origin} = await startMapStudio(0, root);
+  const { server, origin } = await startMapStudio(0, root);
   try {
     const response = await fetch(origin + '/api/templates');
     assert.equal(response.status, 200);
@@ -151,8 +321,32 @@ test('HTTP harness exposes built-in catalog and browser guard from running serve
     assert.match(guard.headers.get('content-type'), /javascript/);
     const editor = await (await fetch(origin + '/editor.js')).text();
     assert.match(editor, /validateCatalog\(await api\('\/api\/templates'\)\)/);
+    assert.ok((await fetch(origin + '/editor-tools.js')).ok);
+    assert.match(editor, /drawGameplayAssets\(now, true\)/);
+    const html = await (await fetch(origin + '/')).text();
+    for (const id of [
+      'polygon',
+      'solidArea',
+      'nodes',
+      'addNode',
+      'deleteNode',
+      'testingTools',
+      'dummyStatus',
+      'activationState',
+      'structures',
+      'chooseMapPreview',
+      'mapPreviewFile',
+      'iconPreview',
+      'unlockIdentity',
+      'cleanPreview',
+    ])
+      assert.ok(html.includes(`id="${id}"`));
+    const nativePreview = await fetch(origin + '/ui-v2/fields/taman.webp');
+    assert.equal(nativePreview.status, 200);
+    assert.match(nativePreview.headers.get('content-type'), /image\/webp/);
+    assert.equal((await fetch(origin + '/ui-v2/fields/not-a-map.webp')).status, 404);
   } finally {
-    await new Promise(resolve => server.close(resolve));
+    await new Promise((resolve) => server.close(resolve));
   }
 });
 test('archive metadata and inherited water mask remain backwards compatible', () => {
@@ -284,6 +478,17 @@ test('local API upload, session guard, revision conflict and safe map merge', as
       400,
     );
     assert.ok(await readFile(path.join(dir, 'public', asset.asset)));
+    state = { ...state, ...(await (await fetch(origin + '/api/state')).json()) };
+    const iconUpload = await post('/api/upload', {kind: 'icon', file: {data: png.toString('base64')}});
+    assert.equal(iconUpload.status, 200);
+    const icon = (await iconUpload.json()).asset;
+    assert.equal(icon.frames[0].width, 640); assert.equal(icon.frames[0].height, 360); assert.equal(icon.frames.length, 1);
+    const original = structuredClone(state.document.maps[1]);
+    const iconSave = await post('/api/save', {map: {...original, icon}});
+    assert.equal(iconSave.status, 200);
+    const savedIconState = await iconSave.json();
+    assert.deepEqual(savedIconState.document.maps[1], {...original, icon});
+    assert.deepEqual(savedIconState.document.maps[0], state.document.maps[0]);
     assert.ok((await fetch(origin + '/')).ok);
     assert.ok((await fetch(origin + '/editor.js')).ok);
   } finally {

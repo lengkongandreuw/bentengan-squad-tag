@@ -4,6 +4,443 @@ Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokume
 
 ## Cara memakai dokumen ini
 
+2026-10-08 MERGE origin/main d75b0ed INTO Refactor-Clio LOCAL ONLY. Resolved
+app/prototype.tsx through module owners (progression panels, gated cycleArena,
+modules/audio, water-mask RLE helper, lib/multiplayer/pump.ts, contrast HUD +
+2 small UI components); no opponentSquad restore. tsc 0, build:pages PASS,
+game-core 40/40, audio 10/10, multiplayer 28/28. audit-game GAGAL on merge
+AND tip (21 pre-existing baseline asserts); lint 92 vs tip 296, no new
+blocker. snapshot-write.ts reconciliation and ultimate central descriptor
+deferred. Browser smoke via npm run dev :3000: profile→match live, zero page
+errors; multiplayer session unverified. Committed locally on Refactor-Clio;
+no push, PR, or deploy.
+
+2026-10-06 PUBLISH BATCH COMPLETE: user requests all current local changes.
+Multiplayer02–23 + map editor identity/preview improvements + user local maps and
+4 WebP uploads included. Native game/editor data preserved, draft enable status
+unchanged.165 combined tests/TS/Pages build PASS. Fetched GitHub main equal to
+base d576801. Push via Windows Git credentials; restricted shell credentials and
+default GH CLI token unavailable. Feature ef7c972 pushed fast-forward; Pages
+workflow37461007037 SUCCESS, public build-info exact feature commit/map revision
+verified. Public two-profile UI Host/Join/Ready/Start/countdown PASS, no page errors,
+screenshots inspected. URL https://lengkongandreuw.github.io/bentengan-squad-tag/?build=ef7c9729c201
+Final documentation-only [skip ci] commit does not change deployed runtime.
+Local editor backend remains local; GitHub Pages hosts game + multiplayer entry.
+Historical LOCAL ONLY entries below describe earlier
+development stages and do not revoke this explicit publish authorization.
+
+2026-10-06 MAP EDITOR LOCAL: edited native maps keep original unlock/tier identity
+via arena-identity.ts; runtime gates/requirements/stats agree across studio-edit
+and native IDs. Historical alias stats combine on read, fold once on next match
+write; no read-time storage mutation, no extra prerequisites or threshold changes.
+Map selection image editing is prominent: PNG/GIF/WebP, first frame still,
+lossless640x360 contain; save/reload tested in isolated fixture. Replacement maps
+without custom thumbnail inherit original arena artwork. Templates keep visible
+underlays; Taman combined native terrain matches game, clean preview hides guides,
+no duplicate generic structures on already-baked Taman/Kanal terrain. Current
+native Taman has no independent warung asset; do not invent obsolete-layout props.
+165 combined tests, TS/focused lint, Pages build PASS; browser checks exact source,
+thumbnail round-trip and collider preservation, screenshots inspected. Existing
+legacy lint/build warnings remain. Local editor4341/session3303;4320 occupied,
+not interrupted. Actual config/map assets preserved; no publish.
+
+2026-10-06 MODULE20–23 LOCAL ONLY, supersedes navigation-only restrictions in
+historical17–19 below. Frozen10-actor roster; disconnected remote humans become
+bots without identity/character/prison/stat reset, input authority revoked. Host
+loss ends clients; no reconnect/migration. Host-owned completed MATCH_RESULT and
+per-human eligibility/KDA feed existing local progression writer, XP/DOI/unlocks;
+ACK/retry, storage failure retry and existing persistent match-ID dedup. Departed
+humans/incomplete matches get no rewards. Casual P2P trust, not ranked security.
+Host authoritative ultimate/rescue input, independent human skill states using
+existing core, all flight-stage tag protection, per-round meter preservation.
+Base ultimate stats online, no remote profile upgrade transfer. MATCH_FRAME syncs
+scoreboards/cooldown; deduplicated host events drive client presentation only.
+2–4 humans +8/7/6 host bots.163 regression tests, TS/focused lint and Pages compile
+PASS. Actual2-browser full match same2–0 winner,160XP/15DOI vs100XP/10DOI; result
+screenshots inspected. Actual3/4-human ownership/takeover/host-loss QA PASS;4-human
+repeat checks signed movement directions, no page errors.4-human sample7.403s,
+1,156,485 host application bytes,6.48Hz snapshots observed vs12Hz configured;
+same-PC/startup-inclusive, not latency/FPS guarantee.24 not implemented.
+See docs/MULTIPLAYER-MODULE20-23.md. Review3026; restart after source/content changes
+to refresh compatibility manifest. No publish. Concurrent map editor config/WebP
+saves observed during verification belong to their author; preserve untouched.
+Final retry with network permission on editor replacement studio-edit-kampung
+also PASS:green2–1 red, client160XP/15DOI and host100XP/10DOI,66 gameplay events,
+one result/ACK,86.692s,no page errors. Earlier host-not-found signaling attempts
+failed before gameplay; no guaranteed connectivity claim. Review session90824.
+
+2026-10-06 MODULE17–19 LOCAL ONLY explicit batch. Actual lobby→game session
+ownership transfer; host simulates local+remote humans+existing bots with stable
+IDs/reserve choices, remote INPUT ownership/shape/sequence/bounds gates and250ms
+neutral timeout. Shared human move/boost/parkour, no bot multipliers for humans.
+Client has no authoritative update/AI/collision;12Hz host snapshots,30Hz client
+input,100ms bounded receive-clock interpolation of x/y with latest discrete data.
+No prediction; legacy variable-delta physics retained. Online profile/reward/XP/
+DOI/rotation writes disabled. Navigation MVP only, not complete online match FX.
+CONTENT_VERSION gates admission/start; SHA-256 source/config build + selected
+arena definition/Studio/map asset bytes detect same-ID changed maps; mismatch
+readable and approval revoked. Pages Vite manifest required; restart server after
+source edits. No automatic assets/auth/server/reconnect/host migration.
+154 regression tests,TypeScript,focused module lint,Pages build passed; actual
+two isolated browser runtime QA PASS (remote reserve Kodo, host local,8 bots,
+snapshots, host-tab disconnect, no page errors). Heartbeat silence10s/scanned5s
+ends frozen clients even before ICE leave detection. Full legacy monolith lint
+diagnostics remain. Current local review3025. Details
+docs/MULTIPLAYER-MODULE17-19.md. No publish.
+
+2026-10-06 MODULE14–16 LOCAL ONLY in requested order. Lazy pinned MQTT/Trystero
+WebRTC adapter isolated from gameplay; no dedicated server/TURN/media permission.
+Public signaling/ICE dependency and NAT failure caveats; full room code embeds
+expected host peer ID plus nonce, not authentication.20s missing-host failure.
+Host canonical revisioned lobby validates peer-bound team/character/ready and
+duplicates, max4 humans,5v5 bot preview; only host can start2+ all-ready prep.
+Native minimal multiplayer dialog on splash, leave closes transport/timers, host
+loss ends room. LOBBY_STATE/SESSION_ERROR added to local v1 protocol. Lobby start
+does not run online gameplay; compatibility/assets and live sync pending later.
+8 deterministic tests + real two isolated Chrome contexts WebRTC team/character/
+ready/start/disconnect PASS, desktop/mobile inspected.144/144 tests, TS/lint/Pages
+build PASS; npm audit21 advisories not auto-fixed/clean security not claimed.
+Existing locked versions/assets/config/editor/solo behavior preserved; no publish.
+See docs/MULTIPLAYER-MODULE14-16.md. Prior02–13 uncommitted work retained.
+
+2026-10-06 MODULE11–13 LOCAL ONLY under explicit batch instruction. Drawing reads
+detached canonical RenderFrame; keeps sprite/cache legacy visual IDs and names,
+no actor mutation authority; 3D error pause handled by runtime loop. Canonical
+projection runs each render frame for current variable-delta truth; snapshot
+JSON encoding only on demand. No measured device FPS/browser visual QA claim.
+Snapshot v1 dynamic allowlist excludes assets/static geometry/profile/stat stores;
+strict finite exact-key bounded parser, identity/reference/phase checks.
+Dev probe readSnapshot() added. Protocol v1 validates all12 messages and events,
+canonical team conversion and envelope consistency; no WebRTC/transport/network
+apply, authentication or sequence/ownership authorization yet. See
+docs/MULTIPLAYER-MODULE11-13.md.136/136 tests, TypeScript/lint/Pages build PASS;
+existing CSS/chunk warnings remain. Source assets,
+configs/editors/economy/balance untouched; no publish. Prior02–10 work preserved.
+
+2026-10-06 MODULE09+10 LOCAL ONLY, explicitly authorized together. Bot strategy
+and sequenced intents extracted to game-core/bot-ai.ts; host-only/controller=bot
+selection, sequential shared movement, old routing and balance retained. Client
+guard does no AI/navigation/consume. Current single-player remains host; no P2P.
+game-core/events.ts defines finite data-only event boundary: accepted tag/rescue,
+fort entry/capture edges, ultimate and guarded results. Runtime presentation
+consumes audio/feed/VFX events; stats/rewards remain outside subscriptions.
+Legacy return shapes retained; footsteps/refill/hazard/combo effect paths still
+incremental, not a claim of fully decoupled monolith. Staged clock unchanged.
+127/127 combined tests, TypeScript/core lint/Pages build PASS; see
+docs/MULTIPLAYER-MODULE09-10.md. No asset/editor/config changes
+or publish. Prior STOP09 is superseded by this explicit batch request.
+
+2026-10-06 MODULE08 LOCAL ONLY: ultimate + match authority extracted into
+lib/game-core/ultimate.ts and match-rules.ts. Current balance and upgrade snapshot
+preserved; cast/impact, flight sequence, bonus/recharge, scope, timer precedence,
+sudden death and best-of-three guarded by core. Audio/banners/reward storage stay
+runtime-side. Frozen parity and actual once-only result adapter tests added.
+Combined120/120 tests, TypeScript/core lint/Pages build PASS; details
+docs/MULTIPLAYER-MODULE08.md. Staged clock unchanged.
+Supplied08–10 require per-module STOP, so09/10 not implemented yet. No publish;
+continue09 only on user instruction. Prior02–07 work retained uncommitted.
+
+2026-10-06 MODULE02–07 implemented LOCAL ONLY after explicit user batch approval,
+superseding the earlier one-module STOP. lib/game-core provides canonical JSON
+read state, stable IDs, sequenced input, staged 30Hz clock, extracted motion and
+interaction rules. Runtime delegates without asset/balance/editor changes.
+Clock does NOT yet replace the original variable-delta simulation. Legacy IDs
+retained for ties/stats; all ten new entity IDs persist across rounds. Dev-only
+window.__bentengGameCore.readState() reads detached actual match truth on demand.
+No remote input, WebRTC, full state writer or takeover workflow. Audio/profile,
+AI decisions and ultimate timing remain runtime-owned pending later modules.
+114/114 combined tests PASS including 14 core frozen legacy parity tests;
+TypeScript/core lint/Pages build PASS with existing CSS/chunk warnings. See
+docs/MULTIPLAYER-PHASE-A-02-07.md for boundaries and validation. No commit/push;
+next development follows the next supplied document, not inferred deployment.
+
+2026-10-05 Multiplayer MODULE01 COMPLETE LOCAL ONLY. Supplied00–03 require STOP
+after active module, so inventory only: docs/MULTIPLAYER-RUNTIME-BOUNDARIES.md.
+Main runtime8936lines; mutable effect truth, players[0]/slice(1) controller
+assumptions, internal blue=visible red and red=green. Existing Snapshot is HUD,
+not canonical truth. Flight advance/steer mutate; map index owns caches/functions.
+Preserve tieHash/ID ordering, dt vs deadline clock semantics, finite JSON values,
+authored flight timing, progression handoff once per completed match. No runtime/
+asset/editor changes or publish. Next on continuation02, then03; no P2P yet.
+
+2026-10-05 user subsequently requested publish optimization. Fresh fetch showed
+HEAD==github/main e508b11; no merge or force push. Implementation065bdf5 published,
+Pages run37280025918 build+deploy SUCCESS; TypeScript/100 tests PASS. Source Studio
+assets/config and map config unchanged; Refactor-Clio branch not merged/modified.
+LOCAL ONLY optimization entry below is historical and superseded for publish.
+
+2026-10-05 LOCAL ONLY optimization: custom sprites use separate lossless packed
+runtime assets (config/sprite-runtime.json, public/sprite-runtime). Originals and
+Sprite Studio config untouched. 47 atlases/1213 frames decoded RGBA area proxy
+731.8 ->392.8MiB; compressed size31.05 ->30.51MiB. Not measured RAM/FPS. Original
+logical placement/FPS/frames preserved, actor states and flight views cached.
+New editor assets/frames fallback to originals until npm run sprites:runtime or
+build:pages regenerates. 100 regression/packing tests PASS, TypeScript/lint/Pages
+build PASS with existing warnings; live/browser FPS QA pending. No publish.
+
+2026-10-05 user explicitly requested publish ALL local changes without disturbing
+other programmers. Prior LOCAL ONLY constraint revoked for this publish. Fetch
+confirmed HEAD==github/main c742c25 before staging; non-force push only. Economy,
+DOI UI,Back art,Workshop entry removal and saved Studio map/sprite edits included.
+Separate editor files preserved. Implementation9adf32c pushed non-force; Pages
+run37249937717 completed SUCCESS.96 regression tests/TS/Pages build passed.
+Published:https://lengkongandreuw.github.io/bentengan-squad-tag/
+
+2026-10-05 LOCAL ONLY: currency display renamed TOKEN→DOI,central config label DOI
+but internal token id and all stored keys preserved. Wallet uses supplied coin;
+Ultimate modal follows supplied maroon/graffiti/purple/yellow visual reference
+with label/close/accent PNGs in public/ui-v2/economy. Confirmation,stats,purchase
+guards untouched.83 tests/TS/focused UI lint/Pages build PASS; browser visual QA
+not performed (browser control tool unavailable). No publish/balance changes.
+
+2026-10-05 Economy MODULE10–13 complete LOCAL ONLY. Wallet shown in Profile and
+Character Selection,refreshed from saved profile events. Catalog-supported Raja/
+Kaka get modal current/next stats and confirmed purchase,shortage/max/storage/
+stale feedback,unique quote ID and one-shot click guard. Unsupported characters
+only show wallet. Existing result summary renders engine TOKEN breakdown,total
+and resulting balance; duplicate/incomplete never replay reward. No new shop/key.
+83 tests/TS/focused new UI lint/Pages build PASS; tests include actual component
+handlers and persisted18-TOKEN synthetic journey reaching levels after7/23/52
+matches,totalcost920. NOT player telemetry; real playtest average unknown,config
+unchanged. No manual browser/mobile visual walkthrough. Existing unrelated lint
+issues remain. Studio drafts/assets preserved. No publish; STOP after13.
+Earlier07–09 notes about no purchase UI superseded by10–13.
+
+2026-10-05 Economy MODULE07–09 complete LOCAL ONLY. Pure purchase engine debits
+TOKEN and increments one level atomically; duplicate/insufficient/max/invalid/
+stale quote rejected. Service saves once; failed storage reports no durable success.
+getUltimateUpgradeConfig reads catalog rows; getUltimateUpgradeLevel reads profile.
+Frozen effective stats fall back to level0 for missing/invalid state; unsupportednull.
+Raja/Kaka gameplay snapshots stats at match start (recharge/cast/duration/Raja speed),
+bots retain base activation stats; existing allied effect scope and tag20/rescue30
+bonuses preserved. Bebe/Ciici unchanged. Custom/built-in Ultimate frame timelines
+fit cast duration without asset changes.80 tests/TS/focused lint/Pages build PASS;
+runtime smoke via actual-code harness,not manual browser gameplay validation.
+No purchasing UI,no publish. STOP before10. Editor drafts/assets untouched.
+Earlier04–06 notes about no purchasing/runtime modifiers superseded by07–09.
+
+2026-10-05 Economy MODULE04–06 complete LOCAL ONLY (user supplied all3).
+Match resolver now returns TOKEN breakdown/balances alongsideXP,uses existing
+incomplete/dedup guard and one service save. Formula10 completion+5 win+tag max5
++rescue2 max6 TOKEN; max26 win/21 loss. No parallel processed-match history.
+Storage migration repairs missing economy to0,no retroactive grants; preserves
+safe counters/valid ledger and unrelated profile/progression,one migration write,
+blocked write retains source/retries. New catalog Raja/Kaka Lv0–3 costs120/280/520
+incremental,independent ultimateUpgrades state; missinglevel0,unsupportednull.
+No purchasing/gameplay modifiers/UI. Existing Raja/Kaka base timings preserved.
+53 tests (16economy+37progression)/TS/lint/Pages build PASS; old CSS warnings.
+STOP before07/no publish per economic docs. Editor drafts/assets remain untouched.
+Earlier01–03 notes about no rewards/migration now superseded by04–06.
+
+2026-10-05 Economy MODULE01–03 complete LOCAL ONLY. User supplied01–03 together;
+02 centralized config/economy.json strict frozen parser (malformed throws),03
+creditTokens/spendTokens/getTokenBalance immutable operations, explicit failures,
+safe-integer overflow/no negative balance, bounded50 ledger idempotency only.
+Input amount positive; spend negative ledger. No storage/events/match/UI/upgrades
+or legacy migration/reset.10 economy+37 progression tests/TS/lint PASS.
+STOP before04 and no publish per active specs. Editor drafts/assets untouched.
+
+2026-10-05 published runtime scheduling c742c25 (Pages37215005019 SUCCESS):
+exact-parity priority-queue A*,one queued AI route/frame,hidden scoreboard avoids
+row rebuild,optional ?performance=1 diagnostics. Contributor carousel f3f7a7e
+merged. No asset/FPS reduction; realtime game FPS not measured.033af27 immunity
+now covers Bebe/Ciici takeoff+flying+landing,overrides older flying-only notes.
+
+2026-10-04 user revision: Ultimate Bebe/Ciici now default+8 optional directions
+for all3 Flight phases,overrides original default-only brief. Default fallback
+stays; phase facing matches sequence completion. Performance optimization:
+exact broad-phase Studio collider queries,range-first tag LOS,active-lineup sprite
+preload,offscreen rotated-object culling and cached terrain patterns. Original
+assets/FPS/quality untouched. Running4319/4331 editor servers old; restart needed
+after saving user drafts. Do not kill them automatically. Published180e5d3;
+Pages37210568540 SUCCESS; public commit verified. See checkpoint.
+
+2026-10-04 Ultimate Flight Batch01: Bebe/Ciici shared controller,4sec actual
+FLYING only tag immunity,locked interactions,takeoff/landing vulnerable,selective
+colliders and safe landing. Bebe speed1.25 turn0.85; Ciici1.20/1.15. Existing
+Raja/Kaka unchanged. Sprite Studio adds exactly3 default-only slots for these
+two: ultimate_takeoff,ultimate_fly,ultimate_land. Canonical artwork missing,
+generic ultimate/idle fallback temporary. Icons use user's originals. Preserve
+user local map/sprite drafts; Economy01 still LOCAL ONLY. Published7763061,
+Pages37192971785 SUCCESS and public commit/icons verified. Complete realtime
+browser flight walkthrough remains unverified; automated tests pass. See checkpoint.
+
+2026-10-04 Economy MODULE01 complete LOCAL ONLY. economy.ts version1 wallet/
+signed transactions/default0/strict safe parsing/latest50 ledger. Optional
+profile.economy for legacy, new profile factory initializes wallet; malformed
+economy does not discard profile/progression. Reuse profile storage key; no
+economy migration or grants yet.4 wallet+37 progression tests, TS/lint PASS.
+STOP before02; index explicitly prohibits publish until requested. Preserve
+user Map/Sprite Studio configs and Bebe uploads. No UI/gameplay/economy awards yet.
+
+2026-10-04 MODULE17 PUBLISHED d1d15fd. Actions37177521084 SUCCESS; public build
+commit/map revision, hashed JS and seven unchanged PNG hashes verified. Draft
+USER config/map-studio.json untouched and excluded. Publication complete.
+
+2026-10-04 MODULE17 publication now explicitly authorized by user. Supersedes
+local-only instruction below; publish audio UI/typography/assets/docs only.
+Unrelated USER config/map-studio.json must remain local and unstaged.
+
+2026-10-04 MODULE17 UI audio/typography implemented LOCAL ONLY. Full brief read;
+explicit do-not-publish/STOP overrides standing auto-publish for this task. Seven
+original PNGs preserved and copied to public/ui-v2/audio-settings/. Impact400
+display/H1, Poppins headings/body/controls; next/font/google and Pages official
+Google Fonts loading aligned (network required, sans fallback). No font binaries.
+Existing live-save remains; snapshot on open, SAVE keeps, CANCEL/Escape restores.
+Native range overlay on art, calibrated endpoints,0/100, collapsible previews,
+cleanup/hotkey isolation. Native dialog/portal prevents transformed menu clipping.
+Mobile scroll and reachable SAVE/CANCEL, no artwork distortion. TS/lint/Pages
+build +10 audio tests passed; browser desktop/portrait/landscape/pointer/keyboard
+checked; physical touchscreen pending. No audio/gameplay/editor/map/sprite changes.
+Preview local3008/bentengan-squad-tag/. Do not publish until user explicitly asks;
+preserve/exclude unrelated dirty config/map-studio.json when publishing later.
+
+2026-10-04 MODULE16 implemented; user explicitly authorized publish after brief
+implementation. Supersedes preparation-only note below. Reuse GameplayAudio/SFX
+master with20 custom MP3s/cache/procedural fallback,4 tag impacts and10s local
+player announcer1–5. Cancel/reset on captured/end/restart/exit/timeout;6+ no replay.
+Special BENTENG capture -> generic -> procedural. Countdown playbackRate fits
+existing2.8s; no gameplay changes. Ultimate and results guarded event hooks,
+successful rescue uses release. Samples compensate procedural3x gain.10 audio+
+37 progression tests/TypeScript/build PASS; actual browser20 decodes and mute
+PASS. Keep unrelated current Map Studio draft config LOCAL, not in this commit.
+PUBLISHED:61bf0e9+c6bcac5, Actions37158045886 build/deploy SUCCESS. Public bundle
+HTTP200 and all20 MP3 hashes verified at GitHub Pages. Unrelated local Map Studio
+config preserved/unpublished. No subjective mix sign-off; user should review mix.
+
+2026-10-04 PREPARATION ONLY: user supplied20 MP3s + Custom In-Game SFX/Tag Counter
+brief for saving/study, not implementation. Masters/full brief/notes preserved
+at audio-sources/custom-gameplay-sfx/ outside public/. All copied hashes match.
+Future scope: replace selected procedural cues with sample fallback;4 tag impacts,
+local-player10s streak announcer1–5; special BENTENG confirmed capture sample,
+generic/procedural fallback. Reuse SFX master, retain step/prison. Existing3x
+SFX boost needs mixing validation; audio not yet auditioned/decoded. No code or
+deployment changes. Read README + brief on next explicit implementation request.
+
+2026-10-03 user explicitly requested publishing ALL local features/changes,
+overriding earlier LOCAL ONLY progression instructions. Publish01–15 and local
+Kaka Studio animations/assets plus inactive map editor drafts. Keep kampung3d
+deleted (restore missing draft marker), don't activate drafts automatically.
+Read newest CHECKPOINT publish status before relying on older local-only notes.
+
+PUBLISHED2026-10-03: progression01–15 and all validated local Studio changes
+are live at https://lengkongandreuw.github.io/bentengan-squad-tag/ . Code commit
+6f97ce4; Actions run37131424947 build/deploy SUCCESS. Public bundle exactly matches
+validated build; public Kaka atlas200.49 tests/TypeScript/build PASS. Editor map
+drafts remain inactive; kampung3d remains deleted. Prior LOCAL ONLY/STOP publishing
+notes below are historical and superseded by this explicit user publication.
+
+MODULE14–15 lokal (2026-10-03): Progression Core01–15 COMPLETE. Satu panel result
+nonblocking menampilkan resolver newlyUnlockedCharacters/newlyUnlockedArenaIds,
+nama dari katalog, dismiss button. Transient notice/result reset per match dan
+tidak direhydrate dari profil; reload tidak replay, unlock tetap persisted.
+Duplicate/incomplete tidak memberi notice/reward. 37 tests PASS (full persisted
+journey all14chars/Lv13/six arena tiers, migration/gates/random/rotation/wiring,
+no render awards, multiunlock incl20 entries). TypeScript/lint/build PASS.
+Real isolated3006: loss100XP lalu win168XP =>268/Lv2, Bebe+Pasar notified together;
+dismiss keeps reward; reload retains stats/unlocks, rematch resets result. UI
+fixture tests duplicate/reload/mobile390x844, no overflow/errors. Hash kedua
+Studio configs unchanged; user drafts/upload Kaka not staged; no assets rebuilt.
+Test command npm run test:progression. Coverage/limits in PROGRESSION_REGRESSION.md.
+Known limits: localStorage only;50-ID duplicate window/no multi-tab transactions;
+reload can skip unread notice; aggregate legacy migration not per-arena wins;
+new custom maps need rules. Three-completed-match rotation unchanged.
+STOP after15; no achievement/daily mission/cloud save; do not publish until asked.
+Earlier STOP notes01–13 below are historical and superseded by completion01–15.
+
+MODULE12–13 lokal (2026-10-03): panel persyaratan semua arena menggunakan checks
+engine+nama katalog, inspect dropdown tidak memilih locked map. Carousel/gates
+tetap. Final result menambah XP breakdown, level/next-level progress dan target
+karakter dari snapshot ProgressionResult resolver (tidak award di render).
+33 tes termasuk repeated UI render PASS, TypeScript/lint/build PASS. Browser
+real match+rematch PASS, desktop/mobile tanpa overflow tambahan, console0.
+Perubahan tetap lokal; STOP sebelum14, jangan publish tanpa permintaan eksplisit.
+Draft Map/Sprite Studio dan upload Kaka user tidak diubah/di-stage.
+
+MODULE11 lokal (2026-10-03): locked character tetap terlihat, native disabled,
+badge LOCKED/UNLOCK AT LV.N +XP tooltip dari selector central. Baris status roster
+kecil scrollable menjaga semua nama/level terbaca tanpa mengubah portrait/layout.
+Confirm/keyboard/pointer tidak bisa memilih locked. Gate10 memakai storage latest
+saat launch dan mendengar storage event. 31 tes +TypeScript/scoped lint/build
+PASS; desktop/mobile smoke, live finish/rematch, clean reload console0.
+User aktif mengedit map/sprite Kaka di Studio; semua draft/upload tidak di-stage.
+Semua10–11 lokal, STOP sebelum12/publish. Preview uji localhost3005 (Vite),
+panel Map4320/Sprite4319 tidak di-restart atau diubah.
+
+MODULE10 lokal: content-gates.ts central player-only filters/validation/fallback,
+prototype guards all selection/launch/rematch/restart/rotation/loading/init paths.
+Faction starter first unlocked (Kaka for green); full bot rosters unchanged.
+Runtime now replaces legacy match writer with recordMatchProgression, stable ID
+per initialized match. Profile refresh avoids restarting gameplay. 30 tests,
+TypeScript/build +browser smoke PASS. User requested10+11, no publish/12 yet.
+Earlier09 note that runtime was not hooked is superseded by10.
+
+MODULE09 lokal (2026-10-03): storage load kini migrasi progression missing/
+outdated/malformed satu kali. Profil current/new/future valid tidak migrasi ulang.
+XP historis agregat dari config, saturasi safe integer via BigInt; levelmax13.
+Identitas/stats valid/extra fields dipertahankan, optional progression diselamatkan
+per-entry (unlocks, arena stats, bounded match IDs), starter selalu tersedia.
+Tidak menebak wins per-arena dari total wins. Migration timestamp+version disimpan
+sekali; storage failure tidak menghapus legacy, retry pada load berikutnya.
+29 tes progression +TypeScript +scoped lint +diff check PASS. Semua06–09 lokal,
+draft Map Studio tidak ikut commit. STOP sebelum10, tidak publish otomatis.
+PENTING: runtime app/prototype masih writer legacy; recordMatchProgression API
+belum dihook. Integrasi berikutnya mengganti writer, bukan memanggil dua writer.
+Catatan01–05 tentang belum adanya migration adalah histori sebelum09.
+
+MODULE08 lokal: satu matchId stabil, UUID/fallback shared, processedMatchIds50
+terakhir. Duplicate no-op reason duplicate termasuk setelah reload; service
+load authoritative sebelum reward dan simpan ID+reward satu write. Window bounded,
+bukan proteksi replay histori >50 atau transaksi multi-tab. 24 tes/TypeScript PASS.
+
+MODULE07 lokal: applyMatchProgression pure + recordMatchProgression storage entry
+memperbarui XP/arena stats/aggregate totals lalu character+arena unlock, satu save.
+Result membawa profil dan delta XP/level/unlocks; incomplete no-op. Writer ini
+menggantikan, bukan melengkapi recordCompletedMatch saat integrasi runtime nanti.
+Belum disambungkan app/prototype atau notifikasi. 22 tes +TypeScript PASS.
+
+MODULE06 lokal (2026-10-03): config campaign6 tier dengan kanal2 sebagai tier5
+dan studio-kampung-2420b8cf tier6. arena-unlocks.ts mengevaluasi ALL syarat dan
+mempertahankan unlock historis, memakai tier metadata. Tidak UI/gates/bot changes.
+19 tes +TypeScript PASS. User meminta06–09 bersama, tidak publish.
+
+Progression MODULE05 (2026-10-03, lokal belum publish): arena-stats.ts API pure
+getArenaStats/applyArenaMatchStat, ID custom/dinamis, played tiap apply dan wins
+hanya kemenangan. Return profil baru tanpa mutasi atau storage write. Getter
+legacy0, apply menunggu migration09 bila progression belum ada. Tidak arena
+unlock/match integration/dedup;07/08 akan mengatur pemanggilan tepat satu kali.
+17 tes progression dan TypeScript PASS. STOP setelah05, jangan publish/lanjut06
+otomatis. Draft Map Studio pengguna tidak ikut commit.
+
+Progression MODULE04 (2026-10-03, lokal belum publish): character-unlocks.ts
+menyediakan requirement/eligibility/progress dan resolver immutable dari config.
+Historical unlock NEVER RELOCK; starter selalu terbuka. Resolver menghasilkan
+profil baru dan daftar unlock baru, bukan otomatis menyimpan. Legacy tanpa
+progression aman dibaca level1, write resolver menunggu migration09. Bot/UI/match
+tidak berubah. 14 tes dan TypeScript PASS. User meminta04+05 sekaligus.
+
+Progression MODULE03 (2026-10-03, lokal belum publish): xp-engine.ts memiliki
+helper XP/level pure dari config02, tanpa integrasi match/storage/UI. XP summary
+completed/result/tags/rescues; incomplete0, loss tetap completion100, cap terpisah
+64tag/60rescue. Level13 maksimal; XP ekstra dipertahankan, next threshold null,
+sisa0, progress1. Level didapat dari XP, tidak disimpan. Input malformed ditolak.
+11 tes progression +TypeScript lulus. STOP, jangan lanjut04/publish otomatis.
+
+Progression MODULE02 (2026-10-03, lokal belum publish): aturan terpusat di
+config/progression.json; typed loader/parser di lib/player-profile/progression-rules.ts.
+Seed profil01 sekarang berasal dari config. XP reward/cap, 13 level kumulatif,
+14 karakter mengikuti dokumen02. Arena tiers/unlockRequirements sengaja kosong
+karena aturan belum diberikan; schema siap untuk ID arena stabil dan statistik
+prasyarat. Tidak ada engine/gates/UI, jangan lanjut03 otomatis. Pengguna menahan
+semua fitur progression di lokal sampai meminta publish.
+
+Progression MODULE01 (2026-10-03, lokal belum publish): lib/player-profile/
+progression.ts menyediakan type versi1, factory default baru XP0 / raja+kaka /
+kampung, validasi read-only dan koleksi independen. Profil legacy tetap boleh
+tanpa progression; parser storage menjaga progression yang valid, tanpa migrasi
+atau write-on-read. Belum ada reward/level/unlock/gates atau integrasi match
+progression. Dokumen modul01 meminta STOP dan tidak publish tanpa request eksplisit.
+
 Map Studio guard katalog (2026-10-03): katalog bawaan wajib berisi lima arena
 2D dan template replacement; server lama/tidak lengkap tidak lagi diam-diam
 menghasilkan daftar kosong. Jalankan test:map-studio untuk HTTP contract + model.

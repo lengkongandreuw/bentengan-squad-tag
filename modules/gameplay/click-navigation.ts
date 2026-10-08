@@ -44,22 +44,57 @@ export function clickRoute(
   const point = (key: number): ClickPoint => ({ x: (key % cols + .5) * cell, y: (Math.floor(key / cols) + .5) * cell });
   const keyAt = (p: ClickPoint): number => Math.floor(p.y / cell) * cols + Math.floor(p.x / cell);
   const first = keyAt(start), goal = keyAt(target);
+  type HeapEntry = { key: number; g: number; priority: number; order: number };
   const scores = new Map([[first, 0]]), previous = new Map<number, number>();
-  const open = new Set([first]), closed = new Set<number>();
+  const closed = new Set<number>(), heap: HeapEntry[] = [], orders = new Map([[first, 0]]);
+  let nextOrder = 1;
   const heuristic = (p: ClickPoint): number => Math.hypot(target.x - p.x, target.y - p.y);
-  for (let iteration = 0; open.size && iteration < 8000; iteration++) {
-    let current = first, best = Infinity;
-    for (const key of open) {
-      const score = (scores.get(key) ?? 0) + heuristic(key === first ? start : point(key));
-      if (score < best) { current = key; best = score; }
+  const before = (a: HeapEntry, b: HeapEntry): boolean =>
+    a.priority < b.priority || (a.priority === b.priority && a.order < b.order);
+  const push = (key: number, g: number): void => {
+    const entry: HeapEntry = {
+      key,
+      g,
+      priority: g + heuristic(key === first ? start : point(key)),
+      order: orders.get(key) ?? 0,
+    };
+    let i = heap.length;
+    heap.push(entry);
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (!before(entry, heap[parent] as HeapEntry)) break;
+      heap[i] = heap[parent] as HeapEntry;
+      i = parent;
     }
+    heap[i] = entry;
+  };
+  const pop = (): HeapEntry => {
+    const firstEntry = heap[0] as HeapEntry, lastEntry = heap.pop() as HeapEntry;
+    if (heap.length) {
+      let i = 0;
+      while (i * 2 + 1 < heap.length) {
+        let child = i * 2 + 1;
+        if (child + 1 < heap.length && before(heap[child + 1] as HeapEntry, heap[child] as HeapEntry)) child++;
+        if (!before(heap[child] as HeapEntry, lastEntry)) break;
+        heap[i] = heap[child] as HeapEntry;
+        i = child;
+      }
+      heap[i] = lastEntry;
+    }
+    return firstEntry;
+  };
+  push(first,0);
+  for (let iteration = 0; heap.length && iteration < 8000;) {
+    const entry=pop();let current=entry.key;
+    if(closed.has(current)||scores.get(current)!==entry.g)continue;
+    iteration++;
     const here = current === first ? start : point(current);
     if ((current === goal || heuristic(here) < cell * 2) && clearSegment(here, target, passable)) {
       const route = [target];
       while (current !== first) { route.unshift(point(current)); current = previous.get(current) ?? first; }
       return route;
     }
-    open.delete(current); closed.add(current);
+    closed.add(current);
     for (let y = -1; y <= 1; y++) for (let x = -1; x <= 1; x++) {
       if (!x && !y) continue;
       const cx = current % cols + x, cy = Math.floor(current / cols) + y;
@@ -68,7 +103,9 @@ export function clickRoute(
       if (closed.has(key) || !passable(next.x, next.y) || !clearSegment(here, next, passable)) continue;
       const score = (scores.get(current) ?? 0) + Math.hypot(next.x - here.x, next.y - here.y);
       if (score >= (scores.get(key) ?? Infinity)) continue;
-      scores.set(key, score); previous.set(key, current); open.add(key);
+      scores.set(key, score); previous.set(key, current);
+      if(!orders.has(key))orders.set(key,nextOrder++);
+      push(key,score);
     }
   }
   return [];

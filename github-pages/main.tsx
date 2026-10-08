@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BentenganPrototype } from '../app/prototype';
 import '../app/globals.css';
 import './pages.css';
+import '../app/ux-priority.css';
 
 const root = document.getElementById('root');
 

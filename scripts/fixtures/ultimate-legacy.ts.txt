@@ -1,0 +1,93 @@
+      if (ULTIMATE_CHARACTER_IDS.has(me.characterId))
+        ultimateMeter = clamp(
+          ultimateMeter + (dt * 100) / (playerUltimateStats?.rechargeSeconds ?? RAJA_ULTIMATE_RECHARGE_SECONDS),
+          0,
+          100,
+        );
+      if (input.ultimate) {
+        keys.current.delete('capslock');
+        const actionAvailable =
+          ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
+          ultimateMeter >= 100 &&
+          !flightBusy(me) &&
+          me.state === 'ACTIVE' &&
+          !(field.id === 'kanal2' && me.waterEnteredAt) &&
+          now >= me.parkourUntil &&
+          (!me.action || now >= me.actionUntil);
+        if (actionAvailable) {
+          if(config) {
+            ultimateMeter=0;me.flight=startFlight(me);me.action=undefined;me.actionUntil=0;
+            boostBurstUntil=0;clearMouse();gameplayAudio.play('ultimate');flightHook('onFlightTakeoff');flightHook('flight_takeoff_sfx');
+            setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);
+            bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),820);
+            log(`${me.name} mengaktifkan ${ultimateName(me.characterId)}.`);
+          } else {
+          const castDuration = ultimateCastMsFor(me);
+          ultimateMeter = 0;
+          ultimateImpactAt = now + castDuration;
+          ultimateImpactApplied = false;
+          me.action = 'ultimate';
+          gameplayAudio.play('ultimate');
+          me.actionUntil = ultimateImpactAt;
+          me.vx = 0;
+          me.vy = 0;
+          boostBurstUntil = 0;
+          setUltimateBannerVisible(true);
+          window.clearTimeout(bannerTimeout);
+          bannerTimeout = window.setTimeout(
+            () => setUltimateBannerVisible(false),
+            me.characterId === 'kaka' ? 1050 : 820,
+          );
+          const isKaka = me.characterId === 'kaka';
+          burst(me.x, me.y, isKaka ? '#35f477' : '#ef233c', 14);
+          log(
+            isKaka
+              ? 'KAKA membangkitkan PERISAI HIJAU.'
+              : 'RAJA memanggil TITAH HALILINTAR.',
+          );
+          }
+        }
+      }
+      const ultimateCasting =
+        ULTIMATE_CHARACTER_IDS.has(me.characterId) &&
+        me.action === 'ultimate' &&
+        now < me.actionUntil;
+      if (
+        ultimateImpactAt &&
+        !ultimateImpactApplied &&
+        now >= ultimateImpactAt
+      ) {
+        ultimateImpactApplied = true;
+        ultimateImpactAt = 0;
+        if (me.characterId === 'kaka') {
+          const shieldDuration = playerUltimateStats?.durationMs ?? KAKA_ULTIMATE_SHIELD_MS;
+          ultimateShieldUntil = now + shieldDuration;
+          players
+            .filter((player) => player.team === me.team)
+            .forEach((player) => {
+              player.ultimateShieldUntil = ultimateShieldUntil;
+            });
+          burst(me.x, me.y, '#35f477', 34);
+          burst(me.x, me.y, '#baffc9', 18);
+          beep(540, 0.32);
+          log(
+            `PERISAI HIJAU · seluruh rekan kebal TAG selama ${shieldDuration/1000} detik.`,
+          );
+        } else {
+          const buffDuration = playerUltimateStats?.durationMs ?? RAJA_ULTIMATE_BUFF_MS;
+          const speedMultiplier = playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER;
+          ultimateBuffUntil = now + buffDuration;
+          burst(me.x, me.y, '#ef233c', 28);
+          burst(me.x, me.y, '#b54a32', 18);
+          beep(118, 0.32);
+          log(
+            `TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +${Math.round((speedMultiplier-1)*100)}% selama ${buffDuration/1000} detik.`,
+          );
+        }
+      }
+      const rajaUltimateMultiplier = (player: Player) =>
+        player.team === me.team &&
+        player.state === 'ACTIVE' &&
+        now < ultimateBuffUntil
+          ? playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER
+          : 1;

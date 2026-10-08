@@ -1,5 +1,7 @@
 import { Menu, Pause, UserRound, Volume2, VolumeX } from 'lucide-react';
-import { AudioSettings } from './audio-settings';
+import { AudioSettings } from './audio-settings.tsx';
+import { HudSettings } from './gameplay-guidance.tsx';
+import type { HudPreferences } from '../../lib/hud-preferences.ts';
 
 // Match topbar: brand lockup plus profile/audio/mission/pause actions.
 // All state and actions arrive as props (the owner owns the refs/keys).
@@ -7,8 +9,11 @@ export const PlayingTopbar = ({
   logoSrc,
   hasProfile,
   musicMuted,
+  hudPreferences,
+  onHudPreferences,
   onOpenProfile,
   onAudioOpen,
+  onHudOpen,
   onToggleMusic,
   onToggleMission,
   onPause,
@@ -16,8 +21,11 @@ export const PlayingTopbar = ({
   logoSrc: string;
   hasProfile: boolean;
   musicMuted: boolean;
+  hudPreferences: HudPreferences;
+  onHudPreferences: (value: HudPreferences) => void;
   onOpenProfile: () => void;
   onAudioOpen: () => void;
+  onHudOpen: () => void;
   onToggleMusic: () => void;
   onToggleMission: () => void;
   onPause: () => void;
@@ -43,6 +51,7 @@ export const PlayingTopbar = ({
         </button>
       )}
       <AudioSettings onOpen={onAudioOpen} />
+      <HudSettings value={hudPreferences} onChange={onHudPreferences} onOpen={onHudOpen} />
       <button
         className={`icon-button ${musicMuted ? 'muted' : ''}`}
         onClick={onToggleMusic}

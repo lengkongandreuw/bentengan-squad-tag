@@ -1,6 +1,9 @@
 import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults.ts';
 import { CHARACTERS, type CharacterId } from '../characters.ts';
 import type { LocalPlayerProfile, PlayerKdaStats } from './types';
+import { parsePlayerProgression } from './progression';
+import { parsePlayerEconomy } from './economy';
+import { parseUltimateUpgradeState } from './ultimate-upgrades';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -10,13 +13,13 @@ const nonNegativeNumber = (value: unknown) =>
     ? Math.floor(value)
     : null;
 
-const readKda = (value: unknown): PlayerKdaStats | null => {
-  if (!isRecord(value)) return null;
-  const tagMusuh = nonNegativeNumber(value.tagMusuh);
-  const masukPenjara = nonNegativeNumber(value.masukPenjara);
-  const rescueTeam = nonNegativeNumber(value.rescueTeam);
-  if (tagMusuh === null || masukPenjara === null || rescueTeam === null) return null;
-  return { tagMusuh, masukPenjara, rescueTeam };
+const readKda = (value: unknown): PlayerKdaStats => {
+  const data = isRecord(value) ? value : {};
+  return {
+    tagMusuh: nonNegativeNumber(data.tagMusuh) ?? 0,
+    masukPenjara: nonNegativeNumber(data.masukPenjara) ?? 0,
+    rescueTeam: nonNegativeNumber(data.rescueTeam) ?? 0,
+  };
 };
 
 const characterId = (value: unknown): CharacterId | null =>
@@ -27,8 +30,8 @@ const characterId = (value: unknown): CharacterId | null =>
 export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null => {
   if (!isRecord(value) || value.schemaVersion !== PLAYER_PROFILE_SCHEMA_VERSION)
     return null;
-  const menang = nonNegativeNumber(value.menang);
-  const kalah = nonNegativeNumber(value.kalah);
+  const menang = nonNegativeNumber(value.menang) ?? 0;
+  const kalah = nonNegativeNumber(value.kalah) ?? 0;
   const kda = readKda(value.kda);
   const featuredCharacterId = characterId(value.featuredCharacterId) ?? 'raja';
   if (
@@ -37,14 +40,16 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
     typeof value.username !== 'string' ||
     !value.username.trim() ||
     typeof value.firstJoin !== 'string' ||
-    Number.isNaN(Date.parse(value.firstJoin)) ||
-    menang === null ||
-    kalah === null ||
-    !kda
+    Number.isNaN(Date.parse(value.firstJoin))
   )
     return null;
 
+  const progression = parsePlayerProgression(value.progression);
+  const economy = parsePlayerEconomy(value.economy);
+  const ultimateUpgrades = parseUltimateUpgradeState(value.ultimateUpgrades);
+  const { progression: _rawProgression, economy: _rawEconomy, ultimateUpgrades: _rawUpgrades, ...existingFields } = value;
   return {
+    ...existingFields,
     schemaVersion: PLAYER_PROFILE_SCHEMA_VERSION,
     id: value.id,
     username: value.username.trim(),
@@ -53,5 +58,8 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
     kalah,
     featuredCharacterId,
     kda,
+    ...(progression ? { progression } : {}),
+    ...(economy ? { economy } : {}),
+    ...(ultimateUpgrades ? { ultimateUpgrades } : {}),
   };
 };

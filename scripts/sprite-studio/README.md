@@ -94,3 +94,20 @@ mereset crop. Setelah mengubah sumber/grid/crop, klik Proses & lihat hasil,
 terapkan movement aktif atau draft yang dicentang. Sumber asli tidak diubah.
 Pemeriksaan awal membaca format dan metadata PNG/GIF/WebP; status dekat upload
 menjelaskan diterima/ditolak. Proses juga memvalidasi crop, grid dan ukuran atlas.
+
+Ultimate Flight Bebe/Ciici: pilih karakter, lalu tiga slot Special / Ultimate:
+`ultimate_takeoff` (sekali), `ultimate_fly` (loop), `ultimate_land` (sekali).
+Default tetap berlaku untuk semua arah; delapan arah opsional tersedia juga untuk
+takeoff/fly/landing. Arah spesifik mengalahkan default. Arah kosong memakai default,
+lalu fallback lama; tidak wajib mengganti semua arah. GIF, PNG sheet atau kumpulan PNG memakai alur upload,
+crop, FPS, pivot dan scale yang sama. Hanya movement yang dicentang disimpan;
+karakter lain tidak berubah. Slot kosong menghasilkan warning, bukan blokir Save.
+Restart server setelah menyimpan draft Anda agar pilihan baru tersedia.
+
+Game memakai durasi frame/FPS lengkap untuk takeoff/landing, lalu terbang 4 detik.
+Arah takeoff dikunci saat trigger, fly mengikuti gerak/belokan, landing memakai
+arah terakhir. Timing selesai memakai sequence arah yang sama dengan renderer.
+Sementara slot khusus kosong, takeoff memakai ultimate lama bila ada, selain itu
+idle sementara. Fly/landing memakai idle sementara. Ini compatibility fallback,
+bukan artwork final. Export/Import JSON di Advanced hanya metadata; atlas yang
+dirujuk harus tersedia di repo, dan import menjadi draft untuk diperiksa dahulu.

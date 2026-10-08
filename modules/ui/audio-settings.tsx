@@ -1,61 +1,309 @@
 'use client';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { audioLevels, saveAudioLevels, DEFAULT_AUDIO_LEVELS, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../../lib/audio-settings';
+/* oxlint-disable next/no-img-element -- Static supplied PNG art must work in the standalone Pages build. */
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
+import {
+  audioLevels,
+  saveAudioLevels,
+  DEFAULT_AUDIO_LEVELS,
+  AUDIO_SETTINGS_EVENT,
+  MUSIC_PREVIEW_EVENT,
+  type AudioLevels,
+} from '../../lib/audio-settings.ts';
 import { GameplayAudio, type GameplaySound } from '../audio/gameplay-audio.ts';
-import { uiAudioAsset } from '../../lib/characters';
+import { publicAsset, uiAudioAsset } from '../../lib/characters.ts';
 
-export function AudioSettings({ onOpen, trigger }: { onOpen?: () => void; trigger?: ReactNode }) {
+const art = (name: string) => publicAsset(`ui-v2/audio-settings/${name}.png`);
+function AudioArtSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const id = useId(),
+    percent = Math.round(value * 100);
+  return (
+    <div className="audio-art-row">
+      <label htmlFor={id}>
+        {label}
+        <output htmlFor={id}>{percent}%</output>
+      </label>
+      <div
+        className="audio-art-slider"
+        data-value={percent}
+        style={{ '--volume': percent / 100 } as CSSProperties}
+      >
+        <img
+          className="audio-art-empty"
+          src={art('slider-empty')}
+          alt=""
+          draggable={false}
+        />
+        <img
+          className="audio-art-fill"
+          src={art('slider-full')}
+          alt=""
+          draggable={false}
+        />
+        <img
+          className="audio-art-knob"
+          src={art('slider-knob')}
+          alt=""
+          draggable={false}
+        />
+        <input
+          id={id}
+          aria-label={`Volume ${label === 'SFX' ? 'SFX' : 'musik latar'}`}
+          aria-valuetext={`${percent}%`}
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={percent}
+          onChange={(e) => onChange(Number(e.target.value) / 100)}
+        />
+      </div>
+    </div>
+  );
+}
+export function AudioSettings({
+  onOpen,
+  trigger,
+}: {
+  onOpen?: () => void;
+  trigger?: ReactNode;
+}) {
   const [levels, setLevels] = useState(DEFAULT_AUDIO_LEVELS);
   const [sound, setSound] = useState<GameplaySound>('step');
   const [previewing, setPreviewing] = useState(false);
   const [message, setMessage] = useState('');
+  const [open, setOpen] = useState(false);
+  const titleId = useId();
+  const details = useRef<HTMLDetailsElement | null>(null);
+  const dialog = useRef<HTMLDialogElement | null>(null);
+  const original = useRef<AudioLevels | null>(null);
   const music = useRef<HTMLAudioElement | null>(null);
   const sfx = useRef<GameplayAudio | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stop = () => {
     if (timer.current) clearTimeout(timer.current);
-    music.current?.pause(); music.current = null;
-    window.dispatchEvent(new CustomEvent(MUSIC_PREVIEW_EVENT, { detail: false }));
+    timer.current = null;
+    music.current?.pause();
+    music.current = null;
+    window.dispatchEvent(
+      new CustomEvent(MUSIC_PREVIEW_EVENT, { detail: false }),
+    );
     setPreviewing(false);
+  };
+  const cleanupPreview = () => {
+    stop();
+    sfx.current?.close();
+    sfx.current = null;
+  };
+  const close = (cancel = false) => {
+    if (cancel && original.current) saveAudioLevels(original.current);
+    original.current = null;
+    cleanupPreview();
+    if (dialog.current?.open) dialog.current.close();
+    if (details.current) details.current.open = false;
+    setOpen(false);
   };
   useEffect(() => {
     const update = () => {
       setLevels({ ...audioLevels() });
       if (music.current) music.current.volume = audioLevels().music;
     };
-    update(); window.addEventListener(AUDIO_SETTINGS_EVENT, update);
-    return () => { stop(); sfx.current?.close(); window.removeEventListener(AUDIO_SETTINGS_EVENT, update); };
+    update();
+    window.addEventListener(AUDIO_SETTINGS_EVENT, update);
+    return () => {
+      cleanupPreview();
+      window.removeEventListener(AUDIO_SETTINGS_EVENT, update);
+    };
   }, []);
+  useEffect(() => {
+    if (!open || !dialog.current) return;
+    const panel = dialog.current;
+    if (!panel.open) panel.showModal();
+    return () => {
+      if (panel.open) panel.close();
+    };
+  }, [open]);
   const previewMusic = () => {
     if (previewing) return stop();
-    stop(); setMessage('');
+    stop();
+    setMessage('');
     const sample = new Audio(uiAudioAsset('ingame-music.mp3'));
-    sample.volume = audioLevels().music; music.current = sample;
-    window.dispatchEvent(new CustomEvent(MUSIC_PREVIEW_EVENT, { detail: true }));
-    setPreviewing(true); sample.onended = stop;
-    void sample.play().catch(() => { if (music.current === sample) { stop(); setMessage('Audio belum dapat diputar. Coba lagi.'); } });
+    sample.volume = audioLevels().music;
+    music.current = sample;
+    window.dispatchEvent(
+      new CustomEvent(MUSIC_PREVIEW_EVENT, { detail: true }),
+    );
+    setPreviewing(true);
+    sample.onended = stop;
+    void sample.play().catch(() => {
+      if (music.current === sample) {
+        stop();
+        setMessage('Audio belum dapat diputar. Coba lagi.');
+      }
+    });
     timer.current = setTimeout(stop, 5000);
   };
-  return <details className={`audio-settings${trigger ? ' image-trigger' : ''}`} onToggle={event => {
-    onOpen?.();
-    if (!event.currentTarget.open) { stop(); sfx.current?.close(); sfx.current = null; }
-  }} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()}>
-    <summary aria-label="Pengaturan volume audio">{trigger ?? '♫ AUDIO'}</summary>
-    <div className="audio-settings-panel">
-      <b>VOLUME AUDIO</b>
-      <label>Musik latar <output>{Math.round(levels.music * 100)}%</output>
-        <input aria-label="Volume musik latar" type="range" min="0" max="100" value={Math.round(levels.music * 100)} onChange={e => saveAudioLevels({ ...levels, music: Number(e.target.value) / 100 })} />
-      </label>
-      <button onClick={previewMusic}>{previewing ? 'Hentikan preview' : 'Dengar musik game · 5 detik'}</button>
-      <label>SFX <output>{Math.round(levels.sfx * 100)}%</output>
-        <input aria-label="Volume SFX" type="range" min="0" max="100" value={Math.round(levels.sfx * 100)} onChange={e => saveAudioLevels({ ...levels, sfx: Number(e.target.value) / 100 })} />
-      </label>
-      <select aria-label="Efek suara untuk preview" value={sound} onChange={e => setSound(e.target.value as GameplaySound)}>
-        {Object.entries({ step:'Langkah', dash:'Dash', tag:'Tag berhasil', caught:'Tertangkap', prison:'Penjara', rescued:'Dibebaskan', rescue:'Membebaskan', 'fort-enter':'Masuk benteng lawan', 'fort-captured':'Benteng direbut' }).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select>
-      <button onClick={async () => { sfx.current ??= new GameplayAudio(); const player = sfx.current; await player.unlock(); player.play(sound, sound === 'step' ? .8 : 1); }}>Dengar SFX</button>
-      <small>0% = senyap. Preview musik dapat didengar meski mute aktif. Pertandingan tetap berjalan.</small>
-      <small role="status">{message}</small>
-    </div>
-  </details>;
+  const previewSfx = async () => {
+    setMessage('');
+    try {
+      sfx.current ??= new GameplayAudio();
+      const player = sfx.current;
+      await player.unlock();
+      if (sfx.current === player && original.current)
+        player.play(sound, sound === 'step' ? 0.8 : 1);
+    } catch {
+      setMessage('Efek suara belum dapat diputar. Coba lagi.');
+    }
+  };
+  return (
+    <>
+      <details
+        ref={details}
+        className={`audio-settings${trigger ? ' image-trigger' : ''}`}
+        onToggle={(event) => {
+          if (event.target !== event.currentTarget) return;
+          onOpen?.();
+          if (event.currentTarget.open) {
+            original.current ??= { ...audioLevels() };
+            setLevels({ ...audioLevels() });
+            setMessage('');
+            setOpen(true);
+          } else {
+            original.current = null;
+            cleanupPreview();
+            setOpen(false);
+          }
+        }}
+      >
+        <summary
+          aria-label="Pengaturan volume audio"
+          onKeyDown={(event) => event.stopPropagation()}
+          onKeyUp={(event) => event.stopPropagation()}
+        >
+          {trigger ?? '♫ AUDIO'}
+        </summary>
+      </details>
+      {open &&
+        createPortal(
+          <dialog
+            ref={dialog}
+            className="audio-settings-art-panel"
+            aria-labelledby={titleId}
+            onCancel={(event) => {
+              event.preventDefault();
+              close(true);
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+            onKeyUp={(event) => event.stopPropagation()}
+          >
+            <header className="audio-settings-art-header">
+              <img src={art('header-panel')} alt="" draggable={false} />
+              <h1 id={titleId}>VOLUME AUDIO</h1>
+            </header>
+            <div className="audio-settings-art-card">
+              <img
+                className="audio-art-card-image"
+                src={art('panel-card')}
+                alt=""
+                draggable={false}
+              />
+              <div className="audio-art-content">
+                <AudioArtSlider
+                  label="Musik latar"
+                  value={levels.music}
+                  onChange={(music) =>
+                    saveAudioLevels({ ...audioLevels(), music })
+                  }
+                />
+                <AudioArtSlider
+                  label="SFX"
+                  value={levels.sfx}
+                  onChange={(sfx) => saveAudioLevels({ ...audioLevels(), sfx })}
+                />
+                <details
+                  className="audio-art-preview"
+                  onToggle={(event) => {
+                    if (
+                      event.target === event.currentTarget &&
+                      !event.currentTarget.open
+                    )
+                      cleanupPreview();
+                  }}
+                >
+                  <summary>PREVIEW AUDIO</summary>
+                  <div>
+                    <button type="button" onClick={previewMusic}>
+                      {previewing
+                        ? 'Hentikan preview'
+                        : 'Dengar musik game · 5 detik'}
+                    </button>
+                    <select
+                      aria-label="Efek suara untuk preview"
+                      value={sound}
+                      onChange={(e) =>
+                        setSound(e.target.value as GameplaySound)
+                      }
+                    >
+                      {Object.entries({
+                        step: 'Langkah',
+                        dash: 'Dash',
+                        tag: 'Tag berhasil',
+                        caught: 'Tertangkap',
+                        prison: 'Penjara',
+                        rescued: 'Dibebaskan',
+                        rescue: 'Membebaskan',
+                        'fort-enter': 'Masuk benteng lawan',
+                        'fort-captured': 'Benteng direbut',
+                      }).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={() => void previewSfx()}>
+                      Dengar SFX
+                    </button>
+                    <small>
+                      0% = senyap. Preview musik dapat didengar meski mute
+                      aktif. Pertandingan tetap berjalan.
+                    </small>
+                    <small className="audio-art-helper">
+                      Volume langsung diterapkan. CANCEL mengembalikan nilai
+                      awal.
+                    </small>
+                    <output aria-live="polite">{message}</output>
+                  </div>
+                </details>
+              </div>
+              <div className="audio-settings-art-actions">
+                <button type="button" onClick={() => close()}>
+                  <img src={art('save-button')} alt="" />
+                  <span>SAVE</span>
+                </button>
+                <button type="button" onClick={() => close(true)}>
+                  <img src={art('cancel-button')} alt="" />
+                  <span>CANCEL</span>
+                </button>
+              </div>
+            </div>
+          </dialog>,
+          document.body,
+        )}
+    </>
+  );
 }

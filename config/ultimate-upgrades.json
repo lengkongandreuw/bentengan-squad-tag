@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "characters": [
+    { "characterId": "raja", "levels": [
+      { "level": 0, "cost": 0, "rechargeSeconds": 45, "castMs": 3200, "durationMs": 5000, "speedMultiplier": 1.40 },
+      { "level": 1, "cost": 120, "rechargeSeconds": 44, "castMs": 3200, "durationMs": 5500, "speedMultiplier": 1.43 },
+      { "level": 2, "cost": 280, "rechargeSeconds": 42, "castMs": 3100, "durationMs": 6000, "speedMultiplier": 1.46 },
+      { "level": 3, "cost": 520, "rechargeSeconds": 40, "castMs": 3000, "durationMs": 6500, "speedMultiplier": 1.50 }
+    ] },
+    { "characterId": "kaka", "levels": [
+      { "level": 0, "cost": 0, "rechargeSeconds": 45, "castMs": 3600, "durationMs": 5000 },
+      { "level": 1, "cost": 120, "rechargeSeconds": 44, "castMs": 3400, "durationMs": 5500 },
+      { "level": 2, "cost": 280, "rechargeSeconds": 42, "castMs": 3200, "durationMs": 6000 },
+      { "level": 3, "cost": 520, "rechargeSeconds": 40, "castMs": 3000, "durationMs": 6500 }
+    ] }
+  ]
+}
