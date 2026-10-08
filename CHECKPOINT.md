@@ -5,6 +5,15 @@ tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
 
+### 2026-10-08 — SYNC origin/main perf+loading (8167d2e, 0b7c3fd, f95a02a) INTO Refactor-Clio
+
+**Scope:** port 3 origin commits without restoring monolith. `map-studio.json` wholesale from origin (no local drafts); `map-runtime.json` already identical pre-sync.
+**Changed:** `lib/graphics-settings.js`+d.ts, `lib/loading-media-model.js`+d.ts (verbatim origin) → `modules/ui/graphics-settings.tsx`, `modules/ui/loading-media.tsx`; `lib/game-core/state.ts` `validate` flag; mounts in menu/pause/multiplayer/asset-loading-screen + `LoadingPanel` Suspense fallbacks; prototype fixed-60Hz loop + preset strides + throttled result draw + optional team video; `vite.github.config.ts` loading-boot plugin; `package.json` admin/test scripts; `scripts/loading-admin/` + 2 browser scripts + graphics test + pins; 3 docs; `config/loading-media.json` + 3 media assets.
+**Repaired during port:** restored clobbered `createRouteScheduler`/`AudioSettings`/`createInvite,parseInvite`/lucide imports + draw `clearRect`/`const me`; asset-screen arrow to block body; reverted `public/field/manifest.json` churn (origin untouched, rebuild nondeterministic).
+**Gates:** `tsc` 0; game-core+route 43/43, graphics 5/5, multiplayer 28/28, loading-admin 6/6; audit 21 ✗ identical to clean tree (pre-existing); `build:pages` PASS (bundle: dataset.graphicsPreset/pixelRatio, character-red, multiplayer-connection, custom-loading-media, graphics-settings-panel; boot slot empty = origin config has no boot slot).
+**Not run:** browser smoke (preset switch, video-fail, 4× throttle), `npm run verify`. Browser UI-priority test grafted with graphics coverage for that run.
+**Next action:** commit locally; push `origin/Refactor-Clio` only (publish hold on `origin/main` stands).
+
 ### 2026-10-08 — Crash-safety + dead-code (UNCOMMITTED on `Refactor-Clio`, no push/PR/deploy)
 
 **Scope (tandem split):** partner hardened `persist()` in `lib/player-profile/profile-service.ts` (throws on blocked storage) + service test in `scripts/test-economy-wallet.mjs`. This slice: panel catch, error boundary, WinRound deletion, distance/clamp/other dedupe, audio-port pin repoint.

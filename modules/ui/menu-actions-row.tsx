@@ -1,4 +1,5 @@
 import { AudioSettings } from './audio-settings.tsx';
+import { GraphicsSettings } from './graphics-settings.tsx';
 
 // Pregame action row: about (splash only), music toggle, rules, audio panel.
 export const MenuActionsRow = ({
@@ -46,5 +47,6 @@ export const MenuActionsRow = ({
       onOpen={onAudioOpen}
       trigger={<img src={resolveAsset('controls/settings-button.png')} alt="" />}
     />
+    <GraphicsSettings onOpen={onAudioOpen} />
   </div>
 );

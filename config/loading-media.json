@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "slots": {
+    "character-red": {
+      "asset": "loading-media/3745b988026c5637ef1400ff8cd706449a0bc6fc48c8f38c1e149bf2578b9402.gif",
+      "kind": "image",
+      "fit": "cover",
+      "preserveProgress": true
+    },
+    "character-green": {
+      "asset": "loading-media/0b9b86b17cd6c3ff44ad6fb9b1f49a48217ff75fc8487abafac2657594c08f9c.gif",
+      "kind": "image",
+      "fit": "cover",
+      "preserveProgress": true
+    }
+  }
+}

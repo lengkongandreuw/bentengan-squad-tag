@@ -24,6 +24,7 @@ import { RulesOverlay } from '../modules/ui/rules-overlay.tsx';
 import { FieldSelectScreen } from '../modules/ui/field-select-screen.tsx';
 import { CharacterSelectScreen } from '../modules/ui/character-select-screen.tsx';
 import { AssetLoadingScreen } from '../modules/ui/asset-loading-screen.tsx';
+import { LoadingPanel } from '../modules/ui/loading-media.tsx';
 import { MenuActionsRow } from '../modules/ui/menu-actions-row.tsx';
 import { BackButton } from '../modules/ui/back-button.tsx';
 import { ProfileTriggerButton } from '../modules/ui/profile-trigger-button.tsx';
@@ -83,6 +84,7 @@ import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from 
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
 import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
+import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
 import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio.ts';
@@ -580,7 +582,8 @@ export function BentenganPrototype() {
           tasks.push(() => loadSelectionPreview(url));
         }
       }
-      if (!gameLoading && selectedFaction) tasks.push(() => videoReady(characterSelectionVideo(selectedFaction)));
+      // The team video is decoration: browsers without H.264 (e.g. plain Chromium) fall back to a static team backdrop.
+      if (!gameLoading && selectedFaction) tasks.push(() => videoReady(characterSelectionVideo(selectedFaction), 10000).catch(error => { console.warn('Video tim dilewati; memakai latar statis.', error); }));
       tasks.push(() => document.fonts.ready.then(() => undefined));
       let done = 0;
       // A bounded batch avoids flooding mobile connections with atlas requests.
@@ -985,7 +988,8 @@ export function BentenganPrototype() {
     let ctx: CanvasRenderingContext2D = mainContext;
     let raf = 0,
       last = performance.now(),
-      lastHud = 0;
+      lastHud = 0,
+      lastDraw = -Infinity;
     let phase: 'COUNTDOWN' | 'PLAYING' | 'ROUND_OVER' | 'MATCH_OVER' =
       'COUNTDOWN';
     let phaseUntil = performance.now() + 3000,
@@ -1331,8 +1335,7 @@ export function BentenganPrototype() {
       distance,
       me: () => players[0],
       publishSnapshot: (now, initial) => {
-        const s = createSnapshot(readCanonicalState(now));
-        const state = readCanonicalState(now), rows = (stats: CanonicalGameState['matchStats']) =>
+        const state=readCanonicalState(now),s=createSnapshot(state),rows=(stats:CanonicalGameState['matchStats'])=>
           Object.entries(stats).map(([entityId, counts]) => ({ entityId, ...counts }));
         network.publishSnapshot(initial
           ? { version: 1, type: 'MATCH_START', matchId: matchId!, arenaId: field.id, startAtMs: phaseUntil, snapshot: s }
@@ -1354,7 +1357,10 @@ export function BentenganPrototype() {
       }
     }});
     const localInput = createLocalInputAdapter();
-    const simulationClock = createSimulationClock();
+    // Single simulation clock for single-player and multiplayer host: fixed 60 Hz steps,
+    // so movement and timers run at real-time speed regardless of render FPS.
+    const SIMULATION_HZ = 60, MAX_SIMULATION_STEPS = 4;
+    const simulationClock = createSimulationClock(SIMULATION_HZ);
     const emptyStats = (): PlayerStats => ({ tags: 0, prisons: 0, rescues: 0 });
     const makeStatsStore = () =>
       Object.fromEntries(players.map((player) => [player.id, emptyStats()])) as Record<
@@ -2169,9 +2175,6 @@ export function BentenganPrototype() {
         requestRescue(now);
       }
       if(network)for(const p of players)if(p.controller==='remote'&&humanFrames.get(p.entityId)?.rescue)requestRescue(now,p);
-      // Stage the fixed clock without quantizing movement/contacts. Keep legacy
-      // deadline semantics while full fixed-step conversion remains staged.
-      if(!network)advanceSimulationClock(simulationClock, dt * 1000);
       const wasSuddenDeath = suddenDeath;
       const timerResult = stepMatchTimer(players, timer, suddenDeath, dt);
       timer = timerResult.timer;
@@ -2581,7 +2584,8 @@ export function BentenganPrototype() {
       ctx.lineCap = 'round';
       ctx.lineWidth = 2.3;
       ctx.strokeStyle = 'rgba(184, 243, 252, .46)';
-      for (const glint of kanalWaterGlints) {
+      for (let glintIndex = 0; glintIndex < kanalWaterGlints.length; glintIndex += GRAPHICS_PRESETS[quality].waterStride) {
+        const glint = kanalWaterGlints[glintIndex];
         if(glint.x<visibleWorld.left-24||glint.x>visibleWorld.right+24||glint.y<visibleWorld.top-24||glint.y>visibleWorld.bottom+24)continue;
         const upper = glint.y < worldHeight * 0.36;
         const lower = glint.y > worldHeight * 0.64;
@@ -3269,10 +3273,19 @@ const spriteFrame = (
       }
     };
     const renderAdapter = createRenderAdapter(players);
+    let quality: GraphicsPreset = graphicsPreset();
+    // Adaptive resolution for the auto preset: averaged over AUTO_PIXEL_RATIO.windowMs, one step per window.
+    let autoPixelRatio = autoInitialPixelRatio(window.devicePixelRatio || 1),autoWindowStart=performance.now(),autoFrames=0,autoFrameMs=0,autoWorkMs=0;
+    const resetAutoWindow=(at:number)=>{autoWindowStart=at;autoFrames=0;autoFrameMs=0;autoWorkMs=0;};
+    const qualityChanged = (event: Event) => {
+      quality = (event as CustomEvent<GraphicsPreset>).detail ?? graphicsPreset();
+      autoPixelRatio=autoInitialPixelRatio(window.devicePixelRatio || 1);resetAutoWindow(performance.now());
+    };
+    window.addEventListener(GRAPHICS_SETTINGS_EVENT, qualityChanged);
     let pendingRenderFailure:string|null=null;
     const draw = (now: number, render:RenderFrame) => {
       const {players,refills,phase,rescueRequest}=render;
-      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
+      const dpr = graphicsPixelRatio(quality, window.devicePixelRatio || 1, autoPixelRatio),
         cw = canvas.clientWidth,
         ch = canvas.clientHeight;
       if (
@@ -3283,6 +3296,8 @@ const spriteFrame = (
         canvas.height = Math.round(ch * dpr);
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.dataset.graphicsPreset = quality;
+      canvas.dataset.pixelRatio = String(dpr);
       ctx.clearRect(0, 0, cw, ch);
       const me = players[0];
       const activeCamera = cameraModeRef.current;
@@ -3377,7 +3392,8 @@ const spriteFrame = (
           ctx.fillText('!', rescueRequester.x, rescueRequester.y - 35);
           ctx.restore();
         }
-        particles.forEach((p) => {
+        particles.forEach((p, index) => {
+          if(index % GRAPHICS_PRESETS[quality].particleStride !== 0) return;
           ctx.globalAlpha = Math.max(0, p.life / 0.65);
           ctx.fillStyle = p.color;
           ctx.beginPath();
@@ -3436,6 +3452,7 @@ const spriteFrame = (
     let profileFrames=0,profileUpdate=0,profileDraw=0,profileHud=0,profileWorst=0,profileStart=performance.now();
     const loop = (localNow: number) => {
       let now=localNow;
+      const frameMs=localNow-last,workStart=performance.now();
       const dt = Math.min(0.033, (localNow - last) / 1000);
       last = localNow;
       const updateStart=profileRuntime?performance.now():0;
@@ -3445,7 +3462,7 @@ const spriteFrame = (
         networkPump?.tickClientInput(localNow);
         const s=snapshots.read(localNow);
         if(s){
-          clientPresentation=snapshotRenderState(readCanonicalState(localNow),s);now=s.timeMs;
+          clientPresentation=snapshotRenderState(readCanonicalState(localNow,development),s);now=s.timeMs;
           // These are detached presentation values only: no collision, AI or rules run.
           for(const e of clientPresentation.entities)e.controller=e.entityId===myEntityId?'local':e.controller==='bot'?'bot':'remote';
           clientPresentation.entities=[...clientPresentation.entities.filter(e=>e.entityId===myEntityId),...clientPresentation.entities.filter(e=>e.entityId!==myEntityId)];
@@ -3477,8 +3494,10 @@ const spriteFrame = (
         }
         particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;p.life-=dt;});particles=particles.filter(p=>p.life>0);
       }else {
-        if(network)advanceSimulationClock(simulationClock,dt*1000);
-        update(dt, now);
+        // Drop backlog beyond MAX_SIMULATION_STEPS to avoid a spiral of death on very slow frames.
+        const stepMs=simulationClock.fixedDeltaMs;
+        const steps=advanceSimulationClock(simulationClock,Math.min(Math.max(0,frameMs),MAX_SIMULATION_STEPS*stepMs));
+        for(let step=0;step<steps;step++)update(stepMs/1000,now-simulationClock.remainderMs-(steps-1-step)*stepMs);
         if(network)networkPump?.tickHostSnapshot(localNow, now);
       }
       if(pendingMatchResult&&localNow-lastResultAttempt>=5000){const packet=pendingMatchResult;lastResultAttempt=localNow;
@@ -3486,7 +3505,19 @@ const spriteFrame = (
         catch(error){setContentGateError(error instanceof Error?error.message:'Reward multiplayer belum tersimpan.');}
       }
       const drawStart=profileRuntime?performance.now():0;
-      draw(now,renderAdapter(clientPresentation??readCanonicalState(now)));
+      // The result overlay covers the arena; ~10 fps behind it is enough and keeps weak GPUs smooth.
+      const resultOverlayShown=(phase==='ROUND_OVER'||phase==='MATCH_OVER')&&cachedStatsBoard.visible;
+      if(!resultOverlayShown||localNow-lastDraw>=100){
+        lastDraw=localNow;
+        draw(now,renderAdapter(clientPresentation??readCanonicalState(now,development)));
+        if(quality==='auto'&&phase==='PLAYING'&&!paused&&frameMs<250){
+          autoFrames++;autoFrameMs+=frameMs;autoWorkMs+=performance.now()-workStart;
+          if(localNow-autoWindowStart>=AUTO_PIXEL_RATIO.windowMs){
+            autoPixelRatio=nextAutoPixelRatio(autoPixelRatio,autoFrameMs/autoFrames,autoWorkMs/autoFrames,window.devicePixelRatio || 1);
+            resetAutoWindow(localNow);
+          }
+        }else resetAutoWindow(localNow);
+      }
       if(pendingRenderFailure!==null){paused=true;setRendererError(pendingRenderFailure);pendingRenderFailure=null;}
       const hudStart=profileRuntime?performance.now():0;
       if (now - lastHud > 100) {
@@ -3667,7 +3698,7 @@ const spriteFrame = (
     const debugHost = window as Window & { __kanalCollision?: unknown };
     // Shared detached read adapter for rendering and development inspection.
     const coreHost = window as Window & { __bentengGameCore?: { readState: () => CanonicalGameState; readSnapshot: () => GameSnapshot;readNetwork:()=>ReturnType<MultiplayerSession['metrics']>|null;readArena:()=>{width:number;height:number} } };
-    const readCanonicalState = (observedAtMs=performance.now()) => {const state=describeMatch({
+    const readCanonicalState = (observedAtMs=performance.now(),validate=true) => {const state=describeMatch({
       matchId:matchId??'menu-preview',arenaId:field.id,phase,paused,
       tick:simulationClock.tick,simulationTimeMs:simulationClock.simulationTimeMs,
       fixedDeltaMs:simulationClock.fixedDeltaMs,observedAtMs,round,timer,phaseUntil,
@@ -3676,7 +3707,7 @@ const spriteFrame = (
       ultimateBuffUntil,ultimateShieldUntil,
       ultimateStats:playerUltimateStats?Object.fromEntries(Object.entries(playerUltimateStats).filter((entry):entry is [string,number]=>typeof entry[1]==='number')):null,
       bases,baseRadius,roundStats,matchStats,winner:roundWinner,reason:roundEndReason,
-      });
+      },{validate});
       if(network){for(const p of state.entities)p.ultimateMeter=networkUltimates.get(p.entityId)?.meter??0;
         const raja=players.find(p=>p.characterId==='raja'),rajaState=raja?networkUltimates.get(raja.entityId):null;
         state.ultimate.buffUntil=rajaState?.buffUntil??0;state.ultimate.effectiveStats={castMs:ultimateCastMsFor(players[0]),speedMultiplier:RAJA_ULTIMATE_SPEED_MULTIPLIER};
@@ -3727,6 +3758,7 @@ const spriteFrame = (
     raf = requestAnimationFrame(loop);
     return () => {
       networkOff?.();networkStateOff?.();
+      window.removeEventListener(GRAPHICS_SETTINGS_EVENT, qualityChanged);
       canvas.removeEventListener('pointerdown', pointerDown);
       canvas.removeEventListener('contextmenu', contextMenu);
       window.removeEventListener('blur', clearMouse);
@@ -4132,14 +4164,14 @@ const spriteFrame = (
         )}
         {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
         {playerProfile && profileOpen && (
-          <Suspense fallback={null}>
+          <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…" />}>
             <PlayerProfilePanel
               profile={playerProfile}
               onClose={() => setProfileOpen(false)}
             />
           </Suspense>
         )}
-        {multiplayerOpen&&playerProfile&&<Suspense fallback={<output>Memuat panel multiplayer…</output>}><MultiplayerPanel
+        {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label="Memuat panel multiplayer…" />}><MultiplayerPanel
           initialName={playerProfile?.username}
           arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
           prepareContent={async id=>{
@@ -4354,7 +4386,7 @@ const spriteFrame = (
         />
       </section>
       {playerProfile && profileOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…" />}>
           <PlayerProfilePanel
             profile={playerProfile}
             onClose={() => setProfileOpen(false)}

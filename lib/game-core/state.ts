@@ -15,8 +15,12 @@ export type RuntimeMatchTruth = {
   winner?:LegacyTeam;reason:string;
 };
 
-/** A one-way read adapter, not a new simulation or a network serializer. */
-export function describeMatch(source:RuntimeMatchTruth):CanonicalGameState {
+/**
+ * A one-way read adapter, not a new simulation or a network serializer.
+ * `validate:false` skips the recursive JSON check for per-frame render reads only;
+ * keep it on in development, tests and anything sent over the network.
+ */
+export function describeMatch(source:RuntimeMatchTruth,{validate=true}:{validate?:boolean}={}):CanonicalGameState {
   const ids=new Map(source.players.map(p=>[p.id,p.entityId]));
   if(new Set(ids.values()).size!==source.players.length)throw Error('Duplicate entity identity');
   const identity=(id:string)=>{
@@ -62,7 +66,7 @@ export function describeMatch(source:RuntimeMatchTruth):CanonicalGameState {
     roundStats:stats(source.roundStats),matchStats:stats(source.matchStats),
     result:source.winner?{winner:canonicalTeam(source.winner),reason:source.reason,complete:source.phase==='MATCH_OVER'}:null,
   };
-  assertJsonData(state);
+  if(validate)assertJsonData(state);
   return state;
 }
 

@@ -6,6 +6,7 @@ import type {CharacterId} from '../../lib/characters';
 import {testContent,type ContentIdentity} from '../../lib/multiplayer/content.ts';
 import './multiplayer-panel.css';
 import {createInvite,parseInvite} from '../../lib/multiplayer/invite.ts';
+import {LoadingMedia,loadingMediaFor} from './loading-media.tsx';
 
 export function MultiplayerPanel({onClose,arenas,prepareContent,onLaunch,onEnded,initialName}:{onClose:()=>void;initialName?:string;
   arenas?:readonly {id:string;name:string}[];prepareContent?:(id:string)=>Promise<ContentIdentity>;
@@ -92,6 +93,7 @@ export function MultiplayerPanel({onClose,arenas,prepareContent,onLaunch,onEnded
         </>}
         <button type="button" onClick={leave}>KELUAR ROOM</button>
       </>}
+      {(busy||state?.phase==='connecting'||pendingReady!==null)&&loadingMediaFor('multiplayer-connection')&&<div className="connection-loading-media"><LoadingMedia slot="multiplayer-connection"/></div>}
       {(error||state?.error)&&<p role="alert" className="multiplayer-error">{error||state?.error}</p>}
     </dialog>
   </div>;

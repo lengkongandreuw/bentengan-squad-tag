@@ -19,6 +19,8 @@
     "test:sprite-studio": "node --test scripts/sprite-studio/test.mjs",
     "admin:characters": "node scripts/character-admin/server.mjs",
     "test:character-admin": "node --test scripts/character-admin/test.mjs",
+    "admin:loading": "node scripts/loading-admin/server.mjs",
+    "test:loading-admin": "node --test scripts/loading-admin/test.mjs",
     "dev": "vinext dev",
     "build": "vinext build",
     "build:pages": "node scripts/build-studio-runtime.mjs && node --experimental-strip-types scripts/build-map-runtime.mjs && vite build --config vite.github.config.ts",

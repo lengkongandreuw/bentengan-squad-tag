@@ -3,6 +3,8 @@
 Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokumen ini pada task baru agar tidak perlu membaca riwayat percakapan lama.
 2026-10-08 USER CONSTRAINT: Do not create a god module. Keep modules small with narrow ownership; split by behavior, never merge unrelated rules into one owner.
 
+2026-10-08 SYNC origin/main (8167d2e, 0b7c3fd, f95a02a) INTO Refactor-Clio: graphics presets (auto default, adaptif 0,6..DPR per 2 detik) via `lib/graphics-settings.js` + `modules/ui/graphics-settings.tsx` (menu + pause); Loading Studio via `lib/loading-media-model.js` + `modules/ui/loading-media.tsx` + `scripts/loading-admin/` + boot plugin di `vite.github.config.ts`; fixed 60Hz simulationClock (maks 4 langkah/frame) + no-blur result overlay + throttled draw ~10fps di belakang overlay + video tim opsional (timeout 10s). `map-studio.json` wholesale dari origin (tak ada draft lokal). Render produksi lewati assertJsonData (`validate:false`); snapshot jaringan tetap divalidasi. Tanpa god module: stride/preset tetap di callsite prototype, bukan layer baru.
+
 ## Cara memakai dokumen ini
 
 2026-10-08 MERGE origin/main d75b0ed INTO Refactor-Clio LOCAL ONLY. Resolved

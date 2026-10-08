@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import {loadingBootHtml} from './lib/loading-media-model.js';
 
 const legacyEntryFiles = [
   'assets/index-CcIgRf6v.js',
@@ -76,10 +77,14 @@ const githubPagesCacheCompatibility: Plugin = {
   },
 };
 
+const loadingBoot:Plugin={name:'loading-boot-media',transformIndexHtml(html){
+  return loadingBootHtml(html,JSON.parse(readFileSync('config/loading-media.json','utf8')));
+}};
+
 export default defineConfig({
   define:{__BENTENG_CONTENT__:JSON.stringify(contentManifest)},
   base: '/bentengan-squad-tag/',
-  plugins: [react(), githubPagesCacheCompatibility],
+  plugins: [react(), loadingBoot, githubPagesCacheCompatibility],
   build: {
     outDir: 'dist-pages',
     emptyOutDir: true,

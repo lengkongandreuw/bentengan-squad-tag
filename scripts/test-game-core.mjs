@@ -140,7 +140,7 @@ void test('11 existing drawing paths use render projections and do not invoke si
   const source=fs.readFileSync('app/prototype.tsx','utf8'),a=source.indexOf('const drawPlayer ='),b=source.indexOf('let cachedStatsBoard',a),drawing=source.slice(a,b);
   assert.ok(drawing.includes('const {phase,roundWinner,ultimateMeter,ultimateBuffUntil,teamCombos}=render'));
   assert.ok(drawing.includes('const {players,refills,phase,rescueRequest}=render'));
-  assert.ok(source.includes('draw(now,renderAdapter(clientPresentation??readCanonicalState(now)))'));
+  assert.ok(source.includes('draw(now,renderAdapter(clientPresentation??readCanonicalState(now,development)))'));
   assert.doesNotMatch(drawing,/\b(?:resolveTag|resolveRescue|winRound|stepUltimate|botAuthority|moveActor|recordMatchProgression)\s*\(/);
   assert.doesNotMatch(drawing,/\b(?:paused|phase|timer|score|ultimateMeter)\s*(?:=|\+=|-=)(?!=)/);
   assert.ok(drawing.includes('pendingRenderFailure ='));assert.ok(source.includes('if(pendingRenderFailure!==null){paused=true'));
@@ -500,6 +500,9 @@ void test('02 canonical state is detached, finite JSON truth with explicit facti
   assert.equal(p.flight.lastGround.x,200);assert.equal(source.refills[0].x,500);assert.equal(source.matchStats.you.tags,2);
   for(const invalid of [NaN,Infinity,()=>{},new Map(),{bad:undefined},new Date()])assert.throws(()=>state.assertJsonData(invalid));
   assert.throws(()=>state.describeMatch({...source,timer:NaN}));
+  // Render-only reads may skip the recursive JSON check; output is otherwise identical.
+  assert.doesNotThrow(()=>state.describeMatch({...source,timer:NaN},{validate:false}));
+  assert.deepEqual(state.describeMatch(source,{validate:false}),state.describeMatch(source));
   assert.throws(()=>state.describeMatch({...source,players:[p,{...q,entityId:p.entityId}]}));
 });
 void test('03 host-issued identity survives character changes, reorder, round reset and takeover',()=>{

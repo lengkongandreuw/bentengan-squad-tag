@@ -47,7 +47,7 @@ export const CharacterSelectScreen = ({
       loop
       playsInline
       preload="metadata"
-      aria-hidden="true"
+      onError={event => { event.currentTarget.hidden = true; }}
     />
     <header className="roster-branding">
       <img

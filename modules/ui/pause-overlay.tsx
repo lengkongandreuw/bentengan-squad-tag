@@ -1,4 +1,6 @@
 import { LogOut, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { AudioSettings } from './audio-settings.tsx';
+import { GraphicsSettings } from './graphics-settings.tsx';
 
 // Pause overlay. Pure presentation; every action is injected by the owner.
 export const PauseOverlay = ({
@@ -29,6 +31,10 @@ export const PauseOverlay = ({
         {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
         {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
       </button>
+      <div className="pause-settings-row">
+        <AudioSettings />
+        <GraphicsSettings />
+      </div>
       <button onClick={onRestart}>
         <RotateCcw size={17} /> Mulai ulang
       </button>

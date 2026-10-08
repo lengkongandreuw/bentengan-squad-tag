@@ -1,7 +1,10 @@
 import { ArenaBackdrop } from './arena-backdrop.tsx';
+import { LoadingMedia, loadingUsesBuiltinProgress } from './loading-media.tsx';
 
 // Fullscreen asset-loading screen (selection or match). The owner owns
-// the loading state and receives retry/back actions.
+// the loading state and receives retry/back actions. Custom loading media
+// (Loading Studio) overlays the arena backdrop; builtin progress frames
+// show only when the media preserves them.
 export const AssetLoadingScreen = ({
   selectionLoading,
   gameLoading,
@@ -22,17 +25,17 @@ export const AssetLoadingScreen = ({
   loadProgress: number;
   onRetry: () => void;
   onBack: () => void;
-}) => (
-  <main
+}) => {
+  const slot = gameLoading ? 'match' : `character-${faction}`;
+  const builtinProgress = selectionLoading && loadingUsesBuiltinProgress(slot);
+  return <main
     className={`pregame-shell asset-loading-screen ${selectionLoading ? `loading-ui-${faction}` : ''}`}
     aria-busy={!loadError}
     aria-label={`Memuat aset ${loadProgress}%`}
   >
-    <ArenaBackdrop
-      id={gameLoading ? fieldId : `${faction}-loading`}
-      video={gameLoading}
-    />
-    {selectionLoading && (
+    <LoadingMedia slot={slot} arenaId={fieldId}
+      fallback={<ArenaBackdrop id={gameLoading ? fieldId : `${faction}-loading`} video={gameLoading} />} />
+    {builtinProgress && (
       <img
         className="team-loading-frame"
         src={frameSrc}
@@ -41,7 +44,7 @@ export const AssetLoadingScreen = ({
       />
     )}
     <section
-      className={`asset-loading-card ${selectionLoading ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`}
+      className={`asset-loading-card ${builtinProgress ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`}
       aria-busy={!loadError}
       aria-live="polite"
     >
@@ -54,5 +57,5 @@ export const AssetLoadingScreen = ({
       {loadError && <button onClick={onRetry}>COBA LAGI</button>}
       <button onClick={onBack}>KEMBALI KE PILIH TIM</button>
     </section>
-  </main>
-);
+  </main>;
+};
