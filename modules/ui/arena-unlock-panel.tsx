@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getArenaSelectionProgress } from '../../lib/player-profile/arena-selection-progress';
+import { getArenaSelectionProgress } from '../../lib/player-profile/arena-selection-progress.ts';
 import type { LocalPlayerProfile } from '../../lib/player-profile/types';
 
 export function ArenaUnlockPanel({ profile, catalog, selectedId }: {

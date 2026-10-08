@@ -1,4 +1,4 @@
-import { ArenaBackdrop } from './arena-backdrop';
+import { ArenaBackdrop } from './arena-backdrop.tsx';
 
 // Fullscreen asset-loading screen (selection or match). The owner owns
 // the loading state and receives retry/back actions.

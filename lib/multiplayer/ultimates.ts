@@ -1,6 +1,6 @@
 import type {RuntimeActor} from '../game-core/types';
 import type {PlayerInputFrame} from '../game-core/input';
-import {stepUltimate,stepFlight,ultimateCasting,ultimateSpeed,type UltimateRules,type UltimateState} from '../game-core/ultimate';
+import {stepUltimate,stepFlight,ultimateCasting,ultimateSpeed,type UltimateRules,type UltimateState} from '../game-core/ultimate.ts';
 import {flightConfig,flightSlot} from '../flight-ultimate.js';
 /** Match-local human states. Reuses existing skills, never trusts a client's meter. */
 export function createNetworkUltimates(humans:readonly {entityId:string}[]){

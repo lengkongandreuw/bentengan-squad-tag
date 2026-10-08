@@ -533,7 +533,7 @@ GUIDE_FIELD_CONFIGS.push({
   ...structuredClone(kanalGuide),
   id: 'kanal2',
   name: 'Alun Kanal Nusantara 2',
-  kicker: 'Kanal panjang · ruang tengah 2×',
+  kicker: 'Kanal panjang dengan ruang tengah dua kali lebih lebar untuk rotasi dan duel terbuka.',
   background: 'kanal2-ground.webp',
   waterMask: 'kanal2-water-mask.png',
   waterMaskWidth: Math.round(MAP4_2_GUIDE_WIDTH / 2),

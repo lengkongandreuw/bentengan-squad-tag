@@ -1,4 +1,4 @@
-import {parseRoomCode} from './transport';
+import {parseRoomCode} from './transport.ts';
 /** Invitations select content; the existing host handshake still verifies it. */
 export function parseInvite(value:string,arenas:readonly {id:string}[]) {
   const code=parseRoomCode(value);

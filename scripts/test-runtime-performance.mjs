@@ -7,7 +7,7 @@ import {performance} from 'node:perf_hooks';
 import {solidAt,waterAt,speedAt} from '../lib/map-studio-model.js';
 import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
 
-test('indexed map queries retain exact rotated polygon/ellipse/bridge/mask/slow rules',()=>{
+void test('indexed map queries retain exact rotated polygon/ellipse/bridge/mask/slow rules',()=>{
   const map={width:800,height:800,waterMask:{width:4,height:4,rows:[[0,1],[2,4],[],[0,4]]},objects:[]};
   for(let i=0;i<120;i++)map.objects.push({x:(i%12)*60-30,y:Math.floor(i/12)*60-30,w:40+i%7,h:30+i%9,rotation:(i*37)%360,shape:['rect','ellipse','polygon'][i%3],behavior:['solid','parkour','water','bridge','slow','decoration'][i%6],slow:.4,points:[{x:0,y:0},{x:1,y:.1},{x:.3,y:1}]});
   // Very large objects use bounded global candidates rather than huge buckets.
@@ -20,7 +20,7 @@ test('indexed map queries retain exact rotated polygon/ellipse/bridge/mask/slow 
   }
   assert.equal(JSON.stringify(map),before);
 });
-test('collision broad-phase materially reduces work without approximate collision shapes',()=>{
+void test('collision broad-phase materially reduces work without approximate collision shapes',()=>{
   const objects=Array.from({length:1600},(_,i)=>({x:i%40*100,y:Math.floor(i/40)*100,w:35,h:50,rotation:i%2*45,behavior:'solid',shape:'rect'}));
   const map={width:4000,height:4000,objects},q=createMapQueries(map),points=Array.from({length:2000},(_,i)=>({x:i*137%4000,y:i*191%4000}));
   const start=performance.now(),expected=points.map(p=>solidAt(map,p.x,p.y)),linearMs=performance.now()-start;
@@ -30,14 +30,14 @@ test('collision broad-phase materially reduces work without approximate collisio
   assert.ok(candidates<points.length*objects.length*.02);
   console.log(JSON.stringify({benchmark:'collision only (not measured game FPS)',objects:1600,queries:2000,linearMs:+linearMs.toFixed(2),indexedMs:+indexedMs.toFixed(2),candidateReductionPercent:+(100*(1-candidates/(points.length*objects.length))).toFixed(2)}));
 });
-test('offscreen culling preserves rotated extents and objects reappearing at viewport edges',()=>{
+void test('offscreen culling preserves rotated extents and objects reappearing at viewport edges',()=>{
   const bounds=objectBounds({x:100,y:100,w:100,h:20,rotation:45});
   assert.ok(bounds.top<100&&bounds.bottom>120);
   assert.equal(visibleBounds(bounds,{left:0,right:110,top:0,bottom:110}),true);
   assert.equal(visibleBounds(bounds,{left:1000,right:1100,top:1000,bottom:1100}),false);
   assert.equal(visibleBounds(bounds,{left:bounds.right,right:bounds.right+10,top:bounds.top,bottom:bounds.bottom}),true);
 });
-test('runtime checks contact range before expensive LOS; original quality settings retained',()=>{
+void test('runtime checks contact range before expensive LOS; original quality settings retained',()=>{
   const code=readFileSync('app/prototype.tsx','utf8'),section=code.slice(code.indexOf('const tagCheck ='),code.indexOf('const rescueCheck ='));
   assert.ok(section.includes('tagContacts(players,now,interactionRules)'));
   const core=readFileSync('lib/game-core/interactions.ts','utf8');

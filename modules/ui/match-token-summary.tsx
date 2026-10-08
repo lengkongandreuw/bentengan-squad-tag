@@ -1,5 +1,5 @@
 import type { ProgressionResult } from '../../lib/player-profile/match-progression';
-import { economyRules } from '../../lib/player-profile/economy-rules';
+import { economyRules } from '../../lib/player-profile/economy-rules.ts';
 
 // Render only engine output; duplicate/incomplete results never replay rewards.
 export function MatchTokenSummary({ result }: { result: ProgressionResult }) {

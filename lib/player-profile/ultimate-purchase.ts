@@ -1,8 +1,8 @@
 import type { CharacterId } from '../characters';
 import type { LocalPlayerProfile } from './types';
-import { isCharacterUnlocked } from './character-unlocks';
-import { getTokenBalance, parsePlayerEconomy, spendTokens } from './economy';
-import { createDefaultUltimateUpgrades, parseUltimateUpgradeState, getUltimateUpgradeConfig } from './ultimate-upgrades';
+import { isCharacterUnlocked } from './character-unlocks.ts';
+import { getTokenBalance, parsePlayerEconomy, spendTokens } from './economy.ts';
+import { createDefaultUltimateUpgrades, parseUltimateUpgradeState, getUltimateUpgradeConfig } from './ultimate-upgrades.ts';
 
 export type UltimatePurchaseReason = 'applied' | 'insufficient_balance' | 'max_level' | 'unsupported_character' |
   'character_locked' | 'duplicate' | 'invalid' | 'level_mismatch' | 'storage_failed';

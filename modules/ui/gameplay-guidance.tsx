@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {normalizeHudPreferences,type HudPreferences} from '../../lib/hud-preferences';
+import {normalizeHudPreferences,type HudPreferences} from '../../lib/hud-preferences.ts';
 
 const storageKey='benteng-hud-preferences-v1';
 export function useHudPreferences() {

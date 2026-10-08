@@ -5,9 +5,9 @@ import {
   type CharacterId,
 } from '../../lib/characters.ts';
 import type { Faction } from '../world/map-data/field-types';
-import { factionName } from '../world/team-tables';
-import { SelectionPortrait } from './selection-portrait';
-import { statPercent } from './format';
+import { factionName } from '../world/team-tables.ts';
+import { SelectionPortrait } from './selection-portrait.tsx';
+import { statPercent } from './format.ts';
 
 // Character select screen: roster video, team swap, carousel grid, ability
 // panel, and the select button. Hover/cycle/voice wiring arrives as

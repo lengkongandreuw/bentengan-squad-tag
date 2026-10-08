@@ -1,4 +1,4 @@
-import { AudioSettings } from './audio-settings';
+import { AudioSettings } from './audio-settings.tsx';
 
 // Pregame action row: about (splash only), music toggle, rules, audio panel.
 export const MenuActionsRow = ({

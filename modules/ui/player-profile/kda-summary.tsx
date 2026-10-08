@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { getPlayerProfileMetrics, type LocalPlayerProfile } from '../../../lib/player-profile';
+import { getPlayerProfileMetrics, type LocalPlayerProfile } from '../../../lib/player-profile/index.ts';
 
 type KdaSummaryProps = {
   profile: LocalPlayerProfile;

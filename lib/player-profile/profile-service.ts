@@ -7,12 +7,12 @@ import {
 import { loadPlayerProfile, savePlayerProfile } from './storage.ts';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
-import { createDefaultProgression } from './progression';
-import { createDefaultEconomy } from './economy';
-import { createDefaultUltimateUpgrades } from './ultimate-upgrades';
-import { purchaseUltimateUpgrade } from './ultimate-purchase';
-import { applyMatchProgression, type MatchSummary } from './match-progression';
-import { createLocalId } from './match-identity';
+import { createDefaultProgression } from './progression.ts';
+import { createDefaultEconomy } from './economy.ts';
+import { createDefaultUltimateUpgrades } from './ultimate-upgrades.ts';
+import { purchaseUltimateUpgrade } from './ultimate-purchase.ts';
+import { applyMatchProgression, type MatchSummary } from './match-progression.ts';
+import { createLocalId } from './match-identity.ts';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')

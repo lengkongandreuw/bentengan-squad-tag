@@ -1,6 +1,6 @@
-import { CHARACTER_BY_ID } from '../../lib/characters';
+import { CHARACTER_BY_ID } from '../../lib/characters.ts';
 import type { ProgressionResult } from '../../lib/player-profile/match-progression';
-import { MatchTokenSummary } from './match-token-summary';
+import { MatchTokenSummary } from './match-token-summary.tsx';
 
 // Presentation only: never reads storage or resolves/awards progression.
 export function MatchProgressionSummary({ result }: { result: ProgressionResult | null }) {

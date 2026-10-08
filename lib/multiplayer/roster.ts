@@ -1,4 +1,4 @@
-import {teamCharacters,type LobbyState} from './lobby';
+import {teamCharacters,type LobbyState} from './lobby.ts';
 import type {RuntimeActor,TeamId} from '../game-core/types';
 export function createMatchRoster(lobby:LobbyState){
   const host=lobby.participants.find(p=>p.host);if(!host)throw Error('Missing host');

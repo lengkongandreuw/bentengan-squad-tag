@@ -1,6 +1,6 @@
 import { Lock } from 'lucide-react';
 import type { CharacterId } from '../../lib/characters';
-import { getCharacterSelectionState } from '../../lib/player-profile/content-gates';
+import { getCharacterSelectionState } from '../../lib/player-profile/content-gates.ts';
 import type { LocalPlayerProfile } from '../../lib/player-profile/types';
 
 export function CharacterLockBadge({ profile, id }: {

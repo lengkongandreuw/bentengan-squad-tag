@@ -32,7 +32,7 @@ const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../..',
 );
-test('P2 map versions distinguish active originals, inactive drafts and active replacements without mutation',()=>{
+void test('P2 map versions distinguish active originals, inactive drafts and active replacements without mutation',()=>{
   const original={...map(),id:'studio-edit-taman',replaces:'taman',name:'Native Taman'},draft={...original,name:'Saved draft',objects:[object()]};
   const document={maps:[draft],builtinStates:{}},before=JSON.stringify(document);
   const builtins=[{id:'taman',name:'Taman Kota',editable:true}];
@@ -104,7 +104,7 @@ const toolCode = (
 const { polygonBounds, closestEdge, moveDummy } = await import(
   'data:text/javascript;base64,' + Buffer.from(toolCode).toString('base64')
 );
-test('visual polygon builder normalizes arbitrary nodes;64 node safety and nearest edge', () => {
+void test('visual polygon builder normalizes arbitrary nodes;64 node safety and nearest edge', () => {
   const pts = [
     { x: 100, y: 100 },
     { x: 300, y: 100 },
@@ -150,7 +150,7 @@ test('visual polygon builder normalizes arbitrary nodes;64 node safety and neare
     ),
   );
 });
-test('dummy traversal shares solid/parkour/slow/water/bridge and gameplay world margins', () => {
+void test('dummy traversal shares solid/parkour/slow/water/bridge and gameplay world margins', () => {
   const m = map();
   m.objects = [object()];
   const p = { x: 383, y: 450 };
@@ -172,7 +172,7 @@ test('dummy traversal shares solid/parkour/slow/water/bridge and gameplay world 
   assert.ok(!moveDummy(m, { x: 450, y: 450 }, 0, 0, 0.04, false).fallen);
   assert.equal(moveDummy(m, { x: 34, y: 58 }, -1, -1, 0.04, false).x, 34);
 });
-test('publish verification waits for correct commit/revision, never treats push or stale public build as success', async () => {
+void test('publish verification waits for correct commit/revision, never treats push or stale public build as success', async () => {
   const run = {
     head_sha: 'abc',
     path: '.github/workflows/pages.yml',
@@ -220,7 +220,7 @@ test('publish verification waits for correct commit/revision, never treats push 
     /belum terkonfirmasi/,
   );
 });
-test('schema rejects invalid numbers, duplicate IDs and unsafe paths', () => {
+void test('schema rejects invalid numbers, duplicate IDs and unsafe paths', () => {
   assert.deepEqual(validateMap(map()), map());
   assert.throws(() => validateMap({ ...map(), width: NaN }));
   assert.throws(() => validateMap({ ...map(), objects: [object(), object()] }));
@@ -230,7 +230,7 @@ test('schema rejects invalid numbers, duplicate IDs and unsafe paths', () => {
   assert.ok(contains(o, 500, 425));
   assert.ok(!contains(o, 400, 400));
 });
-test('shared collision: solid, jumpable, bridge, hidden collider and slow', () => {
+void test('shared collision: solid, jumpable, bridge, hidden collider and slow', () => {
   const m = map();
   m.objects = [object()];
   assert.ok(solidAt(m, 450, 450, 13, true));
@@ -247,7 +247,7 @@ test('shared collision: solid, jumpable, bridge, hidden collider and slow', () =
   assert.equal(speedAt(m, 450, 450), 0.5);
   assert.equal(speedAt(m, 700, 700), 1);
 });
-test('polygon, animation speed and route validation', () => {
+void test('polygon, animation speed and route validation', () => {
   assert.ok(contains({ ...object(), shape: 'polygon' }, 450, 450));
   const frames = [{ x: 0 }, { x: 1 }],
     asset = { frames, fps: 6 };
@@ -269,7 +269,7 @@ test('polygon, animation speed and route validation', () => {
   m.objects.push({ ...object(), id: 'obj-block', x: 180, y: 580 });
   assert.ok(mapIssues(m).some((i) => i.message.includes('spawn')));
 });
-test('Kampung template and library use normalized valid assets', async () => {
+void test('Kampung template and library use normalized valid assets', async () => {
   const t = await templates(root);
   assert.equal(validateCatalog(t), t);
   assert.throws(
@@ -309,7 +309,7 @@ test('Kampung template and library use normalized valid assets', async () => {
   assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
 });
 
-test('HTTP harness exposes built-in catalog and browser guard from running server', async () => {
+void test('HTTP harness exposes built-in catalog and browser guard from running server', async () => {
   const { server, origin } = await startMapStudio(0, root);
   try {
     const response = await fetch(origin + '/api/templates');
@@ -349,7 +349,7 @@ test('HTTP harness exposes built-in catalog and browser guard from running serve
     await new Promise((resolve) => server.close(resolve));
   }
 });
-test('archive metadata and inherited water mask remain backwards compatible', () => {
+void test('archive metadata and inherited water mask remain backwards compatible', () => {
   const m = {
     ...map(),
     replaces: 'kampung',
@@ -386,7 +386,7 @@ test('archive metadata and inherited water mask remain backwards compatible', ()
     }),
   );
 });
-test('local API upload, session guard, revision conflict and safe map merge', async () => {
+void test('local API upload, session guard, revision conflict and safe map merge', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'benteng-map-test-'));
   let server;
   try {

@@ -6,15 +6,15 @@ import {
   CHARACTERS,
   CHARACTER_BY_ID,
   characterPreviewIcon,
-} from '../../../lib/characters';
+} from '../../../lib/characters.ts';
 import {
   getPlayerProfileMetrics,
   setFeaturedCharacter,
   type LocalPlayerProfile,
-} from '../../../lib/player-profile';
-import { KdaSummary } from './kda-summary';
-import { TokenWallet } from '../token-wallet';
-import { PlayerRadarChart } from './radar-chart';
+} from '../../../lib/player-profile/index.ts';
+import { KdaSummary } from './kda-summary.tsx';
+import { TokenWallet } from '../token-wallet.tsx';
+import { PlayerRadarChart } from './radar-chart.tsx';
 import './profile-poster.css';
 
 type PlayerProfilePanelProps = {

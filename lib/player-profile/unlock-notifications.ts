@@ -1,4 +1,4 @@
-import { CHARACTER_BY_ID } from '../characters';
+import { CHARACTER_BY_ID } from '../characters.ts';
 import type { ProgressionResult } from './match-progression';
 
 export type UnlockNotice = { kind: 'character' | 'arena'; id: string; name: string };

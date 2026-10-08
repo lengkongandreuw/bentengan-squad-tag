@@ -1,7 +1,7 @@
 import type { CharacterId } from '../characters';
-import { progressionRules } from './progression-rules';
+import { progressionRules } from './progression-rules.ts';
 import type { LocalPlayerProfile } from './types';
-import { getLevelFromXP, getXPRequiredForLevel } from './xp-engine';
+import { getLevelFromXP, getXPRequiredForLevel } from './xp-engine.ts';
 
 export function getCharacterUnlockRequirement(characterId: CharacterId) {
   const requirement = progressionRules.characterUnlockRequirements.find(

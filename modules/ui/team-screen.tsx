@@ -1,5 +1,5 @@
 import type { Faction } from '../world/map-data/field-types';
-import { factionName } from '../world/team-tables';
+import { factionName } from '../world/team-tables.ts';
 
 // Team pick screen: two faction cards with hover/focus highlight.
 // Pure presentation; hover state, asset resolver, and the pick action

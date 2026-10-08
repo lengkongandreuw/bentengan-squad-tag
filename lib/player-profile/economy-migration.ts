@@ -1,5 +1,5 @@
 import { createDefaultEconomy, parsePlayerEconomy, parseEconomyTransaction,
-  MAX_RECENT_ECONOMY_TRANSACTIONS, type PlayerEconomy } from './economy';
+  MAX_RECENT_ECONOMY_TRANSACTIONS, type PlayerEconomy } from './economy.ts';
 import type { LocalPlayerProfile } from './types';
 
 // Recover explicit safe fields only. Never infer TOKEN from XP or old matches.

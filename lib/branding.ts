@@ -1,5 +1,5 @@
 import settings from '../config/selection-previews.json';
-import { publicAsset } from './characters';
+import { publicAsset } from './characters.ts';
 
 // Optional field keeps older v1 manifests compatible.
 export const landingLogoAsset = () => {

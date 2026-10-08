@@ -1,6 +1,6 @@
 import type { ArenaProgressionStats } from './progression';
 import type { LocalPlayerProfile } from './types';
-import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity';
+import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity.ts';
 
 function validateArenaId(arenaId: string): void {
   if (typeof arenaId !== 'string' || !arenaId.trim())

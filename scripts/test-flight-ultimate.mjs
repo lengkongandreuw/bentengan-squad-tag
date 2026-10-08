@@ -5,7 +5,7 @@ import {flightConfig,startFlight,advanceFlight,isFlying,flightBusy,flightSlot,se
 import {DIRECTIONS,actionsForCharacter,slotAllowed,slotLoop,spriteSlot,studioFlightSlot,validateSpriteDocument} from '../lib/sprite-studio-model.js';
 import {solidAt} from '../lib/map-studio-model.js';
 
-test('shared config, complete-sequence gating and exact actual flight duration',()=>{
+void test('shared config, complete-sequence gating and exact actual flight duration',()=>{
   for(const id of ['bebe','ciici']){
     const c=flightConfig(id),p={flight:startFlight({x:0,y:0})};
     assert.equal(c.flightDuration,4);assert.equal(c.speedMultiplier,id==='bebe'?1.25:1.2);
@@ -22,7 +22,7 @@ test('shared config, complete-sequence gating and exact actual flight duration',
   const clip={frames:[{}, {}, {}],fps:10};
   assert.equal(sequenceComplete(clip,299,.7),false);assert.equal(sequenceComplete(clip,300,.7),true);
 });
-test('all ultimate phases stay busy until completion or cancellation; warning once',()=>{
+void test('all ultimate phases stay busy until completion or cancellation; warning once',()=>{
   const p={flight:startFlight({x:0,y:0})},c=flightConfig('bebe');let warnings=0;
   assert.equal(isFlying(p),false);advanceFlight(p.flight,c,1,true);
   advanceFlight(p.flight,c,3.5,false,{onFlightWarning:()=>warnings++});
@@ -40,12 +40,12 @@ test('all ultimate phases stay busy until completion or cancellation; warning on
     assert.equal(flightBusy(actor),false,'completion restores targeting');
   }
 });
-test('Ciici steering is faster than Bebe; finite movement, stop input',()=>{
+void test('Ciici steering is faster than Bebe; finite movement, stop input',()=>{
   const headings=[];
   for(const id of ['bebe','ciici']){const f=startFlight({x:0,y:0});steerFlight(f,1,0,.01,flightConfig(id).turnMultiplier);const v=steerFlight(f,0,1,.1,flightConfig(id).turnMultiplier);headings.push(f.heading);assert.ok(Math.abs(Math.hypot(v.x,v.y)-1)<1e-10);assert.deepEqual(steerFlight(f,0,0,.1,1),{x:0,y:0});}
   assert.ok(headings[1]>headings[0]);
 });
-test('filtered low obstacles, solid buildings/boundaries and nearest safe landing',()=>{
+void test('filtered low obstacles, solid buildings/boundaries and nearest safe landing',()=>{
   assert.equal(flightPassesObstacle({asset:'crates'}),true);
   for(const o of [{asset:'hall'},{asset:'crates',hidden:true},{asset:'unknown'}])assert.equal(flightPassesObstacle(o),false);
   const map={objects:[{behavior:'parkour',shape:'rect',rotation:0,x:10,y:10,w:20,h:20},{behavior:'solid',shape:'rect',rotation:0,x:50,y:10,w:20,h:20}]};
@@ -55,7 +55,7 @@ test('filtered low obstacles, solid buildings/boundaries and nearest safe landin
   assert.deepEqual(safeFlightLanding({x:500,y:500},{x:0,y:0},valid),{x:0,y:0});
   assert.equal(safeFlightLanding({x:0,y:0},{x:0,y:0},()=>false),null);
 });
-test('three flight actions support optional eight directions with backward-compatible defaults',()=>{
+void test('three flight actions support optional eight directions with backward-compatible defaults',()=>{
   for(const id of ['bebe','ciici'])for(const s of ['ultimate_takeoff','ultimate_fly','ultimate_land']){assert.ok(actionsForCharacter(id).includes(s));assert.ok(slotAllowed(id,s));for(const d of DIRECTIONS){assert.equal(slotAllowed(id,s+'.'+d),true);assert.equal(slotAllowed('raja',s+'.'+d),false);}}
   assert.equal(slotAllowed('raja','ultimate_fly'),false);assert.equal(slotLoop('ultimate_fly'),true);assert.equal(slotLoop('ultimate_takeoff'),false);assert.equal(slotLoop('ultimate_land'),false);
   assert.equal(spriteSlot({state:'ACTIVE',vx:20,vy:0,flightSlot:'ultimate_fly'}),'ultimate_fly');
@@ -68,7 +68,7 @@ test('three flight actions support optional eight directions with backward-compa
   steerFlight(f,1,1,1,1);assert.equal(f.direction,'southeast');
   steerFlight(f,0,0,1,1);assert.equal(f.direction,'southeast','stop retains facing for landing sequence');
 });
-test('runtime retains existing team ultimates and gates all flight interactions',()=>{
+void test('runtime retains existing team ultimates and gates all flight interactions',()=>{
   const code=fs.readFileSync('app/prototype.tsx','utf8');
   for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)','resolveTag(players,winner.entityId,loser.entityId','resolveRescue(players,rescuer.entityId','resolveBase(players,p,dt,now'])assert.ok(code.includes(pattern),pattern);
   const rules=fs.readFileSync('lib/game-core/interactions.ts','utf8');

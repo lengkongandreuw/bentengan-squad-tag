@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import type { StatsBoard } from '../game-core/snapshot-types';
 import type { Team } from '../world/map-data/field-types';
-import { formatTime } from './format';
-import { teamName } from '../world/team-tables';
+import { formatTime } from './format.ts';
+import { teamName } from '../world/team-tables.ts';
 import { CharacterPreview } from './character-preview.tsx';
 
 // Round recap / match leaderboard / match-over dialog over the HUD.

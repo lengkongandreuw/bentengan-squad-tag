@@ -1,5 +1,5 @@
-import { CHARACTERS, type CharacterId } from '../characters';
-import { progressionRules } from './progression-rules';
+import { CHARACTERS, type CharacterId } from '../characters.ts';
+import { progressionRules } from './progression-rules.ts';
 
 export type ArenaProgressionStats = {
   played: number;

@@ -1,4 +1,4 @@
-import { landingLogoAsset } from '../../lib/branding';
+import { landingLogoAsset } from '../../lib/branding.ts';
 
 // Landing splash: hero art, logo, and the enter button. Pure presentation;
 // the UI-asset resolver and the enter action are injected.

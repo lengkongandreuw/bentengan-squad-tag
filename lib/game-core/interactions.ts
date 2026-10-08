@@ -1,6 +1,6 @@
 import type {RuntimeActor,LegacyTeam,Point,EntityId} from './types';
 import {flightBusy} from '../flight-ultimate.js';
-import {sweptContactDistance} from '../tag-contact.js';
+import {sweptContactDistance} from '../../modules/gameplay/tag-check.ts';
 import type {GameEventSink,GameEvent} from './events';
 
 const distance=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);

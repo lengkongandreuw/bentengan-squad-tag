@@ -3,12 +3,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CHARACTER_BY_ID, publicAsset, type CharacterId } from '../../lib/characters';
+import { CHARACTER_BY_ID, publicAsset, type CharacterId } from '../../lib/characters.ts';
 import { canPurchaseUltimateUpgrade, getEffectiveUltimateStats, getNextUltimateUpgrade,
   getTokenBalance, getUltimateUpgradeLevel, ultimateUpgradeCatalog, economyRules,
   purchasePlayerUltimateUpgrade, createLocalId, type LocalPlayerProfile,
-  type UltimateUpgradeLevel, type UltimatePurchaseReason } from '../../lib/player-profile';
-import { TokenWallet } from './token-wallet';
+  type UltimateUpgradeLevel, type UltimatePurchaseReason } from '../../lib/player-profile/index.ts';
+import { TokenWallet } from './token-wallet.tsx';
 
 const names = { raja: 'TITAH HALILINTAR', kaka: 'PERISAI HIJAU' };
 const currency = economyRules.currency.label;

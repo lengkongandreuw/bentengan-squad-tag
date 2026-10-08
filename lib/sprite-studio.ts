@@ -1,8 +1,8 @@
 import settings from '../config/sprite-studio.json';
 import runtime from '../config/sprite-runtime.json';
-import { runtimeResource, runtimeFrameKey, type RuntimeManifest, type PackedFrame } from './studio-runtime-resource';
+import { runtimeResource, runtimeFrameKey, type RuntimeManifest, type PackedFrame } from './studio-runtime-resource.ts';
 import { frameAt, spriteSlot, spriteDirection, studioSlotFallback, studioFlightSlot } from './sprite-studio-model.js';
-import { publicAsset, type CharacterId } from './characters';
+import { publicAsset, type CharacterId } from './characters.ts';
 type Clip = {asset:string;width:number;height:number;frames:{x:number;y:number;width:number;height:number}[];fps:number;scale:number;x:number;y:number;pivotX:number;pivotY:number;loop:boolean;mirror:boolean};
 const clips = settings.characters as Record<string, Record<string,Clip>>;
 const images = new Map<string,HTMLImageElement>();

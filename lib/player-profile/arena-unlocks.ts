@@ -1,8 +1,8 @@
-import { getArenaStats } from './arena-stats';
-import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity';
-import { progressionRules } from './progression-rules';
+import { getArenaStats } from './arena-stats.ts';
+import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity.ts';
+import { progressionRules } from './progression-rules.ts';
 import type { LocalPlayerProfile } from './types';
-import { getLevelFromXP } from './xp-engine';
+import { getLevelFromXP } from './xp-engine.ts';
 
 export function getArenaUnlockRequirement(arenaId: string) {
   const requirement = progressionRules.arenaProgression.unlockRequirements.find(r => r.arenaId === getProgressionArenaId(arenaId));

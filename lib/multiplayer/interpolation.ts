@@ -1,4 +1,4 @@
-import {parseSnapshot,type GameSnapshot} from '../game-core/snapshot';
+import {parseSnapshot,type GameSnapshot} from '../game-core/snapshot.ts';
 import type {CanonicalGameState} from '../game-core/types';
 
 /** Local receive clock, never assumes performance.now() shares an origin with host. */

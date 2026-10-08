@@ -2,8 +2,8 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { previewStyle } from '../../lib/selection-preview-model';
-import { selectionPreviewEntry, selectionPreviewReady, loadSelectionPreview } from '../../lib/selection-preview-assets';
-import { characterFullBodyPortrait, characterAsset, publicAsset, type CharacterId } from '../../lib/characters';
+import { selectionPreviewEntry, selectionPreviewReady, loadSelectionPreview } from '../../lib/selection-preview-assets.ts';
+import { characterFullBodyPortrait, characterAsset, publicAsset, type CharacterId } from '../../lib/characters.ts';
 
 /** Use this component in future selection layouts: do not duplicate manifest logic in page CSS. */
 export function SelectionPortrait({ id, active, alt }: { id: CharacterId; active: boolean; alt: string }) {

@@ -1,4 +1,4 @@
-import { getNewUnlockNotices } from '../../lib/player-profile/unlock-notifications';
+import { getNewUnlockNotices } from '../../lib/player-profile/unlock-notifications.ts';
 import type { ProgressionResult } from '../../lib/player-profile/match-progression';
 
 export function UnlockNotificationPanel({ result, arenas, dismissed, onDismiss }: {

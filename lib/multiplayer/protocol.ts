@@ -1,7 +1,7 @@
 import type {GameEvent} from '../game-core/events';
-import {canonicalTeam} from '../game-core/state';
-import {parseSnapshot,type GameSnapshot} from '../game-core/snapshot';
-import {object,oneOf,integer,nonnegative,finite,bool,id,text,team,character,nullable,list,point,bounded,safely,type Validator} from '../game-core/validation';
+import {canonicalTeam} from '../game-core/state.ts';
+import {parseSnapshot,type GameSnapshot} from '../game-core/snapshot.ts';
+import {object,oneOf,integer,nonnegative,finite,bool,id,text,team,character,nullable,list,point,bounded,safely,type Validator} from '../game-core/validation.ts';
 
 export const MULTIPLAYER_PROTOCOL_VERSION=1;
 export const MAX_PROTOCOL_MESSAGE_CHARS=128*1024;

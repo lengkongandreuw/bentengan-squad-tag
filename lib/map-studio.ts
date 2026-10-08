@@ -1,6 +1,6 @@
 import config from '../config/map-studio.json';
 import runtime from '../config/map-runtime.json';
-import {runtimeResource, runtimeFrameKey, type RuntimeManifest} from './studio-runtime-resource';
+import {runtimeResource, runtimeFrameKey, type RuntimeManifest} from './studio-runtime-resource.ts';
 import {
   validateDocument,
   frameAt,
@@ -8,7 +8,7 @@ import {
   type MapObject,
   type MapAsset,
 } from './map-studio-model.js';
-import { publicAsset } from './characters';
+import { publicAsset } from './characters.ts';
 export const mapDocument = validateDocument(config);
 export const studioBuiltinStates = mapDocument.builtinStates ?? {};
 export const studioMaps = mapDocument.maps.filter(

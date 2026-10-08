@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { publicAsset } from '../../lib/characters';
-import { mapArtwork } from '../../lib/map-studio';
+import { publicAsset } from '../../lib/characters.ts';
+import { mapArtwork } from '../../lib/map-studio.ts';
 
 const sourceArena = (id: string) => id.startsWith('studio-') || id === 'kampung3d' ? 'kampung' : id === 'kanal2' ? 'kanal' : id;
 export const arenaImage = (id: string) => mapArtwork(id) ?? publicAsset(`arena-ui/${sourceArena(id)}.webp?v=1`);

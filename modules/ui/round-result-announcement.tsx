@@ -1,6 +1,6 @@
 import type { RoundResultAnnouncement } from '../game-core/snapshot-types';
 import type { Team } from '../world/map-data/field-types';
-import { FACTION_FOR_TEAM, teamName } from '../world/team-tables';
+import { FACTION_FOR_TEAM, teamName } from '../world/team-tables.ts';
 
 // Fullscreen round/match victory card. Pure presentation; the prebuilt
 // frame table is injected (owner resolves it once).

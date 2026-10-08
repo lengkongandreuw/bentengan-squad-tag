@@ -1,4 +1,4 @@
-import {MULTIPLAYER_PROTOCOL_VERSION} from './protocol';
+import {MULTIPLAYER_PROTOCOL_VERSION} from './protocol.ts';
 export type ContentIdentity={protocolVersion:number;buildVersion:string;arenaId:string;arenaRevision:string};
 declare const __BENTENG_CONTENT__: {buildVersion:string;mapAssetsRevision:string}|undefined;
 export const testContent:ContentIdentity={protocolVersion:1,buildVersion:'injected-test-build',arenaId:'test-arena',arenaRevision:'injected-test-map'};

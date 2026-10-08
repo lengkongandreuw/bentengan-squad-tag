@@ -1,4 +1,4 @@
-import { audioLevels } from '../../lib/audio-settings';
+import { audioLevels } from '../../lib/audio-settings.ts';
 
 let audio: AudioContext | null = null;
 

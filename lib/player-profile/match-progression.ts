@@ -1,14 +1,14 @@
 import type { CharacterId } from '../characters';
-import { creditTokens, getTokenBalance } from './economy';
-import { migratePlayerEconomy } from './economy-migration';
-import { calculateMatchTokenBreakdown, zeroTokenBreakdown, type MatchTokenBreakdown } from './match-token-rewards';
-import { applyArenaMatchStat } from './arena-stats';
-import { resolveArenaUnlocks } from './arena-unlocks';
-import { resolveCharacterUnlocks, getNextCharacterGoal } from './character-unlocks';
-import { MAX_PROCESSED_MATCH_IDS } from './match-identity';
+import { creditTokens, getTokenBalance } from './economy.ts';
+import { migratePlayerEconomy } from './economy-migration.ts';
+import { calculateMatchTokenBreakdown, zeroTokenBreakdown, type MatchTokenBreakdown } from './match-token-rewards.ts';
+import { applyArenaMatchStat } from './arena-stats.ts';
+import { resolveArenaUnlocks } from './arena-unlocks.ts';
+import { resolveCharacterUnlocks, getNextCharacterGoal } from './character-unlocks.ts';
+import { MAX_PROCESSED_MATCH_IDS } from './match-identity.ts';
 import type { LocalPlayerProfile } from './types';
 import { calculateMatchXPBreakdown, getCurrentLevelProgress, getLevelFromXP,
-  type MatchXPSummary, type MatchXPBreakdown, type CurrentLevelProgress } from './xp-engine';
+  type MatchXPSummary, type MatchXPBreakdown, type CurrentLevelProgress } from './xp-engine.ts';
 
 // Reuse XP action/completion fields. won is adapted to the existing win/loss
 // result enum only at the XP boundary. No parallel UI reward calculation.

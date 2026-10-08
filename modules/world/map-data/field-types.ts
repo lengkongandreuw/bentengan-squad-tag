@@ -2,7 +2,7 @@ import type {
   FieldAnimatedId,
   FieldAssetId,
   GroundTileId,
-} from '../../../lib/field-assets.generated';
+} from '../../../lib/field-assets.generated.ts';
 
 export type Team = 'blue' | 'red';
 export type Faction = 'red' | 'green';

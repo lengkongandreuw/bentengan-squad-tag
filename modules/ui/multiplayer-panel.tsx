@@ -1,11 +1,11 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {hostSession,joinSession,type MultiplayerSession,type SessionState} from '../../lib/multiplayer/session';
-import {botPreview,canStartLobby,teamCharacters} from '../../lib/multiplayer/lobby';
+import {hostSession,joinSession,type MultiplayerSession,type SessionState} from '../../lib/multiplayer/session.ts';
+import {botPreview,canStartLobby,teamCharacters} from '../../lib/multiplayer/lobby.ts';
 import type {CharacterId} from '../../lib/characters';
-import {testContent,type ContentIdentity} from '../../lib/multiplayer/content';
+import {testContent,type ContentIdentity} from '../../lib/multiplayer/content.ts';
 import './multiplayer-panel.css';
-import {createInvite,parseInvite} from '../../lib/multiplayer/invite';
+import {createInvite,parseInvite} from '../../lib/multiplayer/invite.ts';
 
 export function MultiplayerPanel({onClose,arenas,prepareContent,onLaunch,onEnded,initialName}:{onClose:()=>void;initialName?:string;
   arenas?:readonly {id:string;name:string}[];prepareContent?:(id:string)=>Promise<ContentIdentity>;

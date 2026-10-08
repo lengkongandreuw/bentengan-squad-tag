@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CHARACTERS, CharacterId, characterAsset, characterUsesDedicatedEast } from '../../../lib/characters';
+import { CHARACTERS, CharacterId, characterAsset, characterUsesDedicatedEast } from '../../../lib/characters.ts';
 import { BOOST_COLUMNS, directionalRow, RUN_COLUMNS } from '../../../lib/sprite-motion.js';
 import { ChevronLeft, Download, Grid3X3, Pause, Play, Upload } from 'lucide-react';
 

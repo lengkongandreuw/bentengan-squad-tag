@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import type { Snapshot } from '../game-core/snapshot-types';
 import type { Faction } from '../world/map-data/field-types';
-import { factionName } from '../world/team-tables';
+import { factionName } from '../world/team-tables.ts';
 import { CharacterPreview } from './character-preview.tsx';
 import { publicAsset } from '../../lib/characters.ts';
 import GAME_RULES from '../../config/game-rules.json' with { type: 'json' };

@@ -3,7 +3,7 @@ import type {
   PlayerAction,
   PlayerState,
   RescueRequest,
-} from '../game-core/match-types';
+} from '../game-core/match-types.ts';
 import type { MatchEventInput } from '../game-core/match-state';
 import type { GameplaySound } from '../audio/audio-port';
 import type { CharacterId } from '../../lib/characters';

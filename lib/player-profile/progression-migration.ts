@@ -1,10 +1,10 @@
-import { CHARACTERS, type CharacterId } from '../characters';
-import { resolveArenaUnlocks } from './arena-unlocks';
-import { resolveCharacterUnlocks } from './character-unlocks';
-import { MAX_PROCESSED_MATCH_IDS } from './match-identity';
+import { CHARACTERS, type CharacterId } from '../characters.ts';
+import { resolveArenaUnlocks } from './arena-unlocks.ts';
+import { resolveCharacterUnlocks } from './character-unlocks.ts';
+import { MAX_PROCESSED_MATCH_IDS } from './match-identity.ts';
 import { createDefaultProgression, parsePlayerProgression, PLAYER_PROGRESSION_VERSION,
-  type ArenaProgressionStats } from './progression';
-import { progressionRules } from './progression-rules';
+  type ArenaProgressionStats } from './progression.ts';
+import { progressionRules } from './progression-rules.ts';
 import type { LocalPlayerProfile } from './types';
 
 const record = (value: unknown): Record<string, unknown> =>

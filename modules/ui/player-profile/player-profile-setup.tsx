@@ -6,7 +6,7 @@ import {
   createPlayerProfile,
   USERNAME_MAX_LENGTH,
   usernameError,
-} from '../../../lib/player-profile';
+} from '../../../lib/player-profile/index.ts';
 
 type PlayerProfileSetupProps = {
   onCreated: () => void;

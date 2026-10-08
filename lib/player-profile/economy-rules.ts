@@ -1,4 +1,4 @@
-import config from '../../config/economy.json';
+import config from '../../config/economy.json' with { type: 'json' };
 
 export type EconomyRules = Readonly<{
   version: 1;

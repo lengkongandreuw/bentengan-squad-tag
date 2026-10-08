@@ -10,7 +10,7 @@ import sharp from 'sharp';
 import { startAdmin, inspectImage } from './server.mjs';
 import { previewDefaults, previewStyle, validatePreviewDocument } from '../../lib/selection-preview-model.js';
 
-test('selection readiness cache deduplicates loads, gates readiness and permits retry', async () => {
+void test('selection readiness cache deduplicates loads, gates readiness and permits retry', async () => {
   const source = await readFile(new URL('../../lib/selection-preview-assets.ts', import.meta.url), 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
   let finish, rejectLoad, calls = 0;
@@ -35,7 +35,7 @@ test('selection readiness cache deduplicates loads, gates readiness and permits 
   assert.equal(exports.selectionPreviewReady('/retry.gif'), true);
 });
 
-test('presentation contract retains proportions and rejects untrusted paths / values', () => {
+void test('presentation contract retains proportions and rejects untrusted paths / values', () => {
   assert.equal(previewDefaults('kodo').scale, 1.17);
   assert.equal(previewStyle({ x: 4, y: -5, scale: 1.2 }).transform, 'translate(4%, -5%) scale(1.2)');
   for (const invalid of [{ x: 99 }, { scale: '2' }, { animated: '../secret.png' }, { static: 'https://evil/image.png' }])
@@ -43,7 +43,7 @@ test('presentation contract retains proportions and rejects untrusted paths / va
   assert.throws(() => validatePreviewDocument({ version: 2, characters: {} }, ['ciici']));
 });
 
-test('local server isolates assets, checks session, validates upload and protects concurrent edits', async () => {
+void test('local server isolates assets, checks session, validates upload and protects concurrent edits', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'benteng-preview-test-'));
   await mkdir(path.join(root, 'config'));
   await writeFile(path.join(root, 'config/game-rules.json'), JSON.stringify({ teams: { green: { roster: ['ciici'] } } }));

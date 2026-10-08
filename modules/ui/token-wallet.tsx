@@ -1,6 +1,6 @@
 /* eslint-disable next/no-img-element -- Static PNG artwork is served directly by the GitHub Pages build. */
-import { getTokenBalance, economyRules, type LocalPlayerProfile } from '../../lib/player-profile';
-import { publicAsset } from '../../lib/characters';
+import { getTokenBalance, economyRules, type LocalPlayerProfile } from '../../lib/player-profile/index.ts';
+import { publicAsset } from '../../lib/characters.ts';
 
 export function TokenWallet({ profile }: { profile: LocalPlayerProfile }) {
   return <span className="token-wallet" aria-label={`Saldo ${getTokenBalance(profile)} ${economyRules.currency.label}`}>

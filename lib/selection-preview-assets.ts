@@ -1,7 +1,7 @@
 import settings from '../config/selection-previews.json';
 import { previewEntry } from './selection-preview-model';
-import { publicAsset, type CharacterId } from './characters';
-import { imageReady } from './asset-ready';
+import { publicAsset, type CharacterId } from './characters.ts';
+import { imageReady } from './asset-ready.ts';
 
 // Retain decoded image references for the whole selection session. Both loading
 // gate and portrait renderer consult this cache, avoiding a second lazy-load gap.

@@ -4,7 +4,7 @@ import {
   boardRows as boardRowsOf,
   contributionScore,
   ensureStats,
-} from '../gameplay/bars-score';
+} from '../gameplay/bars-score.ts';
 
 export type BuildStatsBoardInput = {
   phase: string;

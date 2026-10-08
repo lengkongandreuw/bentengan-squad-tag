@@ -1,4 +1,4 @@
-import { economyRules } from './economy-rules';
+import { economyRules } from './economy-rules.ts';
 import type { LocalPlayerProfile } from './types';
 
 export const PLAYER_ECONOMY_VERSION = 1;

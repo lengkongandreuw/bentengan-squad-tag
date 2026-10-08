@@ -1,5 +1,5 @@
 import type { Snapshot } from '../game-core/snapshot-types';
-import { formatTime } from './format';
+import { formatTime } from './format.ts';
 
 // Top score/time strip over the stage. Clicking (or Enter/Space) toggles
 // the match leaderboard.

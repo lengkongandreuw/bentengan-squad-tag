@@ -1,4 +1,4 @@
-import { economyRules } from './economy-rules';
+import { economyRules } from './economy-rules.ts';
 import type { MatchXPSummary } from './xp-engine';
 
 export type MatchTokenBreakdown = { match: number; victory: number; tag: number; rescue: number };

@@ -8,7 +8,7 @@ import {compileSprites} from './compile.mjs';
 import {startSpriteStudio} from './server.mjs';
 import {SLOTS,validateClip,validateSpriteDocument,spriteSlot,frameAt,spriteDirection,studioSlotFallback} from '../../lib/sprite-studio-model.js';
 const png=()=>sharp({create:{width:64,height:32,channels:4,background:'#dd303080'}}).png().toBuffer();
-test('all movements support default plus eight directions, preserving legacy slot keys',()=>{
+void test('all movements support default plus eight directions, preserving legacy slot keys',()=>{
   assert.equal(SLOTS.length,108);assert.equal(new Set(SLOTS).size,108);
   for(const action of ['run','tag','parkour','idle','prisoner','ready','ultimate','victory','defeat'])assert.ok(SLOTS.includes(`${action}.northeast`));
   assert.equal(studioSlotFallback({idle:true},'idle','northwest'),'idle');
@@ -21,7 +21,7 @@ test('all movements support default plus eight directions, preserving legacy slo
   assert.equal(spriteSlot({...c,action:'rescue'}),null);assert.equal(spriteSlot({...c,state:'PRISONER'}),'prisoner');
   assert.equal(spriteSlot({...c,ready:true}),'ready');assert.equal(spriteSlot({...c,result:'lose'}),'defeat');
 });
-test('sheet slicing preserves padding and source order; invalid crop/frame counts rejected',async()=>{
+void test('sheet slicing preserves padding and source order; invalid crop/frame counts rejected',async()=>{
   const file={data:(await png()).toString('base64')};
   const single=await compileSprites([file],{});assert.equal(single.frames.length,1);assert.equal(single.frames[0].width,72);assert.equal(single.frames[0].height,40);
   const a=await compileSprites([file],{columns:2,rows:1,count:2,order:[1,0]});
@@ -33,7 +33,7 @@ test('sheet slicing preserves padding and source order; invalid crop/frame count
   await assert.rejects(compileSprites([file],{crop:{left:50,top:0,width:30,height:30}}));
   await assert.rejects(compileSprites([{data:'INVALID!'}]));
 });
-test('loop and one-shot; atlas bounds/path restrictions',()=>{
+void test('loop and one-shot; atlas bounds/path restrictions',()=>{
   const clip={asset:`sprite-studio/lala/${'a'.repeat(64)}.webp`,width:64,height:32,frames:[{x:0,y:0,width:32,height:32},{x:32,y:0,width:32,height:32}],fps:10,scale:1,x:0,y:0,pivotX:.5,pivotY:1,loop:false,mirror:false};
   assert.equal(frameAt(clip,500),clip.frames[1]);assert.equal(frameAt({...clip,loop:true},200),clip.frames[0]);
   assert.deepEqual(validateClip(clip,'lala'),clip);
@@ -41,7 +41,7 @@ test('loop and one-shot; atlas bounds/path restrictions',()=>{
   assert.throws(()=>validateClip({...clip,frames:[{x:63,y:0,width:32,height:32}]},'lala'));
   assert.throws(()=>validateSpriteDocument({version:1,characters:{lala:{wrong:clip}}},['lala']));
 });
-test('GIF extraction yields real frame count and static PNG lists preserve order',async()=>{
+void test('GIF extraction yields real frame count and static PNG lists preserve order',async()=>{
   const gif=await sharp({create:{width:24,height:48,channels:4,background:'#1177dd'}}).raw().toBuffer();
   const bytes=await sharp(gif,{raw:{width:24,height:48,channels:4,pageHeight:24}}).gif({delay:[100,200],loop:0}).toBuffer();
   const result=await compileSprites([{data:bytes.toString('base64')}],{});
@@ -49,7 +49,7 @@ test('GIF extraction yields real frame count and static PNG lists preserve order
   assert.equal(result.frames.length,(await sharp(bytes).metadata()).pages??1);
   const list=await compileSprites([{data:(await png()).toString('base64')},{data:(await png()).toString('base64')}],{});assert.equal(list.frames.length,2);
 });
-test('local API: token, revision guard, per-slot save/delete and untouched characters',async()=>{
+void test('local API: token, revision guard, per-slot save/delete and untouched characters',async()=>{
   const root=await mkdtemp(path.join(os.tmpdir(),'benteng-sprite-test-'));
   let server;
   try {

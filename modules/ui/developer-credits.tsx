@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { publicAsset } from '../../lib/characters';
+import { publicAsset } from '../../lib/characters.ts';
 
 const groups = [
   { title: 'Game Design', names: ['Andreuw Lengkong', 'Andria Wahyudi'] },

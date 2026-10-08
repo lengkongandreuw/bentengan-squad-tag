@@ -12,7 +12,8 @@ async function inside(page,locator,name){
 }
 async function shot(page,name){await page.screenshot({path:`${out}/${name}.png`});}
 try{
-  for(const [kind,viewport,mobile] of [['desktop',{width:1366,height:768},false],['portrait',{width:390,height:844},true],['landscape',{width:844,height:390},true]]){
+  const viewportCases=/** @type {Array<[string,{width:number,height:number},boolean]>} */ ([['desktop',{width:1366,height:768},false],['portrait',{width:390,height:844},true],['landscape',{width:844,height:390},true]]);
+  for(const [kind,viewport,mobile] of viewportCases){
     const context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile}),page=await context.newPage();
     page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
     await page.getByLabel('USERNAME',{exact:true}).fill(`QA${kind}`);

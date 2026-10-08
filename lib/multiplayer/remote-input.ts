@@ -1,4 +1,4 @@
-import {parseProtocolMessage,type ProtocolMessage,type NetworkInput} from './protocol';
+import {parseProtocolMessage,type ProtocolMessage,type NetworkInput} from './protocol.ts';
 import type {PlayerInputFrame} from '../game-core/input';
 import type {RuntimeActor} from '../game-core/types';
 import {flightConfig,isFlying,steerFlight} from '../flight-ultimate.js';

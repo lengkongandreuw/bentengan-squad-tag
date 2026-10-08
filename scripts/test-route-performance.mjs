@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {clickRoute,clearSegment} from '../lib/click-navigation.js';
+import {clickRoute,clearSegment} from '../modules/gameplay/click-navigation.ts';
 import {createRouteScheduler} from '../lib/route-scheduler.js';
 import {readFileSync} from 'node:fs';
 
@@ -34,7 +34,7 @@ function reference(start,target,width,height,passable,cell=24) {
   }
   return [];
 }
-test('priority-queue navigation preserves original routes and all sampled edges',()=>{
+void test('priority-queue navigation preserves original routes and all sampled edges',()=>{
   const cases=[];
   for(let i=0;i<60;i++) {
     const passable=(x,y)=>x>=0&&y>=0&&x<600&&y<600&&!(x>220&&x<280&&y<420+i%4*25)&&!(x>350&&x<470&&y>300&&y<370);
@@ -47,7 +47,7 @@ test('priority-queue navigation preserves original routes and all sampled edges'
   actual.forEach((route,i)=>{let previous=cases[i].start;for(const p of route){assert.ok(clearSegment(previous,p,cases[i].passable));previous=p;}});
   console.log(JSON.stringify({benchmark:'route search only, not game FPS',routes:cases.length,baselineMs:+baselineMs.toFixed(2),optimizedMs:+optimizedMs.toFixed(2)}));
 });
-test('scheduler coalesces targets, is fair, bounded and cancellable',()=>{
+void test('scheduler coalesces targets, is fair, bounded and cancellable',()=>{
   const scheduler=createRouteScheduler(),calls=[];
   for(let i=0;i<9;i++)scheduler.request(i,()=>calls.push(i));
   scheduler.request(0,()=>calls.push('latest'));
@@ -58,7 +58,7 @@ test('scheduler coalesces targets, is fair, bounded and cancellable',()=>{
   assert.deepEqual(calls,['latest',1,3,4,5,6,7,8,'next']);
   scheduler.request(0,()=>assert.fail());scheduler.clear();assert.equal(scheduler.run(),false);
 });
-test('runtime keeps rendering every frame and gates scoreboard work behind visibility',()=>{
+void test('runtime keeps rendering every frame and gates scoreboard work behind visibility',()=>{
   const code=readFileSync('app/prototype.tsx','utf8');
   assert.ok(code.includes("if(!paused && phase==='PLAYING') routeScheduler.run()"));
   assert.ok(code.includes("if(leaderboardOpenRef.current || phase==='ROUND_OVER' || phase==='MATCH_OVER')"));
