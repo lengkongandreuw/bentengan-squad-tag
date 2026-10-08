@@ -2846,3 +2846,4 @@ selesai jika belum dibuktikan oleh pemeriksaan yang relevan.
 **Gates (final):** `npx tsc --noEmit` 0; behavior 87/88 (only known pre-existing `playerMovementLocked` failure, 0 hits at merge HEAD); `npm run audit` 21 ✗ = HEAD baseline; `npm run build:pages` PASS (stable `assets/app.js`); lint: 0 new errors in touched files (prototype hits pre-existing React-compiler notices). R10/R11 proof greps 0 stale refs; `components/`, `hooks/` absent.
 **Known pre-existing (untouched, out of scope):** `scripts/test-flight-ultimate.mjs` test 6 (`playerMovementLocked`); 21 audit asserts (sprite/UI/field baselines); prototype React-compiler lint notices.
 **Next action:** Commit + push to `github/main`, wait for Pages run.
+**Publish hold (2026-10-08):** Pushed `1a34470` to `origin/Refactor-Clio` only. Push/merge to `origin/main` SKIPPED per user instruction ("don't push to origin main"). Pages deploy NOT triggered; no Pages run to wait on.
