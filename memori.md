@@ -1,6 +1,7 @@
 # Bentengan Squad Tag — Memori Proyek
 
 Dokumen ini adalah ringkasan keputusan proyek yang masih berlaku. Gunakan dokumen ini pada task baru agar tidak perlu membaca riwayat percakapan lama.
+2026-10-08 USER CONSTRAINT: Do not create a god module. Keep modules small with narrow ownership; split by behavior, never merge unrelated rules into one owner.
 
 ## Cara memakai dokumen ini
 
