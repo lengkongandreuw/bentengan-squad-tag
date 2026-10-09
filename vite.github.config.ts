@@ -6,6 +6,7 @@ import { join, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {loadingBootHtml} from './lib/loading-media-model.js';
 
+
 const legacyEntryFiles = [
   'assets/index-CcIgRf6v.js',
   'assets/index-DxcjTxRu.js',

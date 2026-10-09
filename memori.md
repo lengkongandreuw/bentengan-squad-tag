@@ -17,6 +17,15 @@ blocker. snapshot-write.ts reconciliation and ultimate central descriptor
 deferred. Browser smoke via npm run dev :3000: profile→match live, zero page
 errors; multiplayer session unverified. Committed locally on Refactor-Clio;
 no push, PR, or deploy.
+2026-10-08 PERFORMANCE PLAN (docs/PERFORMANCE-PLAN-2026-10-08.md) tahap1,2,4,5,6
+diterapkan; tahap3 dihentikan di 3a (PC user 60fps, spike maks ±39ms, tak ada >50ms).
+Layar hasil tanpa blur + canvas ±10fps di belakang overlay hasil. Preset grafis
+default baru `auto` (Otomatis): awal Seimbang di DPR>1/Tinggi di DPR1, skala dinamis
+0,6..DPR per 2 detik; pilihan tersimpan lama tetap. Simulasi fixed 60Hz lewat satu
+simulationClock (maks 4 langkah/frame) untuk single-player dan host; gerak di 20fps
+= 60fps (±5%). Render produksi melewati assertJsonData; snapshot jaringan tetap
+divalidasi. Video tim opsional (timeout 10s, fallback latar warna tim). Audit punya
+23 kegagalan lama identik dengan 0b7c3fd (bukan regresi).
 
 2026-10-06 PUBLISH BATCH COMPLETE: user requests all current local changes.
 Multiplayer02–23 + map editor identity/preview improvements + user local maps and
