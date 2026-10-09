@@ -1,16 +1,16 @@
-# Graph Report - bentengan-squad-tag  (2026-10-08)
+# Graph Report - bentengan-squad-tag  (2026-10-09)
 
 ## Corpus Check
-- 504 files · ~20,076,966 words
+- 504 files · ~20,077,205 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4338 nodes · 7799 edges · 398 communities (282 shown, 116 thin omitted)
+- 4338 nodes · 7799 edges · 396 communities (280 shown, 116 thin omitted)
 - Extraction: 92% EXTRACTED · 1% INFERRED · 7% AMBIGUOUS · INFERRED: 82 edges (avg confidence: 0.68)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5d677d85`
+- Built from commit: `cf749677`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,7 +19,7 @@
 - [image] guide-pasar-senggol.png (Assets/map/map2)
 - character-admin/editor.js
 - build-field-assets.mjs
-- player-profile/types.ts
+- ui-assets.ts
 - ui-v2/manifest.json
 - build-series-sprites.mjs
 - build-ui-assets.mjs
@@ -74,7 +74,6 @@
 - bentengan-refactor — context
 - map2Center
 - map-studio-model.js
-- ultimateIcon
 - draw-base.ts
 - atlas
 - Match Event Toast Notification System
@@ -327,7 +326,7 @@
 - graphics-settings.js
 - LocalPlayerProfile
 - progression-migration.ts
-- economy.ts
+- player-profile/types.ts
 - tag-combat.ts
 - test-studio-runtime.mjs
 - field-assets.generated.ts
@@ -337,7 +336,6 @@
 - transport.ts
 - sprite-studio.ts
 - map-studio/test.mjs
-- waterAt
 - carousel.tsx
 - alert-dialog.tsx
 - image-cache.ts
@@ -444,11 +442,11 @@
 - **Runtime asset pipeline builders** — scripts_build_field_assets_build, scripts_build_sprites_build, scripts_build_series_sprites_build [INFERRED 0.85]
 - **Gameplay audit and sprite test coverage** — scripts_audit_game_audit, scripts_test_series_sprites_check, scripts_test_kampung3d_check [INFERRED 0.75]
 
-## Communities (398 total, 116 thin omitted)
+## Communities (396 total, 116 thin omitted)
 
 ### Community 0 - "prototype.tsx"
 Cohesion: 0.03
-Nodes (75): arenaValidationErrors, CAMERA_OPTIONS, CameraMode, FIELD_BY_ID, getSpriteImage(), kanalReference, loadingUiFrame(), MATCH_EVENT_FRAME (+67 more)
+Nodes (77): arenaValidationErrors, CAMERA_OPTIONS, CameraMode, FIELD_BY_ID, getSpriteImage(), kanalReference, MATCH_EVENT_FRAME, MenuStep (+69 more)
 
 ### Community 2 - "character-admin/editor.js"
 Cohesion: 0.23
@@ -458,9 +456,9 @@ Nodes (15): api(), clearUploads(), controls(), localUrls, lock(), markDirty(), m
 Cohesion: 0.02
 Nodes (109): [image] 1x1_map1.png (Assets/map), [image] 1x2_map1.png (Assets/map), [image] 1x3_map1.png (Assets/map), [image] 2x1_map1.png (Assets/map), [image] 2x2_map1.png (Assets/map), [image] 2x3_map1.png (Assets/map), [image] 3x1 map1.png (Assets/map), [image] 3x2_map1.png (Assets/map) (+101 more)
 
-### Community 4 - "player-profile/types.ts"
-Cohesion: 0.17
-Nodes (17): EMPTY_KDA, PLAYER_PROFILE_CHANGED_EVENT, PLAYER_PROFILE_SCHEMA_VERSION, PLAYER_PROFILE_STORAGE_KEY, TARGET_RESCUES_PER_MATCH, TARGET_TAGS_PER_MATCH, USERNAME_MIN_LENGTH, PlayerEconomy (+9 more)
+### Community 4 - "ui-assets.ts"
+Cohesion: 0.23
+Nodes (11): loadingUiFrame(), uiAsset(), loadingUiFrame(), loadingUiFrames(), matchEventFrames(), roundResultAssets(), uiAsset(), UiAssetSources (+3 more)
 
 ### Community 5 - "ui-v2/manifest.json"
 Cohesion: 0.03
@@ -575,8 +573,8 @@ Cohesion: 0.06
 Nodes (34): file, height, width, file, height, layers, waterMask, width (+26 more)
 
 ### Community 34 - "game-core/types.ts"
-Cohesion: 0.08
-Nodes (35): createEntityRegistry(), fortEntryEvents(), GameEvent, GameEventSink, presentGameEvents(), createRenderAdapter(), legacyTeam(), RenderFrame (+27 more)
+Cohesion: 0.09
+Nodes (32): createEntityRegistry(), fortEntryEvents(), GameEvent, GameEventSink, presentGameEvents(), createRenderAdapter(), legacyTeam(), RenderFrame (+24 more)
 
 ### Community 35 - "protocol.ts"
 Cohesion: 0.11
@@ -591,8 +589,8 @@ Cohesion: 0.10
 Nodes (33): guideCollider(), guideObstacle(), kanal2SmallPlanters, kanalGuide, map2GroupObstacle(), BASES, DESIGN_H, DESIGN_W (+25 more)
 
 ### Community 38 - "test-kanal2-layout.mjs"
-Cohesion: 0.11
-Nodes (23): collisionRects(), ellipse(), KANAL_FOOTPRINTS, kanalFortPolygon(), KanalItem, kanalObjectPolygons(), kanalObjectRects(), pointInPolygon() (+15 more)
+Cohesion: 0.10
+Nodes (24): collisionRects(), ellipse(), KANAL_FOOTPRINTS, kanalFortPolygon(), KanalItem, kanalObjectPolygons(), kanalObjectRects(), pointInPolygon() (+16 more)
 
 ### Community 39 - "Phase 2 — Step 3: Quality Attribute (Weighted Scoring)"
 Cohesion: 0.08
@@ -671,12 +669,8 @@ Cohesion: 0.40
 Nodes (5): map2Center, height, width, x, y
 
 ### Community 58 - "map-studio-model.js"
-Cohesion: 0.12
-Nodes (26): BEHAVIORS, BUILTIN_IDS, builtinId(), collisionCache, LAYERS, maskWaterAt(), num(), text() (+18 more)
-
-### Community 59 - "ultimateIcon"
-Cohesion: 0.18
-Nodes (10): ULTIMATE_BANNERS, UltimateDescriptor, ultimateIcon(), UltimateIconId, ActionDock(), ArenaIntel(), CharacterHud(), UltimateBanner() (+2 more)
+Cohesion: 0.11
+Nodes (28): BEHAVIORS, BUILTIN_IDS, builtinId(), collisionCache, LAYERS, maskWaterAt(), num(), text() (+20 more)
 
 ### Community 60 - "draw-base.ts"
 Cohesion: 0.07
@@ -1199,8 +1193,8 @@ Cohesion: 0.11
 Nodes (17): cache, content, finalPacket(), interpolation, load(), lobby, nativeRequire, network() (+9 more)
 
 ### Community 257 - "profile-service.ts"
-Cohesion: 0.22
-Nodes (17): USERNAME_MAX_LENGTH, createLocalId(), createMatchId(), MAX_PROCESSED_MATCH_IDS, createPlayerProfile(), normalizeUsername(), notifyProfileChanged(), persist() (+9 more)
+Cohesion: 0.12
+Nodes (30): EMPTY_KDA, PLAYER_PROFILE_CHANGED_EVENT, PLAYER_PROFILE_SCHEMA_VERSION, PLAYER_PROFILE_STORAGE_KEY, TARGET_RESCUES_PER_MATCH, TARGET_TAGS_PER_MATCH, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH (+22 more)
 
 ### Community 261 - "CHECKPOINT.md"
 Cohesion: 0.22
@@ -1310,9 +1304,9 @@ Nodes (12): getProgressionArenaId(), getProgressionArenaIds(), replacements, get
 Cohesion: 0.23
 Nodes (15): resolveArenaUnlocks(), resolveCharacterUnlocks(), ArenaProgressionStats, createDefaultProgression(), isCounter(), isIds(), isRecord(), estimateHistoricalXP() (+7 more)
 
-### Community 312 - "economy.ts"
-Cohesion: 0.26
-Nodes (15): createDefaultEconomy(), creditTokens(), EconomyMutationInput, EconomyMutationResult, EconomyTransaction, isRecord(), MAX_RECENT_ECONOMY_TRANSACTIONS, migratePlayerEconomy() (+7 more)
+### Community 312 - "player-profile/types.ts"
+Cohesion: 0.19
+Nodes (19): createDefaultEconomy(), creditTokens(), EconomyMutationInput, EconomyMutationResult, EconomyTransaction, isRecord(), MAX_RECENT_ECONOMY_TRANSACTIONS, migratePlayerEconomy() (+11 more)
 
 ### Community 313 - "tag-combat.ts"
 Cohesion: 0.24
@@ -1346,13 +1340,9 @@ Nodes (13): createInvite(), parseInvite(), decodeProtocolMessage(), encodeProtoc
 Cohesion: 0.22
 Nodes (14): Clip, clips, createStudioResolver(), flightClips, images, frameAt(), studioFlightSlot(), studioSlotFallback() (+6 more)
 
-### Community 321 - "map-studio/test.mjs"
-Cohesion: 0.18
-Nodes (8): validateCatalog(), PAGES_URL, waitForPagesDeployment(), mapActive(), mapVersions(), templates(), root, toolCode
-
-### Community 322 - "waterAt"
-Cohesion: 0.31
-Nodes (12): collisionTouches(), contains(), flightSolidAt(), local(), mapIssues(), solidAt(), speedAt(), touches() (+4 more)
+### Community 322 - "map-studio/test.mjs"
+Cohesion: 0.16
+Nodes (17): collisionTouches(), contains(), flightSolidAt(), local(), mapIssues(), solidAt(), speedAt(), touches() (+9 more)
 
 ### Community 323 - "carousel.tsx"
 Cohesion: 0.20

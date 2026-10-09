@@ -1068,8 +1068,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "app_prototype_uiasset",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "uiasset()"
     },
     {
@@ -1102,8 +1102,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "app_prototype_loadinguiframe",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "loadinguiframe()"
     },
     {
@@ -1705,8 +1705,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_characters_ultimatedescriptor",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimatedescriptor"
     },
     {
@@ -1880,8 +1880,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_characters_ultimateiconid",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimateiconid"
     },
     {
@@ -1892,8 +1892,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_characters_ultimateicon",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimateicon()"
     },
     {
@@ -1903,8 +1903,8 @@
       "source_location": "L170",
       "_origin": "ast",
       "id": "lib_characters_ultimate_banners",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimate_banners"
     },
     {
@@ -2352,8 +2352,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_game_core_snapshot_gamesnapshot",
-      "community": 34,
-      "community_name": "game-core/types.ts",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "gamesnapshot"
     },
     {
@@ -3761,7 +3761,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_local",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "local()"
     },
     {
@@ -3773,7 +3773,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_contains",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "contains()"
     },
     {
@@ -3785,7 +3785,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_touches",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "touches()"
     },
     {
@@ -3797,7 +3797,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_waterat",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "waterat()"
     },
     {
@@ -3821,7 +3821,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_solidat",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "solidat()"
     },
     {
@@ -3844,7 +3844,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_collisiontouches",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "collisiontouches()"
     },
     {
@@ -3868,7 +3868,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_flightsolidat",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "flightsolidat()"
     },
     {
@@ -3880,7 +3880,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_speedat",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "speedat()"
     },
     {
@@ -3904,7 +3904,7 @@
       "_origin": "ast",
       "id": "lib_map_studio_model_mapissues",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "mapissues()"
     },
     {
@@ -4205,8 +4205,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_multiplayer_interpolation",
-      "community": 34,
-      "community_name": "game-core/types.ts",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "interpolation.ts"
     },
     {
@@ -4217,8 +4217,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_multiplayer_interpolation_createsnapshotbuffer",
-      "community": 34,
-      "community_name": "game-core/types.ts",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "createsnapshotbuffer()"
     },
     {
@@ -4229,8 +4229,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_multiplayer_interpolation_snapshotrenderstate",
-      "community": 34,
-      "community_name": "game-core/types.ts",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "snapshotrenderstate()"
     },
     {
@@ -5487,8 +5487,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_player_profile_defaults",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "defaults.ts"
     },
     {
@@ -5498,8 +5498,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_player_profile_schema_version",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "player_profile_schema_version"
     },
     {
@@ -5509,8 +5509,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_player_profile_storage_key",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "player_profile_storage_key"
     },
     {
@@ -5520,8 +5520,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_player_profile_changed_event",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "player_profile_changed_event"
     },
     {
@@ -5531,8 +5531,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_username_min_length",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "username_min_length"
     },
     {
@@ -5553,8 +5553,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_target_tags_per_match",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "target_tags_per_match"
     },
     {
@@ -5564,8 +5564,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_target_rescues_per_match",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "target_rescues_per_match"
     },
     {
@@ -5575,8 +5575,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "lib_player_profile_defaults_empty_kda",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "empty_kda"
     },
     {
@@ -5587,7 +5587,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_migration",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "economy-migration.ts"
     },
     {
@@ -5599,7 +5599,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_migration_migrateplayereconomy",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "migrateplayereconomy()"
     },
     {
@@ -5670,7 +5670,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "economy.ts"
     },
     {
@@ -5681,7 +5681,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_player_economy_version",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "player_economy_version"
     },
     {
@@ -5692,7 +5692,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_max_recent_economy_transactions",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "max_recent_economy_transactions"
     },
     {
@@ -5705,7 +5705,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_economytransaction",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "economytransaction"
     },
     {
@@ -5717,7 +5717,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_player_profile_economy_playereconomy",
-      "community": 4,
+      "community": 312,
       "community_name": "player-profile/types.ts",
       "norm_label": "playereconomy"
     },
@@ -5730,7 +5730,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_createdefaulteconomy",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "createdefaulteconomy()"
     },
     {
@@ -5742,7 +5742,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_isrecord",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "isrecord()"
     },
     {
@@ -5754,7 +5754,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_nonemptystring",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "nonemptystring()"
     },
     {
@@ -5766,7 +5766,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_nonnegativeinteger",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "nonnegativeinteger()"
     },
     {
@@ -5778,7 +5778,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_parseeconomytransaction",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "parseeconomytransaction()"
     },
     {
@@ -5790,7 +5790,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_parseplayereconomy",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "parseplayereconomy()"
     },
     {
@@ -5803,7 +5803,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_economymutationinput",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "economymutationinput"
     },
     {
@@ -5816,7 +5816,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_economymutationresult",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "economymutationresult"
     },
     {
@@ -5828,7 +5828,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_mutatetokens",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "mutatetokens()"
     },
     {
@@ -5840,7 +5840,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_credittokens",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "credittokens()"
     },
     {
@@ -5852,7 +5852,7 @@
       "_origin": "ast",
       "id": "lib_player_profile_economy_spendtokens",
       "community": 312,
-      "community_name": "economy.ts",
+      "community_name": "player-profile/types.ts",
       "norm_label": "spendtokens()"
     },
     {
@@ -5874,8 +5874,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_player_profile_index",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "index.ts"
     },
     {
@@ -6040,8 +6040,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_player_profile_migrations",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "migrations.ts"
     },
     {
@@ -6052,8 +6052,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_player_profile_migrations_isrecord",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "isrecord()"
     },
     {
@@ -6064,8 +6064,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_player_profile_migrations_nonnegativenumber",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "nonnegativenumber()"
     },
     {
@@ -6076,8 +6076,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_player_profile_migrations_readkda",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "readkda()"
     },
     {
@@ -6088,8 +6088,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_player_profile_migrations_characterid",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "characterid()"
     },
     {
@@ -6100,8 +6100,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "lib_player_profile_migrations_parseplayerprofile",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "parseplayerprofile()"
     },
     {
@@ -6567,8 +6567,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_player_profile_statistics",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "statistics.ts"
     },
     {
@@ -6602,8 +6602,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_player_profile_storage",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "storage.ts"
     },
     {
@@ -6637,7 +6637,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_player_profile_types",
-      "community": 4,
+      "community": 312,
       "community_name": "player-profile/types.ts",
       "norm_label": "player-profile/types.ts"
     },
@@ -6650,8 +6650,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_player_profile_types_playerkdastats",
-      "community": 4,
-      "community_name": "player-profile/types.ts",
+      "community": 257,
+      "community_name": "profile-service.ts",
       "norm_label": "playerkdastats"
     },
     {
@@ -6689,7 +6689,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_player_profile_types_radarmetrics",
-      "community": 4,
+      "community": 312,
       "community_name": "player-profile/types.ts",
       "norm_label": "radarmetrics"
     },
@@ -6702,7 +6702,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_player_profile_types_playerprofilemetrics",
-      "community": 4,
+      "community": 312,
       "community_name": "player-profile/types.ts",
       "norm_label": "playerprofilemetrics"
     },
@@ -6897,7 +6897,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "lib_player_profile_ultimate_upgrades_ultimateupgradestate",
-      "community": 4,
+      "community": 312,
       "community_name": "player-profile/types.ts",
       "norm_label": "ultimateupgradestate"
     },
@@ -11975,8 +11975,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "modules_ui_action_dock",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "action-dock.tsx"
     },
     {
@@ -11987,8 +11987,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_action_dock_actiondock",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "actiondock()"
     },
     {
@@ -12080,8 +12080,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "modules_ui_arena_intel",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "arena-intel.tsx"
     },
     {
@@ -12092,8 +12092,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_arena_intel_arenaintel",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "arenaintel()"
     },
     {
@@ -12300,8 +12300,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_character_hud_characterhud",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "characterhud()"
     },
     {
@@ -19541,8 +19541,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "modules_ui_ui_assets",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "ui-assets.ts"
     },
     {
@@ -19554,8 +19554,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "modules_ui_ui_assets_uiassetsources",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "uiassetsources"
     },
     {
@@ -19566,8 +19566,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ui_assets_uiasset",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "uiasset()"
     },
     {
@@ -19578,8 +19578,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ui_assets_matcheventframes",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "matcheventframes()"
     },
     {
@@ -19590,8 +19590,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ui_assets_roundresultassets",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "roundresultassets()"
     },
     {
@@ -19602,8 +19602,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ui_assets_loadinguiframe",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "loadinguiframe()"
     },
     {
@@ -19614,8 +19614,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ui_assets_loadinguiframes",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "loadinguiframes()"
     },
     {
@@ -19625,8 +19625,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "modules_ui_ultimate_banner",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimate-banner.tsx"
     },
     {
@@ -19637,8 +19637,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ultimate_banner_ultimatebanner",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimatebanner()"
     },
     {
@@ -19648,8 +19648,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "modules_ui_ultimate_buff_indicator",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimate-buff-indicator.tsx"
     },
     {
@@ -19660,8 +19660,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ultimate_buff_indicator_ultimatebuffindicator",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimatebuffindicator()"
     },
     {
@@ -19671,8 +19671,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "modules_ui_ultimate_meter_hud",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimate-meter-hud.tsx"
     },
     {
@@ -19683,8 +19683,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "modules_ui_ultimate_meter_hud_ultimatemeterhud",
-      "community": 59,
-      "community_name": "ultimateIcon",
+      "community": 0,
+      "community_name": "prototype.tsx",
       "norm_label": "ultimatemeterhud()"
     },
     {
@@ -20725,7 +20725,7 @@
       "_origin": "ast",
       "id": "modules_world_map_runtime_index",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "map-runtime-index.ts"
     },
     {
@@ -20737,7 +20737,7 @@
       "_origin": "ast",
       "id": "modules_world_map_runtime_index_objectbounds",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "objectbounds()"
     },
     {
@@ -20749,7 +20749,7 @@
       "_origin": "ast",
       "id": "modules_world_map_runtime_index_createmapqueries",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "createmapqueries()"
     },
     {
@@ -20761,7 +20761,7 @@
       "_origin": "ast",
       "id": "modules_world_map_runtime_index_visiblebounds",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "visiblebounds()"
     },
     {
@@ -21015,153 +21015,10 @@
       "norm_label": "scripts"
     },
     {
-      "label": "test:multiplayer",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "package_scripts_test_multiplayer",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:multiplayer"
-    },
-    {
-      "label": "test:multiplayer-browser",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L10",
-      "_origin": "ast",
-      "id": "package_scripts_test_multiplayer_browser",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:multiplayer-browser"
-    },
-    {
-      "label": "test:multiplayer-gameplay-browser",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L11",
-      "_origin": "ast",
-      "id": "package_scripts_test_multiplayer_gameplay_browser",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:multiplayer-gameplay-browser"
-    },
-    {
-      "label": "test:multiplayer-slice-browser",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L12",
-      "_origin": "ast",
-      "id": "package_scripts_test_multiplayer_slice_browser",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:multiplayer-slice-browser"
-    },
-    {
-      "label": "test:game-core",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L13",
-      "_origin": "ast",
-      "id": "package_scripts_test_game_core",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:game-core"
-    },
-    {
-      "label": "test:progression",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L14",
-      "_origin": "ast",
-      "id": "package_scripts_test_progression",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:progression"
-    },
-    {
-      "label": "admin:maps",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L15",
-      "_origin": "ast",
-      "id": "package_scripts_admin_maps",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "admin:maps"
-    },
-    {
-      "label": "test:map-studio",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L16",
-      "_origin": "ast",
-      "id": "package_scripts_test_map_studio",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:map-studio"
-    },
-    {
-      "label": "test:map-versions-browser",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L17",
-      "_origin": "ast",
-      "id": "package_scripts_test_map_versions_browser",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:map-versions-browser"
-    },
-    {
-      "label": "admin:sprites",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L18",
-      "_origin": "ast",
-      "id": "package_scripts_admin_sprites",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "admin:sprites"
-    },
-    {
-      "label": "test:sprite-studio",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "package_scripts_test_sprite_studio",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:sprite-studio"
-    },
-    {
-      "label": "admin:characters",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L20",
-      "_origin": "ast",
-      "id": "package_scripts_admin_characters",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "admin:characters"
-    },
-    {
-      "label": "test:character-admin",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L21",
-      "_origin": "ast",
-      "id": "package_scripts_test_character_admin",
-      "community": 150,
-      "community_name": "scripts",
-      "norm_label": "test:character-admin"
-    },
-    {
       "label": "admin:loading",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "package_scripts_admin_loading",
       "community": 150,
@@ -21172,12 +21029,155 @@
       "label": "test:loading-admin",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L23",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "package_scripts_test_loading_admin",
       "community": 150,
       "community_name": "scripts",
       "norm_label": "test:loading-admin"
+    },
+    {
+      "label": "test:multiplayer",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "package_scripts_test_multiplayer",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:multiplayer"
+    },
+    {
+      "label": "test:multiplayer-browser",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "package_scripts_test_multiplayer_browser",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:multiplayer-browser"
+    },
+    {
+      "label": "test:multiplayer-gameplay-browser",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "package_scripts_test_multiplayer_gameplay_browser",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:multiplayer-gameplay-browser"
+    },
+    {
+      "label": "test:multiplayer-slice-browser",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "package_scripts_test_multiplayer_slice_browser",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:multiplayer-slice-browser"
+    },
+    {
+      "label": "test:game-core",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "package_scripts_test_game_core",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:game-core"
+    },
+    {
+      "label": "test:progression",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "package_scripts_test_progression",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:progression"
+    },
+    {
+      "label": "admin:maps",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "package_scripts_admin_maps",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "admin:maps"
+    },
+    {
+      "label": "test:map-studio",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "package_scripts_test_map_studio",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:map-studio"
+    },
+    {
+      "label": "test:map-versions-browser",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "package_scripts_test_map_versions_browser",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:map-versions-browser"
+    },
+    {
+      "label": "admin:sprites",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "package_scripts_admin_sprites",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "admin:sprites"
+    },
+    {
+      "label": "test:sprite-studio",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "package_scripts_test_sprite_studio",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:sprite-studio"
+    },
+    {
+      "label": "admin:characters",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "package_scripts_admin_characters",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "admin:characters"
+    },
+    {
+      "label": "test:character-admin",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "package_scripts_test_character_admin",
+      "community": 150,
+      "community_name": "scripts",
+      "norm_label": "test:character-admin"
     },
     {
       "label": "dev",
@@ -30256,7 +30256,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_map_studio_catalog",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "catalog.mjs"
     },
@@ -30268,7 +30268,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_catalog_validatecatalog",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "validatecatalog()"
     },
@@ -30279,8 +30279,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_map_studio_deployment",
-      "community": 321,
-      "community_name": "map-studio/test.mjs",
+      "community": 58,
+      "community_name": "map-studio-model.js",
       "norm_label": "deployment.mjs"
     },
     {
@@ -30290,8 +30290,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_map_studio_deployment_pages_url",
-      "community": 321,
-      "community_name": "map-studio/test.mjs",
+      "community": 58,
+      "community_name": "map-studio-model.js",
       "norm_label": "pages_url"
     },
     {
@@ -30302,8 +30302,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_deployment_waitforpagesdeployment",
-      "community": 321,
-      "community_name": "map-studio/test.mjs",
+      "community": 58,
+      "community_name": "map-studio-model.js",
       "norm_label": "waitforpagesdeployment()"
     },
     {
@@ -31019,7 +31019,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_map_studio_map_versions",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "map-versions.mjs"
     },
@@ -31031,7 +31031,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_map_versions_mapactive",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "mapactive()"
     },
@@ -31043,7 +31043,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_map_versions_mapversions",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "mapversions()"
     },
@@ -31134,8 +31134,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_map_studio_templates",
-      "community": 321,
-      "community_name": "map-studio/test.mjs",
+      "community": 38,
+      "community_name": "test-kanal2-layout.mjs",
       "norm_label": "templates.mjs"
     },
     {
@@ -31146,8 +31146,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_templates_templates",
-      "community": 321,
-      "community_name": "map-studio/test.mjs",
+      "community": 38,
+      "community_name": "test-kanal2-layout.mjs",
       "norm_label": "templates()"
     },
     {
@@ -31179,7 +31179,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_map_studio_test",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "map-studio/test.mjs"
     },
@@ -31190,7 +31190,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "scripts_map_studio_test_root",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "root"
     },
@@ -31202,7 +31202,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_test_object",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "object()"
     },
@@ -31214,7 +31214,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_map_studio_test_map",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "map()"
     },
@@ -31225,7 +31225,7 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "scripts_map_studio_test_toolcode",
-      "community": 321,
+      "community": 322,
       "community_name": "map-studio/test.mjs",
       "norm_label": "toolcode"
     },
@@ -36907,7 +36907,7 @@
       "_origin": "ast",
       "id": "scripts_test_runtime_performance",
       "community": 322,
-      "community_name": "waterAt",
+      "community_name": "map-studio/test.mjs",
       "norm_label": "test-runtime-performance.mjs"
     },
     {
@@ -37765,8 +37765,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_test_ui_assets",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "test-ui-assets.mjs"
     },
     {
@@ -37776,8 +37776,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "scripts_test_ui_assets_sources",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "sources"
     },
     {
@@ -37787,8 +37787,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "scripts_test_ui_assets_frames",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "frames"
     },
     {
@@ -37798,8 +37798,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "scripts_test_ui_assets_results",
-      "community": 0,
-      "community_name": "prototype.tsx",
+      "community": 4,
+      "community_name": "ui-assets.ts",
       "norm_label": "results"
     },
     {
@@ -38781,7 +38781,7 @@
       "label": "legacyEntryFiles",
       "file_type": "code",
       "source_file": "vite.github.config.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "vite_github_config_legacyentryfiles",
       "community": 377,
@@ -38792,7 +38792,7 @@
       "label": "legacyStyleFiles",
       "file_type": "code",
       "source_file": "vite.github.config.ts",
-      "source_location": "L14",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "vite_github_config_legacystylefiles",
       "community": 377,
@@ -38803,7 +38803,7 @@
       "label": "treeHash()",
       "file_type": "code",
       "source_file": "vite.github.config.ts",
-      "source_location": "L17",
+      "source_location": "L18",
       "_callable": true,
       "_origin": "ast",
       "id": "vite_github_config_treehash",
@@ -38815,7 +38815,7 @@
       "label": "contentManifest",
       "file_type": "code",
       "source_file": "vite.github.config.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "vite_github_config_contentmanifest",
       "community": 377,
@@ -38826,7 +38826,7 @@
       "label": "githubPagesCacheCompatibility",
       "file_type": "code",
       "source_file": "vite.github.config.ts",
-      "source_location": "L27",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "vite_github_config_githubpagescachecompatibility",
       "community": 377,
@@ -38837,7 +38837,7 @@
       "label": "loadingBoot",
       "file_type": "code",
       "source_file": "vite.github.config.ts",
-      "source_location": "L80",
+      "source_location": "L81",
       "_origin": "ast",
       "id": "vite_github_config_loadingboot",
       "community": 377,
@@ -59364,7 +59364,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/prototype.tsx",
-      "source_location": "L4185",
+      "source_location": "L4186",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_prototype_bentenganprototype",
@@ -60864,7 +60864,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/prototype.tsx",
-      "source_location": "L4180",
+      "source_location": "L4181",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_prototype_bentenganprototype",
@@ -61044,7 +61044,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/prototype.tsx",
-      "source_location": "L4268",
+      "source_location": "L4269",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_prototype_bentenganprototype",
@@ -61970,7 +61970,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "modules/ui/splash-screen.tsx",
-      "source_location": "L26",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "modules_ui_splash_screen_splashscreen",
@@ -111066,7 +111066,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111077,7 +111077,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111088,7 +111088,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L15",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111099,7 +111099,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111275,7 +111275,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111286,7 +111286,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L13",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111297,7 +111297,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L23",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111319,7 +111319,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111330,7 +111330,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111341,7 +111341,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L9",
+      "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111352,7 +111352,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L10",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111363,7 +111363,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L11",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111374,7 +111374,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L12",
+      "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111385,7 +111385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -111396,7 +111396,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -134576,7 +134576,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vite.github.config.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vite_github_config",
@@ -134587,7 +134587,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vite.github.config.ts",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vite_github_config",
@@ -134598,7 +134598,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vite.github.config.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vite_github_config",
@@ -134609,7 +134609,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vite.github.config.ts",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vite_github_config",
@@ -134620,7 +134620,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vite.github.config.ts",
-      "source_location": "L80",
+      "source_location": "L81",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vite_github_config",
@@ -134631,7 +134631,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vite.github.config.ts",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vite_github_config",
@@ -141063,5 +141063,5 @@
       "source_file": "scripts/audit-game.mjs"
     }
   ],
-  "built_at_commit": "5d677d85b6e349e193625733c190f80d83895a3a"
+  "built_at_commit": "cf749677396111ab756028dcf5b2449aeec9cc21"
 }

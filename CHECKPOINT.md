@@ -4,6 +4,15 @@ Dokumen ini menyimpan kondisi task yang sedang berjalan. Perbarui setelah setiap
 tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
+### 2026-10-09 — MERGE origin/main f95a02a INTO Refactor-Clio (modules ownership)
+
+**Goal:** close mid-merge (8 paths) with zero markers, `modules/` intact, no `components/` restore.
+**Done:** all 10 prototype hunks + 7 small-file hunks resolved (@ours except memori @both); package.json deduped; committed locally as `cf74967`; push withheld per hold.
+**Changed:** `app/prototype.tsx`, `app/ux-priority.css`, `memori.md`, `modules/ui/graphics-settings.tsx`, `modules/ui/loading-media.tsx`, `modules/ui/multiplayer-panel.tsx`, `scripts/test-route-performance.mjs`, `vite.github.config.ts`, `package.json`.
+**Validation:** `tsc` 0 errors; route-perf 3/3 (`--experimental-strip-types`); multiplayer 28/28; `build:pages` PASS (`dist-pages/assets/app.js` + aliases stable); `diff-check` clean; browser smoke splash+profile render, zero page errors (full team→match→pause flow not driven — modal flow).
+**Blockers:** none. Push to `origin/Refactor-Clio` withheld (publish hold, needs explicit request).
+**Next action:** push `Refactor-Clio` on request; optional follow-ups: roster `ultimateIcon` vs origin `ultimate-label.png` parity, pause `keys.current.clear()` on wrapper buttons.
+
 
 ### 2026-10-08 — SYNC origin/main perf+loading (8167d2e, 0b7c3fd, f95a02a) INTO Refactor-Clio
 
