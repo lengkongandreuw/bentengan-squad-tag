@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import { ultimateIcon, type CharacterId, type UltimateIconId } from '../../lib/characters.ts';
 import { CharacterPreview } from './character-preview.tsx';
 import type { Faction } from '../world/map-data/field-types';
@@ -33,20 +34,21 @@ export const CharacterHud = ({
   >
     <CharacterPreview id={characterId} eager />
     <span>
-      <b>{playerName}</b>
+      <b>{t(playerName)}</b>
       <small>
-        {factionLabel} · {passiveName}
+        {t(factionLabel)}{t(" ·")}{t(' ')}
+        {t(passiveName)}
       </small>
-      <em>{state.replace('_', ' ')}</em>
+      <em>{t(state.replace('_', ' '))}</em>
     </span>
     {ultimate && (
       <div
         className={`character-ultimate ${ultimate.hudClass ?? ''} ${meter >= 100 ? 'ready' : ''}`}
-        aria-label={`Charge ultimate ${Math.floor(meter)} persen`}
+        aria-label={t(`Charge ultimate ${Math.floor(meter)} persen`)}
       >
         <span>
           {ultimateIcon(ultimate.icon, 12)}
-          {ultimate.shortLabel ?? 'TITAH'}
+          {t(ultimate.shortLabel ?? 'TITAH')}
         </span>
         <b>{Math.floor(meter)}%</b>
         <i>

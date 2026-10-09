@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import { Component, type ReactNode } from 'react';
 
 // Last-resort fallback for the top-level game view. Catches render failures
@@ -22,13 +23,13 @@ export class GameErrorBoundary extends Component<
     if (error) {
       return (
         <div className="renderer-error" role="alert">
-          <strong>GAME GAGAL DIMUAT</strong>
-          <p>{error.message || 'Terjadi kesalahan saat menampilkan game.'}</p>
+          <strong>{t("GAME GAGAL DIMUAT")}</strong>
+          <p>{t(error.message || 'Terjadi kesalahan saat menampilkan game.')}</p>
           <button type="button" onClick={() => this.setState({ error: null })}>
-            COBA LAGI
+            {t("COBA LAGI")}
           </button>
           <button type="button" onClick={() => window.location.reload()}>
-            MUAT ULANG
+            {t("MUAT ULANG")}
           </button>
         </div>
       );

@@ -1,3 +1,5 @@
+import { t } from '../../lib/language';
+import { roleLabel } from '../../lib/player-copy';
 import {
   ULTIMATE_CHARACTER_IDS,
   ultimateIcon,
@@ -53,31 +55,31 @@ export const CharacterSelectScreen = ({
       <img
         className="roster-team-main"
         src={resolveAsset(`controls/team-${faction}-active.webp`)}
-        alt={factionName(faction)}
+        alt={t(factionName(faction))}
       />
       <button
         className="roster-team-swap"
         onClick={onSwapTeam}
-        aria-label="Ganti tim"
+        aria-label={t("Ganti tim")}
       >
         <img
           src={resolveAsset(
             `controls/team-${faction === 'red' ? 'green' : 'red'}-normal.webp`,
           )}
-          alt={factionName(faction === 'red' ? 'green' : 'red')}
+          alt={t(factionName(faction === 'red' ? 'green' : 'red'))}
         />
       </button>
     </header>
     <h1 id="roster-title" className="sr-only">
-      Pilih karakter {factionName(faction)}
+      {t("Pilih karakter ")}{t(factionName(faction))}
     </h1>
     <div className="roster-stage">
       <button
         className="carousel-arrow left"
         onClick={() => onCycle(-1)}
-        aria-label="Karakter sebelumnya"
+        aria-label={t("Karakter sebelumnya")}
       >
-        ‹
+        {t("‹")}
       </button>
       <div className="character-carousel">
         {characters.map((character, index) => (
@@ -99,25 +101,25 @@ export const CharacterSelectScreen = ({
           >
             <SelectionPortrait
               id={character.id}
-              alt={character.name}
+              alt={t(character.name)}
               active={selectedId === character.id}
             />
             {ULTIMATE_CHARACTER_IDS.has(character.id) && (
-              <strong className="ultimate-roster-badge">
+              <strong className="ultimate-roster-badge" aria-label={t("Memiliki Ultimate")}>
                 {ultimateIcon(character.ultimate?.icon ?? 'zap', 12)}
-                ULTIMATE
+                {t("ULTIMATE")}
               </strong>
             )}
-            <span>{character.name}</span>
+            <span>{t(character.name)}</span>
           </button>
         ))}
       </div>
       <button
         className="carousel-arrow right"
         onClick={() => onCycle(1)}
-        aria-label="Karakter berikutnya"
+        aria-label={t("Karakter berikutnya")}
       >
-        ›
+        {t("›")}
       </button>
     </div>
     <aside className={`ability-panel framed-character-panel ${faction}`}>
@@ -129,20 +131,20 @@ export const CharacterSelectScreen = ({
       />
       <header className="character-panel-identity">
         <span className="character-panel-role">
-          {factionName(faction)} · {selected.role}
+          {t(factionName(faction))}{t(" · ")}{t(roleLabel[selected.role])}
         </span>
-        <h2 className="character-panel-name">{selected.name}</h2>
-        <p className="character-panel-summary">{selected.copy}</p>
+        <h2 className="character-panel-name">{t(selected.name)}</h2>
+        <p className="character-panel-summary">{t(selected.copy)}</p>
       </header>
       <section className="character-panel-skill">
-        <small>KEMAMPUAN KHUSUS</small>
-        <b>{selected.passiveName}</b>
-        <p>{selected.passiveCopy}</p>
+        <small>{t("KEMAMPUAN KHUSUS")}</small>
+        <b>{t(selected.passiveName)}</b>
+        <p>{t(selected.passiveCopy)}</p>
       </section>
       <dl className="character-panel-stats">
         <div className="character-panel-stat">
           <dt className="character-panel-stat-label">
-            Speed <b>{selected.speed}</b>
+            {t("Kecepatan ")}<b>{selected.speed}</b>
           </dt>
           <dd className="character-panel-stat-track">
             <i style={{ width: statPercent(selected.speed, 188, 240) }} />
@@ -150,7 +152,7 @@ export const CharacterSelectScreen = ({
         </div>
         <div className="character-panel-stat">
           <dt className="character-panel-stat-label">
-            Boost <b>{selected.boost}</b>
+            {t("Boost ")}<b>{selected.boost}</b>
           </dt>
           <dd className="character-panel-stat-track">
             <i style={{ width: statPercent(selected.boost, 84, 128) }} />
@@ -158,7 +160,7 @@ export const CharacterSelectScreen = ({
         </div>
         <div className="character-panel-stat">
           <dt className="character-panel-stat-label">
-            Agility <b>{selected.agility.toFixed(2)}</b>
+            {t("Kelincahan ")}<b>{selected.agility.toFixed(2)}</b>
           </dt>
           <dd className="character-panel-stat-track">
             <i
@@ -173,7 +175,7 @@ export const CharacterSelectScreen = ({
         className="graffiti-primary character-panel-select"
         onClick={onSelect}
       >
-        <span>PILIH {selected.name}</span>
+        <span>{t("PILIH ")}{t(selected.name)}</span>
       </button>
     </aside>
   </section>

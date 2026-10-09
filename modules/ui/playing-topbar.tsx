@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import { Menu, Pause, UserRound, Volume2, VolumeX } from 'lucide-react';
 import { AudioSettings } from './audio-settings.tsx';
 import { HudSettings } from './gameplay-guidance.tsx';
@@ -32,11 +33,11 @@ export const PlayingTopbar = ({
 }) => (
   <header className="game-topbar">
     <div className="brand-lockup">
-      <img className="game-logo" src={logoSrc} alt="Benteng Squad Tag" />
+      <img className="game-logo" src={logoSrc} alt={t("Benteng Squad Tag")} />
       <span className="brand-kicker">
-        <i /> Playable rules prototype
+        <i /> {t("Playable rules prototype")}
         <br />
-        Field compact · guarded
+        {t("Field compact · guarded")}
       </span>
     </div>
     <div className="top-actions">
@@ -44,8 +45,8 @@ export const PlayingTopbar = ({
         <button
           className="icon-button profile-match-trigger"
           onClick={onOpenProfile}
-          aria-label="Buka profil pemain"
-          title="Profil pemain"
+          aria-label={t("Buka profil pemain")}
+          title={t("Profil pemain")}
         >
           <UserRound size={18} />
         </button>
@@ -56,19 +57,19 @@ export const PlayingTopbar = ({
         className={`icon-button ${musicMuted ? 'muted' : ''}`}
         onClick={onToggleMusic}
         aria-pressed={musicMuted}
-        aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
-        title={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+        aria-label={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
+        title={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
       >
         {musicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
       </button>
       <button
         className="icon-button hud-menu-button"
         onClick={onToggleMission}
-        aria-label="Buka menu misi"
+        aria-label={t("Buka menu misi")}
       >
         <Menu size={19} />
       </button>
-      <button className="icon-button" onClick={onPause} aria-label="Jeda">
+      <button className="icon-button" onClick={onPause} aria-label={t("Jeda")}>
         <Pause size={18} />
       </button>
     </div>

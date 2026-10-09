@@ -1,5 +1,6 @@
 import { Gauge, Lock, Shield, Users, Zap } from 'lucide-react';
 import { ultimateIcon, type UltimateIconId } from '../../lib/characters.ts';
+import { t } from '../../lib/language';
 import { ArenaIntel } from './arena-intel.tsx';
 
 // Desktop action dock: status pills, key hints, and the ultimate button.
@@ -36,7 +37,7 @@ export const ActionDock = ({
 }) => (
   <div
     className={`action-dock ${mechanicsLocked ? 'mechanics-inactive' : ''} ${state === 'PRISONER' ? 'context-hidden' : ''}`}
-    aria-label="Aksi pemain"
+    aria-label={t("Aksi pemain")}
     aria-disabled={mechanicsLocked}
   >
     <ArenaIntel
@@ -48,51 +49,51 @@ export const ActionDock = ({
     />
     <span className="ready-action">
       <Zap size={19} />
-      <b>SPACE</b>
-      <small>SPRINT</small>
+      <b>{t("SPACE")}</b>
+      <small>{t("SPRINT")}</small>
     </span>
     <span>
       <Gauge size={19} />
-      <b>SHIFT</b>
-      <small>PARKOUR</small>
+      <b>{t("SHIFT")}</b>
+      <small>{t("PARKOUR")}</small>
     </span>
     <span className={comboSurge ? 'combo-ready' : ''}>
       <Users size={19} />
-      <b>AUTO</b>
-      <small>COMBO</small>
+      <b>{t("AUTO")}</b>
+      <small>{t("COMBO")}</small>
     </span>
     <span>
       <Shield size={19} />
-      <b>AUTO</b>
-      <small>RESCUE</small>
+      <b>{t("AUTO")}</b>
+      <small>{t("RESCUE")}</small>
     </span>
     {hasUltimate ? (
       <button
         className={`ultimate-action ${ultimateActionClass} ${meter >= 100 && !casting ? 'ultimate-ready' : ''}`}
         onClick={onTapUltimate}
         disabled={meter < 100 || mechanicsLocked}
-        aria-label={`${ultimateTitle} ${Math.floor(meter)} persen`}
+        aria-label={t(`${ultimateTitle} ${Math.floor(meter)} persen`)}
       >
         {ultimateIcon(ultimateIconId, 18)}
-        <b>CAPS</b>
+        <b>{t("CAPS")}</b>
         <small>
-          {casting
+          {t(casting
             ? 'CASTING'
             : meter >= 100
               ? 'ULT READY'
-              : `ULT ${Math.floor(meter)}%`}
+              : `ULT ${Math.floor(meter)}%`)}
         </small>
         <i style={{ width: `${meter}%` }} />
       </button>
     ) : (
       <span className="locked">
         <Lock size={16} />
-        <b>—</b>
+        <b>{t("—")}</b>
       </span>
     )}
     <span className="locked">
       <Lock size={16} />
-      <b>—</b>
+        <b>{t("—")}</b>
     </span>
   </div>
 );

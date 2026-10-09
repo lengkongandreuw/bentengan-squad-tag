@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 // Player state strip: state dot, name, faction, state label, exit order.
 // Pure presentation over precomputed display strings.
 export const StatusRibbon = ({
@@ -14,10 +15,10 @@ export const StatusRibbon = ({
   <div className="status-ribbon">
     <span className={`state-dot ${state.toLowerCase()}`} />
     <span>
-      <b>{playerName}</b>
-      {factionLabel}
+      <b>{t(playerName)}</b>
+      {t(factionLabel)}
     </span>
-    <strong>{state.replace('_', ' ')}</strong>
-    <em>PRIORITAS #{order || '—'}</em>
+    <strong>{t(state.replace('_', ' '))}</strong>
+    <em>{t("PRIORITAS #")}{t(order || '—')}</em>
   </div>
 );

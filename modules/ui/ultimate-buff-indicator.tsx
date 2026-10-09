@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import type { UltimateDescriptor } from '../../lib/characters.ts';
 import { ultimateIcon } from '../../lib/characters.ts';
 
@@ -8,7 +9,7 @@ export const UltimateBuffIndicator = ({ ultimate, remaining }: {
 }) => (
   <div className={`ultimate-buff-indicator ${ultimate?.indicatorClass ?? ''}`}>
     {ultimateIcon(ultimate?.icon ?? 'zap', 13)}
-    {ultimate?.buffText ?? ' TITAH +40% · '}
-    {remaining}s
+    {t(ultimate?.buffText ?? ' TITAH +40% · ')}
+    {t(remaining)}{t("s")}
   </div>
 );

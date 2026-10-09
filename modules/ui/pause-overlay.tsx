@@ -1,4 +1,5 @@
 import { LogOut, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { t } from '../../lib/language';
 import { AudioSettings } from './audio-settings.tsx';
 import { GraphicsSettings } from './graphics-settings.tsx';
 
@@ -18,28 +19,24 @@ export const PauseOverlay = ({
 }) => (
   <div className="pause-overlay">
     <div>
-      <small>PERMAINAN DIJEDA</small>
-      <h2>
-        Ambil napas.
-        <br />
-        Lanjut saat siap.
-      </h2>
+      <small>{t('PERMAINAN DIJEDA')}</small>
+      <h2>{t('Lagi jeda.')}</h2>
       <button onClick={onResume}>
-        <Play size={17} fill="currentColor" /> Lanjutkan
+        <Play size={17} fill="currentColor" />{t(' Lanjut main')}
       </button>
       <button onClick={onToggleMusic} aria-pressed={musicMuted}>
         {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-        {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+        {t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
       </button>
       <div className="pause-settings-row">
         <AudioSettings />
         <GraphicsSettings />
       </div>
       <button onClick={onRestart}>
-        <RotateCcw size={17} /> Mulai ulang
+        <RotateCcw size={17} />{t(' Mulai ulang')}
       </button>
       <button onClick={onQuit}>
-        <LogOut size={17} /> Keluar ke menu
+        <LogOut size={17} />{t(' Keluar ke menu')}
       </button>
     </div>
   </div>

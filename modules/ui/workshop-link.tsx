@@ -1,8 +1,9 @@
+import { t } from '../../lib/language';
 import { Wrench } from 'lucide-react';
 
 // Floating workshop entry (character-select step only; guard stays owner).
 export const WorkshopLink = ({ onOpen }: { onOpen: () => void }) => (
   <button className="workshop-link workshop-float" onClick={onOpen}>
-    <Wrench size={14} /> Workshop
+    <Wrench size={14} /> {t("Workshop")}
   </button>
 );

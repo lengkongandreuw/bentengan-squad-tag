@@ -1,4 +1,5 @@
 import { Map as MapIcon } from 'lucide-react';
+import { t } from '../../lib/language';
 
 // Camera picker. Prebuilt options and current selection arrive as props.
 export const CameraSwitcher = ({
@@ -10,9 +11,9 @@ export const CameraSwitcher = ({
   cameraMode: string;
   onSelect: (id: string) => void;
 }) => (
-  <div className="camera-switcher camera-map" aria-label="Pilihan kamera">
+  <div className="camera-switcher camera-map" aria-label={t("Pilihan kamera")}>
     <span>
-      <MapIcon size={13} /> PETA
+      <MapIcon size={13} />{t(" PETA")}
     </span>
     {options.map((camera) => (
       <button
@@ -21,7 +22,7 @@ export const CameraSwitcher = ({
         onClick={() => onSelect(camera.id)}
         aria-pressed={cameraMode === camera.id}
       >
-        {camera.label}
+        {t(camera.label)}
       </button>
     ))}
   </div>

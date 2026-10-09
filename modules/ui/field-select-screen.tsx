@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import type { CharacterId } from '../../lib/characters';
 import { CHARACTER_BY_ID } from '../../lib/characters.ts';
 import type { Faction, FieldConfig, FieldId } from '../world/map-data/field-types';
@@ -31,22 +32,21 @@ export const FieldSelectScreen = ({
     aria-labelledby="field-title"
   >
     <header>
-      <span>LANGKAH TERAKHIR</span>
-      <h1 id="field-title">Pilih arena pertarungan</h1>
+      <span>{t("LANGKAH TERAKHIR")}</span>
+      <h1 id="field-title">{t("Pilih arena pertarungan")}</h1>
       <p>
-        Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis
-        terjadi setelah tiga kemenangan.
+        {t("Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis terjadi setelah tiga kemenangan.")}
       </p>
     </header>
     <div className="arena-carousel">
       <button
         className="arena-nav previous"
-        aria-label="Arena sebelumnya"
+        aria-label={t("Arena sebelumnya")}
         onClick={() => onStep(-1)}
       >
-        ‹
+        {t("‹")}
       </button>
-      <div className="field-card-row" aria-label="Pilihan arena">
+      <div className="field-card-row" aria-label={t("Pilihan arena")}>
         {fields.map((field, index) => (
           <button
             key={field.id}
@@ -61,22 +61,22 @@ export const FieldSelectScreen = ({
               alt=""
               aria-hidden="true"
             />
-            <small>0{index + 1}</small>
-            <em>{field.difficulty}</em>
-            <strong>{field.name}</strong>
-            <span>{field.kicker}</span>
+            <small>{t("0")}{t(index + 1)}</small>
+            <em>{t(field.difficulty)}</em>
+            <strong>{t(field.name)}</strong>
+            <span>{t(field.kicker)}</span>
             <i>
-              {selectedFieldId === field.id ? 'ARENA AKTIF' : 'PILIH ARENA'}
+              {t(selectedFieldId === field.id ? 'ARENA AKTIF' : 'PILIH ARENA')}
             </i>
           </button>
         ))}
       </div>
       <button
         className="arena-nav next"
-        aria-label="Arena berikutnya"
+        aria-label={t("Arena berikutnya")}
         onClick={() => onStep(1)}
       >
-        ›
+        {t("›")}
       </button>
     </div>
     <div className="match-lineup">
@@ -85,11 +85,11 @@ export const FieldSelectScreen = ({
           <figure key={id} className={index === 0 ? 'controlled' : ''}>
             <CharacterPreview
               id={id}
-              alt={CHARACTER_BY_ID[id].name}
+              alt={t(CHARACTER_BY_ID[id].name)}
               eager={index === 0}
             />
             <figcaption>
-              {index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}
+              {t(index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name)}
             </figcaption>
           </figure>
         ))}
@@ -97,7 +97,7 @@ export const FieldSelectScreen = ({
     </div>
     <button className={`graffiti-primary launch-${faction}`} onClick={onStart}>
       <span>
-        <Play size={19} fill="currentColor" /> MULAI MATCH
+        <Play size={19} fill="currentColor" />{t(" MULAI MATCH")}
       </span>
     </button>
   </section>

@@ -1,5 +1,6 @@
 import { Lock, BellRing } from 'lucide-react';
 
+import { t } from '../../lib/language';
 // Prisoner notice with the rescue-request button. The visibility guard
 // (PRISONER, not paused) lives inside; the key tap arrives as a callback.
 export const PrisonerNotice = ({
@@ -22,27 +23,27 @@ export const PrisonerNotice = ({
     <div className="prisoner-notice" role="status">
       <Lock size={22} />
       <span>
-        <b>MENUNGGU DIBEBASKAN</b>
+        <b>{t("MENUNGGU DIBEBASKAN")}</b>
         <small>
-          {requestActive
+          {t(requestActive
             ? `Sinyal aktif ${requestRemaining}s`
             : requestCooldown
               ? `Sinyal siap ${requestCooldown}s`
-              : 'Kirim sinyal ke rekan tim.'}
+              : 'Kirim sinyal ke rekan tim.')}
         </small>
       </span>
       <button
         className="rescue-request-button"
         onClick={onRequest}
         disabled={requestCooldown > 0}
-        aria-label="Minta rescue"
+        aria-label={t("Minta rescue")}
       >
         <BellRing size={16} />
-        {requestActive
+        {t(requestActive
           ? 'BANTUAN DIKIRIM'
           : requestCooldown
             ? `${requestCooldown}s`
-            : 'MINTA RESCUE'}
+            : 'MINTA RESCUE')}
       </button>
     </div>
   );

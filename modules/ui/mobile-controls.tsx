@@ -1,4 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { t } from '../../lib/language';
 
 export type TouchProps = {
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void;
@@ -28,46 +29,46 @@ export const MobileControls = ({
 }) => (
   <div
     className={`mobile-controls ${state === 'PRISONER' ? 'context-hidden' : ''}`}
-    aria-label="Kontrol sentuh"
+    aria-label={t("Kontrol sentuh")}
   >
     <div className="touch-dpad">
-      <button aria-label="Gerak atas" disabled={playerMechanicsLocked} {...touch('w')}>
-        ▲
+      <button aria-label={t("Gerak atas")} disabled={playerMechanicsLocked} {...touch('w')}>
+        {t("▲")}
       </button>
-      <button aria-label="Gerak kiri" disabled={playerMechanicsLocked} {...touch('a')}>
-        ◀
+      <button aria-label={t("Gerak kiri")} disabled={playerMechanicsLocked} {...touch('a')}>
+        {t("◀")}
       </button>
-      <button aria-label="Gerak kanan" disabled={playerMechanicsLocked} {...touch('d')}>
-        ▶
+      <button aria-label={t("Gerak kanan")} disabled={playerMechanicsLocked} {...touch('d')}>
+        {t("▶")}
       </button>
-      <button aria-label="Gerak bawah" disabled={playerMechanicsLocked} {...touch('s')}>
-        ▼
+      <button aria-label={t("Gerak bawah")} disabled={playerMechanicsLocked} {...touch('s')}>
+        {t("▼")}
       </button>
     </div>
     <div className="touch-actions">
       <button
         className="touch-boost"
-        aria-label="Sprint"
+        aria-label={t("Sprint")}
         disabled={playerMechanicsLocked}
         {...touch(' ')}
       >
-        SPRINT
+        {t("SPRINT")}
       </button>
       <button
-        aria-label="Parkour"
+        aria-label={t("Parkour")}
         disabled={playerMechanicsLocked}
         {...touch('shift')}
       >
-        PARKOUR
+        {t("PARKOUR")}
       </button>
       {hasUltimate && (
         <button
           className={`touch-ultimate ${ultimateActionClass}`}
-          aria-label={ultimateTitle}
+          aria-label={t(ultimateTitle)}
           disabled={meter < 100 || playerMechanicsLocked}
           {...touch('capslock')}
         >
-          ULT {Math.floor(meter)}%
+          {t("ULT ")}{Math.floor(meter)}{t("%")}
         </button>
       )}
     </div>

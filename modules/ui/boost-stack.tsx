@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 // Stamina bar with recharge countdown. Pure snapshot display.
 export const BoostStack = ({
   boost,
@@ -8,9 +9,9 @@ export const BoostStack = ({
 }) => (
   <div className="boost-stack">
     <div className="boost-label">
-      <span>⚡ STAMINA</span>
+      <span>{t("⚡ STAMINA")}</span>
       <b>{Math.round(boost)}%</b>
-      <em>{boostCountdown ? `PULIH ${boostCountdown}s` : 'SIAP'}</em>
+      <em>{t(boostCountdown ? `PULIH ${boostCountdown}s` : 'SIAP')}</em>
     </div>
     <div className="stamina-bar">
       <span style={{ width: `${boost}%` }} />

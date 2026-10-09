@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 // Desktop control hints ribbon. Pure static content apart from the
 // ultimate-owner flag and prisoner visibility.
 export const ControlRibbon = ({
@@ -8,12 +9,12 @@ export const ControlRibbon = ({
   hasUltimate: boolean;
 }) => (
   <div className={`control-ribbon ${state === 'PRISONER' ? 'context-hidden' : ''}`}>
-    <b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR{' '}
+    <b>{t("WASD")}</b>{t(" GERAK ")}<b>{t("SPACE")}</b>{t(" SPRINT ")}<b>{t("SHIFT")}</b>{t(" PARKOUR")}{t(' ')}
     {hasUltimate && (
       <>
-        <b>CAPS LOCK</b> ULTIMATE{' '}
+        <b>{t("CAPS LOCK")}</b>{t(" ULTIMATE")}{t(' ')}
       </>
     )}
-    <b>P</b> JEDA
+    <b>{t("P")}</b>{t(" JEDA")}
   </div>
 );

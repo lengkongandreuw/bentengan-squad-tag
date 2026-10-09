@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import { ULTIMATE_BANNERS, type UltimateIconId } from '../../lib/characters.ts';
 
 // One-shot ultimate cast banner. The visibility guard (casting + owner)
@@ -18,8 +19,8 @@ export const UltimateBanner = ({
   <div
     className={`ultimate-banner ${bannerClass ?? ''}`}
     role="status"
-    aria-label={`${playerName} mengaktifkan ${hudTitle}`}
+    aria-label={t(`${playerName} mengaktifkan ${hudTitle}`)}
   >
-    <img src={ULTIMATE_BANNERS[icon]()} alt={bannerAlt} decoding="async" />
+    <img src={ULTIMATE_BANNERS[icon]()} alt={t(bannerAlt)} decoding="async" />
   </div>
 );

@@ -17,6 +17,7 @@ import type { Team } from '../world/map-data/field-types';
 import { formatTime } from './format.ts';
 import { teamName } from '../world/team-tables.ts';
 import { CharacterPreview } from './character-preview.tsx';
+import { t } from '../../lib/language';
 
 // Round recap / match leaderboard / match-over dialog over the HUD.
 // Pure presentation: all state comes from the snapshot board and every
@@ -50,83 +51,83 @@ export const RoundStatsOverlay = ({
       <header className="round-stats-head">
         <div>
           <span>
-            {statsBoard.final
+            {t(statsBoard.final
               ? 'MATCH SELESAI'
               : leaderboardOpen && !statsBoard.visible
                 ? 'MATCH LEADERBOARD'
-                : `REKAP RONDE ${statsBoard.round}`}
+                : `REKAP RONDE ${statsBoard.round}`)}
           </span>
           <h2 id="round-stats-title">
-            {statsBoard.winner
+            {t(statsBoard.winner
               ? `${teamName(statsBoard.winner).toUpperCase()} UNGGUL`
-              : 'STATISTIK PEMAIN'}
+              : 'STATISTIK PEMAIN')}
           </h2>
           <p>
-            {statsBoard.final
+            {t(statsBoard.final
               ? 'Pilih aksi berikutnya untuk lanjut.'
               : statsBoard.visible
                 ? `Lanjut otomatis ${statsBoard.countdown}s`
-                : 'Tekan Tab atau klik skor untuk melihat statistik match.'}
+                : 'Tekan Tab atau klik skor untuk melihat statistik match.')}
           </p>
         </div>
-        <div className="round-match-meta" aria-label="Info match">
+        <div className="round-match-meta" aria-label={t("Info match")}>
           <span>
             <Gauge size={14} />
-            <small>DURASI</small>
-            <b>{formatTime(statsBoard.duration)}</b>
+            <small>{t("DURASI")}</small>
+            <b>{t(formatTime(statsBoard.duration))}</b>
           </span>
           <span>
             <Flag size={14} />
-            <small>FORMAT</small>
-            <b>{statsBoard.format.toUpperCase()}</b>
+            <small>{t("FORMAT")}</small>
+            <b>{t(statsBoard.format.toUpperCase())}</b>
           </span>
           <span>
             <MapIcon size={14} />
-            <small>MAP</small>
-            <b>{statsBoard.mapName.toUpperCase()}</b>
+            <small>{t("MAP")}</small>
+            <b>{t(statsBoard.mapName.toUpperCase())}</b>
           </span>
         </div>
         {!statsBoard.visible && (
           <button
             className="round-stats-close"
             onClick={onCloseLeaderboard}
-            aria-label="Tutup leaderboard"
+            aria-label={t("Tutup leaderboard")}
           >
             <X size={16} />
           </button>
         )}
       </header>
-      <div className="round-scoreline" aria-label="Skor match">
+      <div className="round-scoreline" aria-label={t("Skor match")}>
         <span>
-          TIM MERAH <b>{statsBoard.score.blue}</b>
+          {t("TIM MERAH ")}<b>{t(statsBoard.score.blue)}</b>
         </span>
-        <i>BEST OF 3</i>
+        <i>{t("BEST OF 3")}</i>
         <span>
-          <b>{statsBoard.score.red}</b> HIJAU
+          <b>{t(statsBoard.score.red)}</b>{t(" HIJAU")}
         </span>
       </div>
       <div className="round-stats-grid">
         {(['blue', 'red'] as Team[]).map((team) => (
           <article key={team} className={`round-team-card ${team}`}>
-            <h3>{teamName(team).toUpperCase()}</h3>
+            <h3>{t(teamName(team).toUpperCase())}</h3>
             {statsBoard.teams[team].map((player) => (
               <div
                 key={player.id}
                 className={`round-stat-row ${player.controlled ? 'controlled' : ''} ${player.mvp ? 'mvp' : ''}`}
               >
                 <CharacterPreview id={player.characterId} alt="" />
-                <b>{player.controlled ? 'KAMU' : player.name}</b>
-                <span title="Tag musuh">
+                <b>{t(player.controlled ? 'KAMU' : player.name)}</b>
+                <span title={t("Tag musuh")}>
                   <Zap size={13} /> {player.tags}
                 </span>
-                <span title="Masuk penjara">
+                <span title={t("Masuk penjara")}>
                   <Lock size={13} /> {player.prisons}
                 </span>
-                <span title="Rescue teman">
+                <span title={t("Rescue teman")}>
                   <Shield size={13} /> {player.rescues}
                 </span>
-                <strong title="Contribution score">
-                  {player.contribution}
+                <strong title={t("Contribution score")}>
+                  {t(player.contribution)}
                 </strong>
               </div>
             ))}
@@ -135,9 +136,9 @@ export const RoundStatsOverlay = ({
       </div>
       {statsBoard.mvpName && (
         <aside className="round-mvp-card">
-          <b>MVP</b>
+          <b>{t("MVP")}</b>
           <span>
-            {statsBoard.mvpName} · Kontribusi tertinggi di match ini
+            {t(statsBoard.mvpName)}{t(" · Kontribusi tertinggi di match ini")}
           </span>
         </aside>
       )}
@@ -145,30 +146,30 @@ export const RoundStatsOverlay = ({
         {statsBoard.final ? (
           <>
             <button className="primary" onClick={onRematch}>
-              <RotateCcw size={16} /> REMATCH
+              <RotateCcw size={16} />{t(" REMATCH")}
             </button>
             <button onClick={onBackToCharacterSelect}>
-              <Users size={16} /> PILIH KARAKTER
+              <Users size={16} />{t(" PILIH KARAKTER")}
             </button>
             <button onClick={onBackToFieldSelect}>
-              <MapIcon size={16} /> GANTI MAP
+              <MapIcon size={16} />{t(" GANTI MAP")}
             </button>
             <button className="danger" onClick={onQuit}>
-              <LogOut size={16} /> KELUAR
+              <LogOut size={16} />{t(" KELUAR")}
             </button>
           </>
         ) : statsBoard.visible ? (
           <>
             <button className="primary" onClick={onRequestNextRound}>
-              <Play size={16} fill="currentColor" /> RONDE BERIKUTNYA
+              <Play size={16} fill="currentColor" />{t(" RONDE BERIKUTNYA")}
             </button>
             <button className="danger" onClick={onQuit}>
-              <LogOut size={16} /> KELUAR
+              <LogOut size={16} />{t(" KELUAR")}
             </button>
           </>
         ) : (
           <button className="primary" onClick={onCloseLeaderboard}>
-            <Check size={16} /> TUTUP
+            <Check size={16} />{t(" TUTUP")}
           </button>
         )}
       </footer>

@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import type { Snapshot } from '../game-core/snapshot-types';
 import { formatTime } from './format.ts';
 
@@ -14,7 +15,7 @@ export const StageHud = ({
     className="stage-hud"
     role="button"
     tabIndex={0}
-    aria-label="Buka leaderboard statistik match"
+    aria-label={t("Buka leaderboard statistik match")}
     onClick={onToggle}
     onKeyDown={(event) => {
       if (event.key === 'Enter' || event.key === ' ') {
@@ -26,16 +27,16 @@ export const StageHud = ({
     <div className="hud-red">
       <span>{snapshot.blue}</span>
       <b>
-        TIM MERAH<small>{snapshot.blueHeld}/5 TAHANAN</small>
+        {t("TIM MERAH")}<small>{snapshot.blueHeld}{t("/5 TAHANAN")}</small>
       </b>
     </div>
     <time>
-      {snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}
-      <small>WAKTU</small>
+      {t(snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer))}
+      <small>{t("WAKTU")}</small>
     </time>
     <div className="hud-green">
       <b>
-        HIJAU<small>{snapshot.redHeld}/5 TAHANAN</small>
+        {t("HIJAU")}<small>{snapshot.redHeld}{t("/5 TAHANAN")}</small>
       </b>
       <span>{snapshot.red}</span>
     </div>

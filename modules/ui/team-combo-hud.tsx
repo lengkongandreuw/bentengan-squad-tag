@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import { Users } from 'lucide-react';
 import type { Faction } from '../world/map-data/field-types';
 
@@ -16,17 +17,17 @@ export const TeamComboHud = ({
 }) => (
   <div
     className={`team-combo-hud ${faction} ${surgeRemaining ? 'surge' : ''} ${comboLevel || surgeRemaining ? '' : 'context-hidden'}`}
-    aria-label="Status combo aksi tim"
+    aria-label={t("Status combo aksi tim")}
   >
     <Users size={17} />
     <span>
-      <small>{surgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM'}</small>
+      <small>{t(surgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM')}</small>
       <b>
-        {surgeRemaining
+        {t(surgeRemaining
           ? `SQUAD SURGE ${surgeRemaining}s`
           : comboLevel
             ? `LINK ${comboLevel}/3 · ${comboRemaining}s`
-            : 'RANGKAI 3 AKSI'}
+            : 'RANGKAI 3 AKSI')}
       </b>
     </span>
     <i>

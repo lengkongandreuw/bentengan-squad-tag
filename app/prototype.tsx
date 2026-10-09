@@ -4071,7 +4071,7 @@ const spriteFrame = (
       >
         <div className="ink-noise" />
         {contentGateError && <div className="content-gate-notice" role="alert">
-          {contentGateError}<button onClick={() => setContentGateError('')} aria-label="Tutup pesan">×</button>
+          {t(contentGateError)}<button onClick={() => setContentGateError('')} aria-label={t("Tutup pesan")}>{t("×")}</button>
         </div>}
         {playerProfile && menuStep === 'splash' && (
           <ProfileTriggerButton
@@ -4172,14 +4172,14 @@ const spriteFrame = (
         )}
         {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
         {playerProfile && profileOpen && (
-          <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…" />}>
+          <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")} />}>
             <PlayerProfilePanel
               profile={playerProfile}
               onClose={() => setProfileOpen(false)}
             />
           </Suspense>
         )}
-        {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label="Memuat panel multiplayer…" />}><MultiplayerPanel
+        {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label={t("Memuat panel multiplayer…")} />}><MultiplayerPanel
           initialName={playerProfile?.username}
           arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
           prepareContent={async id=>{
@@ -4394,7 +4394,7 @@ const spriteFrame = (
         />
       </section>
       {playerProfile && profileOpen && (
-        <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…" />}>
+        <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")} />}>
           <PlayerProfilePanel
             profile={playerProfile}
             onClose={() => setProfileOpen(false)}

@@ -1,5 +1,6 @@
-import type { Faction } from '../world/map-data/field-types';
+import { t } from '../../lib/language';
 import { factionName } from '../world/team-tables.ts';
+import type { Faction } from '../world/map-data/field-types';
 
 // Team pick screen: two faction cards with hover/focus highlight.
 // Pure presentation; hover state, asset resolver, and the pick action
@@ -19,7 +20,7 @@ export const TeamScreen = ({
 }) => (
   <section className="team-screen" aria-labelledby="team-title">
     <h1 id="team-title" className="sr-only">
-      Pilih tim
+      {t("Pilih tim")}
     </h1>
     <img className="ghost-logo" src={logoSrc} alt="" />
     {(['red', 'green'] as Faction[]).map((faction) => (
@@ -30,7 +31,7 @@ export const TeamScreen = ({
         onPointerLeave={() => onHover(null)}
         onFocus={() => onHover(faction)}
         onClick={() => onPick(faction)}
-        aria-label={`Pilih ${factionName(faction)}`}
+        aria-label={t(`Pilih ${factionName(faction)}`)}
       >
         <img
           className="team-hero"
@@ -44,10 +45,10 @@ export const TeamScreen = ({
           src={resolveAsset(
             `controls/team-${faction}-${activeFaction === faction ? 'active' : 'normal'}.webp`,
           )}
-          alt={factionName(faction)}
+          alt={t(factionName(faction))}
         />
       </button>
     ))}
-    <div className="team-hint">Arah kiri/kanan untuk memilih · Enter untuk lanjut</div>
+    <div className="team-hint">{t("Arah kiri/kanan untuk memilih · Enter untuk lanjut")}</div>
   </section>
 );

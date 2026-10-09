@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import { AudioSettings } from './audio-settings.tsx';
 import { GraphicsSettings } from './graphics-settings.tsx';
 
@@ -26,14 +27,14 @@ export const MenuActionsRow = ({
         onKeyDown={(event) => event.stopPropagation()}
         onClick={onAbout}
       >
-        ABOUT DEVELOPER
+        {t("ABOUT DEVELOPER")}
       </button>
     )}
     <button
       className={`sound-trigger ${musicMuted ? 'muted' : ''}`}
       onClick={onToggleMusic}
       aria-pressed={musicMuted}
-      aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+      aria-label={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
     >
       <img
         src={resolveAsset(`controls/sound-trigger-${musicMuted ? 'off' : 'on'}.png`)}
@@ -41,7 +42,7 @@ export const MenuActionsRow = ({
       />
     </button>
     <button className="rules-button graffiti-primary" onClick={onOpenRules}>
-      <span>GAME RULES</span>
+      <span>{t("GAME RULES")}</span>
     </button>
     <AudioSettings
       onOpen={onAudioOpen}

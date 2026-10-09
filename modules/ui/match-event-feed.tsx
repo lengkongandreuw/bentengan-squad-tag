@@ -1,4 +1,5 @@
 import type { MatchEvent, MatchEventKind } from '../game-core/match-types';
+import { t } from '../../lib/language';
 
 // Match-event toasts (tag / rescue / rescue-request) over the HUD.
 // Pure presentation: events and the prebuilt frame table are injected.
@@ -18,21 +19,18 @@ export const MatchEventFeed = ({
           <p>
             {event.kind === 'tag' && (
               <>
-                <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                menangkap{' '}
-                <strong className={event.targetTeam}>{event.targetName}</strong>
+                <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("menangkap")}{t(' ')}
+                <strong className={event.targetTeam}>{t(event.targetName)}</strong>
               </>
             )}
             {event.kind === 'rescue' && (
               <>
-                <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                menyelamatkan tim
+                <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("menyelamatkan tim")}
               </>
             )}
             {event.kind === 'rescue-request' && (
               <>
-                <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                meminta rescue!
+                <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("meminta rescue!")}
               </>
             )}
           </p>

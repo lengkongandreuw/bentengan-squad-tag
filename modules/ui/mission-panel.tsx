@@ -16,6 +16,8 @@ import { factionName } from '../world/team-tables.ts';
 import { CharacterPreview } from './character-preview.tsx';
 import { publicAsset } from '../../lib/characters.ts';
 import GAME_RULES from '../../config/game-rules.json' with { type: 'json' };
+import { t } from '../../lib/language';
+import { playerStateLabel } from '../../lib/player-copy.ts';
 
 // Slide-in objectives/mission panel. Pure presentation: open state,
 // snapshot, and the close callback arrive as props.
@@ -40,88 +42,84 @@ export const MissionPanel = ({
     <button
       className="mission-close"
       onClick={onClose}
-      aria-label="Tutup tujuan"
+      aria-label={t("Tutup tujuan")}
     >
       <X size={20} />
     </button>
     <div className="mission-head">
-      <span>Rules test · {missionCount}/6</span>
-      <h2>Buktikan core loop</h2>
+      <span>{t(`Rules test · ${missionCount}/6`)}</span>
+      <h2>{t("Buktikan core loop")}</h2>
     </div>
     <div className="mission-progress">
       <span style={{ width: `${missionCount * (100 / 6)}%` }} />
     </div>
     <div className="computed-status">
       <span>
-        Keluar base{' '}
-        <b>{snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—'}</b>
+        {t("Keluar base ")}{t(snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—')}
       </span>
       <span>
-        Status benteng <b>{snapshot.fortLock}</b>
+        {t("Status benteng ")}<b>{t(snapshot.fortLock)}</b>
       </span>
       <span>
-        Refill aktif <b>{snapshot.pickupCount}</b>
+        {t("Refill aktif ")}<b>{t(snapshot.pickupCount)}</b>
       </span>
       <span>
-        Rotasi arena <b>{snapshot.fieldWins}/3</b>
+        {t("Rotasi arena ")}<b>{t(snapshot.fieldWins)}{t("/3")}</b>
       </span>
     </div>
     <ul className="mission-list">
       <li className={snapshot.mission.refresh ? 'done' : ''}>
         {snapshot.mission.refresh ? <Check size={18} /> : <Flag size={18} />}
         <div>
-          <b>Refresh prioritas</b>
+          <b>{t("Refresh prioritas")}</b>
           <span>
-            Kembali ke benteng dan keluar lagi sebagai urutan terbaru.
+            {t("Kembali ke benteng dan keluar lagi sebagai urutan terbaru.")}
           </span>
         </div>
       </li>
       <li className={snapshot.mission.boost ? 'done' : ''}>
         <BatteryCharging size={18} />
         <div>
-          <b>Sprint terbatas</b>
+          <b>{t("Sprint terbatas")}</b>
           <span>
-            Tekan Space untuk ledakan lari{' '}
-            {GAME_RULES.boostDurationMs / 1000} detik. Pulih 20 detik atau
-            ambil refill.
+            {t("Tekan Space untuk ledakan lari")}{' '}
+            {t(GAME_RULES.boostDurationMs / 1000)}{t(" detik. Pulih 20 detik atau ambil refill.")}
           </span>
         </div>
       </li>
       <li className={snapshot.mission.parkour ? 'done' : ''}>
         <Gauge size={18} />
         <div>
-          <b>Parkour kontekstual</b>
+          <b>{t("Parkour kontekstual")}</b>
           <span>
-            Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel,
-            gunakan tombol PARKOUR di sisi kanan.
+            {t("Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel, gunakan tombol PARKOUR di sisi kanan.")}
           </span>
         </div>
       </li>
       <li className={snapshot.mission.tag ? 'done' : ''}>
         <Zap size={18} />
         <div>
-          <b>Menangkap target</b>
+          <b>{t("Menangkap target")}</b>
           <span>
-            Outline hijau = keluar lebih dulu dan boleh ditangkap.
+            {t("Outline hijau = keluar lebih dulu dan boleh ditangkap.")}
           </span>
         </div>
       </li>
       <li className={snapshot.mission.rescue ? 'done' : ''}>
         <Shield size={18} />
         <div>
-          <b>Bebaskan penjara</b>
+          <b>{t("Bebaskan penjara")}</b>
           <span>
-            Jangkau rekan terluar untuk membebaskan seluruh rantai.
+            {t("Jangkau rekan terluar untuk membebaskan seluruh rantai.")}
           </span>
         </div>
       </li>
       <li className={snapshot.mission.combo ? 'done' : ''}>
         <Users size={18} />
         <div>
-          <b>Combo aksi tim</b>
+          <b>{t("Combo aksi tim")}</b>
           <span>
-            Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik
-            untuk Squad Surge.
+            {t("Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik untuk Squad Surge.")}
           </span>
         </div>
       </li>
@@ -130,23 +128,22 @@ export const MissionPanel = ({
       <>
         <div className={`team-status ${selectedFaction}`}>
           <span>
-            {selectedFaction
+            {t(selectedFaction
               ? factionName(selectedFaction).toUpperCase()
-              : 'TIM'}{' '}
-            · 5 PEMAIN UNIK
+              : 'TIM')}{t(' ')}{t("· 5 PEMAIN UNIK")}
           </span>
           {snapshot.team.map((member, index) => (
             <div key={`${member.name}-${index}`}>
               <CharacterPreview id={member.characterId} />
-              <b>{member.name}</b>
+              <b>{t(member.name)}</b>
               <i style={{ width: `${Math.min(100, member.boost)}%` }} />
-              <em>{member.state.replace('_', ' ')}</em>
+              <em>{t(playerStateLabel(member.state))}</em>
             </div>
           ))}
         </div>
         <div className="event-feed">
           {snapshot.logs.map((entry, index) => (
-            <p key={`${entry}-${index}`}>{entry}</p>
+            <p key={`${entry}-${index}`}>{t(entry)}</p>
           ))}
         </div>
       </>
@@ -154,22 +151,21 @@ export const MissionPanel = ({
       <div className="reference-card">
         <img
           src={publicAsset('characters.webp?v=8')}
-          alt="Referensi karakter Benteng Squad Tag"
+          alt={t("Referensi karakter Benteng Squad Tag")}
         />
         <div>
-          <b>Empat belas sprite produksi terpasang</b>
+          <b>{t("Empat belas sprite produksi terpasang")}</b>
           <span>
-            Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi
-            arah, tag, rescue, tahanan, menang, dan kalah.
+            {t("Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.")}
           </span>
         </div>
       </div>
     )}
     <div className="audio-note">
-      {musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-      {musicMuted
+      {t(musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />)}
+      {t(musicMuted
         ? 'Musik latar mati. Suara arena dan efek tetap aktif.'
-        : 'Musik menu dan pertandingan aktif setelah interaksi pertama.'}
+        : 'Musik menu dan pertandingan aktif setelah interaksi pertama.')}
     </div>
   </aside>
 );

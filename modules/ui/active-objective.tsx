@@ -1,4 +1,5 @@
 import { Flag } from 'lucide-react';
+import { t } from '../../lib/language';
 
 // Active-objective button opening the mission panel.
 export const ActiveObjective = ({
@@ -11,16 +12,16 @@ export const ActiveObjective = ({
   <button
     className="active-objective"
     onClick={onOpen}
-    aria-label={`Tujuan aktif: ${missionCount} dari 6`}
+    aria-label={t(`Tujuan aktif: ${missionCount} dari 6`)}
     data-progress={missionCount}
   >
     <Flag size={20} />
     <span>
-      <small>TUJUAN AKTIF · {missionCount}/6</small>
+      <small>{t("TUJUAN AKTIF · ")}{missionCount}{t("/6")}</small>
       <b>
-        {missionCount === 6 ? 'Semua misi selesai' : 'Buktikan core loop'}
+        {t(missionCount === 6 ? 'Semua misi selesai' : 'Buktikan core loop')}
       </b>
     </span>
-    <i>›</i>
+    <i>{t("›")}</i>
   </button>
 );
