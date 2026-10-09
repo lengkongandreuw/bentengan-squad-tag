@@ -1,6 +1,9 @@
 'use client';
+import { t } from '../lib/language';
+
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { LanguageSettings } from './language-settings';
 import { DEFAULT_GRAPHICS, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, GRAPHICS_STORAGE_KEY, graphicsPreset, saveGraphicsPreset, type GraphicsPreset } from '../lib/graphics-settings.js';
 
 export function GraphicsSettings({onOpen}: {onOpen?:()=>void}) {
@@ -24,19 +27,20 @@ export function GraphicsSettings({onOpen}: {onOpen?:()=>void}) {
     try { setSaved(localStorage.getItem(GRAPHICS_STORAGE_KEY)===value); } catch { setSaved(false); }
   };
   return <>
-    <button type="button" className="graphics-settings-trigger" aria-label="Pengaturan grafis" onKeyDown={e=>e.stopPropagation()} onKeyUp={e=>e.stopPropagation()} onClick={()=>{onOpen?.();setOpen(true);}}>GRAFIS</button>
-    {open&&createPortal(<dialog ref={dialog} className="graphics-settings-panel" aria-labelledby={title} onCancel={e=>{e.preventDefault();setOpen(false);}} onKeyDown={e=>e.stopPropagation()} onKeyUp={e=>e.stopPropagation()}>
-      <header><h2 id={title}>PENGATURAN GRAFIS</h2><button type="button" aria-label="Tutup pengaturan grafis" onClick={()=>setOpen(false)}>×</button></header>
-      <p>Pilih tampilan yang nyaman untuk perangkat Anda. Perubahan langsung berlaku tanpa memulai ulang pertandingan.</p>
-      <fieldset><legend>Kualitas in-game</legend>
-        {(Object.keys(GRAPHICS_PRESETS) as GraphicsPreset[]).map(value=><label key={value} className={preset===value?'selected':''}>
+    <button type="button" className="graphics-settings-trigger" aria-label={t("Pengaturan grafis")} onKeyDown={e=>e.stopPropagation()} onKeyUp={e=>e.stopPropagation()} onClick={()=>{onOpen?.();setOpen(true);}}>{t("GRAFIS")}</button>
+    {t(open&&createPortal(<dialog ref={dialog} className="graphics-settings-panel" aria-labelledby={title} onCancel={e=>{e.preventDefault();setOpen(false);}} onKeyDown={e=>e.stopPropagation()} onKeyUp={e=>e.stopPropagation()}>
+      <header><h2 id={title}>{t("PENGATURAN GRAFIS")}</h2><button type="button" aria-label={t("Tutup pengaturan grafis")} onClick={()=>setOpen(false)}>{t("×")}</button></header>
+      <p>{t("Pilih tampilan yang nyaman untuk perangkat Anda. Perubahan langsung berlaku tanpa memulai ulang pertandingan.")}</p>
+      <LanguageSettings />
+      <fieldset><legend>{t("Kualitas in-game")}</legend>
+        {t((Object.keys(GRAPHICS_PRESETS) as GraphicsPreset[]).map(value=><label key={value} className={preset===value?'selected':''}>
           <input type="radio" name={title} value={value} checked={preset===value} onChange={()=>choose(value)}/>
-          <span><b>{GRAPHICS_PRESETS[value].label}</b><small>{value==='auto'?'Efek lengkap; ketajaman menyesuaikan kemampuan perangkat (default).':value==='high'?'Ketajaman dan efek lengkap.':value==='balanced'?'Ketajaman sedang; partikel dan kilau air lebih sedikit.':'Render lebih rendah; partikel dan kilau air minimal.'}</small></span>
-        </label>)}
+          <span><b>{t(GRAPHICS_PRESETS[value].label)}</b><small>{t(value==='auto'?'Efek lengkap; ketajaman menyesuaikan kemampuan perangkat (default).':value==='high'?'Ketajaman dan efek lengkap.':value==='balanced'?'Ketajaman sedang; partikel dan kilau air lebih sedikit.':'Render lebih rendah; partikel dan kilau air minimal.')}</small></span>
+        </label>))}
       </fieldset>
-      <p>Menu dan teks UI tetap tajam. Semua karakter, animasi, objek, tanda ultimate, collision, dan aturan permainan tetap sama.</p>
-      <output aria-live="polite">{saved?'Pilihan disimpan di browser ini.':'Pilihan aktif untuk sesi ini; penyimpanan browser tidak tersedia.'}</output>
-      <footer><button type="button" onClick={()=>choose(DEFAULT_GRAPHICS)}>Kembalikan default</button><button type="button" onClick={()=>setOpen(false)}>Selesai</button></footer>
-    </dialog>,document.body)}
+      <p>{t("Menu dan teks UI tetap tajam. Semua karakter, animasi, objek, tanda ultimate, collision, dan aturan permainan tetap sama.")}</p>
+      <output aria-live="polite">{t(saved?'Pilihan disimpan di browser ini.':'Pilihan aktif untuk sesi ini; penyimpanan browser tidak tersedia.')}</output>
+      <footer><button type="button" onClick={()=>choose(DEFAULT_GRAPHICS)}>{t("Kembalikan default")}</button><button type="button" onClick={()=>setOpen(false)}>{t("Selesai")}</button></footer>
+    </dialog>,document.body))}
   </>;
 }

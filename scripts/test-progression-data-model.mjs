@@ -215,8 +215,8 @@ test('module14 one nonblocking panel renders multiple unlocks and dismissal/dupl
   const before = JSON.stringify(result);
   const props = { result, arenas, dismissed: false, onDismiss: () => {} };
   const markup = renderToStaticMarkup(createElement(UnlockNotificationPanel, props));
-  assert.match(markup, /NEW CHARACTER UNLOCKED/); assert.match(markup, /Bebe/);
-  assert.match(markup, /NEW ARENA UNLOCKED/); assert.match(markup, /Pasar Senggol/);
+  assert.match(markup, /NEW CHARACTER/); assert.match(markup, /Bebe/);
+  assert.match(markup, /NEW ARENA/); assert.match(markup, /Pasar Senggol/);
   assert.equal((markup.match(/aria-live="polite"/g) ?? []).length, 1);
   assert.doesNotMatch(markup, /role="dialog"|aria-modal/);
   assert.equal(renderToStaticMarkup(createElement(UnlockNotificationPanel, { ...props, dismissed: true })), '');
@@ -249,8 +249,8 @@ test('module13 resolver snapshots capped breakdown, level, next goal and no-op r
   assert.equal(result.nextCharacter.characterId, 'jago'); assert.equal(result.nextCharacter.xpRemaining, 130);
   const snapshot = JSON.stringify(result);
   const markup = renderToStaticMarkup(createElement(MatchProgressionSummary, { result }));
-  assert.match(markup, /222 XP TOTAL/); assert.match(markup, /LEVEL 3/);
-  assert.match(markup, /620.*750/); assert.match(markup, /Jago/); assert.match(markup, /130 XP lagi/);
+  assert.match(markup, /222 TOTAL XP/); assert.match(markup, /LEVEL 3/);
+  assert.match(markup, /620.*750/); assert.match(markup, /Jago/); assert.match(markup, /130 XP to go/);
   assert.equal(renderToStaticMarkup(createElement(MatchProgressionSummary, { result })), markup);
   assert.equal(JSON.stringify(result), snapshot);
   const duplicate = applyMatchProgression(result.profile, summary);

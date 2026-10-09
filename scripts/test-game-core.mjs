@@ -665,8 +665,10 @@ test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison,
   // Evaluate actual runtime field projection with an enabled detached draft;
   // never activate it in the real user's config.
   const fixtureMap={...draft,enabled:true};
+  const copyExports={};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/player-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:copyExports});
   const projected={...ctx,studioMaps:[fixtureMap],studioBuiltinStates:{},studioMapById:{[draft.id]:fixtureMap},
-    arenaRulesFor,prepareArenaMap,kanalColliderObjects:(await import('../lib/map-arena-rules.js')).kanalColliderObjects,
+    arenaRulesFor,prepareArenaMap,arenaCopy:copyExports.arenaCopy,playerArenaCopy:copyExports.playerArenaCopy,kanalColliderObjects:(await import('../lib/map-arena-rules.js')).kanalColliderObjects,
     kanalObjectPolygons:(await import('../lib/kanal-footprints.js')).kanalObjectPolygons};
   projected.isKanalField=id=>id==='kanal2'||arenaRulesFor(projected.studioMapById[id])==='kanal2';
   vm.runInNewContext(ts.transpile(src.slice(start,src.indexOf('const FIELD_BY_ID ='))+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),projected);

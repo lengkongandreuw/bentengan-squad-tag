@@ -1,4 +1,6 @@
 'use client';
+import { t } from '../lib/language';
+
 import {useEffect,useRef,useState} from 'react';
 import {hostSession,joinSession,type MultiplayerSession,type SessionState} from '../lib/multiplayer/session';
 import {botPreview,canStartLobby,teamCharacters} from '../lib/multiplayer/lobby';
@@ -49,52 +51,52 @@ export function MultiplayerPanel({onClose,arenas,prepareContent,onLaunch,onEnded
   if(state?.phase==='playing'&&onLaunch)return null;
   return <div className="multiplayer-overlay">
     <dialog ref={dialog} aria-modal="true" aria-labelledby="multiplayer-title" className="multiplayer-panel" onCancel={e=>{e.preventDefault();close();}} onKeyDown={e=>e.stopPropagation()}>
-      <header><h2 id="multiplayer-title">MULTIPLAYER · LOBBY</h2><button type="button" onClick={close} aria-label="Tutup multiplayer">×</button></header>
-      <p>Main bersama 2–4 pemain. Slot kosong diisi bot.</p>
-      <details className="multiplayer-note"><summary>Detail koneksi dan penyimpanan</summary><p>Host menjalankan simulasi; XP dan DOI disimpan di profil lokal masing-masing. Kode room bukan password/login, dan progression lokal tidak anti-cheat. Versi game dan arena wajib cocok.</p></details>
-      {!state&&<>
-        <nav className="multiplayer-flows" aria-label="Cara masuk room">
-          <button aria-pressed={flow==='host'} disabled={busy} onClick={()=>setFlow('host')}>Buat room</button>
-          <button aria-pressed={flow==='client'} disabled={busy} onClick={()=>setFlow('client')}>Gabung room</button>
+      <header><h2 id="multiplayer-title">{t("MULTIPLAYER · LOBBY")}</h2><button type="button" onClick={close} aria-label={t("Tutup multiplayer")}>{t("×")}</button></header>
+      <p>{t("Main bersama 2–4 pemain. Slot kosong diisi bot.")}</p>
+      <details className="multiplayer-note"><summary>{t("Koneksi & data pemain")}</summary><p>{t("Game berjalan di perangkat pembuat room (host). XP dan DOI disimpan di browser masing-masing, bukan akun online. Kode room hanya untuk bergabung, bukan password. Data lokal tidak terlindungi dari manipulasi. Semua pemain harus memakai versi game dan arena yang sama.")}</p></details>
+      {t(!state&&<>
+        <nav className="multiplayer-flows" aria-label={t("Cara masuk room")}>
+          <button aria-pressed={flow==='host'} disabled={busy} onClick={()=>setFlow('host')}>{t("Jadi host")}</button>
+          <button aria-pressed={flow==='client'} disabled={busy} onClick={()=>setFlow('client')}>{t("Punya kode")}</button>
         </nav>
-        <label>Nama pemain<input maxLength={32} value={name} onChange={e=>setName(e.target.value)} disabled={busy}/></label>
-        {flow==='client'&&<label>Kode atau link undangan dari host<input value={code} onChange={e=>{const value=e.target.value;setCode(value);const invite=parseInvite(value,arenas??[]);if(invite?.arenaId)setArena(invite.arenaId);}} placeholder="BNT-… atau link undangan" disabled={busy} autoComplete="off"/></label>}
-        {arenas&&<label>{flow==='host'?'Arena pertandingan':parseInvite(code,arenas)?.arenaId?'Arena mengikuti undangan host':'Arena host (pilih jika hanya menerima kode)'}<select aria-label="Arena multiplayer" value={arena} onChange={e=>setArena(e.target.value)} disabled={busy||flow==='client'&&!!parseInvite(code,arenas)?.arenaId}>{arenas.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
-        {flow==='host'?<button type="button" disabled={busy||!name.trim()} onClick={()=>void connect('host')}>HOST MATCH</button>
-          :<button type="button" disabled={busy||!name.trim()||!code.trim()} onClick={()=>void connect('client')}>JOIN MATCH</button>}
-        {busy&&<output aria-live="polite">Membuka transport WebRTC…</output>}
-      </>}
-      {state&&<>
-        <div className="multiplayer-room"><span>Room · {state.role==='host'?'HOST':'CLIENT'}</span><code>{state.roomCode}</code>
-          <button type="button" onClick={()=>{if(!navigator.clipboard?.writeText){setError('Clipboard tidak tersedia. Pilih dan salin kode di atas.');return;}void navigator.clipboard.writeText(state.roomCode).then(()=>setCopied(true)).catch(()=>setError('Clipboard tidak tersedia. Pilih dan salin kode di atas.'));}}>{copied?'TERSALIN':'SALIN KODE'}</button></div>
-        <label>Link undangan (arena otomatis)<input readOnly value={createInvite(window.location.href,state.roomCode,arena)} onFocus={e=>e.target.select()}/></label>
+        <label>{t("Nama pemain")}<input maxLength={32} value={name} onChange={e=>setName(e.target.value)} disabled={busy}/></label>
+        {t(flow==='client'&&<label>{t("Kode atau link undangan dari host")}<input value={code} onChange={e=>{const value=e.target.value;setCode(value);const invite=parseInvite(value,arenas??[]);if(invite?.arenaId)setArena(invite.arenaId);}} placeholder={t("BNT-… atau link undangan")} disabled={busy} autoComplete="off"/></label>)}
+        {t(arenas&&<label>{t(flow==='host'?'Arena pertandingan':parseInvite(code,arenas)?.arenaId?'Arena mengikuti undangan host':'Arena host (pilih jika hanya menerima kode)')}<select aria-label={t("Arena multiplayer")} value={arena} onChange={e=>setArena(e.target.value)} disabled={busy||flow==='client'&&!!parseInvite(code,arenas)?.arenaId}>{t(arenas.map(a=><option key={a.id} value={a.id}>{t(a.name)}</option>))}</select></label>)}
+        {t(flow==='host'?<button type="button" disabled={busy||!name.trim()} onClick={()=>void connect('host')}>{t("BUAT ROOM")}</button>
+          :<button type="button" disabled={busy||!name.trim()||!code.trim()} onClick={()=>void connect('client')}>{t("GABUNG ROOM")}</button>)}
+        {t(busy&&<output aria-live="polite">{t("Menyiapkan koneksi…")}</output>)}
+      </>)}
+      {t(state&&<>
+        <div className="multiplayer-room"><span>{t("Room · ")}{t(state.role==='host'?'HOST':'CLIENT')}</span><code>{t(state.roomCode)}</code>
+          <button type="button" onClick={()=>{if(!navigator.clipboard?.writeText){setError('Clipboard tidak tersedia. Pilih dan salin kode di atas.');return;}void navigator.clipboard.writeText(state.roomCode).then(()=>setCopied(true)).catch(()=>setError('Clipboard tidak tersedia. Pilih dan salin kode di atas.'));}}>{t(copied?'TERSALIN':'SALIN KODE')}</button></div>
+        <label>{t("Link undangan (arena otomatis)")}<input readOnly value={createInvite(window.location.href,state.roomCode,arena)} onFocus={e=>e.target.select()}/></label>
         <button type="button" onClick={()=>{const url=createInvite(window.location.href,state.roomCode,arena);
           if(navigator.share){void navigator.share({title:'Main Benteng bersama',url}).catch(e=>{if(e?.name!=='AbortError')setError('Gagal membagikan. Salin link undangan di atas.');});}
           else if(navigator.clipboard?.writeText){void navigator.clipboard.writeText(url).then(()=>setCopied(true)).catch(()=>setError('Pilih dan salin link undangan di atas.'));}
-          else setError('Pilih dan salin link undangan di atas.');}}>BAGIKAN UNDANGAN</button>
-        <output aria-live="polite">{state.phase==='connecting'?'Menghubungkan ke host…':state.phase==='lobby'?'Lobby terhubung':state.phase==='playing'?'Lobby dikunci · persiapan disetujui':'Room ditutup'}
-          {state.latencyMs!==null?` · ping ${Math.round(state.latencyMs)} ms`:''}</output>
-        {lobby&&<>
-          <ul className="multiplayer-participants">{lobby.participants.map(p=><li key={p.peerId}>
-            <span>{p.name}{p.host?' · HOST':''}</span><span>{p.team==='red'?'MERAH':'HIJAU'} · {p.characterId.toUpperCase()} · {p.ready?'SIAP':'BELUM SIAP'}</span>
-          </li>)}</ul>
-          <p>Slot bot: Merah {bots!.red} · Hijau {bots!.green} (5 vs 5, maksimum 4 manusia).</p>
-          {local&&<div className="multiplayer-selection">
-            <label>Tim<select aria-label="Tim" value={local.team} disabled={state.phase!=='lobby'} onChange={e=>{const team=e.target.value as 'red'|'green';const choice=teamCharacters(team).find(id=>!lobby.participants.some(p=>p.peerId!==local.peerId&&p.team===team&&p.characterId===id));if(choice)session.current?.select(team,choice);else setError('Tim ini tidak memiliki slot karakter kosong.');}}>
-              <option value="red">Merah</option><option value="green">Hijau</option></select></label>
-            <label>Karakter<select aria-label="Karakter" value={local.characterId} disabled={state.phase!=='lobby'} onChange={e=>session.current?.select(local.team,e.target.value as CharacterId)}>
-              {teamCharacters(local.team).map(id=><option key={id} value={id} disabled={lobby.participants.some(p=>p.peerId!==local.peerId&&p.team===local.team&&p.characterId===id)}>{id.toUpperCase()}</option>)}</select></label>
-            <label><input type="checkbox" checked={pendingReady??local.ready} aria-busy={pendingReady!==null} disabled={state.phase!=='lobby'||pendingReady!==null} onChange={e=>{if(state.role==='client'){pendingReadyRef.current=e.target.checked;setPendingReady(e.target.checked);}session.current?.ready(e.target.checked);}}/> Saya siap</label>
-            {pendingReady!==null&&<output aria-live="polite">Menunggu konfirmasi host…</output>}
-          </div>}
-          {state.role==='host'&&<button type="button" disabled={!canStartLobby(lobby)} onClick={()=>session.current?.start()}>MULAI PERSIAPAN ROOM</button>}
-          {state.phase==='lobby'&&<p className="multiplayer-note">Versi build dan revisi arena cocok. Host dapat memulai saat minimal 2 manusia dan semuanya siap.</p>}
-          {state.phase==='playing'&&<p className="multiplayer-note">Belum masuk pertandingan online. Tidak ada simulasi, XP, atau DOI multiplayer yang dijalankan pada tahap ini.</p>}
-        </>}
-        <button type="button" onClick={leave}>KELUAR ROOM</button>
-      </>}
-      {(busy||state?.phase==='connecting'||pendingReady!==null)&&loadingMediaFor('multiplayer-connection')&&<div className="connection-loading-media"><LoadingMedia slot="multiplayer-connection"/></div>}
-      {(error||state?.error)&&<p role="alert" className="multiplayer-error">{error||state?.error}</p>}
+          else setError('Pilih dan salin link undangan di atas.');}}>{t("BAGIKAN UNDANGAN")}</button>
+        <output aria-live="polite">{t(state.phase==='connecting'?'Menghubungkan ke host…':state.phase==='lobby'?'Lobby terhubung':state.phase==='playing'?'Lobby dikunci · persiapan disetujui':'Room ditutup')}
+          {t(state.latencyMs!==null?` · ping ${Math.round(state.latencyMs)} ms`:'')}</output>
+        {t(lobby&&<>
+          <ul className="multiplayer-participants">{t(lobby.participants.map(p=><li key={p.peerId}>
+            <span>{t(p.name)}{t(p.host?' · HOST':'')}</span><span>{t(p.team==='red'?'MERAH':'HIJAU')}{t(" · ")}{t(p.characterId.toUpperCase())}{t(" · ")}{t(p.ready?'SIAP':'BELUM SIAP')}</span>
+          </li>))}</ul>
+          <p>{t("Slot bot: Merah ")}{t(bots!.red)}{t(" · Hijau ")}{t(bots!.green)}{t(" (5 vs 5, maksimum 4 manusia).")}</p>
+          {t(local&&<div className="multiplayer-selection">
+            <label>{t("Tim")}<select aria-label={t("Tim")} value={local.team} disabled={state.phase!=='lobby'} onChange={e=>{const team=e.target.value as 'red'|'green';const choice=teamCharacters(team).find(id=>!lobby.participants.some(p=>p.peerId!==local.peerId&&p.team===team&&p.characterId===id));if(choice)session.current?.select(team,choice);else setError('Tim ini tidak memiliki slot karakter kosong.');}}>
+              <option value="red">{t("Merah")}</option><option value="green">{t("Hijau")}</option></select></label>
+            <label>{t("Karakter")}<select aria-label={t("Karakter")} value={local.characterId} disabled={state.phase!=='lobby'} onChange={e=>session.current?.select(local.team,e.target.value as CharacterId)}>
+              {t(teamCharacters(local.team).map(id=><option key={id} value={id} disabled={lobby.participants.some(p=>p.peerId!==local.peerId&&p.team===local.team&&p.characterId===id)}>{t(id.toUpperCase())}</option>))}</select></label>
+            <label><input type="checkbox" checked={pendingReady??local.ready} aria-busy={pendingReady!==null} disabled={state.phase!=='lobby'||pendingReady!==null} onChange={e=>{if(state.role==='client'){pendingReadyRef.current=e.target.checked;setPendingReady(e.target.checked);}session.current?.ready(e.target.checked);}}/>{t(" Siap main")}</label>
+            {t(pendingReady!==null&&<output aria-live="polite">{t("Menunggu konfirmasi host…")}</output>)}
+          </div>)}
+          {t(state.role==='host'&&<button type="button" disabled={!canStartLobby(lobby)} onClick={()=>session.current?.start()}>{t("MULAI BARENG")}</button>)}
+          {t(state.phase==='lobby'&&<p className="multiplayer-note">{t("Versi build dan revisi arena cocok. Host dapat memulai saat minimal 2 manusia dan semuanya siap.")}</p>)}
+          {t(state.phase==='playing'&&<p className="multiplayer-note">{t("Belum masuk pertandingan online. Tidak ada simulasi, XP, atau DOI multiplayer yang dijalankan pada tahap ini.")}</p>)}
+        </>)}
+        <button type="button" onClick={leave}>{t("KELUAR ROOM")}</button>
+      </>)}
+      {t((busy||state?.phase==='connecting'||pendingReady!==null)&&loadingMediaFor('multiplayer-connection')&&<div className="connection-loading-media"><LoadingMedia slot="multiplayer-connection"/></div>)}
+      {t((error||state?.error)&&<p role="alert" className="multiplayer-error">{t(error||state?.error)}</p>)}
     </dialog>
   </div>;
 }

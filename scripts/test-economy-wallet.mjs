@@ -289,6 +289,7 @@ test('module09 runtime smoke executes actual ultimate block: base/upgraded cast,
     const {stepUltimate,ultimateCasting:coreUltimateCasting,ultimateSpeed}=core;
     const presentGameEvents=(events,consume)=>events.forEach(consume);
     const me=players[0],config=null,keys={current:new Set()},field={id:'kampung'},network=null;
+    const isKanalField=id=>id==='kanal'||id==='kanal2';
     const ULTIMATE_CHARACTER_IDS=new Set(['raja','kaka']);
     const RAJA_ULTIMATE_RECHARGE_SECONDS=45,RAJA_ULTIMATE_CAST_MS=3200,KAKA_ULTIMATE_CAST_MS=3600,
       RAJA_ULTIMATE_BUFF_MS=5000,KAKA_ULTIMATE_SHIELD_MS=5000,RAJA_ULTIMATE_SPEED_MULTIPLIER=1.4;
@@ -479,16 +480,16 @@ test('module10–12 rendered UI uses wallet/catalog/result values and omits unsu
   const {UltimateUpgradeDetails,UltimateUpgradePanel}=load('components/ultimate-upgrade-panel.tsx');
   const {MatchTokenSummary}=load('components/match-token-summary.tsx');
   const render=(Component,props)=>renderToStaticMarkup(React.createElement(Component,props));
-  assert.match(render(TokenWallet,{profile:matchProfile()}),/Saldo 0 DOI/);
+  assert.match(render(TokenWallet,{profile:matchProfile()}),/Balance: 0 DOI/);
   assert.match(render(TokenWallet,{profile:matchProfile()}),/doi-coin\.png/);
   const funded=economy.creditTokens(matchProfile(),input('fund-ui',120)).profile;
   for(const id of ['raja','kaka']) {
     const html=render(UltimateUpgradeDetails,{profile:funded,characterId:id});
     assert.match(html,/economy\/label\.png/);assert.doesNotMatch(html,/TOKEN/);
-    assert.match(html,/LEVEL 0 \/ 3/);assert.match(html,/120 DOI/);assert.match(html,/45 detik/);
-    assert.match(html,/44 detik/);assert.match(html,/5\.5 detik/);
+    assert.match(html,/LEVEL 0 \/ 3/);assert.match(html,/120 DOI/);assert.match(html,/45 seconds/);
+    assert.match(html,/44 seconds/);assert.match(html,/5\.5 seconds/);
     const upgraded=purchase.purchaseUltimateUpgrade(funded,id,`ui-${id}`).profile;
-    assert.match(render(UltimateUpgradeDetails,{profile:upgraded,characterId:id}),/Butuh 280 DOI lagi/);
+    assert.match(render(UltimateUpgradeDetails,{profile:upgraded,characterId:id}),/Need 280 DOI more/);
     assert.match(render(UltimateUpgradePanel,{profile:upgraded,characterId:id,onRefresh:()=>{}}),/UPGRADE ULTIMATE/);
   }
   assert.equal(render(UltimateUpgradeDetails,{profile:funded,characterId:'bebe'}),'');
@@ -534,26 +535,26 @@ test('module11 actual React click handlers confirm once, refresh saved profile, 
     button(render(),'UPGRADE ULTIMATE').props.onClick();
     button(render(),'UPGRADE ·').props.onClick();
     assert.equal(storage.loadPlayerProfile().economy.tokenBalance,400,'opening confirmation cannot debit');
-    button(render(),'BATAL').props.onClick();
+    button(render(),'CANCEL').props.onClick();
     assert.equal(storage.loadPlayerProfile().economy.tokenBalance,400,'cancel cannot debit');
     button(render(),'UPGRADE ·').props.onClick();
-    const confirm=button(render(),'KONFIRMASI PEMBELIAN').props.onClick;
+    const confirm=button(render(),'CONFIRM PURCHASE').props.onClick;
     confirm();confirm();
     assert.equal(profile.economy.tokenBalance,280);assert.equal(purchase.getUltimateUpgradeLevel(profile,'raja'),1);
     assert.equal(profile.economy.recentTransactions.filter(tx=>tx.type==='ultimate_upgrade').length,1);
-    assert.match(textContent(render()),/Berhasil!/);assert.ok(refreshes>=1);
+    assert.match(textContent(render()),/All set!/);assert.ok(refreshes>=1);
     button(render(),'UPGRADE ·').props.onClick();blocked=true;
-    button(render(),'KONFIRMASI PEMBELIAN').props.onClick();
+    button(render(),'CONFIRM PURCHASE').props.onClick();
     assert.equal(profile.economy.tokenBalance,280);assert.equal(purchase.getUltimateUpgradeLevel(profile,'raja'),1);
-    assert.match(textContent(render()),/Gagal menyimpan/);
-    blocked=false;button(render(),'UPGRADE ·').props.onClick();button(render(),'KONFIRMASI PEMBELIAN').props.onClick();
+    assert.match(textContent(render()),/Could not save/);
+    blocked=false;button(render(),'UPGRADE ·').props.onClick();button(render(),'CONFIRM PURCHASE').props.onClick();
     assert.equal(profile.economy.tokenBalance,0);assert.equal(purchase.getUltimateUpgradeLevel(profile,'raja'),2);
-    assert.equal(button(render(),'DOI BELUM CUKUP').props.disabled,true);
+    assert.equal(button(render(),'NOT ENOUGH DOI').props.disabled,true);
     profile=economy.creditTokens(profile,input('stale-fund',520)).profile;storage.savePlayerProfile(profile);
     button(render(),'UPGRADE ·').props.onClick();
     assert.equal(service.purchasePlayerUltimateUpgrade('raja','outside-purchase',2).applied,true);
-    button(render(),'KONFIRMASI PEMBELIAN').props.onClick();
-    assert.match(textContent(render()),/Level telah berubah/);
+    button(render(),'CONFIRM PURCHASE').props.onClick();
+    assert.match(textContent(render()),/Your level has changed/);
     assert.equal(profile.economy.tokenBalance,0);assert.equal(purchase.getUltimateUpgradeLevel(profile,'raja'),3);
     assert.equal(button(render(),'MAX LEVEL').props.disabled,true);
     let stopped=false;elements(render()).find(node=>node.type==='dialog').props.onKeyDown({stopPropagation:()=>{stopped=true;}});

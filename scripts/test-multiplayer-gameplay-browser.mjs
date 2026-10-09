@@ -10,22 +10,22 @@ try{
   const host=await contexts[0].newPage(),client=await contexts[1].newPage();
   for(const [index,page] of [host,client].entries()){
     page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
-    await page.getByLabel('USERNAME',{exact:true}).fill(`NetworkQA${index}`);
-    await page.getByRole('button',{name:'CONFIRM',exact:true}).click();
-    await page.getByRole('button',{name:'MULTIPLAYER · LOBBY',exact:true}).click({timeout:30000});
+    await page.getByLabel("PLAYER NAME",{exact:true}).fill(`NetworkQA${index}`);
+    await page.getByRole('button',{name:"SAVE NAME",exact:true}).click();
+    await page.getByRole('button',{name:"MULTIPLAYER · LOBBY",exact:true}).click({timeout:30000});
   }
-  const arena=await host.getByLabel('Arena multiplayer',{exact:true}).inputValue();
-  await client.getByLabel('Arena multiplayer',{exact:true}).selectOption(arena);
-  await host.getByLabel('Nama pemain',{exact:true}).fill('Host QA');await host.getByRole('button',{name:'HOST MATCH',exact:true}).click();
+  const arena=await host.getByLabel("Multiplayer arena",{exact:true}).inputValue();
+  await client.getByLabel("Multiplayer arena",{exact:true}).selectOption(arena);
+  await host.getByLabel("Player name",{exact:true}).fill('Host QA');await host.getByRole('button',{name:"CREATE ROOM",exact:true}).click();
   await host.locator('dialog code').waitFor();const code=await host.locator('dialog code').textContent();
-  await client.getByRole('button',{name:'Gabung room',exact:true}).click();
-  await client.getByLabel('Nama pemain',{exact:true}).fill('Client QA');await client.getByLabel('Kode atau link undangan dari host',{exact:true}).fill(code);
-  await client.getByRole('button',{name:'JOIN MATCH',exact:true}).click();
-  await client.getByText('Lobby terhubung',{exact:false}).waitFor({timeout:25000});
-  await client.getByLabel('Karakter',{exact:true}).selectOption('kodo'); // reserve outside default 5
+  await client.getByRole('button',{name:"Got a code?",exact:true}).click();
+  await client.getByLabel("Player name",{exact:true}).fill('Client QA');await client.getByLabel("Room code or invite link",{exact:true}).fill(code);
+  await client.getByRole('button',{name:"JOIN ROOM",exact:true}).click();
+  await client.getByText("Lobby connected",{exact:false}).waitFor({timeout:25000});
+  await client.getByLabel("Character",{exact:true}).selectOption('kodo'); // reserve outside default 5
   await host.getByText('HIJAU · KODO · BELUM SIAP',{exact:true}).waitFor();
-  await client.getByLabel('Saya siap',{exact:false}).check();
-  await host.getByRole('button',{name:'MULAI PERSIAPAN ROOM',exact:true}).click();
+  await client.getByLabel("Ready to play",{exact:false}).check();
+  await host.getByRole('button',{name:"START MATCH",exact:true}).click();
   for(const page of [host,client])await page.waitForFunction(()=>window.__bentengGameCore?.readState().phase==='PLAYING',{},{timeout:20000});
   const before=await read(host),remote=before.entities.find(p=>p.controller==='remote'),local=before.entities.find(p=>p.controller==='local');
   if(!remote||remote.characterId!=='kodo'||before.entities.length!==10)throw Error('Incorrect human/bot roster');

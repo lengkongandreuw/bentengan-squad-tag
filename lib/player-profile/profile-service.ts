@@ -30,9 +30,9 @@ export const normalizeUsername = (value: string) => value.trim().replace(/\s+/g,
 export const usernameError = (value: string): string | null => {
   const username = normalizeUsername(value);
   if (username.length < USERNAME_MIN_LENGTH)
-    return `Username minimal ${USERNAME_MIN_LENGTH} karakter.`;
+    return `Nama pemain minimal ${USERNAME_MIN_LENGTH} karakter.`;
   if (username.length > USERNAME_MAX_LENGTH)
-    return `Username maksimal ${USERNAME_MAX_LENGTH} karakter.`;
+    return `Nama pemain maksimal ${USERNAME_MAX_LENGTH} karakter.`;
   return null;
 };
 

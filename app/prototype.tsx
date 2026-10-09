@@ -1,4 +1,6 @@
 'use client';
+import { t, useLanguage } from '../lib/language';
+
 
 import {
   lazy,
@@ -78,6 +80,7 @@ import { studioFlightClip } from '../lib/sprite-studio';
 import { AudioSettings } from '../components/audio-settings';
 import { GraphicsSettings } from '../components/graphics-settings';
 import { LoadingMedia, LoadingPanel, loadingUsesBuiltinProgress } from '../components/loading-media';
+import {roleLabel,arenaCopy,playerArenaCopy,playerStateLabel} from '../lib/player-copy';
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
 import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
 import { GameplayAudio } from '../lib/gameplay-audio';
@@ -2675,6 +2678,7 @@ if (arenaValidationErrors.length > 0)
   throw new Error(arenaValidationErrors.join('\n'));
 // Custom maps are already in world coordinates. Existing arena definitions remain untouched.
 const replacedFields = new Set(studioMaps.map(map => map.replaces));
+FIELD_CONFIGS.forEach(field=>{field.kicker=arenaCopy[field.id]??field.kicker;});
 const nativeFieldConfigs = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field]));
 const kanalReference = kanalColliderObjects(nativeFieldConfigs.kanal2.obstacles, kanalObjectPolygons);
 const runtimeStudioMapById = Object.fromEntries(studioMaps.map(map=>[map.id,prepareArenaMap(map,kanalReference)]));
@@ -2683,7 +2687,7 @@ for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
   if (replacedFields.has(id) || ['archived','deleted'].includes(studioBuiltinStates[id])) FIELD_CONFIGS.splice(index, 1);
 }
 FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
-  id: map.id, name: map.name, kicker: map.description, difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
+  id: map.id, name: map.name, kicker: playerArenaCopy(map.id,map.description,map.replaces), difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
   aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined, ground: 'kampungGround', width: map.width, height: map.height,
   bases: map.bases, prisons: Object.fromEntries(Object.entries(map.prisons).map(([team,p])=>[team,{
     ...(map.replaces ? nativeFieldConfigs[map.replaces].prisons[team as Team] : arenaRulesFor(map)==='kanal2' ? nativeFieldConfigs.kanal2.prisons[team as Team] : {}),...p,
@@ -2851,7 +2855,7 @@ const CharacterPreview = ({
         ? characterFullBodyPortrait(id)
         : characterPreviewIcon(id)
     }
-    alt={alt}
+    alt={t(alt)}
     loading={eager ? 'eager' : 'lazy'}
     decoding="async"
     onError={(event) => {
@@ -2939,6 +2943,7 @@ const getFieldImage = (asset: string) => {
 };
 
 export function BentenganPrototype() {
+  useLanguage();
   const [hudPreferences,setHudPreferences]=useHudPreferences();
   const hudPreferencesRef=useRef(hudPreferences);
   hudPreferencesRef.current=hudPreferences;
@@ -4209,7 +4214,7 @@ export function BentenganPrototype() {
       phase = 'COUNTDOWN';
       phaseUntil = performance.now() + 2800;
       announcement = `RONDE ${round}`;
-      log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
+        log(`Ronde ${round} · siapkan tim di benteng!`);
     };
     const winRound = (team: Team, reason: string) => {
       const resultNow = performance.now();
@@ -4632,7 +4637,7 @@ export function BentenganPrototype() {
       );
       if (isPlayerTeam) {
         mission.combo = true;
-        comboCallout = 'SQUAD SURGE · SPEED +10%';
+        comboCallout = 'SQUAD SURGE · KECEPATAN +10%';
         comboCalloutUntil = now + 2500;
       }
     };
@@ -4670,7 +4675,7 @@ export function BentenganPrototype() {
         log(`${rescuer.name} membebaskan ${held.length} rekan.`);
       } else if(event.type==='FORCED_EXIT'||event.type==='BOOST_RECOVERED'){
         const p=players.find(p=>p.entityId===event.actorId);if(!p)return;
-        if(event.type==='FORCED_EXIT')log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
+        if(event.type==='FORCED_EXIT')log(`${p.name} keluar benteng · waktu tunggu 5 detik habis.`);
         else if(p.controlled){log(`Boost ${p.name} pulih penuh setelah 20 detik.`);beep(690,.13);}
       } else if(event.type==='FORT_ENTERED'){
         if(event.actorId===players[0].entityId)gameplayAudio.play('fort-enter');
@@ -4906,7 +4911,7 @@ export function BentenganPrototype() {
           log(`PERISAI HIJAU · seluruh rekan kebal TAG selama ${fact.durationMs/1000} detik.`);
         } else if(fact.type==='ULTIMATE_APPLIED') {
           burst(me.x,me.y,'#ef233c',28);burst(me.x,me.y,'#b54a32',18);beep(118,.32);
-          log(`TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +${Math.round((fact.speedMultiplier-1)*100)}% selama ${fact.durationMs/1000} detik.`);
+          log(`TITAH HALILINTAR · rekan di lapangan bergerak +${Math.round((fact.speedMultiplier-1)*100)}% selama ${fact.durationMs/1000} detik.`);
         }
       });
       const ultimateCasting = coreUltimateCasting(me,now,ULTIMATE_CHARACTER_IDS);
@@ -5461,7 +5466,7 @@ export function BentenganPrototype() {
         target.fillStyle = '#fff0cf';
         target.textAlign = 'center';
         target.fillText(
-          `${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`,
+          t(`${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`),
           worldWidth / 2,
           55,
         );
@@ -5712,14 +5717,14 @@ export function BentenganPrototype() {
       ctx.font = '800 10px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(
-        team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU',
+        t(team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU'),
         b.x,
         baseLabelY,
       );
       if (occupant) {
         ctx.fillStyle = '#f5cf45';
         ctx.font = '900 9px Arial';
-        ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, baseLabelY + 14);
+        ctx.fillText(t(`TERKUNCI · ${occupant.name}`), b.x, baseLabelY + 14);
       }
     };
     let debugLayer: HTMLCanvasElement | null = null;
@@ -6204,7 +6209,7 @@ export function BentenganPrototype() {
       }
       const label = p.controlled ? `★ ${p.name}` : p.name;
       ctx.font = `900 ${11*hudPreferencesRef.current.scale}px Arial`;
-      const labelWidth = Math.max(38, ctx.measureText(label).width + 14);
+      const labelWidth = Math.max(38, ctx.measureText(t(label)).width + 14);
       ctx.fillStyle = 'rgba(13,18,14,.92)';
       rounded(p.x - labelWidth / 2, p.y + 23, labelWidth, 17, 5);
       ctx.fill();
@@ -6213,19 +6218,19 @@ export function BentenganPrototype() {
       ctx.stroke();
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
-      ctx.fillText(label, p.x, p.y + 35);
+      ctx.fillText(t(label), p.x, p.y + 35);
       const relation=tagRelationship(me,p,now,isKanalField(field.id));
       if(relation!=='neutral') {
         const text=relation==='target'?'+ TAG':relation==='danger'?'! AWAS':'◇ KEBAL';
         ctx.save();ctx.font=`900 ${11*hudPreferencesRef.current.scale}px Arial`;
-        const width=ctx.measureText(text).width+12;
+        const width=ctx.measureText(t(text)).width+12;
         ctx.fillStyle='#08100ef2';rounded(p.x-width/2,p.y+42,width,20,4);ctx.fill();
-        ctx.fillStyle=outline;ctx.textAlign='center';ctx.fillText(text,p.x,p.y+56);ctx.restore();
+        ctx.fillStyle=outline;ctx.textAlign='center';ctx.fillText(t(text),p.x,p.y+56);ctx.restore();
       }
       if (inWater) {
         ctx.fillStyle = '#b8f8ff';
         ctx.font = '900 7px Arial';
-        ctx.fillText('AIR DALAM · PARKOUR', p.x, p.y + 49);
+        ctx.fillText(t('AIR DALAM · PARKOUR'), p.x, p.y + 49);
       }
       if (p.state === 'ACTIVE') {
         ctx.fillStyle = '#141a15';
@@ -6237,13 +6242,13 @@ export function BentenganPrototype() {
         ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.font = '800 9px Arial';
-        ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 - headOffset + bob);
+        ctx.fillText(t(String(p.exitOrder)), p.x + 23, p.y - 32 - headOffset + bob);
       }
       if (p.state === 'RETURNING') {
         ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45';
         ctx.font = '800 8px Arial';
         ctx.fillText(
-          now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI',
+          t(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI'),
           p.x,
           p.y - 55 - headOffset,
         );
@@ -6251,7 +6256,7 @@ export function BentenganPrototype() {
       if (now < p.fallNoticeUntil) {
         const noticeY = p.y - 78 - headOffset + bob;
         ctx.font = '900 10px Arial';
-        const noticeWidth = ctx.measureText('OOOPSS... HATI-HATI').width + 18;
+        const noticeWidth = ctx.measureText(t('OOOPSS... HATI-HATI')).width + 18;
         ctx.fillStyle = 'rgba(18,25,20,.94)';
         rounded(p.x - noticeWidth / 2, noticeY - 15, noticeWidth, 21, 7);
         ctx.fill();
@@ -6260,7 +6265,7 @@ export function BentenganPrototype() {
         ctx.stroke();
         ctx.fillStyle = '#fff4d1';
         ctx.textAlign = 'center';
-        ctx.fillText('OOOPSS... HATI-HATI', p.x, noticeY);
+        ctx.fillText(t('OOOPSS... HATI-HATI'), p.x, noticeY);
       }
       if (p.state === 'IN_BASE' && p.baseCharge < stats.baseChargeTime) {
         ctx.fillStyle = '#9b9d91';
@@ -6400,7 +6405,7 @@ export function BentenganPrototype() {
           ctx.fillStyle = '#fff5be';
           ctx.font = '900 20px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText('!', rescueRequester.x, rescueRequester.y - 35);
+          ctx.fillText(t('!'), rescueRequester.x, rescueRequester.y - 35);
           ctx.restore();
         }
         particles.forEach((p, index) => {
@@ -6435,7 +6440,7 @@ export function BentenganPrototype() {
           ctx.fillStyle = color;
           ctx.font = '900 9px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText(label, x, y + 3);
+          ctx.fillText(t(label), x, y + 3);
         };
         marker(bases.blue, 'M', TEAM_COLOR.blue);
         marker(bases.red, 'H', TEAM_COLOR.red);
@@ -6455,7 +6460,7 @@ export function BentenganPrototype() {
         ctx.fillStyle = '#fff4d1';
         ctx.font = `800 ${phase === 'COUNTDOWN' ? 90 : 54}px var(--font-heading)`;
         ctx.textAlign = 'center';
-        ctx.fillText(announcement, cw / 2, ch / 2);
+        ctx.fillText(t(announcement), cw / 2, ch / 2);
       }
     };
     let cachedStatsBoard = initialSnapshot.statsBoard;
@@ -7058,29 +7063,29 @@ export function BentenganPrototype() {
     <main
       className={`pregame-shell asset-loading-screen ${selectionLoading ? `loading-ui-${selectedFaction ?? 'red'}` : ''}`}
       aria-busy={!loadError}
-      aria-label={`Memuat aset ${loadProgress}%`}
+      aria-label={t(`Memuat aset ${loadProgress}%`)}
     >
       <LoadingMedia slot={gameLoading?'match':`character-${selectedFaction??'red'}`} arenaId={selectedFieldId}
         fallback={<ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />}/>
-      {selectionLoading && loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) && (
+      {t(selectionLoading && loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) && (
         <img
           className="team-loading-frame"
           src={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
           alt=""
           aria-hidden="true"
         />
-      )}
+      ))}
       <section className={`asset-loading-card ${selectionLoading&&loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`} aria-busy={!loadError} aria-live="polite">
-        <h1>{gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER'}</h1>
-        <p>{loadError || 'Memuat aset… Tunggu sebentar.'}</p>
-        <progress max={100} value={loadProgress} aria-label="Progres pemuatan aset" />
-        <p>{loadProgress}%</p>
-        {loadError && <button onClick={() => setLoadAttempt(v => v + 1)}>COBA LAGI</button>}
+        <h1>{t(gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER')}</h1>
+        <p>{t(loadError || 'Sebentar, timmu sedang bersiap.')}</p>
+        <progress max={100} value={loadProgress} aria-label={t("Progres pemuatan aset")} />
+        <p>{t(loadProgress)}{t("%")}</p>
+        {t(loadError && <button onClick={() => setLoadAttempt(v => v + 1)}>{t("COBA LAGI")}</button>)}
         <button onClick={() => {
           setGameLoading(false);
           setMenuStep('team');
           setLoadError('');
-        }}>KEMBALI KE PILIH TIM</button>
+        }}>{t("KEMBALI KE PILIH TIM")}</button>
       </section>
     </main>
   );
@@ -7097,40 +7102,40 @@ export function BentenganPrototype() {
         }
       >
         <div className="ink-noise" />
-        {contentGateError && <div className="content-gate-notice" role="alert">
-          {contentGateError}<button onClick={() => setContentGateError('')} aria-label="Tutup pesan">×</button>
-        </div>}
-        {playerProfile && menuStep === 'splash' && (
+        {t(contentGateError && <div className="content-gate-notice" role="alert">
+          {t(contentGateError)}<button onClick={() => setContentGateError('')} aria-label={t("Tutup pesan")}>{t("×")}</button>
+        </div>)}
+        {t(playerProfile && menuStep === 'splash' && (
           <button
             className="profile-trigger"
             onClick={() => {
               keys.current.clear();
               setProfileOpen(true);
             }}
-            aria-label="Buka profil pemain"
+            aria-label={t("Buka profil pemain")}
           >
             <UserRound size={19} />
           </button>
-        )}
-        {menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />}
-        {menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />}
-        {menuStep === 'splash' && (
+        ))}
+        {t(menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />)}
+        {t(menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />)}
+        {t(menuStep === 'splash' && (
           <section className="splash-screen" aria-labelledby="game-title">
             <img
               className="splash-hero splash-red"
               src={uiAsset('heroes/red-active.webp')}
-              alt="Raja dari Tim Merah"
+              alt={t("Raja dari Tim Merah")}
             />
             <img
               className="splash-hero splash-green"
               src={uiAsset('heroes/green-active.webp')}
-              alt="Kaka dari Tim Hijau"
+              alt={t("Kaka dari Tim Hijau")}
             />
             <div className="splash-center">
               <img
                 className="splash-logo"
                 src={landingLogoAsset()}
-                alt="Benteng Squad Tag"
+                alt={t("Benteng Squad Tag")}
                 id="game-title"
               />
               <button
@@ -7140,26 +7145,24 @@ export function BentenganPrototype() {
                   setMenuStep('team');
                 }}
               >
-                <span>PRESS</span> SPACE <small>atau klik untuk masuk</small>
+                <span>{t("PRESS")}</span>{t(" SPACE ")}<small>{t("atau klik untuk masuk")}</small>
               </button>
-              <button type="button" className="multiplayer-open" aria-label="MULTIPLAYER · LOBBY" onClick={()=>setMultiplayerOpen(true)}>
+              <button type="button" className="multiplayer-open" aria-label={t("MULTIPLAYER · LOBBY")} onClick={()=>setMultiplayerOpen(true)}>
                 <img src={uiAsset('controls/multiplayer.webp')} alt="" width="1024" height="366" />
               </button>
             </div>
           </section>
-        )}
+        ))}
 
-        {menuStep === 'team' && (
+        {t(menuStep === 'team' && (
           <section className="team-screen" aria-labelledby="team-title">
-            <h1 id="team-title" className="sr-only">
-              Pilih tim
-            </h1>
+            <h1 id="team-title" className="sr-only">{t("Pilih tim")}</h1>
             <img
               className="ghost-logo"
               src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
               alt=""
             />
-            {(['red', 'green'] as Faction[]).map((faction) => (
+            {t((['red', 'green'] as Faction[]).map((faction) => (
               <button
                 key={faction}
                 className={`team-pick team-pick-${faction} ${activeFaction === faction ? 'active' : ''}`}
@@ -7172,7 +7175,7 @@ export function BentenganPrototype() {
                   setMenuStep('character');
                   playCharacterVoice(firstId);
                 }}
-                aria-label={`Pilih ${factionName(faction)}`}
+                aria-label={t(`Pilih ${factionName(faction)}`)}
               >
                 <img
                   className="team-hero"
@@ -7186,17 +7189,15 @@ export function BentenganPrototype() {
                   src={uiAsset(
                     `controls/team-${faction}-${activeFaction === faction ? 'active' : 'normal'}.webp`,
                   )}
-                  alt={factionName(faction)}
+                  alt={t(factionName(faction))}
                 />
               </button>
-            ))}
-            <div className="team-hint">
-              Arah kiri/kanan untuk memilih · Enter untuk lanjut
-            </div>
+            )))}
+            <div className="team-hint">{t("Arah kiri/kanan untuk memilih · Enter untuk lanjut")}</div>
           </section>
-        )}
+        ))}
 
-        {menuStep === 'character' && selectedFaction && (
+        {t(menuStep === 'character' && selectedFaction && (
           <section
             className={`roster-screen faction-${selectedFaction}`}
             aria-labelledby="roster-title"
@@ -7216,7 +7217,7 @@ export function BentenganPrototype() {
               <img
                 className="roster-team-main"
                 src={uiAsset(`controls/team-${selectedFaction}-active.webp`)}
-                alt={factionName(selectedFaction)}
+                alt={t(factionName(selectedFaction))}
               />
               <button
                 className="roster-team-swap"
@@ -7226,36 +7227,33 @@ export function BentenganPrototype() {
                   if (!nextId) return;
                   playCharacterVoice(nextId);
                 }}
-                aria-label="Ganti tim"
+                aria-label={t("Ganti tim")}
               >
                 <img
                   src={uiAsset(
                     `controls/team-${selectedFaction === 'red' ? 'green' : 'red'}-normal.webp`,
                   )}
-                  alt={factionName(selectedFaction === 'red' ? 'green' : 'red')}
+                  alt={t(factionName(selectedFaction === 'red' ? 'green' : 'red'))}
                 />
               </button>
             </header>
-            <h1 id="roster-title" className="sr-only">
-              Pilih karakter {factionName(selectedFaction)}
+            <h1 id="roster-title" className="sr-only">{t("Pilih karakter ")}{t(factionName(selectedFaction))}
             </h1>
             <div className="roster-stage">
               <button
                 className="carousel-arrow left"
                 onClick={() => cycleCharacter(-1)}
-                aria-label="Karakter sebelumnya"
-              >
-                ‹
-              </button>
+                aria-label={t("Karakter sebelumnya")}
+              >{t("‹")}</button>
               <div className="character-carousel">
-                {availableCharacters.map((character, index) => (
+                {t(availableCharacters.map((character, index) => (
                   <button
                     key={character.id}
                     className={`carousel-character ${selectedId === character.id ? 'selected' : ''} ${getCharacterSelectionState(playerProfile, character.id).locked ? 'locked' : ''}`}
                     disabled={getCharacterSelectionState(playerProfile, character.id).locked}
-                    aria-label={getCharacterSelectionState(playerProfile, character.id).locked
-                      ? `${character.name} · LOCKED · UNLOCK AT LV.${getCharacterSelectionState(playerProfile, character.id).requiredLevel}`
-                      : character.name}
+                    aria-label={t(getCharacterSelectionState(playerProfile, character.id).locked
+                      ? `${character.name} · TERKUNCI · BUKA DI LEVEL ${getCharacterSelectionState(playerProfile, character.id).requiredLevel}`
+                      : character.name)}
                     style={
                       {
                         '--offset':
@@ -7276,26 +7274,24 @@ export function BentenganPrototype() {
                   >
                     <SelectionPortrait
                       id={character.id}
-                      alt={character.name}
+                      alt={t(character.name)}
                       active={selectedId === character.id}
                     />
                     <CharacterLockBadge profile={playerProfile} id={character.id} />
-                    {ULTIMATE_CHARACTER_IDS.has(character.id) && (
-                      <strong className="ultimate-roster-badge" aria-label="Memiliki Ultimate">
+                    {t(ULTIMATE_CHARACTER_IDS.has(character.id) && (
+                      <strong className="ultimate-roster-badge" aria-label={t("Memiliki Ultimate")}>
                         <img src={uiAsset('controls/ultimate-label.png')} alt="" aria-hidden="true" />
                       </strong>
-                    )}
-                    <span>{character.name}</span>
+                    ))}
+                    <span>{t(character.name)}</span>
                   </button>
-                ))}
+                )))}
               </div>
               <button
                 className="carousel-arrow right"
                 onClick={() => cycleCharacter(1)}
-                aria-label="Karakter berikutnya"
-              >
-                ›
-              </button>
+                aria-label={t("Karakter berikutnya")}
+              >{t("›")}</button>
             </div>
             <aside className={`ability-panel framed-character-panel ${selectedFaction}`}>
               <img
@@ -7306,20 +7302,19 @@ export function BentenganPrototype() {
               />
               <header className="character-panel-identity">
               <span className="character-panel-role">
-                {factionName(selectedFaction)} · {selected.role}
+                {t(factionName(selectedFaction))}{t(" · ")}{t(roleLabel[selected.role])}
               </span>
-              <h2 className="character-panel-name">{selected.name}</h2>
-              <p className="character-panel-summary">{selected.copy}</p>
+              <h2 className="character-panel-name">{t(selected.name)}</h2>
+              <p className="character-panel-summary">{t(selected.copy)}</p>
               </header>
               <section className="character-panel-skill">
-                <small>KEMAMPUAN KHUSUS</small>
-                <b>{selected.passiveName}</b>
-                <p>{selected.passiveCopy}</p>
+                <small>{t("KEMAMPUAN KHUSUS")}</small>
+                <b>{t(selected.passiveName)}</b>
+                <p>{t(selected.passiveCopy)}</p>
               </section>
               <dl className="character-panel-stats">
                 <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">
-                    Speed <b>{selected.speed}</b>
+                  <dt className="character-panel-stat-label">{t("Kecepatan ")}<b>{t(selected.speed)}</b>
                   </dt>
                   <dd className="character-panel-stat-track">
                     <i
@@ -7328,8 +7323,7 @@ export function BentenganPrototype() {
                   </dd>
                 </div>
                 <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">
-                    Boost <b>{selected.boost}</b>
+                  <dt className="character-panel-stat-label">{t("Boost ")}<b>{t(selected.boost)}</b>
                   </dt>
                   <dd className="character-panel-stat-track">
                     <i
@@ -7338,8 +7332,7 @@ export function BentenganPrototype() {
                   </dd>
                 </div>
                 <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">
-                    Agility <b>{selected.agility.toFixed(2)}</b>
+                  <dt className="character-panel-stat-label">{t("Kelincahan ")}<b>{t(selected.agility.toFixed(2))}</b>
                   </dt>
                   <dd className="character-panel-stat-track">
                     <i
@@ -7355,24 +7348,24 @@ export function BentenganPrototype() {
                 onClick={confirmCharacter}
                 disabled={getCharacterSelectionState(playerProfile, selectedId).locked}
               >
-                <span>PILIH {selected.name}</span>
+                <span>{t("PILIH ")}{t(selected.name)}</span>
               </button>
             </aside>
-            {playerProfile && <UltimateUpgradePanel key={selectedId} profile={playerProfile}
-              characterId={selectedId} onRefresh={refreshPlayerProfile} />}
+            {t(playerProfile && <UltimateUpgradePanel key={selectedId} profile={playerProfile}
+              characterId={selectedId} onRefresh={refreshPlayerProfile} />)}
             <div className="character-mobile-summary">
-              <p>{selected.passiveCopy}</p>
-              <b>Speed {selected.speed} · Boost {selected.boost} · Agility {selected.agility.toFixed(2)}</b>
+              <p>{t(selected.passiveCopy)}</p>
+              <b>{t("Kecepatan ")}{t(selected.speed)}{t(" · Boost ")}{t(selected.boost)}{t(" · Kelincahan ")}{t(selected.agility.toFixed(2))}</b>
             </div>
-            {playerProfile&&<div className="character-next-goal" aria-label="Target unlock berikutnya">
-              {(()=>{const goal=getNextCharacterGoal(playerProfile);return goal
+            {t(playerProfile&&<div className="character-next-goal" aria-label={t("Target unlock berikutnya")}>
+              {t((()=>{const goal=getNextCharacterGoal(playerProfile);return goal
                 ? `Target berikutnya: ${CHARACTER_BY_ID[goal.characterId].name} · Lv.${goal.minLevel} · ${goal.xpRemaining} XP lagi`
-                : 'Semua karakter telah terbuka';})()}
-            </div>}
+                : 'Semua karakter telah terbuka';})())}
+            </div>)}
           </section>
-        )}
+        ))}
 
-        {menuStep === 'field' && selectedFaction && (
+        {t(menuStep === 'field' && selectedFaction && (
           <section
             className={`field-select-screen map-selection-screen faction-${selectedFaction}`}
             aria-labelledby="field-title"
@@ -7388,37 +7381,37 @@ export function BentenganPrototype() {
                 <img
                   className="map-selection-preview"
                   src={uiAsset(`fields/${selectedArena.id}.webp`)}
-                  alt={`Preview arena ${selectedArena.name}`}
+                  alt={t(`Preview arena ${selectedArena.name}`)}
                 />
-                {!selectedArenaUnlock.unlocked && (
-                  <div className="map-selection-lock-overlay" aria-label="Arena terkunci">
+                {t(!selectedArenaUnlock.unlocked && (
+                  <div className="map-selection-lock-overlay" aria-label={t("Arena terkunci")}>
                     <Lock aria-hidden="true" />
-                    <span>ARENA TERKUNCI</span>
+                    <span>{t("ARENA TERKUNCI")}</span>
                   </div>
-                )}
-                <div className="map-selection-roster" aria-label="Skuad yang akan bermain">
-                  {squad.map((id, index) => (
+                ))}
+                <div className="map-selection-roster" aria-label={t("Skuad yang akan bermain")}>
+                  {t(squad.map((id, index) => (
                     <figure key={id} className={index === 0 ? 'controlled' : ''}>
                       <CharacterPreview
                         id={id}
-                        alt={CHARACTER_BY_ID[id].name}
+                        alt={t(CHARACTER_BY_ID[id].name)}
                         eager={index === 0}
                       />
-                      <figcaption>{CHARACTER_BY_ID[id].name}</figcaption>
+                      <figcaption>{t(CHARACTER_BY_ID[id].name)}</figcaption>
                     </figure>
-                  ))}
+                  )))}
                 </div>
               </div>
               <button
                 className="map-selection-nav previous"
-                aria-label="Arena sebelumnya"
+                aria-label={t("Arena sebelumnya")}
                 onClick={() => cycleArena(-1)}
               >
                 <ChevronLeft aria-hidden="true" />
               </button>
               <button
                 className="map-selection-nav next"
-                aria-label="Arena berikutnya"
+                aria-label={t("Arena berikutnya")}
                 onClick={() => cycleArena(1)}
               >
                 <ChevronRight aria-hidden="true" />
@@ -7431,26 +7424,23 @@ export function BentenganPrototype() {
                   aria-hidden="true"
                 />
                 <section className="map-selection-details" aria-live="polite">
-                  <span>{selectedArena.difficulty}</span>
-                  <h1 id="field-title">{selectedArena.name}</h1>
+                  <span>{t(selectedArena.difficulty)}</span>
+                  <h1 id="field-title">{t(selectedArena.name)}</h1>
                   <p className={selectedArenaUnlock.unlocked ? undefined : 'map-unlock-requirement'}>
-                    {selectedArenaUnlock.unlocked ? selectedArena.kicker : selectedArenaUnlock.requirement}
+                    {t(selectedArenaUnlock.unlocked ? selectedArena.kicker : selectedArenaUnlock.requirement)}
                   </p>
                 </section>
               </div>
             </div>
             <header>
-              <span>LANGKAH TERAKHIR</span>
-              <h1 id="field-title">Pilih arena pertarungan</h1>
-              <p>
-                Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis
-                terjadi setelah tiga kemenangan.
-              </p>
+              <span>{t("LANGKAH TERAKHIR")}</span>
+              <h1 id="field-title">{t("Pilih arena pertarungan")}</h1>
+              <p>{t("Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis terjadi setelah tiga kemenangan.")}</p>
             </header>
             <div className="arena-carousel">
-            <button className="arena-nav previous" aria-label="Arena sebelumnya" onClick={() => cycleArena(-1)}>‹</button>
-            <div className="field-card-row" aria-label="Pilihan arena">
-              {FIELD_CONFIGS.map((field, index) => (
+            <button className="arena-nav previous" aria-label={t("Arena sebelumnya")} onClick={() => cycleArena(-1)}>{t("‹")}</button>
+            <div className="field-card-row" aria-label={t("Pilihan arena")}>
+              {t(FIELD_CONFIGS.map((field, index) => (
                 <button
                   key={field.id}
                   className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''} ${!playerProfile || !isArenaUnlocked(playerProfile, field.id) ? 'locked' : ''}`}
@@ -7464,35 +7454,35 @@ export function BentenganPrototype() {
                     alt=""
                     aria-hidden="true"
                   />
-                  <small>0{index + 1}</small>
-                  <em>{field.difficulty}</em>
-                  <strong>{field.name}</strong>
-                  <span>{field.kicker}</span>
+                  <small>{t("0")}{t(index + 1)}</small>
+                  <em>{t(field.difficulty)}</em>
+                  <strong>{t(field.name)}</strong>
+                  <span>{t(field.kicker)}</span>
                   <i>
-                    {selectedFieldId === field.id
+                    {t(selectedFieldId === field.id
                       ? 'ARENA AKTIF'
                       : !playerProfile || !isArenaUnlocked(playerProfile, field.id)
-                        ? 'TERKUNCI · LIHAT PERSYARATAN' : 'PILIH ARENA'}
+                        ? 'TERKUNCI · LIHAT PERSYARATAN' : 'PILIH ARENA')}
                   </i>
                 </button>
-              ))}
+              )))}
             </div>
-            <button className="arena-nav next" aria-label="Arena berikutnya" onClick={() => cycleArena(1)}>›</button>
+            <button className="arena-nav next" aria-label={t("Arena berikutnya")} onClick={() => cycleArena(1)}>{t("›")}</button>
             </div>
             <div className="match-lineup">
               <div>
-                {squad.map((id, index) => (
+                {t(squad.map((id, index) => (
                   <figure key={id} className={index === 0 ? 'controlled' : ''}>
                     <CharacterPreview
                       id={id}
-                      alt={CHARACTER_BY_ID[id].name}
+                      alt={t(CHARACTER_BY_ID[id].name)}
                       eager={index === 0}
                     />
                     <figcaption>
-                      {index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name}
+                      {t(index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name)}
                     </figcaption>
                   </figure>
-                ))}
+                )))}
               </div>
             </div>
             <button
@@ -7502,31 +7492,31 @@ export function BentenganPrototype() {
               onClick={selectedArenaUnlock.unlocked ? start : undefined}
             >
               <span>
-                {selectedArenaUnlock.unlocked
-                  ? <><Play size={19} fill="currentColor" /> MULAI MATCH</>
-                  : <><Lock size={19} /> ARENA TERKUNCI</>}
+                {t(selectedArenaUnlock.unlocked
+                  ? <><Play size={19} fill="currentColor" />{t(" MULAI MAIN")}</>
+                  : <><Lock size={19} />{t(" ARENA TERKUNCI")}</>)}
               </span>
             </button>
           </section>
-        )}
+        ))}
 
-        {menuStep !== 'splash' && (
+        {t(menuStep !== 'splash' && (
           <button
             className="graffiti-back"
             onClick={goBack}
-            aria-label="Kembali"
+            aria-label={t("Kembali")}
           >
             <img className="back-normal" src={uiAsset('controls/back-inactive.png')} alt="" />
             <img className="back-hover" src={uiAsset('controls/back-hover.png')} alt="" aria-hidden="true" />
           </button>
-        )}
+        ))}
         <div className={`pregame-actions step-${menuStep}`}>
-          {menuStep === 'splash' && <button className="music-toggle" onKeyDown={event => event.stopPropagation()} onClick={() => setCreditsOpen(true)}>ABOUT DEVELOPER</button>}
+          {t(menuStep === 'splash' && <button className="music-toggle" onKeyDown={event => event.stopPropagation()} onClick={() => setCreditsOpen(true)}>{t("ABOUT DEVELOPER")}</button>)}
           <button
             className={`sound-trigger ${musicMuted ? 'muted' : ''}`}
             onClick={toggleBackgroundMusic}
             aria-pressed={musicMuted}
-            aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+            aria-label={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
           >
             <img src={uiAsset(`controls/sound-trigger-${musicMuted ? 'off' : 'on'}.png`)} alt="" />
           </button>
@@ -7534,7 +7524,7 @@ export function BentenganPrototype() {
             className="rules-button graffiti-primary"
             onClick={() => setRulesOpen(true)}
           >
-            <span>GAME RULES</span>
+            <span>{t("CARA MAIN")}</span>
           </button>
           <AudioSettings
             onOpen={() => keys.current.clear()}
@@ -7542,8 +7532,8 @@ export function BentenganPrototype() {
           />
           <GraphicsSettings onOpen={() => keys.current.clear()} />
         </div>
-        {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
-        {rulesOpen && (
+        {t(creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />)}
+        {t(rulesOpen && (
           <div
             className="rules-overlay"
             role="dialog"
@@ -7554,66 +7544,42 @@ export function BentenganPrototype() {
               <button
                 className="rules-close"
                 onClick={() => setRulesOpen(false)}
-                aria-label="Tutup"
-              >
-                ×
-              </button>
-              <span>BENTENGAN 5V5</span>
-              <h2 id="rules-title">Cara merebut kemenangan</h2>
+                aria-label={t("Tutup")}
+              >{t("×")}</button>
+              <span>{t("BENTENGAN 5V5")}</span>
+              <h2 id="rules-title">{t("Jaga tim. Rebut benteng.")}</h2>
               <ol>
                 <li>
-                  <b>Isi kesiapan di benteng sendiri.</b> Setelah siap, keluar
-                  dalam 5 detik. Kembali ke benteng untuk memperbarui urutan.
-                </li>
+                  <b>{t("Bersiap di bentengmu.")}</b>{t(" Setelah siap, keluar dalam 5 detik. Balik ke benteng untuk memperbarui urutan tag.")}</li>
                 <li>
-                  <b>Tag lawan yang keluar lebih dulu.</b> Mereka masuk penjara
-                  timmu.
-                </li>
+                  <b>{t("Kejar lawan yang keluar lebih dulu.")}</b>{t(" Sentuh untuk tag. Lawan yang kena masuk penjara timmu.")}</li>
                 <li>
-                  <b>Sentuh rekan terluar di penjara</b> untuk membebaskan
-                  seluruh rantai. Pemain bebas pulang otomatis dengan perisai
-                  singkat dan memilih jalan aman dari collider serta sungai.
-                </li>
+                  <b>{t("Bebaskan temanmu.")}</b>{t(" Sentuh rekan paling ujung di rantai penjara untuk rescue seluruh rantai. Mereka pulang otomatis dengan kebal tag singkat, lewat jalur aman.")}</li>
                 <li>
-                  <b>Rangkai combo aksi tim.</b> Tag atau rescue dari rekan
-                  berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.
-                </li>
+                  <b>{t("Sambung aksi tim.")}</b>{t(" Tag atau rescue dari rekan berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.")}</li>
                 <li>
-                  <b>Menangkan ronde.</b> Tahan seluruh lawan selama 2 detik
-                  atau isi benteng lawan selama 1,5 detik. Pertandingan dimenangi
-                  tim pertama yang merebut 2 ronde.
-                </li>
+                  <b>{t("Ambil 2 ronde untuk menang.")}</b>{t(" Menang ronde dengan menahan semua lawan selama 2 detik, atau mengisi bar perebutan benteng lawan selama 1,5 detik.")}</li>
                 <li>
-                  <b>Waktu normal 4 menit.</b> Skor seri berlanjut ke sudden
-                  death. Arena berganti setelah 3 kemenangan pertandingan.
-                </li>
+                  <b>{t("Waktu normal 4 menit.")}</b>{t(" Seri? Lanjut sudden death: tag atau rebut benteng berikutnya menang. Arena berganti setelah 3 kemenangan pertandingan.")}</li>
                 <li>
-                  <b>Map Kanal:</b> seberangi sungai lewat jembatan atau parkour.
-                  Jatuh ke air mengembalikan pemain ke benteng.
-                </li>
+                  <b>{t("Map Kanal:")}</b>{t(" seberangi sungai lewat jembatan atau parkour. Jatuh ke air mengembalikan pemain ke benteng.")}</li>
                 <li>
-                  <b>Ultimate Raja, Kaka, Bebe dan Ciici.</b> Raja mempercepat rekan aktif;
-                  Kaka membuat seluruh tim kebal tag selama 5 detik.
-                  Bebe/Ciici kebal tag sejak takeoff, selama terbang, hingga landing selesai. Selama ultimate ini mereka tidak bisa tag, rescue, pickup atau merebut benteng. Hanya tahap terbang yang melewati rintangan rendah; durasi mengikuti level upgrade.
-                </li>
+                  <b>{t("Ultimate: pilih momenmu.")}</b>{t(" Raja mempercepat rekan aktif; Kaka melindungi tim dari tag. Bebe dan Ciici kebal tag sejak lepas landas sampai selesai mendarat. Selama itu mereka tidak bisa tag, rescue, mengambil boost, atau merebut benteng. Rintangan rendah hanya bisa dilewati saat terbang. Durasi efek mengikuti level upgrade.")}</li>
               </ol>
-              <p>
-                Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock
-                Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.
-              </p>
+              <p>{t("Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.")}</p>
             </div>
           </div>
-        )}
-        {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
-        {playerProfile && profileOpen && (
-          <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…"/>}>
+        ))}
+        {t(playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />)}
+        {t(playerProfile && profileOpen && (
+          <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")}/>}>
             <PlayerProfilePanel
               profile={playerProfile}
               onClose={() => setProfileOpen(false)}
             />
           </Suspense>
-        )}
-        {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label="Memuat panel multiplayer…"/>}><MultiplayerPanel
+        ))}
+        {t(multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label={t("Memuat panel multiplayer…")}/>}><MultiplayerPanel
           initialName={playerProfile?.username}
           arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
           prepareContent={async id=>{
@@ -7629,65 +7595,62 @@ export function BentenganPrototype() {
           onLaunch={session=>{const state=session.read(),local=state.lobby!.participants.find(p=>p.peerId===state.localPeerId)!;
             keys.current.clear();setSelectedFaction(local.team);setSelectedIdState(local.characterId);setSelectedFieldIdState(session.content.arenaId as FieldId);
             setNetworkSession(session);setMultiplayerOpen(false);setSnapshot(initialSnapshot);setMode('playing');}}
-          onClose={()=>setMultiplayerOpen(false)}/></Suspense>}
+          onClose={()=>setMultiplayerOpen(false)}/></Suspense>)}
       </main>
     );
   }
   return (
     <main className={`game-shell playing-shell ${hudPreferences.contrast?'hud-high-contrast':''}`}
       style={{'--hud-text-scale':hudPreferences.scale} as CSSProperties}>
-      {contentGateError && <div className="content-gate-notice" role="alert">
-        {contentGateError}<button onClick={() => setContentGateError('')} aria-label="Tutup pesan">×</button>
-      </div>}
+      {t(contentGateError && <div className="content-gate-notice" role="alert">
+        {t(contentGateError)}<button onClick={() => setContentGateError('')} aria-label={t("Tutup pesan")}>{t("×")}</button>
+      </div>)}
       <header className="game-topbar">
         <div className="brand-lockup">
           <img
             className="game-logo"
             src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
-            alt="Benteng Squad Tag"
+            alt={t("Benteng Squad Tag")}
           />
           <span className="brand-kicker">
-            <i /> Playable rules prototype
-            <br />
-            Field compact · guarded
-          </span>
+            <i />{t(" BENTENGAN 5V5")}<br />{t("Field compact · guarded")}</span>
         </div>
         <div className="top-actions">
           <HudSettings value={hudPreferences} onChange={setHudPreferences} onOpen={()=>keys.current.clear()}/>
-          {playerProfile && (
+          {t(playerProfile && (
             <button
               className="icon-button profile-match-trigger"
               onClick={() => {
                 keys.current.clear();
                 setProfileOpen(true);
               }}
-              aria-label="Buka profil pemain"
-              title="Profil pemain"
+              aria-label={t("Buka profil pemain")}
+              title={t("Profil pemain")}
             >
               <UserRound size={18} />
             </button>
-          )}
+          ))}
           <AudioSettings onOpen={() => keys.current.clear()} />
           <button
             className={`icon-button ${musicMuted ? 'muted' : ''}`}
             onClick={toggleBackgroundMusic}
             aria-pressed={musicMuted}
-            aria-label={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
-            title={musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+            aria-label={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
+            title={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
           >
-            {musicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            {t(musicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />)}
           </button>
           <button
             className="icon-button hud-menu-button"
             onClick={() => setMissionOpen((value) => !value)}
-            aria-label="Buka menu misi"
+            aria-label={t("Buka menu misi")}
           >
             <Menu size={19} />
           </button>
           <button
             className="icon-button"
             onClick={() => keys.current.add('p')}
-            aria-label="Jeda"
+            aria-label={t("Jeda")}
           >
             <Pause size={18} />
           </button>
@@ -7697,23 +7660,23 @@ export function BentenganPrototype() {
         <div className="stage-card">
           <canvas
             ref={canvasRef}
-            aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`}
+            aria-label={t(`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`)}
           />
-          <div className="orientation-hint">Putar perangkat untuk arena yang lebih luas. Kontrol tetap tersedia di bawah.</div>
-          {!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
+          <div className="orientation-hint">{t("Putar perangkat untuk arena yang lebih luas. Kontrol tetap tersedia di bawah.")}</div>
+          {t(!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
             tagged={snapshot.mission.tag} rescued={snapshot.mission.rescue}
             captured={snapshot.statsBoard.reason==='BENTENG DIREBUT'&&snapshot.statsBoard.winner===(selectedFaction==='red'?'blue':'red')}
-            state={snapshot.state}/>}
-          {rendererError && <div className="renderer-error" role="alert">
-            <strong>MAP 3D TIDAK TERSEDIA</strong>
-            <p>{rendererError}</p>
-            <button onClick={() => { setRendererError(''); quit(); }}>KEMBALI KE MENU</button>
-          </div>}
+            state={snapshot.state}/>)}
+          {t(rendererError && <div className="renderer-error" role="alert">
+            <strong>{t("MAP 3D TIDAK TERSEDIA")}</strong>
+            <p>{t(rendererError)}</p>
+            <button onClick={() => { setRendererError(''); quit(); }}>{t("KEMBALI KE MENU")}</button>
+          </div>)}
           <div
             className="stage-hud"
             role="button"
             tabIndex={0}
-            aria-label="Buka leaderboard statistik match"
+            aria-label={t("Buka leaderboard statistik match")}
             onClick={() => setLeaderboardOpen((value) => !value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
@@ -7723,72 +7686,65 @@ export function BentenganPrototype() {
             }}
           >
             <div className="hud-red">
-              <span>{snapshot.blue}</span>
-              <b>
-                TIM MERAH<small>{snapshot.blueHeld}/5 TAHANAN</small>
+              <span>{t(snapshot.blue)}</span>
+              <b>{t("TIM MERAH")}<small>{t(snapshot.blueHeld)}{t("/5 TAHANAN")}</small>
               </b>
             </div>
             <time>
-              {snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer)}
-              <small>WAKTU</small>
+              {t(snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer))}
+              <small>{t("WAKTU")}</small>
             </time>
             <div className="hud-green">
-              <b>
-                HIJAU<small>{snapshot.redHeld}/5 TAHANAN</small>
+              <b>{t("HIJAU")}<small>{t(snapshot.redHeld)}{t("/5 TAHANAN")}</small>
               </b>
-              <span>{snapshot.red}</span>
+              <span>{t(snapshot.red)}</span>
             </div>
           </div>
-          {snapshot.matchEvents.length > 0 && (
+          {t(snapshot.matchEvents.length > 0 && (
             <aside className="match-event-feed" aria-live="polite">
-              {snapshot.matchEvents.map((event) => (
+              {t(snapshot.matchEvents.map((event) => (
                 <div
                   key={event.id}
                   className={`match-event-toast ${event.kind}`}
                 >
                   <img src={MATCH_EVENT_FRAME[event.kind]} alt="" />
                   <p>
-                    {event.kind === 'tag' && (
+                    {t(event.kind === 'tag' && (
                       <>
-                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                        menangkap{' '}
-                        <strong className={event.targetTeam}>{event.targetName}</strong>
+                        <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("menangkap")}{t(' ')}
+                        <strong className={event.targetTeam}>{t(event.targetName)}</strong>
                       </>
-                    )}
-                    {event.kind === 'rescue' && (
+                    ))}
+                    {t(event.kind === 'rescue' && (
                       <>
-                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                        menyelamatkan tim
-                      </>
-                    )}
-                    {event.kind === 'rescue-request' && (
+                        <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("menyelamatkan tim")}</>
+                    ))}
+                    {t(event.kind === 'rescue-request' && (
                       <>
-                        <strong className={event.actorTeam}>{event.actorName}</strong>{' '}
-                        meminta rescue!
-                      </>
-                    )}
+                        <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("meminta rescue!")}</>
+                    ))}
                   </p>
                 </div>
-              ))}
+              )))}
             </aside>
-          )}
-          {snapshot.roundResult.visible && snapshot.roundResult.winner && (
+          ))}
+          {t(snapshot.roundResult.visible && snapshot.roundResult.winner && (
             <section
               className={`round-result-announcement ${FACTION_FOR_TEAM[snapshot.roundResult.winner]}`}
               aria-live="assertive"
-              aria-label={`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'match' : 'ronde'}`}
+              aria-label={t(`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'pertandingan' : 'ronde'}`)}
             >
               <img
                 src={ROUND_RESULT_ASSET[snapshot.roundResult.winner]}
                 alt=""
               />
               <p>
-                <strong>{teamName(snapshot.roundResult.winner).toUpperCase()}</strong>{' '}
-                {snapshot.roundResult.final ? 'MENANG MATCH!' : 'MENANG RONDE!'}
+                <strong>{t(teamName(snapshot.roundResult.winner).toUpperCase())}</strong>{t(' ')}
+                {t(snapshot.roundResult.final ? 'MENANG MATCH!' : 'MENANG RONDE!')}
               </p>
             </section>
-          )}
-          {showStatsBoard && (
+          ))}
+          {t(showStatsBoard && (
             <section
               className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
               role="dialog"
@@ -7799,175 +7755,156 @@ export function BentenganPrototype() {
                 <header className="round-stats-head">
                   <div>
                     <span>
-                      {statsBoard.final
-                        ? 'MATCH SELESAI'
+                      {t(statsBoard.final
+                        ? 'PERTANDINGAN SELESAI'
                         : leaderboardOpen && !statsBoard.visible
-                          ? 'MATCH LEADERBOARD'
-                          : `REKAP RONDE ${statsBoard.round}`}
+                          ? 'PAPAN SKOR'
+                          : `REKAP RONDE ${statsBoard.round}`)}
                     </span>
                     <h2 id="round-stats-title">
-                      {statsBoard.winner
-                        ? `${teamName(statsBoard.winner).toUpperCase()} UNGGUL`
-                        : 'STATISTIK PEMAIN'}
+                      {t(statsBoard.winner
+                        ? `${teamName(statsBoard.winner).toUpperCase()} MENANG!`
+                        : 'STATISTIK PEMAIN')}
                     </h2>
                     <p>
-                      {statsBoard.final
-                        ? 'Pilih aksi berikutnya untuk lanjut.'
+                      {t(statsBoard.final
+                        ? 'Main lagi atau pilih karakter lain.'
                         : statsBoard.visible
                           ? `Lanjut otomatis ${statsBoard.countdown}s`
-                          : 'Tekan Tab atau klik skor untuk melihat statistik match.'}
+                          : 'Tekan Tab atau klik skor untuk melihat statistik pertandingan.')}
                     </p>
                   </div>
-                  <div className="round-match-meta" aria-label="Info match">
+                  <div className="round-match-meta" aria-label={t("Info pertandingan")}>
                     <span>
                       <Gauge size={14} />
-                      <small>DURASI</small>
-                      <b>{formatTime(statsBoard.duration)}</b>
+                      <small>{t("DURASI")}</small>
+                      <b>{t(formatTime(statsBoard.duration))}</b>
                     </span>
                     <span>
                       <Flag size={14} />
-                      <small>FORMAT</small>
-                      <b>{statsBoard.format.toUpperCase()}</b>
+                      <small>{t("FORMAT")}</small>
+                      <b>{t(statsBoard.format.toUpperCase())}</b>
                     </span>
                     <span>
                       <MapIcon size={14} />
-                      <small>MAP</small>
-                      <b>{statsBoard.mapName.toUpperCase()}</b>
+                      <small>{t("MAP")}</small>
+                      <b>{t(statsBoard.mapName.toUpperCase())}</b>
                     </span>
                   </div>
-                  {!statsBoard.visible && (
+                  {t(!statsBoard.visible && (
                     <button
                       className="round-stats-close"
                       onClick={closeLeaderboard}
-                      aria-label="Tutup leaderboard"
+                      aria-label={t("Tutup leaderboard")}
                     >
                       <X size={16} />
                     </button>
-                  )}
+                  ))}
                 </header>
-                <div className="round-scoreline" aria-label="Skor match">
-                  <span>
-                    TIM MERAH <b>{statsBoard.score.blue}</b>
+                <div className="round-scoreline" aria-label={t("Skor match")}>
+                  <span>{t("TIM MERAH ")}<b>{t(statsBoard.score.blue)}</b>
                   </span>
-                  <i>BEST OF 3</i>
+                  <i>{t("BEST OF 3")}</i>
                   <span>
-                    <b>{statsBoard.score.red}</b> HIJAU
-                  </span>
+                    <b>{t(statsBoard.score.red)}</b>{t(" HIJAU")}</span>
                 </div>
                 <div className="round-stats-grid">
-                  {(['blue', 'red'] as Team[]).map((team) => (
+                  {t((['blue', 'red'] as Team[]).map((team) => (
                     <article key={team} className={`round-team-card ${team}`}>
-                      <h3>{teamName(team).toUpperCase()}</h3>
-                      {statsBoard.teams[team].map((player) => (
+                      <h3>{t(teamName(team).toUpperCase())}</h3>
+                      {t(statsBoard.teams[team].map((player) => (
                         <div
                           key={player.id}
                           className={`round-stat-row ${player.controlled ? 'controlled' : ''} ${player.mvp ? 'mvp' : ''}`}
                         >
                           <CharacterPreview id={player.characterId} alt="" />
-                          <b>{player.controlled ? 'KAMU' : player.name}</b>
-                          <span title="Tag musuh">
-                            <Zap size={13} /> {player.tags}
+                          <b>{t(player.controlled ? 'KAMU' : player.name)}</b>
+                          <span title={t("Tag musuh")}>
+                            <Zap size={13} /> {t(player.tags)}
                           </span>
-                          <span title="Masuk penjara">
-                            <Lock size={13} /> {player.prisons}
+                          <span title={t("Masuk penjara")}>
+                            <Lock size={13} /> {t(player.prisons)}
                           </span>
-                          <span title="Rescue teman">
-                            <Shield size={13} /> {player.rescues}
+                          <span title={t("Rescue teman")}>
+                            <Shield size={13} /> {t(player.rescues)}
                           </span>
-                          <strong title="Contribution score">
-                            {player.contribution}
+                          <strong title={t("Skor kontribusi")}>
+                            {t(player.contribution)}
                           </strong>
                         </div>
-                      ))}
+                      )))}
                     </article>
-                  ))}
+                  )))}
                 </div>
-                {statsBoard.mvpName && (
+                {t(statsBoard.mvpName && (
                   <aside className="round-mvp-card">
-                    <b>MVP</b>
+                    <b>{t("MVP")}</b>
                     <span>
-                      {statsBoard.mvpName} · Kontribusi tertinggi di match ini
-                    </span>
+                      {t(statsBoard.mvpName)}{t(" · Kontribusi tertinggi di pertandingan ini")}</span>
                   </aside>
-                )}
-                {statsBoard.final && <MatchProgressionSummary result={matchProgressionResult} />}
-                {statsBoard.final && <UnlockNotificationPanel result={matchProgressionResult}
+                ))}
+                {t(statsBoard.final && <MatchProgressionSummary result={matchProgressionResult} />)}
+                {t(statsBoard.final && <UnlockNotificationPanel result={matchProgressionResult}
                   arenas={FIELD_CONFIGS} dismissed={unlockNoticeDismissed}
-                  onDismiss={() => setUnlockNoticeDismissed(true)} />}
+                  onDismiss={() => setUnlockNoticeDismissed(true)} />)}
                 <footer className="round-stats-actions">
-                  {statsBoard.final ? (
+                  {t(statsBoard.final ? (
                     <>
                       <button className="primary" onClick={rematch}>
-                        <RotateCcw size={16} /> REMATCH
-                      </button>
+                        <RotateCcw size={16} />{t(" MAIN LAGI")}</button>
                       <button onClick={backToCharacterSelect}>
-                        <Users size={16} /> PILIH KARAKTER
-                      </button>
+                        <Users size={16} />{t(" PILIH KARAKTER")}</button>
                       <button onClick={backToFieldSelect}>
-                        <MapIcon size={16} /> GANTI MAP
-                      </button>
+                        <MapIcon size={16} />{t(" GANTI MAP")}</button>
                       <button className="danger" onClick={quit}>
-                        <LogOut size={16} /> KELUAR
-                      </button>
+                        <LogOut size={16} />{t(" KELUAR")}</button>
                     </>
                   ) : statsBoard.visible ? (
                     <>
                       <button className="primary" onClick={requestNextRound}>
-                        <Play size={16} fill="currentColor" /> RONDE BERIKUTNYA
-                      </button>
+                        <Play size={16} fill="currentColor" />{t(" RONDE BERIKUTNYA")}</button>
                       <button className="danger" onClick={quit}>
-                        <LogOut size={16} /> KELUAR
-                      </button>
+                        <LogOut size={16} />{t(" KELUAR")}</button>
                     </>
                   ) : (
                     <button className="primary" onClick={closeLeaderboard}>
-                      <Check size={16} /> TUTUP
-                    </button>
-                  )}
+                      <Check size={16} />{t(" TUTUP")}</button>
+                  ))}
                 </footer>
               </div>
             </section>
-          )}
-          <div className="arena-intel" aria-label="Status aturan pertandingan">
+          ))}
+          <div className="arena-intel" aria-label={t("Status aturan pertandingan")}>
             <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
               <Flag size={12} />
-              {snapshot.baseGrace > 0
+              {t(snapshot.baseGrace > 0
                 ? `KELUAR ${snapshot.baseGrace}s`
-                : 'BASE AMAN'}
+                : 'BASE AMAN')}
             </span>
             <span
               className={
                 snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
               }
             >
-              <Lock size={12} /> {snapshot.fortLock.toUpperCase()}
+              <Lock size={12} /> {t(snapshot.fortLock.toUpperCase())}
             </span>
             <span>
-              <BatteryCharging size={12} /> REFILL {snapshot.pickupCount}
+              <BatteryCharging size={12} />{t(" REFILL ")}{t(snapshot.pickupCount)}
             </span>
             <span>
-              <RotateCcw size={12} /> ROTASI {snapshot.fieldWins}/3
-            </span>
+              <RotateCcw size={12} />{t(" ROTASI ")}{t(snapshot.fieldWins)}{t("/3")}</span>
           </div>
-          {false && (
+          {t(false && (
             <div className="start-panel character-select">
               <div className="character-select-heading">
                 <div>
-                  <p>LANGKAH 1 · PILIH TIM</p>
-                  <h1>
-                    Merah atau Hijau.
-                    <br />
-                    Tentukan pihakmu.
-                  </h1>
+                  <p>{t("LANGKAH 1 · PILIH TIM")}</p>
+                  <h1>{t("Merah atau Hijau.")}<br />{t("Tentukan pihakmu.")}</h1>
                 </div>
-                <span>
-                  Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan.
-                  Setiap tim memiliki tujuh karakter tetap dan membawa lima
-                  pemain ke field.
-                </span>
+                <span>{t("Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki tujuh karakter tetap dan membawa lima pemain ke field.")}</span>
               </div>
-              <div className="team-chooser" aria-label="Pilih tim">
-                {(['red', 'green'] as Faction[]).map((faction) => (
+              <div className="team-chooser" aria-label={t("Pilih tim")}>
+                {t((['red', 'green'] as Faction[]).map((faction) => (
                   <button
                     key={faction}
                     className={`${faction} ${selectedFaction === faction ? 'selected' : ''}`}
@@ -7975,34 +7912,32 @@ export function BentenganPrototype() {
                     aria-pressed={selectedFaction === faction}
                   >
                     <span>
-                      <b>{factionName(faction)}</b>
+                      <b>{t(factionName(faction))}</b>
                       <small>
-                        {GAME_RULES.teams[faction].side} · 7 karakter
-                      </small>
+                        {t(GAME_RULES.teams[faction].side)}{t(" · 7 karakter")}</small>
                     </span>
                     <span className="team-mini-roster">
-                      {FIXED_ROSTERS[faction].map((id) => (
+                      {t(FIXED_ROSTERS[faction].map((id) => (
                         <CharacterPreview
                           key={id}
                           id={id}
-                          alt={CHARACTER_BY_ID[id].name}
+                          alt={t(CHARACTER_BY_ID[id].name)}
                         />
-                      ))}
+                      )))}
                     </span>
                   </button>
-                ))}
+                )))}
               </div>
-              {selectedFaction && (
+              {t(selectedFaction && (
                 <div className={`selection-step ${selectedFaction}`}>
                   <div className="selection-step-head">
-                    <span>
-                      LANGKAH 2 · PILIH KARAKTER{' '}
-                      {factionName(selectedFaction!).toUpperCase()}
+                    <span>{t("LANGKAH 2 · PILIH KARAKTER")}{t(' ')}
+                      {t(factionName(selectedFaction!).toUpperCase())}
                     </span>
-                    <b>2 cadangan · 5 turun ke field</b>
+                    <b>{t("2 cadangan · 5 turun ke field")}</b>
                   </div>
                   <div className="character-row">
-                    {availableCharacters.map((character) => (
+                    {t(availableCharacters.map((character) => (
                       <button
                         key={character.id}
                         className={
@@ -8020,17 +7955,17 @@ export function BentenganPrototype() {
                       >
                         <CharacterPreview
                           id={character.id}
-                          alt={`Portrait ${character.name}`}
+                          alt={t(`Portrait ${character.name}`)}
                           eager={selectedId === character.id}
                         />
                         <CharacterLockBadge profile={playerProfile} id={character.id} />
                         <span>
-                          <b>{character.name}</b>
-                          <small>{character.role}</small>
-                          <em>{character.passiveName}</em>
+                          <b>{t(character.name)}</b>
+                          <small>{t(roleLabel[character.role])}</small>
+                          <em>{t(character.passiveName)}</em>
                         </span>
                       </button>
-                    ))}
+                    )))}
                   </div>
                   <div
                     className="selected-character"
@@ -8038,24 +7973,23 @@ export function BentenganPrototype() {
                   >
                     <CharacterPreview
                       id={selected.id}
-                      alt={`Portrait ${selected.name}`}
+                      alt={t(`Portrait ${selected.name}`)}
                       eager
                     />
                     <div className="selected-summary">
                       <span>
-                        {factionName(selectedFaction!)} · {selected.role}
+                        {t(factionName(selectedFaction!))}{t(" · ")}{t(roleLabel[selected.role])}
                       </span>
-                      <b>{selected.name}</b>
-                      <small>{selected.copy}</small>
+                      <b>{t(selected.name)}</b>
+                      <small>{t(selected.copy)}</small>
                       <div className="character-passive">
-                        <strong>{selected.passiveName}</strong>
-                        <i>{selected.passiveCopy}</i>
+                        <strong>{t(selected.passiveName)}</strong>
+                        <i>{t(selected.passiveCopy)}</i>
                       </div>
                     </div>
                     <dl>
                       <div>
-                        <dt>
-                          Speed <b>{selected.speed}</b>
+                        <dt>{t("Kecepatan ")}<b>{t(selected.speed)}</b>
                         </dt>
                         <dd>
                           <i>
@@ -8068,8 +8002,7 @@ export function BentenganPrototype() {
                         </dd>
                       </div>
                       <div>
-                        <dt>
-                          Boost <b>{selected.boost}</b>
+                        <dt>{t("Boost ")}<b>{t(selected.boost)}</b>
                         </dt>
                         <dd>
                           <i>
@@ -8082,8 +8015,7 @@ export function BentenganPrototype() {
                         </dd>
                       </div>
                       <div>
-                        <dt>
-                          Agility <b>{selected.agility.toFixed(2)}</b>
+                        <dt>{t("Kelincahan ")}<b>{t(selected.agility.toFixed(2))}</b>
                         </dt>
                         <dd>
                           <i>
@@ -8102,173 +8034,170 @@ export function BentenganPrototype() {
                     </dl>
                   </div>
                 </div>
-              )}
+              ))}
               <div className="field-row">
-                <span>LANGKAH 3 · PILIH FIELD</span>
-                {FIELD_CONFIGS.map((field) => (
+                <span>{t("LANGKAH 3 · PILIH ARENA")}</span>
+                {t(FIELD_CONFIGS.map((field) => (
                   <button
                     key={field.id}
                     className={selectedFieldId === field.id ? 'selected' : ''}
                     onClick={() => setSelectedFieldId(field.id)}
                     aria-pressed={selectedFieldId === field.id}
                   >
-                    <b>{field.name}</b>
-                    <small>{field.kicker}</small>
+                    <b>{t(field.name)}</b>
+                    <small>{t(field.kicker)}</small>
                   </button>
-                ))}
+                )))}
               </div>
-              {selectedFaction ? (
+              {t(selectedFaction ? (
                 <div className={`squad-preview ${selectedFaction}`}>
                   <span>
-                    {factionName(selectedFaction!).toUpperCase()} · LINEUP 5v5
-                  </span>
+                    {t(factionName(selectedFaction!).toUpperCase())}{t(" · LINEUP 5v5")}</span>
                   <div>
-                    {squad.map((id, index) => (
+                    {t(squad.map((id, index) => (
                       <figure
                         key={`ally-${id}`}
                         className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}
                       >
                         <CharacterPreview
                           id={id}
-                          alt={CHARACTER_BY_ID[id].name}
+                          alt={t(CHARACTER_BY_ID[id].name)}
                           eager={index === 0}
                         />
                         <figcaption>
-                          {index === 0
+                          {t(index === 0
                             ? 'KAMU'
                             : selectedFaction === 'red'
                               ? 'M'
-                              : 'H'}
+                              : 'H')}
                         </figcaption>
                       </figure>
-                    ))}
-                    <i>VS</i>
-                    {opponentSquad.map((id) => (
+                    )))}
+                    <i>{t("VS")}</i>
+                    {t(opponentSquad.map((id) => (
                       <figure
                         key={`enemy-${id}`}
                         className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}
                       >
                         <CharacterPreview
                           id={id}
-                          alt={CHARACTER_BY_ID[id].name}
+                          alt={t(CHARACTER_BY_ID[id].name)}
                         />
                         <figcaption>
-                          {selectedFaction === 'red' ? 'H' : 'M'}
+                          {t(selectedFaction === 'red' ? 'H' : 'M')}
                         </figcaption>
                       </figure>
-                    ))}
+                    )))}
                   </div>
                   <button className="start-button" onClick={start}>
-                    <Play size={18} fill="currentColor" /> Main sebagai{' '}
-                    {selected.name}
+                    <Play size={18} fill="currentColor" />{t(" Main sebagai")}{t(' ')}
+                    {t(selected.name)}
                   </button>
                 </div>
               ) : (
-                <div className="choose-team-hint">
-                  Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.
-                </div>
-              )}
+                <div className="choose-team-hint">{t("Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.")}</div>
+              ))}
             </div>
-          )}
-          {mode === 'playing' && (
+          ))}
+          {t(mode === 'playing' && (
             <>
               <div className="status-ribbon">
                 <span className={`state-dot ${snapshot.state.toLowerCase()}`} />
                 <span>
-                  <b>{selected.name}</b>
-                  {selectedFaction ? factionName(selectedFaction) : ''}
+                  <b>{t(selected.name)}</b>
+                  {t(selectedFaction ? factionName(selectedFaction) : '')}
                 </span>
-                <strong>{snapshot.state.replace('_', ' ')}</strong>
-                <em>PRIORITAS #{snapshot.order || '—'}</em>
+                <strong>{t(snapshot.state.replace('_', ' '))}</strong>
+                <em>{t("PRIORITAS #")}{t(snapshot.order || '—')}</em>
               </div>
-              {snapshot.state === 'PRISONER' && !snapshot.paused && (
+              {t(snapshot.state === 'PRISONER' && !snapshot.paused && (
                 <div className="prisoner-notice" role="status">
                   <Lock size={22} />
                   <span>
-                    <b>MENUNGGU DIBEBASKAN</b>
+                    <b>{t("MENUNGGU DIBEBASKAN")}</b>
                     <small>
-                      {snapshot.rescueRequestActive
+                      {t(snapshot.rescueRequestActive
                         ? `Sinyal aktif ${snapshot.rescueRequestRemaining}s`
                         : snapshot.rescueRequestCooldown
                           ? `Sinyal siap ${snapshot.rescueRequestCooldown}s`
-                          : 'Kirim sinyal ke rekan tim.'}
+                          : 'Kirim sinyal ke rekan tim.')}
                     </small>
                   </span>
                   <button
                     className="rescue-request-button"
                     onClick={() => tapKey('r')}
                     disabled={snapshot.rescueRequestCooldown > 0}
-                    aria-label="Minta rescue"
+                    aria-label={t("Minta rescue")}
                   >
                     <BellRing size={16} />
-                    {snapshot.rescueRequestActive
+                    {t(snapshot.rescueRequestActive
                       ? 'BANTUAN DIKIRIM'
                       : snapshot.rescueRequestCooldown
                         ? `${snapshot.rescueRequestCooldown}s`
-                        : 'MINTA RESCUE'}
+                        : 'MINTA RESCUE')}
                   </button>
                 </div>
-              )}
+              ))}
               <button
                 className="active-objective"
                 onClick={() => setMissionOpen(true)}
-                aria-label={`Tujuan aktif: ${missionCount} dari 6`}
+                aria-label={t(`Tujuan aktif: ${missionCount} dari 6`)}
                 data-progress={missionCount}
               >
                 <Flag size={20} />
                 <span>
-                  <small>TUJUAN AKTIF · {missionCount}/6</small>
+                  <small>{t("TUJUAN AKTIF · ")}{t(missionCount)}{t("/6")}</small>
                   <b>
-                    {missionCount === 6
+                    {t(missionCount === 6
                       ? 'Semua misi selesai'
-                      : 'Buktikan core loop'}
+                      : 'Latihan Benteng')}
                   </b>
                 </span>
-                <i>›</i>
+                <i>{t("›")}</i>
               </button>
               <div className={`character-hud ${selectedFaction} ${snapshot.state === 'PRISONER' ? 'prisoner' : ''}`}>
                 <CharacterPreview id={selected.id} eager />
                 <span>
-                  <b>{selected.name}</b>
+                  <b>{t(selected.name)}</b>
                   <small>
-                    {selectedFaction ? factionName(selectedFaction) : ''} ·{' '}
-                    {selected.passiveName}
+                    {t(selectedFaction ? factionName(selectedFaction) : '')}{t(" ·")}{t(' ')}
+                    {t(selected.passiveName)}
                   </small>
-                  <em>{snapshot.state.replace('_', ' ')}</em>
+                  <em>{t(snapshot.state.replace('_', ' '))}</em>
                 </span>
-                {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+                {t(ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                   <div
                     className={`character-ultimate ${selectedId === 'kaka' ? 'kaka' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                    aria-label={`Charge ultimate ${Math.floor(snapshot.ultimateMeter)} persen`}
+                    aria-label={t(`Charge ultimate ${Math.floor(snapshot.ultimateMeter)} persen`)}
                   >
                     <span>
-                      {selectedId === 'kaka' ? <Shield size={12} /> : <Zap size={12} />}
-                      {ultimateName(selectedId)}
+                      {t(selectedId === 'kaka' ? <Shield size={12} /> : <Zap size={12} />)}
+                      {t(ultimateName(selectedId))}
                     </span>
-                    <b>{Math.floor(snapshot.ultimateMeter)}%</b>
+                    <b>{t(Math.floor(snapshot.ultimateMeter))}{t("%")}</b>
                     <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
                   </div>
-                )}
+                ))}
               </div>
               <div
                 className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''} ${snapshot.comboLevel || snapshot.comboSurgeRemaining ? '' : 'context-hidden'}`}
-                aria-label="Status combo aksi tim"
+                aria-label={t("Status combo aksi tim")}
               >
                 <Users size={17} />
                 <span>
                   <small>
-                    {snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM'}
+                    {t(snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM')}
                   </small>
                   <b>
-                    {snapshot.comboSurgeRemaining
+                    {t(snapshot.comboSurgeRemaining
                       ? `SQUAD SURGE ${snapshot.comboSurgeRemaining}s`
                       : snapshot.comboLevel
                         ? `LINK ${snapshot.comboLevel}/3 · ${snapshot.comboRemaining}s`
-                        : 'RANGKAI 3 AKSI'}
+                        : 'RANGKAI 3 AKSI')}
                   </b>
                 </span>
                 <i>
-                  {[1, 2, 3].map((step) => (
+                  {t([1, 2, 3].map((step) => (
                     <u
                       key={step}
                       className={
@@ -8278,269 +8207,244 @@ export function BentenganPrototype() {
                           : ''
                       }
                     />
-                  ))}
+                  )))}
                 </i>
               </div>
-              {snapshot.comboCallout && (
+              {t(snapshot.comboCallout && (
                 <div
                   className={`combo-callout ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}
                 >
                   <Users size={22} />
-                  <span>{snapshot.comboCallout}</span>
+                  <span>{t(snapshot.comboCallout)}</span>
                 </div>
-              )}
+              ))}
               <div
                 className="camera-switcher camera-map"
-                aria-label="Pilihan kamera"
+                aria-label={t("Pilihan kamera")}
               >
                 <span>
-                  <MapIcon size={13} /> PETA
-                </span>
-                {CAMERA_OPTIONS.map((camera) => (
+                  <MapIcon size={13} />{t(" PETA")}</span>
+                {t(CAMERA_OPTIONS.map((camera) => (
                   <button
                     key={camera.id}
                     className={cameraMode === camera.id ? 'selected' : ''}
                     onClick={() => setCameraMode(camera.id)}
                     aria-pressed={cameraMode === camera.id}
                   >
-                    {camera.label}
+                    {t(camera.label)}
                   </button>
-                ))}
+                )))}
               </div>
               <div className="boost-stack">
                 <div className="boost-label">
-                  <span>⚡ STAMINA</span>
-                  <b>{Math.round(snapshot.boost)}%</b>
+                  <span>{t("⚡ STAMINA")}</span>
+                  <b>{t(Math.round(snapshot.boost))}{t("%")}</b>
                   <em>
-                    {snapshot.boostCountdown
+                    {t(snapshot.boostCountdown
                       ? `PULIH ${snapshot.boostCountdown}s`
-                      : 'SIAP'}
+                      : 'SIAP')}
                   </em>
                 </div>
                 <div className="stamina-bar">
                   <span style={{ width: `${snapshot.boost}%` }} />
                 </div>
               </div>
-              {snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+              {t(snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                 <div
                   className={`ultimate-meter-hud ${selectedId === 'kaka' ? 'kaka-shield' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                  aria-label={`Meter Ultimate ${selected.name} ${Math.floor(snapshot.ultimateMeter)} persen`}
+                  aria-label={t(`Meter Ultimate ${selected.name} ${Math.floor(snapshot.ultimateMeter)} persen`)}
                 >
                   <span>
-                    {selectedId === 'kaka' ? <Shield size={14} /> : <Zap size={14} />}
-                    {' '+ultimateName(selectedId)}
+                    {t(selectedId === 'kaka' ? <Shield size={14} /> : <Zap size={14} />)}
+                    {t(' '+ultimateName(selectedId))}
                   </span>
-                  <b>{Math.floor(snapshot.ultimateMeter)}%</b>
+                  <b>{t(Math.floor(snapshot.ultimateMeter))}{t("%")}</b>
                   <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
-                  <small>{snapshot.ultimateMeter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30'}</small>
+                  <small>{t(snapshot.ultimateMeter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30')}</small>
                 </div>
-              )}
+              ))}
               <div
                 className={`action-dock ${playerMechanicsLocked ? 'mechanics-inactive' : ''} ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}
-                aria-label="Aksi pemain"
+                aria-label={t("Aksi pemain")}
                 aria-disabled={playerMechanicsLocked}
               >
-                <div className="arena-intel dock-status" aria-label="Status aturan pertandingan">
+                <div className="arena-intel dock-status" aria-label={t("Status aturan pertandingan")}>
                   <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
                     <Flag size={12} />
-                    {snapshot.baseGrace > 0
+                    {t(snapshot.baseGrace > 0
                       ? `KELUAR ${snapshot.baseGrace}s`
-                      : 'BASE AMAN'}
+                      : 'BASE AMAN')}
                   </span>
                   <span
                     className={
                       snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
                     }
                   >
-                    <Lock size={12} /> {snapshot.fortLock.toUpperCase()}
+                    <Lock size={12} /> {t(snapshot.fortLock.toUpperCase())}
                   </span>
                   <span>
-                    <BatteryCharging size={12} /> REFILL {snapshot.pickupCount}
+                    <BatteryCharging size={12} />{t(" REFILL ")}{t(snapshot.pickupCount)}
                   </span>
                   <span>
-                    <RotateCcw size={12} /> ROTASI {snapshot.fieldWins}/3
-                  </span>
+                    <RotateCcw size={12} />{t(" ROTASI ")}{t(snapshot.fieldWins)}{t("/3")}</span>
                 </div>
                 <span className="ready-action">
                   <Zap size={19} />
-                  <b>SPACE</b>
-                  <small>SPRINT</small>
+                  <b>{t("SPACE")}</b>
+                  <small>{t("SPRINT")}</small>
                 </span>
                 <span>
                   <Gauge size={19} />
-                  <b>SHIFT</b>
-                  <small>PARKOUR</small>
+                  <b>{t("SHIFT")}</b>
+                  <small>{t("PARKOUR")}</small>
                 </span>
                 <span
                   className={snapshot.comboSurgeRemaining ? 'combo-ready' : ''}
                 >
                   <Users size={19} />
-                  <b>AUTO</b>
-                  <small>COMBO</small>
+                  <b>{t("AUTO")}</b>
+                  <small>{t("COMBO")}</small>
                 </span>
                 <span>
                   <Shield size={19} />
-                  <b>AUTO</b>
-                  <small>RESCUE</small>
+                  <b>{t("AUTO")}</b>
+                  <small>{t("RESCUE")}</small>
                 </span>
-                {ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
+                {t(ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
                   <button
                     className={`ultimate-action ${selectedId === 'kaka' ? 'kaka-ultimate' : ''} ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
                     onClick={() => keys.current.add('capslock')}
                     disabled={
                       snapshot.ultimateMeter < 100 || playerMechanicsLocked
                     }
-                    aria-label={`${ultimateName(selectedId)} ${Math.floor(snapshot.ultimateMeter)} persen`}
+                    aria-label={t(`${ultimateName(selectedId)} ${Math.floor(snapshot.ultimateMeter)} persen`)}
                   >
-                    {selectedId === 'kaka' ? <Shield size={18} /> : <Zap size={18} />}
-                    <b>CAPS</b>
+                    {t(selectedId === 'kaka' ? <Shield size={18} /> : <Zap size={18} />)}
+                    <b>{t("CAPS")}</b>
                     <small>
-                      {snapshot.ultimateCasting
+                      {t(snapshot.ultimateCasting
                         ? 'CASTING'
                         : snapshot.ultimateMeter >= 100
                           ? 'ULT READY'
-                          : `ULT ${Math.floor(snapshot.ultimateMeter)}%`}
+                          : `ULT ${Math.floor(snapshot.ultimateMeter)}%`)}
                     </small>
                     <i style={{ width: `${snapshot.ultimateMeter}%` }} />
                   </button>
                 ) : (
                   <span className="locked">
                     <Lock size={16} />
-                    <b>—</b>
+                    <b>{t("—")}</b>
                   </span>
-                )}
+                ))}
                 <span className="locked">
                   <Lock size={16} />
-                  <b>—</b>
+                  <b>{t("—")}</b>
                 </span>
               </div>
-              {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
+              {t(snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
                 <div className={`ultimate-buff-indicator ${selectedId === 'kaka' ? 'kaka-shield-indicator' : ''}`}>
-                  {selectedId === 'kaka' ? <Shield size={13} /> : <Zap size={13} />}
-                  {flightConfig(selectedId) ? ' FLIGHT · KEBAL TAG · ' : selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · '}
-                  {snapshot.ultimateBuffRemaining}s
-                </div>
-              )}
-              {snapshot.flightDebug && <output style={{position:'absolute',bottom:140,left:12,zIndex:10,maxWidth:400,padding:6,background:'#000c',color:'#fff',fontSize:10}}>{snapshot.flightDebug}</output>}
+                  {t(selectedId === 'kaka' ? <Shield size={13} /> : <Zap size={13} />)}
+                  {t(flightConfig(selectedId) ? ' FLIGHT · KEBAL TAG · ' : selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · ')}
+                  {t(snapshot.ultimateBuffRemaining)}{t("s")}</div>
+              ))}
+              {t(snapshot.flightDebug && <output style={{position:'absolute',bottom:140,left:12,zIndex:10,maxWidth:400,padding:6,background:'#000c',color:'#fff',fontSize:10}}>{t(snapshot.flightDebug)}</output>)}
               <div className={`control-ribbon ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}>
-                <b>WASD</b> GERAK <b>SPACE</b> SPRINT <b>SHIFT</b> PARKOUR{' '}
-                {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+                <b>{t("WASD")}</b>{t(" GERAK ")}<b>{t("SPACE")}</b>{t(" SPRINT ")}<b>{t("SHIFT")}</b>{t(" PARKOUR")}{t(' ')}
+                {t(ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                   <>
-                    <b>CAPS LOCK</b> ULTIMATE{' '}
+                    <b>{t("CAPS LOCK")}</b>{t(" ULTIMATE")}{t(' ')}
                   </>
-                )}
-                <b>P</b> JEDA
-              </div>
-              <div className={`mobile-controls ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`} aria-label="Kontrol sentuh">
+                ))}
+                <b>{t("P")}</b>{t(" JEDA")}</div>
+              <div className={`mobile-controls ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`} aria-label={t("Kontrol sentuh")}>
                 <div className="touch-dpad">
                   <button
-                    aria-label="Gerak atas"
+                    aria-label={t("Gerak atas")}
                     disabled={playerMovementLocked}
                     {...touchControl('w')}
-                  >
-                    ▲
-                  </button>
+                  >{t("▲")}</button>
                   <button
-                    aria-label="Gerak kiri"
+                    aria-label={t("Gerak kiri")}
                     disabled={playerMovementLocked}
                     {...touchControl('a')}
-                  >
-                    ◀
-                  </button>
+                  >{t("◀")}</button>
                   <button
-                    aria-label="Gerak kanan"
+                    aria-label={t("Gerak kanan")}
                     disabled={playerMovementLocked}
                     {...touchControl('d')}
-                  >
-                    ▶
-                  </button>
+                  >{t("▶")}</button>
                   <button
-                    aria-label="Gerak bawah"
+                    aria-label={t("Gerak bawah")}
                     disabled={playerMovementLocked}
                     {...touchControl('s')}
-                  >
-                    ▼
-                  </button>
+                  >{t("▼")}</button>
                 </div>
                 <div className="touch-actions">
                   <button
                     className="touch-boost"
-                    aria-label="Sprint"
+                    aria-label={t("Sprint")}
                     disabled={playerMechanicsLocked}
                     {...touchControl(' ')}
-                  >
-                    SPRINT
-                  </button>
+                  >{t("SPRINT")}</button>
                   <button
-                    aria-label="Parkour"
+                    aria-label={t("Parkour")}
                     disabled={playerMechanicsLocked}
                     {...touchControl('shift')}
-                  >
-                    PARKOUR
-                  </button>
-                  {ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+                  >{t("PARKOUR")}</button>
+                  {t(ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                     <button
                       className={`touch-ultimate ${selectedId === 'kaka' ? 'kaka-ultimate' : ''}`}
-                      aria-label={ultimateName(selectedId)}
+                      aria-label={t(ultimateName(selectedId))}
                       disabled={
                         snapshot.ultimateMeter < 100 || playerMechanicsLocked
                       }
                       onClick={() => keys.current.add('capslock')}
-                    >
-                      ULT {Math.floor(snapshot.ultimateMeter)}%
-                    </button>
-                  )}
+                    >{t("ULT ")}{t(Math.floor(snapshot.ultimateMeter))}{t("%")}</button>
+                  ))}
                 </div>
               </div>
-              {snapshot.paused && (
+              {t(snapshot.paused && (
                 <div className="pause-overlay">
                   <div>
-                    <small>PERMAINAN DIJEDA</small>
-                    <h2>
-                      Ambil napas.
-                      <br />
-                      Lanjut saat siap.
-                    </h2>
+                    <small>{t("PERMAINAN DIJEDA")}</small>
+                    <h2>{t("Lagi jeda.")}</h2>
                     <button onClick={() => keys.current.add('p')}>
-                      <Play size={17} fill="currentColor" /> Lanjutkan
-                    </button>
+                      <Play size={17} fill="currentColor" />{t(" Lanjut main")}</button>
                     <button
                       onClick={toggleBackgroundMusic}
                       aria-pressed={musicMuted}
                     >
-                      {musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-                      {musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar'}
+                      {t(musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />)}
+                      {t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
                     </button>
                     <div className="pause-settings-row">
                       <AudioSettings onOpen={() => keys.current.clear()} />
                       <GraphicsSettings onOpen={() => keys.current.clear()} />
                     </div>
                     <button onClick={restartMatch}>
-                      <RotateCcw size={17} /> Mulai ulang
-                    </button>
+                      <RotateCcw size={17} />{t(" Mulai ulang")}</button>
                     <button onClick={quit}>
-                      <LogOut size={17} /> Keluar ke menu
-                    </button>
+                      <LogOut size={17} />{t(" Keluar ke menu")}</button>
                   </div>
                 </div>
-              )}
+              ))}
             </>
-          )}
-          {ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+          ))}
+          {t(ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
             <div
               className={`ultimate-banner ${selectedId === 'kaka' ? 'kaka-banner' : ''}`}
               role="status"
               aria-label={
-                `${selected.name} mengaktifkan ${ultimateName(selectedId)}`
+                t(`${selected.name} mengaktifkan ${ultimateName(selectedId)}`)
               }
             >
               <img
                 src={ultimateBannerAsset(selectedId)}
-                alt={`ULTIMATE SKILL ${selected.name}`}
+                alt={t(`ULTIMATE SKILL ${selected.name}`)}
                 decoding="async"
               />
             </div>
-          )}
+          ))}
         </div>
         <aside
           className={`mission-panel ${missionOpen ? 'open' : ''}`}
@@ -8549,151 +8453,127 @@ export function BentenganPrototype() {
           <button
             className="mission-close"
             onClick={() => setMissionOpen(false)}
-            aria-label="Tutup tujuan"
+            aria-label={t("Tutup tujuan")}
           >
             <X size={20} />
           </button>
           <div className="mission-head">
-            <span>Rules test · {missionCount}/6</span>
-            <h2>Buktikan core loop</h2>
+            <span>{t("Latihan · ")}{t(missionCount)}{t("/6 selesai")}</span>
+            <h2>{t("Latihan Benteng")}</h2>
           </div>
           <div className="mission-progress">
             <span style={{ width: `${missionCount * (100 / 6)}%` }} />
           </div>
           <div className="computed-status">
-            <span>
-              Keluar base{' '}
-              <b>{snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—'}</b>
+            <span>{t("Keluar benteng")}{t(' ')}
+              <b>{t(snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—')}</b>
             </span>
-            <span>
-              Status benteng <b>{snapshot.fortLock}</b>
+            <span>{t("Status benteng ")}<b>{t(snapshot.fortLock)}</b>
             </span>
-            <span>
-              Refill aktif <b>{snapshot.pickupCount}</b>
+            <span>{t("Boost tersedia ")}<b>{t(snapshot.pickupCount)}</b>
             </span>
-            <span>
-              Rotasi arena <b>{snapshot.fieldWins}/3</b>
+            <span>{t("Rotasi arena ")}<b>{t(snapshot.fieldWins)}{t("/3")}</b>
             </span>
           </div>
           <ul className="mission-list">
             <li className={snapshot.mission.refresh ? 'done' : ''}>
-              {snapshot.mission.refresh ? (
+              {t(snapshot.mission.refresh ? (
                 <Check size={18} />
               ) : (
                 <Flag size={18} />
-              )}
+              ))}
               <div>
-                <b>Refresh prioritas</b>
-                <span>
-                  Kembali ke benteng dan keluar lagi sebagai urutan terbaru.
-                </span>
+                <b>{t("Perbarui urutan tag")}</b>
+                <span>{t("Kembali ke benteng dan keluar lagi sebagai urutan terbaru.")}</span>
               </div>
             </li>
             <li className={snapshot.mission.boost ? 'done' : ''}>
               <BatteryCharging size={18} />
               <div>
-                <b>Sprint terbatas</b>
-                <span>
-                  Tekan Space untuk ledakan lari{' '}
-                  {GAME_RULES.boostDurationMs / 1000} detik. Pulih 20 detik atau
-                  ambil refill.
-                </span>
+                <b>{t("Pakai sprint")}</b>
+                <span>{t("Tekan Space untuk sprint")}{t(' ')}
+                  {t(GAME_RULES.boostDurationMs / 1000)}{t(" detik. Pulih 20 detik atau ambil boost di lapangan.")}</span>
               </div>
             </li>
             <li className={snapshot.mission.parkour ? 'done' : ''}>
               <Gauge size={18} />
               <div>
-                <b>Parkour kontekstual</b>
-                <span>
-                  Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel,
-                  gunakan tombol PARKOUR di sisi kanan.
-                </span>
+                <b>{t("Lewati rintangan")}</b>
+                <span>{t("Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel, gunakan tombol PARKOUR di sisi kanan.")}</span>
               </div>
             </li>
             <li className={snapshot.mission.tag ? 'done' : ''}>
               <Zap size={18} />
               <div>
-                <b>Menangkap target</b>
-                <span>
-                  Outline hijau = keluar lebih dulu dan boleh ditangkap.
-                </span>
+                <b>{t("Tag lawan")}</b>
+                <span>{t("+ TAG = bisa kamu tangkap. ! AWAS = bisa menangkapmu.")}</span>
               </div>
             </li>
             <li className={snapshot.mission.rescue ? 'done' : ''}>
               <Shield size={18} />
               <div>
-                <b>Bebaskan penjara</b>
-                <span>
-                  Jangkau rekan terluar untuk membebaskan seluruh rantai.
-                </span>
+                <b>{t("Rescue teman")}</b>
+                <span>{t("Jangkau rekan terluar untuk membebaskan seluruh rantai.")}</span>
               </div>
             </li>
             <li className={snapshot.mission.combo ? 'done' : ''}>
               <Users size={18} />
               <div>
-                <b>Combo aksi tim</b>
-                <span>
-                  Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik
-                  untuk Squad Surge.
-                </span>
+                <b>{t("Combo aksi tim")}</b>
+                <span>{t("Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik untuk Squad Surge.")}</span>
               </div>
             </li>
           </ul>
-          {mode === 'playing' ? (
+          {t(mode === 'playing' ? (
             <>
               <div className={`team-status ${selectedFaction}`}>
                 <span>
-                  {selectedFaction
+                  {t(selectedFaction
                     ? factionName(selectedFaction).toUpperCase()
-                    : 'TIM'}{' '}
-                  · 5 PEMAIN UNIK
-                </span>
-                {snapshot.team.map((member, index) => (
+                    : 'TIM')}{t(' ')}{t("· 5 PEMAIN UNIK")}</span>
+                {t(snapshot.team.map((member, index) => (
                   <div key={`${member.name}-${index}`}>
                     <CharacterPreview id={member.characterId} />
-                    <b>{member.name}</b>
+                    <b>{t(member.name)}</b>
                     <i style={{ width: `${Math.min(100, member.boost)}%` }} />
-                    <em>{member.state.replace('_', ' ')}</em>
+                    <em>{t(playerStateLabel(member.state))}</em>
                   </div>
-                ))}
+                )))}
               </div>
               <div className="event-feed">
-                {snapshot.logs.map((entry, index) => (
-                  <p key={`${entry}-${index}`}>{entry}</p>
-                ))}
+                {t(snapshot.logs.map((entry, index) => (
+                  <p key={`${entry}-${index}`}>{t(entry)}</p>
+                )))}
               </div>
             </>
           ) : (
             <div className="reference-card">
               <img
                 src={publicAsset('characters.webp?v=8')}
-                alt="Referensi karakter Benteng Squad Tag"
+                alt={t("Referensi karakter Benteng Squad Tag")}
               />
               <div>
-                <b>Empat belas sprite produksi terpasang</b>
-                <span>
-                  Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi
-                  arah, tag, rescue, tahanan, menang, dan kalah.
-                </span>
+                <b>{t("Empat belas sprite produksi terpasang")}</b>
+                <span>{t("Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.")}</span>
               </div>
             </div>
-          )}
+          ))}
           <div className="audio-note">
-            {musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-            {musicMuted
+            {t(musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />)}
+            {t(musicMuted
               ? 'Musik latar mati. Suara arena dan efek tetap aktif.'
-              : 'Musik menu dan pertandingan aktif setelah interaksi pertama.'}
+              : 'Musik menu dan pertandingan aktif setelah interaksi pertama.')}
           </div>
         </aside>
       </section>
-      {playerProfile && profileOpen && (
-        <Suspense fallback={<LoadingPanel slot="profile" label="Memuat profil pemain…"/>}>
+      {t(playerProfile && profileOpen && (
+        <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")}/>}>
           <PlayerProfilePanel
             profile={playerProfile}
             onClose={() => setProfileOpen(false)}
           />
         </Suspense>
-      )}
+      ))}
     </main>
   );
 }

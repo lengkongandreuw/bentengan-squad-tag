@@ -1,3 +1,4 @@
+import { t } from '../lib/language';
 import { Lock } from 'lucide-react';
 import type { CharacterId } from '../lib/characters';
 import { getCharacterSelectionState } from '../lib/player-profile/content-gates';
@@ -8,8 +9,7 @@ export function CharacterLockBadge({ profile, id }: {
 }) {
   const state = getCharacterSelectionState(profile, id);
   if (!state.locked) return null;
-  return <strong className="character-lock-badge" title={`${state.xpRemaining ?? 0} XP lagi untuk membuka karakter`}>
-    <Lock size={12} aria-hidden="true" /> LOCKED
-    <small>UNLOCK AT LV.{state.requiredLevel ?? '—'}</small>
+  return <strong className="character-lock-badge" title={t(`${state.xpRemaining ?? 0} XP lagi untuk membuka karakter`)}>
+    <Lock size={12} aria-hidden="true" />{t(" TERKUNCI")}<small>{t("BUKA DI LEVEL ")}{t(state.requiredLevel ?? '—')}</small>
   </strong>;
 }

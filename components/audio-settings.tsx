@@ -1,4 +1,6 @@
 'use client';
+import { t, getLanguage } from '../lib/language';
+
 /* oxlint-disable next/no-img-element -- Static supplied PNG art must work in the standalone Pages build. */
 import {
   useEffect,
@@ -19,6 +21,7 @@ import {
 } from '../lib/audio-settings';
 import { GameplayAudio, type GameplaySound } from '../lib/gameplay-audio';
 import { publicAsset, uiAudioAsset } from '../lib/characters';
+import { LanguageSettings } from './language-settings';
 
 const art = (name: string) => publicAsset(`ui-v2/audio-settings/${name}.png`);
 function AudioArtSlider({
@@ -35,8 +38,8 @@ function AudioArtSlider({
   return (
     <div className="audio-art-row">
       <label htmlFor={id}>
-        {label}
-        <output htmlFor={id}>{percent}%</output>
+        {t(label)}
+        <output htmlFor={id}>{t(percent)}{t("%")}</output>
       </label>
       <div
         className="audio-art-slider"
@@ -63,8 +66,8 @@ function AudioArtSlider({
         />
         <input
           id={id}
-          aria-label={`Volume ${label === 'SFX' ? 'SFX' : 'musik latar'}`}
-          aria-valuetext={`${percent}%`}
+          aria-label={t(`Volume ${label === 'SFX' ? 'SFX' : 'musik latar'}`)}
+          aria-valuetext={t(`${percent}%`)}
           type="range"
           min="0"
           max="100"
@@ -191,14 +194,14 @@ export function AudioSettings({
         }}
       >
         <summary
-          aria-label="Pengaturan volume audio"
+          aria-label={t("Pengaturan volume audio")}
           onKeyDown={(event) => event.stopPropagation()}
           onKeyUp={(event) => event.stopPropagation()}
         >
-          {trigger ?? '♫ AUDIO'}
+          {trigger && getLanguage()==='en' ? <span className="settings-wordmark">SETTINGS</span> : t(trigger ?? '♫ AUDIO')}
         </summary>
       </details>
-      {open &&
+      {t(open &&
         createPortal(
           <dialog
             ref={dialog}
@@ -213,7 +216,7 @@ export function AudioSettings({
           >
             <header className="audio-settings-art-header">
               <img src={art('header-panel')} alt="" draggable={false} />
-              <h1 id={titleId}>VOLUME AUDIO</h1>
+              <h1 id={titleId}>{t("VOLUME AUDIO")}</h1>
             </header>
             <div className="audio-settings-art-card">
               <img
@@ -224,14 +227,14 @@ export function AudioSettings({
               />
               <div className="audio-art-content">
                 <AudioArtSlider
-                  label="Musik latar"
+                  label={t("Musik latar")}
                   value={levels.music}
                   onChange={(music) =>
                     saveAudioLevels({ ...audioLevels(), music })
                   }
                 />
                 <AudioArtSlider
-                  label="SFX"
+                  label={t("SFX")}
                   value={levels.sfx}
                   onChange={(sfx) => saveAudioLevels({ ...audioLevels(), sfx })}
                 />
@@ -245,21 +248,21 @@ export function AudioSettings({
                       cleanupPreview();
                   }}
                 >
-                  <summary>PREVIEW AUDIO</summary>
+                  <summary>{t("PREVIEW AUDIO")}</summary>
                   <div>
                     <button type="button" onClick={previewMusic}>
-                      {previewing
+                      {t(previewing
                         ? 'Hentikan preview'
-                        : 'Dengar musik game · 5 detik'}
+                        : 'Dengar musik game · 5 detik')}
                     </button>
                     <select
-                      aria-label="Efek suara untuk preview"
+                      aria-label={t("Efek suara untuk preview")}
                       value={sound}
                       onChange={(e) =>
                         setSound(e.target.value as GameplaySound)
                       }
                     >
-                      {Object.entries({
+                      {t(Object.entries({
                         step: 'Langkah',
                         dash: 'Dash',
                         tag: 'Tag berhasil',
@@ -271,39 +274,32 @@ export function AudioSettings({
                         'fort-captured': 'Benteng direbut',
                       }).map(([value, label]) => (
                         <option key={value} value={value}>
-                          {label}
+                          {t(label)}
                         </option>
-                      ))}
+                      )))}
                     </select>
-                    <button type="button" onClick={() => void previewSfx()}>
-                      Dengar SFX
-                    </button>
-                    <small>
-                      0% = senyap. Preview musik dapat didengar meski mute
-                      aktif. Pertandingan tetap berjalan.
-                    </small>
-                    <small className="audio-art-helper">
-                      Volume langsung diterapkan. CANCEL mengembalikan nilai
-                      awal.
-                    </small>
-                    <output aria-live="polite">{message}</output>
+                    <button type="button" onClick={() => void previewSfx()}>{t("Dengar SFX")}</button>
+                    <small>{t("0% = senyap. Preview musik dapat didengar meski mute aktif. Pertandingan tetap berjalan.")}</small>
+                    <small className="audio-art-helper">{t("Volume langsung diterapkan. BATAL mengembalikan nilai awal.")}</small>
+                    <output aria-live="polite">{t(message)}</output>
                   </div>
                 </details>
               </div>
               <div className="audio-settings-art-actions">
                 <button type="button" onClick={() => close()}>
                   <img src={art('save-button')} alt="" />
-                  <span>SAVE</span>
+                  <span>{t("SIMPAN")}</span>
                 </button>
                 <button type="button" onClick={() => close(true)}>
                   <img src={art('cancel-button')} alt="" />
-                  <span>CANCEL</span>
+                  <span>{t("BATAL")}</span>
                 </button>
               </div>
             </div>
+            <LanguageSettings />
           </dialog>,
           document.body,
-        )}
+        ))}
     </>
   );
 }

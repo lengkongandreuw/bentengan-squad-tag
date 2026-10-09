@@ -23,30 +23,30 @@ try{
   for(let index=0;index<humans;index++){
     const context=await browser.newContext({viewport:{width:1280,height:800}});contexts.push(context);
     const page=await context.newPage();pages.push(page);page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
-    await page.getByLabel('USERNAME',{exact:true}).fill(`SliceQA${index}`);await page.getByRole('button',{name:'CONFIRM',exact:true}).click();
-    await page.getByRole('button',{name:'MULTIPLAYER · LOBBY',exact:true}).click();
-    const arenaSelect=page.getByLabel('Arena multiplayer',{exact:true}),requestedArena=process.env.BENTENG_ARENA_ID||'kampung';
+    await page.getByLabel("PLAYER NAME",{exact:true}).fill(`SliceQA${index}`);await page.getByRole('button',{name:"SAVE NAME",exact:true}).click();
+    await page.getByRole('button',{name:"MULTIPLAYER · LOBBY",exact:true}).click();
+    const arenaSelect=page.getByLabel("Multiplayer arena",{exact:true}),requestedArena=process.env.BENTENG_ARENA_ID||'kampung';
     await arenaSelect.waitFor();await arenaSelect.locator('option').first().waitFor({state:'attached'});
     const availableArenas=await arenaSelect.locator('option').evaluateAll(options=>options.map(option=>option.value));
     const arenaId=availableArenas.includes(requestedArena)?requestedArena:!process.env.BENTENG_ARENA_ID&&availableArenas.includes('studio-edit-kampung')?'studio-edit-kampung':null;
     if(!arenaId)throw Error(`QA arena ${requestedArena} unavailable; set BENTENG_ARENA_ID to an active arena. Available: ${availableArenas.join(', ')}`);
-    await arenaSelect.selectOption(arenaId);await page.getByLabel('Nama pemain',{exact:true}).fill(`Peer${index}`);
+    await arenaSelect.selectOption(arenaId);await page.getByLabel("Player name",{exact:true}).fill(`Peer${index}`);
   }
-  const host=pages[0];await host.getByRole('button',{name:'HOST MATCH',exact:true}).click();await host.locator('dialog code').waitFor();
+  const host=pages[0];await host.getByRole('button',{name:"CREATE ROOM",exact:true}).click();await host.locator('dialog code').waitFor();
   const code=await host.locator('dialog code').textContent();
-  const invitation=await host.getByLabel('Link undangan (arena otomatis)',{exact:true}).inputValue();
+  const invitation=await host.getByLabel("Invite link (includes arena)",{exact:true}).inputValue();
   for(let index=1;index<humans;index++){
-    const page=pages[index];await page.getByRole('button',{name:'Gabung room',exact:true}).click();
-    await page.getByLabel('Kode atau link undangan dari host',{exact:true}).fill(process.env.BENTENG_INVITE_CODE_ONLY==='1'?code:invitation);
-    if(process.env.BENTENG_INVITE_CODE_ONLY!=='1'&&!await page.getByLabel('Arena multiplayer',{exact:true}).isDisabled())throw Error('Invite did not select/lock host arena');
-    await page.getByRole('button',{name:'JOIN MATCH',exact:true}).click();
-    await page.getByText('Lobby terhubung',{exact:false}).waitFor({timeout:25000});
-    await page.getByLabel('Tim',{exact:true}).selectOption(index%2?'green':'red');
-    await page.getByLabel('Karakter',{exact:true}).selectOption(characters[index]);
+    const page=pages[index];await page.getByRole('button',{name:"Got a code?",exact:true}).click();
+    await page.getByLabel("Room code or invite link",{exact:true}).fill(process.env.BENTENG_INVITE_CODE_ONLY==='1'?code:invitation);
+    if(process.env.BENTENG_INVITE_CODE_ONLY!=='1'&&!await page.getByLabel("Multiplayer arena",{exact:true}).isDisabled())throw Error('Invite did not select/lock host arena');
+    await page.getByRole('button',{name:"JOIN ROOM",exact:true}).click();
+    await page.getByText("Lobby connected",{exact:false}).waitFor({timeout:25000});
+    await page.getByLabel("Team",{exact:true}).selectOption(index%2?'green':'red');
+    await page.getByLabel("Character",{exact:true}).selectOption(characters[index]);
     await host.getByText(`${index%2?'HIJAU':'MERAH'} · ${characters[index].toUpperCase()} · BELUM SIAP`,{exact:true}).waitFor();
-    await page.getByLabel('Saya siap',{exact:false}).check();
+    await page.getByLabel("Ready to play",{exact:false}).check();
   }
-  await host.getByRole('button',{name:'MULAI PERSIAPAN ROOM',exact:true}).click();
+  await host.getByRole('button',{name:"START MATCH",exact:true}).click();
   for(const page of pages)await page.waitForFunction(()=>window.__bentengGameCore?.readState().phase==='PLAYING',{},{timeout:20000});
   let state=await read(host);const identities=characters.slice(0,humans).map(character=>state.entities.find(p=>p.characterId===character&&p.controller!=='bot'));
   if(identities.some(p=>!p)||new Set(identities.map(p=>p.entityId)).size!==humans||state.entities.filter(p=>p.controller==='bot').length!==10-humans)throw Error('Incorrect human/bot roster');

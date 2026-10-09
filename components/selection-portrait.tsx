@@ -1,4 +1,6 @@
 'use client';
+import { t } from '../lib/language';
+
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { previewStyle } from '../lib/selection-preview-model';
@@ -31,7 +33,7 @@ export function SelectionPortrait({ id, active, alt }: { id: CharacterId; active
   const source = [desired, staticUrl, characterAsset(id, 'portrait.webp')].find(url => !failed.includes(url));
   // Keep original inactive Boke/Kodo proportions; edited transform applies only to active preview.
   const inactiveScale = id === 'boke' ? 1.05 : id === 'kodo' ? 1.17 : 1;
-  return <img data-character={id} data-selection-portrait="v1" src={source} alt={alt}
+  return <img data-character={id} data-selection-portrait="v1" src={source} alt={t(alt)}
     loading={active ? 'eager' : 'lazy'} decoding="async"
     style={previewStyle(active ? entry : { ...entry, x: 0, y: 0, scale: inactiveScale }) as CSSProperties}
     onError={() => { if (source) setFailed(previous => [...previous, source]); }} />;

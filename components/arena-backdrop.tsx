@@ -1,4 +1,6 @@
 'use client';
+import { t } from '../lib/language';
+
 import { useEffect, useState } from 'react';
 import { publicAsset } from '../lib/characters';
 import { mapArtwork } from '../lib/map-studio';
@@ -21,9 +23,9 @@ export function ArenaBackdrop({ id, video = false, onEnded }: {
   }, []);
   return <div className="arena-backdrop" aria-hidden="true">
     <img key={`${id}-image`} src={arenaImage(id)} alt="" fetchPriority="high" />
-    {video && !reducedMotion && !failed && <video key={`${id}-video`} src={arenaVideo(id)}
+    {t(video && !reducedMotion && !failed && <video key={`${id}-video`} src={arenaVideo(id)}
       poster={arenaImage(id)} autoPlay muted playsInline preload="auto"
-      loop={!onEnded} onEnded={onEnded} onError={() => setFailed(true)} />}
+      loop={!onEnded} onEnded={onEnded} onError={() => setFailed(true)} />)}
     <div className="arena-backdrop-shade" />
   </div>;
 }
