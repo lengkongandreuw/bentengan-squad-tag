@@ -4,6 +4,15 @@ Dokumen ini menyimpan kondisi task yang sedang berjalan. Perbarui setelah setiap
 tahap penting agar pekerjaan dapat dilanjutkan tanpa membaca ulang percakapan.
 
 ## Status
+### 2026-10-09 — MERGE origin/main 95e204a (round-2 language + EN copy) — DONE + PUSHED
+
+**Goal:** merge language round keeping `modules/` ownership, restore EN `t()` coverage end-to-end.
+**Done:** merge `cbcb033` (9 paths) + `t()` port `b97d6ac` + memori `d1efea3`; all pushed to `origin/Refactor-Clio`. Kept HEAD shells; ported rules `t()` block into `rules-overlay.tsx`; ported origin copy into `config/characters/*.json`; `t()`-wrapped ~35 shells + prototype; fixed `components/`→`modules/ui/` depths + test loaders; repointed 3 audit pins.
+**Changed:** `app/prototype.tsx`, `config/characters/*.json` (14), `modules/ui/*.tsx` (~35), `modules/ui/player-profile/*.tsx` (4), `lib/characters.ts`, `scripts/test-economy-wallet.mjs`, `scripts/test-player-copy.mjs`, `scripts/audit-game.mjs` (3 pins), `memori.md`.
+**Validation:** `tsc` 0; game-core 40/40; economy 26/26; language+copy 7/7; route 3/3; multiplayer 28/28; battery 61/61; audit 21 = baseline; `build:pages` PASS; browser smoke to pause (`GAME PAUSED / TAKING A BREATHER / Resume`), zero page errors.
+**Blockers:** none. Pre-existing: progression crash (clean `c61f31a` identical), ui-priority needs playwright.
+**Next action:** none for this merge.
+
 ### 2026-10-09 — MERGE origin/main f95a02a INTO Refactor-Clio (modules ownership)
 
 **Goal:** close mid-merge (8 paths) with zero markers, `modules/` intact, no `components/` restore.
