@@ -1,4 +1,6 @@
 'use client';
+import { t } from '../../../lib/language';
+
 
 import { useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
@@ -36,11 +38,11 @@ export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
   return createPortal(
     <section className="player-profile-overlay" role="dialog" aria-modal="true" aria-labelledby="player-profile-setup-title">
       <form className="player-profile-panel player-profile-setup" onSubmit={submit}>
-        <span>PROFIL PEMAIN</span>
-        <h2 id="player-profile-setup-title">Buat profil</h2>
-        <p>Buat username maksimal 12 karakter.</p>
+        <span>{t("PROFIL PEMAIN")}</span>
+        <h2 id="player-profile-setup-title">{t("Mau dipanggil siapa?")}</h2>
+        <p>{t("Nama pemain · 3–12 karakter.")}</p>
         <label className="player-username-field">
-          <span>USERNAME</span>
+          <span>{t("NAMA PEMAIN")}</span>
           <input
             autoFocus
             value={username}
@@ -49,8 +51,8 @@ export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
             aria-describedby={error ? 'profile-setup-error' : undefined}
           />
         </label>
-        {error && <p className="player-profile-error" id="profile-setup-error">{error}</p>}
-        <button className="player-profile-save" type="submit">CONFIRM</button>
+        {t(error && <p className="player-profile-error" id="profile-setup-error">{t(error)}</p>)}
+        <button className="player-profile-save" type="submit">{t("SIMPAN NAMA")}</button>
       </form>
     </section>,
     document.body,

@@ -11,9 +11,9 @@ const body = Poppins({
 
 export const metadata: Metadata = {
   icons: { icon: './favicon-bst.png?v=1' },
-  title: 'Bentengan: Squad Tag — Playable Prototype',
+  title: 'Bentengan: Squad Tag',
   description:
-    'Bentengan web 2,5D 5v5: pilih Tim Merah atau Hijau, mainkan 14 karakter unik di empat arena, sprint, parkour, penjara, dan rescue.',
+    'Pick your squad. Tag, rescue and take the enemy fort in Bentengan: Squad Tag, a 5v5 arena game.',
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="en">
       <body className={body.variable}>{children}</body>
     </html>
   );

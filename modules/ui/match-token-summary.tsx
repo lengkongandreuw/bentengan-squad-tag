@@ -1,3 +1,4 @@
+import { t } from '../../lib/language';
 import type { ProgressionResult } from '../../lib/player-profile/match-progression';
 import { economyRules } from '../../lib/player-profile/economy-rules.ts';
 
@@ -5,14 +6,14 @@ import { economyRules } from '../../lib/player-profile/economy-rules.ts';
 export function MatchTokenSummary({ result }: { result: ProgressionResult }) {
   const currency = economyRules.currency.label;
   return <div className="match-token-summary">
-    <h3>{currency} PERTANDINGAN</h3>
-    {result.applied ? <>
-      {Object.entries(result.tokenBreakdown).map(([key, value]) => <p key={key}>
-        <span>{{ match: 'Match selesai', victory: 'Victory', tag: 'Tag', rescue: 'Rescue' }[key]}</span>
-        <b>+{value} {currency}</b>
-      </p>)}
-      <strong>+{result.tokenEarned} {currency} TOTAL</strong>
-    </> : <p>{result.reason === 'duplicate' ? `${currency} match ini sudah diproses; tidak ditambahkan lagi.` : `Match belum selesai; tidak ada ${currency} baru.`}</p>}
-    <p>Saldo setelah pertandingan: <b>{result.currentTokenBalance.toLocaleString('id-ID')} {currency}</b></p>
+    <h3>{t(currency)}{t(" PERTANDINGAN")}</h3>
+    {t(result.applied ? <>
+      {t(Object.entries(result.tokenBreakdown).map(([key, value]) => <p key={key}>
+        <span>{t({ match: 'Selesai bermain', victory: 'Menang', tag: 'Tag', rescue: 'Rescue' }[key])}</span>
+        <b>{t("+")}{t(value)} {t(currency)}</b>
+      </p>))}
+      <strong>{t("+")}{t(result.tokenEarned)} {t(currency)}{t(" TOTAL")}</strong>
+    </> : <p>{t(result.reason === 'duplicate' ? `${currency} pertandingan ini sudah masuk. Tidak ditambahkan dua kali.` : `Pertandingan belum selesai. Belum ada hadiah ${currency}.`)}</p>)}
+    <p>{t("Saldo setelah pertandingan: ")}<b>{t(result.currentTokenBalance.toLocaleString('id-ID'))} {t(currency)}</b></p>
   </div>;
 }

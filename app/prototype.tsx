@@ -1,4 +1,7 @@
 'use client';
+import { t, useLanguage } from '../lib/language';
+import { arenaCopy, playerArenaCopy } from '../lib/player-copy.ts';
+
 
 import {
   lazy,
@@ -84,6 +87,7 @@ import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from 
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
 import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
+
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
 import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
@@ -331,6 +335,7 @@ if (arenaValidationErrors.length > 0)
   throw new Error(arenaValidationErrors.join('\n'));
 // Custom maps are already in world coordinates. Existing arena definitions remain untouched.
 const replacedFields = new Set(studioMaps.map(map => map.replaces));
+FIELD_CONFIGS.forEach(field=>{field.kicker=arenaCopy[field.id]??field.kicker;});
 const nativeFieldConfigs = Object.fromEntries(FIELD_CONFIGS.map(field => [field.id, field]));
 const kanalReference = kanalColliderObjects(nativeFieldConfigs.kanal2.obstacles, kanalObjectPolygons);
 const runtimeStudioMapById = Object.fromEntries(studioMaps.map(map=>[map.id,prepareArenaMap(map,kanalReference)]));
@@ -339,7 +344,7 @@ for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
   if (replacedFields.has(id) || ['archived','deleted'].includes(studioBuiltinStates[id])) FIELD_CONFIGS.splice(index, 1);
 }
 FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
-  id: map.id, name: map.name, kicker: map.description, difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
+  id: map.id, name: map.name, kicker: playerArenaCopy(map.id,map.description,map.replaces), difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
   aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined, ground: 'kampungGround', width: map.width, height: map.height,
   bases: map.bases, prisons: Object.fromEntries(Object.entries(map.prisons).map(([team,p])=>[team,{
     ...(map.replaces ? nativeFieldConfigs[map.replaces].prisons[team as Team] : arenaRulesFor(map)==='kanal2' ? nativeFieldConfigs.kanal2.prisons[team as Team] : {}),...p,
@@ -399,6 +404,7 @@ const getSpriteImage = (id: CharacterId) => {
 };
 
 export function BentenganPrototype() {
+  useLanguage();
   const [hudPreferences,setHudPreferences]=useHudPreferences();
   const hudPreferencesRef=useRef(hudPreferences);
   hudPreferencesRef.current=hudPreferences;
@@ -1556,7 +1562,7 @@ export function BentenganPrototype() {
       phase = 'COUNTDOWN';
       phaseUntil = performance.now() + 2800;
       announcement = `RONDE ${round}`;
-      log(`Ronde ${round}: 10 pemain menyusun urutan keluar.`);
+        log(`Ronde ${round} · siapkan tim di benteng!`);
     };
     const winRound = (team: Team, reason: string) => {
       const resultNow = performance.now();
@@ -1979,7 +1985,7 @@ export function BentenganPrototype() {
       );
       if (isPlayerTeam) {
         mission.combo = true;
-        comboCallout = 'SQUAD SURGE · SPEED +10%';
+        comboCallout = 'SQUAD SURGE · KECEPATAN +10%';
         comboCalloutUntil = now + 2500;
       }
     };
@@ -2017,7 +2023,7 @@ export function BentenganPrototype() {
         log(`${rescuer.name} membebaskan ${held.length} rekan.`);
       } else if(event.type==='FORCED_EXIT'||event.type==='BOOST_RECOVERED'){
         const p=players.find(p=>p.entityId===event.actorId);if(!p)return;
-        if(event.type==='FORCED_EXIT')log(`${p.name} dipaksa keluar—grace 5 detik habis.`);
+        if(event.type==='FORCED_EXIT')log(`${p.name} keluar benteng · waktu tunggu 5 detik habis.`);
         else if(p.controlled){log(`Boost ${p.name} pulih penuh setelah 20 detik.`);beep(690,.13);}
       } else if(event.type==='FORT_ENTERED'){
         if(event.actorId===players[0].entityId)gameplayAudio.play('fort-enter');
@@ -2253,7 +2259,7 @@ export function BentenganPrototype() {
           log(`PERISAI HIJAU · seluruh rekan kebal TAG selama ${fact.durationMs/1000} detik.`);
         } else if(fact.type==='ULTIMATE_APPLIED') {
           burst(me.x,me.y,'#ef233c',28);burst(me.x,me.y,'#b54a32',18);beep(118,.32);
-          log(`TITAH HALILINTAR · seluruh rekan ACTIVE bergerak +${Math.round((fact.speedMultiplier-1)*100)}% selama ${fact.durationMs/1000} detik.`);
+          log(`TITAH HALILINTAR · rekan di lapangan bergerak +${Math.round((fact.speedMultiplier-1)*100)}% selama ${fact.durationMs/1000} detik.`);
         }
       });
       const ultimateCasting = coreUltimateCasting(me,now,ULTIMATE_CHARACTER_IDS);
@@ -2474,6 +2480,7 @@ export function BentenganPrototype() {
     };
     const rounded = (x: number, y: number, w: number, h: number, r: number) =>
       roundedOn(ctx, x, y, w, h, r);
+
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
       if (studioMap) {
         studioLayers.background.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,performance.now());});
@@ -2688,14 +2695,14 @@ export function BentenganPrototype() {
       ctx.font = '800 10px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(
-        team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU',
+        t(team === 'blue' ? 'BENTENG MERAH' : 'BENTENG HIJAU'),
         b.x,
         baseLabelY,
       );
       if (occupant) {
         ctx.fillStyle = '#f5cf45';
         ctx.font = '900 9px Arial';
-        ctx.fillText(`TERKUNCI · ${occupant.name}`, b.x, baseLabelY + 14);
+        ctx.fillText(t(`TERKUNCI · ${occupant.name}`), b.x, baseLabelY + 14);
       }
     };
     let debugLayer: HTMLCanvasElement | null = null;
@@ -3193,7 +3200,7 @@ const spriteFrame = (
       }
       const label = p.controlled ? `★ ${p.name}` : p.name;
       ctx.font = `900 ${11*hudPreferencesRef.current.scale}px Arial`;
-      const labelWidth = Math.max(38, ctx.measureText(label).width + 14);
+      const labelWidth = Math.max(38, ctx.measureText(t(label)).width + 14);
       ctx.fillStyle = 'rgba(13,18,14,.92)';
       rounded(p.x - labelWidth / 2, p.y + 23, labelWidth, 17, 5);
       ctx.fill();
@@ -3202,19 +3209,19 @@ const spriteFrame = (
       ctx.stroke();
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
-      ctx.fillText(label, p.x, p.y + 35);
+      ctx.fillText(t(label), p.x, p.y + 35);
       const relation=tagRelationship(me,p,now,isKanalField(field.id));
       if(relation!=='neutral') {
         const text=relation==='target'?'+ TAG':relation==='danger'?'! AWAS':'◇ KEBAL';
         ctx.save();ctx.font=`900 ${11*hudPreferencesRef.current.scale}px Arial`;
-        const width=ctx.measureText(text).width+12;
+        const width=ctx.measureText(t(text)).width+12;
         ctx.fillStyle='#08100ef2';rounded(p.x-width/2,p.y+42,width,20,4);ctx.fill();
-        ctx.fillStyle=outline;ctx.textAlign='center';ctx.fillText(text,p.x,p.y+56);ctx.restore();
+        ctx.fillStyle=outline;ctx.textAlign='center';ctx.fillText(t(text),p.x,p.y+56);ctx.restore();
       }
       if (inWater) {
         ctx.fillStyle = '#b8f8ff';
         ctx.font = '900 7px Arial';
-        ctx.fillText('AIR DALAM · PARKOUR', p.x, p.y + 49);
+        ctx.fillText(t('AIR DALAM · PARKOUR'), p.x, p.y + 49);
       }
       if (p.state === 'ACTIVE') {
         ctx.fillStyle = '#141a15';
@@ -3226,13 +3233,13 @@ const spriteFrame = (
         ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.font = '800 9px Arial';
-        ctx.fillText(String(p.exitOrder), p.x + 23, p.y - 32 - headOffset + bob);
+        ctx.fillText(t(String(p.exitOrder)), p.x + 23, p.y - 32 - headOffset + bob);
       }
       if (p.state === 'RETURNING') {
         ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45';
         ctx.font = '800 8px Arial';
         ctx.fillText(
-          now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI',
+          t(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI'),
           p.x,
           p.y - 55 - headOffset,
         );
@@ -3240,7 +3247,7 @@ const spriteFrame = (
       if (now < p.fallNoticeUntil) {
         const noticeY = p.y - 78 - headOffset + bob;
         ctx.font = '900 10px Arial';
-        const noticeWidth = ctx.measureText('OOOPSS... HATI-HATI').width + 18;
+        const noticeWidth = ctx.measureText(t('OOOPSS... HATI-HATI')).width + 18;
         ctx.fillStyle = 'rgba(18,25,20,.94)';
         rounded(p.x - noticeWidth / 2, noticeY - 15, noticeWidth, 21, 7);
         ctx.fill();
@@ -3249,7 +3256,7 @@ const spriteFrame = (
         ctx.stroke();
         ctx.fillStyle = '#fff4d1';
         ctx.textAlign = 'center';
-        ctx.fillText('OOOPSS... HATI-HATI', p.x, noticeY);
+        ctx.fillText(t('OOOPSS... HATI-HATI'), p.x, noticeY);
       }
       if (p.state === 'IN_BASE' && p.baseCharge < stats.baseChargeTime) {
         ctx.fillStyle = '#9b9d91';
@@ -3389,7 +3396,7 @@ const spriteFrame = (
           ctx.fillStyle = '#fff5be';
           ctx.font = '900 20px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText('!', rescueRequester.x, rescueRequester.y - 35);
+          ctx.fillText(t('!'), rescueRequester.x, rescueRequester.y - 35);
           ctx.restore();
         }
         particles.forEach((p, index) => {
@@ -3424,7 +3431,7 @@ const spriteFrame = (
           ctx.fillStyle = color;
           ctx.font = '900 9px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText(label, x, y + 3);
+          ctx.fillText(t(label), x, y + 3);
         };
         marker(bases.blue, 'M', TEAM_COLOR.blue);
         marker(bases.red, 'H', TEAM_COLOR.red);
@@ -3444,7 +3451,7 @@ const spriteFrame = (
         ctx.fillStyle = '#fff4d1';
         ctx.font = `800 ${phase === 'COUNTDOWN' ? 90 : 54}px var(--font-heading)`;
         ctx.textAlign = 'center';
-        ctx.fillText(announcement, cw / 2, ch / 2);
+        ctx.fillText(t(announcement), cw / 2, ch / 2);
       }
     };
     let cachedStatsBoard = initialSnapshot.statsBoard;
@@ -4214,7 +4221,7 @@ const spriteFrame = (
         <div className="stage-card">
           <canvas
             ref={canvasRef}
-            aria-label={`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`}
+            aria-label={t(`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`)}
           />
           <OrientationHint />
           {!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}

@@ -1,4 +1,6 @@
 'use client';
+import { t } from '../../lib/language';
+
 import { useEffect, useRef, useState } from 'react';
 import { publicAsset } from '../../lib/characters.ts';
 
@@ -44,19 +46,19 @@ export function DeveloperCredits({onClose}:{onClose:()=>void}) {
     <div className="credits-stage">
       <img className="credits-background" src={publicAsset('ui-v2/credits/background.webp?v=1')} alt="" onLoad={()=>setReady(true)} onError={()=>setReady(true)} />
       <header className="credits-toolbar">
-        <button autoFocus onClick={onClose}>← BACK</button>
-        <h2 id="credits-title">ABOUT DEVELOPER</h2>
-        <button onClick={()=>setPaused(value=>!value)} disabled={ended} aria-pressed={paused}>{paused?'▶ LANJUT':'Ⅱ JEDA'}</button>
-        <button onClick={restart}>↺ ULANGI</button>
+        <button autoFocus onClick={onClose}>{t("← BACK")}</button>
+        <h2 id="credits-title">{t("ABOUT DEVELOPER")}</h2>
+        <button onClick={()=>setPaused(value=>!value)} disabled={ended} aria-pressed={paused}>{t(paused?'▶ LANJUT':'Ⅱ JEDA')}</button>
+        <button onClick={restart}>{t("↺ ULANGI")}</button>
       </header>
-      <div ref={viewport} className={`credits-window ${reduced?'reduced-motion':''}`} tabIndex={0} aria-label="Daftar kredit pengembang" onWheel={()=>setPaused(true)} onTouchStart={()=>setPaused(true)} onKeyDown={event=>{
+      <div ref={viewport} className={`credits-window ${reduced?'reduced-motion':''}`} tabIndex={0} aria-label={t("Daftar kredit pengembang")} onWheel={()=>setPaused(true)} onTouchStart={()=>setPaused(true)} onKeyDown={event=>{
         if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End'].includes(event.key))setPaused(true);
       }}>
         <div className="credits-spacer" aria-hidden="true" />
         <div className="credits-copy">
-          <p className="credits-product">Benteng Squad Tag™ is a product of BigDade® Interactive (PT Kawanua Virtual Teknologi)</p>
-          {groups.map(group=><section key={group.title}><h3>{group.title}</h3>{group.names.map(name=><p key={name}>{name}</p>)}</section>)}
-          <h3 className="credits-ending">Benteng Squad Tag</h3>
+          <p className="credits-product">{t("Benteng Squad Tag™ is a product of BigDade® Interactive (PT Kawanua Virtual Teknologi)")}</p>
+          {t(groups.map(group=><section key={group.title}><h3>{t(group.title)}</h3>{t(group.names.map(name=><p key={name}>{t(name)}</p>))}</section>))}
+          <h3 className="credits-ending">{t("Benteng Squad Tag")}</h3>
         </div>
         <div className="credits-spacer credits-tail" aria-hidden="true" />
       </div>

@@ -1,4 +1,6 @@
 'use client';
+import { t, getLanguage } from '../../../lib/language';
+
 
 import { createPortal } from 'react-dom';
 import { useState } from 'react';
@@ -63,50 +65,49 @@ export function PlayerProfilePanel({
       <div className="player-profile-panel profile-poster">
         <header className="profile-poster-header">
           <div>
-            <span>PROFILE</span>
-            <p>Bergabung {new Date(profile.firstJoin).toLocaleDateString('id-ID')}</p>
+            <span>{t("PROFILE")}</span>
+            <p>{t("Bergabung ")}{t(new Date(profile.firstJoin).toLocaleDateString(getLanguage()==='id'?'id-ID':'en-US'))}</p>
             <TokenWallet profile={profile} />
           </div>
-          <button className="profile-close" type="button" onClick={onClose} aria-label="Tutup profil">×</button>
+          <button className="profile-close" type="button" onClick={onClose} aria-label={t("Tutup profil")}>{t("×")}</button>
         </header>
         <button
           className="profile-hero-card"
           onClick={() => setCharacterPickerOpen(true)}
-          aria-label={`Pilih foto profil, saat ini ${featuredCharacter.name}`}
-          title="Pilih foto profil"
+          aria-label={t(`Pilih foto profil, saat ini ${featuredCharacter.name}`)}
+          title={t("Pilih foto profil")}
         >
-          <span className="profile-hero-tag">HERO</span>
+          <span className="profile-hero-tag">{t("HERO")}</span>
           <span className="profile-hero-frame">
-            <img src={characterPreviewIcon(featuredCharacter.id)} alt={featuredCharacter.name} />
+            <img src={characterPreviewIcon(featuredCharacter.id)} alt={t(featuredCharacter.name)} />
           </span>
         </button>
         <section className="profile-poster-main">
           <div className="profile-identity">
-            <span className="profile-street-id">PLAYER / STREET ID</span>
-            <span className="profile-player-id" title={profile.id}>
-              ID · {compactPlayerId(profile.id)}
+            <span className="profile-street-id">{t("PLAYER / STREET ID")}</span>
+            <span className="profile-player-id" title={t(profile.id)}>{t("ID · ")}{t(compactPlayerId(profile.id))}
             </span>
             <button
               className={hasCopiedPlayerId ? 'profile-copy-id copied' : 'profile-copy-id'}
               type="button"
               onClick={copyPlayerId}
-              aria-label={hasCopiedPlayerId ? 'ID pemain tersalin' : 'Salin ID pemain'}
-              title={hasCopiedPlayerId ? 'ID tersalin' : 'Salin ID pemain'}
+              aria-label={t(hasCopiedPlayerId ? 'ID pemain tersalin' : 'Salin ID pemain')}
+              title={t(hasCopiedPlayerId ? 'ID tersalin' : 'Salin ID pemain')}
             >
               <span aria-hidden="true" />
             </button>
           </div>
           <h2 id="player-profile-title">
             <span className="profile-username">
-              <span className="profile-username-shadow" aria-hidden="true">{profile.username}</span>
-              <span className="profile-username-text">{profile.username}</span>
+              <span className="profile-username-shadow" aria-hidden="true">{t(profile.username)}</span>
+              <span className="profile-username-text">{t(profile.username)}</span>
             </span>
           </h2>
           <KdaSummary profile={profile} />
         </section>
-        <section className="profile-poster-style" aria-label="Gaya bermain">
-          <span className="profile-how-i-play">HOW I PLAY</span>
-          <h3>PLAYER STYLE</h3>
+        <section className="profile-poster-style" aria-label={t("Gaya bermain")}>
+          <span className="profile-how-i-play">{t("CARA MAINMU")}</span>
+          <h3>{t("GAYA MAIN")}</h3>
           <PlayerRadarChart
             attack={metrics.radar.attack}
             support={metrics.radar.support}
@@ -114,20 +115,20 @@ export function PlayerProfilePanel({
             hasMatchData={metrics.matchesPlayed > 0}
           />
         </section>
-        <section className="profile-poster-record" aria-label="Rekor match">
-          <span>MATCH RECORD</span>
+        <section className="profile-poster-record" aria-label={t("Rekor match")}>
+          <span>{t("REKOR MAIN")}</span>
           <div>
-            <em>W</em>
-            <b>{String(profile.menang).padStart(2, '0')}</b>
-            <i>—</i>
-            <strong>{String(profile.kalah).padStart(2, '0')}</strong>
-            <u>L</u>
+            <em>{t("W")}</em>
+            <b>{t(String(profile.menang).padStart(2, '0'))}</b>
+            <i>{t("—")}</i>
+            <strong>{t(String(profile.kalah).padStart(2, '0'))}</strong>
+            <u>{t("L")}</u>
           </div>
         </section>
-        <span className="profile-go-copy" aria-hidden="true">/// GO! GO!</span>
+        <span className="profile-go-copy" aria-hidden="true">{t("/// GO! GO!")}</span>
         <span className="profile-corner-stripes" aria-hidden="true" />
-        <b className="profile-local-badge">VERIFIED<br />LOCAL!</b>
-        {isCharacterPickerOpen && (
+        <b className="profile-local-badge">{t("PROFIL")}<br />{t("LOKAL")}</b>
+        {t(isCharacterPickerOpen && (
           <section
             className="profile-character-picker"
             role="dialog"
@@ -137,23 +138,21 @@ export function PlayerProfilePanel({
             <div className="profile-character-picker-card">
               <header>
                 <div>
-                  <span>PILIH FOTO PROFIL</span>
-                  <h3 id="profile-character-picker-title">CHARACTER ICONS</h3>
-                  <p>Pilih karakter yang akan ditampilkan pada profilmu.</p>
+                  <span>{t("PILIH FOTO PROFIL")}</span>
+                  <h3 id="profile-character-picker-title">{t("IKON KARAKTER")}</h3>
+                  <p>{t("Pilih karakter yang akan ditampilkan pada profilmu.")}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCharacterPickerOpen(false)}
-                  aria-label="Tutup pilihan karakter"
-                >
-                  ×
-                </button>
+                  aria-label={t("Tutup pilihan karakter")}
+                >{t("×")}</button>
               </header>
               {selectionError && (
                 <p role="alert" className="profile-selection-error">{selectionError}</p>
               )}
               <div className="profile-character-picker-grid">
-                {CHARACTERS.map((character) => {
+                {t(CHARACTERS.map((character) => {
                   const isSelected = character.id === profile.featuredCharacterId;
                   return (
                     <button
@@ -164,14 +163,14 @@ export function PlayerProfilePanel({
                       onClick={() => selectFeaturedCharacter(character.id)}
                     >
                       <img src={characterPreviewIcon(character.id)} alt="" />
-                      <span>{character.name}</span>
+                      <span>{t(character.name)}</span>
                     </button>
                   );
-                })}
+                }))}
               </div>
             </div>
           </section>
-        )}
+        ))}
       </div>
     </section>,
     document.body,

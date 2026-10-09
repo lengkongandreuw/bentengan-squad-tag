@@ -14,11 +14,11 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.BE
 try{
   for(const [team,media]of [['Merah','img'],['Hijau',realMedia?'img':'video']]){
     const page=await browser.newPage({viewport:{width:1366,height:768}});page.on('pageerror',e=>errors.push(e.message));
-    await page.goto(base);await page.getByLabel('USERNAME',{exact:true}).fill('QALoading'+team);await page.getByRole('button',{name:'CONFIRM',exact:true}).click();await page.locator('.enter-game').click();
+    await page.goto(base);await page.getByLabel("PLAYER NAME",{exact:true}).fill('QALoading'+team);await page.getByRole('button',{name:"SAVE NAME",exact:true}).click();await page.locator('.enter-game').click();
     const held=[];await page.route(/\.mp4(?:\?|$)/,async route=>{if(route.request().url().includes('loading-media'))return route.continue();held.push(route);});
     await page.getByRole('button',{name:`Pilih Tim ${team}`,exact:true}).click();
     await page.locator('.custom-loading-media '+media).waitFor({timeout:20000});
-    assert.equal(await page.getByRole('progressbar',{name:'Progres pemuatan aset',includeHidden:true}).count(),1);
+    assert.equal(await page.getByRole('progressbar',{name:"Asset loading progress",includeHidden:true}).count(),1);
     assert.equal(await page.locator('.team-loading-frame').count(),1);
     await page.waitForFunction(()=>document.querySelector('.team-loading-frame')?.naturalWidth>0);
     assert.equal(await page.locator('.asset-loading-card').isVisible(),false);

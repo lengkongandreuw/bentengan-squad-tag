@@ -678,10 +678,12 @@ void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, pr
   const src=fs.readFileSync('app/prototype.tsx','utf8'),
     mergeStart=src.indexOf('// Custom maps are'),mergeEnd=src.indexOf('const FIELD_BY_ID =');
   assert.ok(mergeStart>0&&mergeEnd>mergeStart,'prototype keeps the studio merge block');
+  const copyExports={};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/player-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:copyExports});
   const projected={structuredClone,
     FIELD_CONFIGS:JSON.parse(JSON.stringify(nativeFields)),
     studioMaps:[fixtureMap],studioBuiltinStates:{},
-    arenaRulesFor,prepareArenaMap,kanalColliderObjects:(await import('../modules/world/map-arena-rules.ts')).kanalColliderObjects,
+    arenaRulesFor,prepareArenaMap,arenaCopy:copyExports.arenaCopy,playerArenaCopy:copyExports.playerArenaCopy,kanalColliderObjects:(await import('../modules/world/map-arena-rules.ts')).kanalColliderObjects,
     kanalObjectPolygons:(await import('../modules/world/kanal-footprints.ts')).kanalObjectPolygons,result:null};
   vm.runInNewContext(ts.transpile(src.slice(mergeStart,mergeEnd)+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),projected);
   const replacement=JSON.parse(JSON.stringify(projected.result)).find(f=>f.id===draft.id);

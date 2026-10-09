@@ -1,4 +1,6 @@
 'use client';
+import { t } from '../../../lib/language';
+
 
 import { memo } from 'react';
 
@@ -47,19 +49,19 @@ export const PlayerRadarChart = memo(function PlayerRadarChart({
       className="player-radar-chart"
       viewBox="0 0 275 265"
       role="img"
-      aria-label={hasMatchData
-        ? `Radar performa: Attack ${Math.round(attack)}, Support ${Math.round(support)}, Survival ${Math.round(survival)}`
-        : 'Radar performa belum tersedia karena pemain belum menyelesaikan match.'}
+      aria-label={t(hasMatchData
+        ? `Gaya main: Serang ${Math.round(attack)}, Bantu ${Math.round(support)}, Bertahan ${Math.round(survival)}`
+        : 'Selesaikan satu pertandingan untuk melihat gaya mainmu.')}
     >
-      <text className="radar-axis-label" x="137.5" y="56" textAnchor="middle">ATTACK</text>
+      <text className="radar-axis-label" x="137.5" y="56" textAnchor="middle">{t("SERANG")}</text>
       <g className="radar-grid">
-        {[20, 40, 60, 80, 100].map((level) => (
+        {t([20, 40, 60, 80, 100].map((level) => (
           <polygon key={level} points={triangle(level)} />
-        ))}
+        )))}
       </g>
-      {hasMatchData && <polygon className="radar-value" points={values} />}
-      <text className="radar-axis-label" x="56" y="258" textAnchor="middle">SURVIVAL</text>
-      <text className="radar-axis-label" x="219" y="258" textAnchor="middle">SUPPORT</text>
+      {t(hasMatchData && <polygon className="radar-value" points={values} />)}
+      <text className="radar-axis-label" x="56" y="258" textAnchor="middle">{t("BERTAHAN")}</text>
+      <text className="radar-axis-label" x="219" y="258" textAnchor="middle">{t("BANTU")}</text>
     </svg>
   );
 });
