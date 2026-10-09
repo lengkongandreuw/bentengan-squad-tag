@@ -15,7 +15,7 @@ function command(program,args,cwd,timeout=180000) {
     const child=spawn(program,args,{cwd,windowsHide:true,shell:false,env:{...process.env,GIT_TERMINAL_PROMPT:'0',GCM_INTERACTIVE:'Never'}});
     let output='';const collect=b=>{output=(output+b).slice(-16000);};child.stdout.on('data',collect);child.stderr.on('data',collect);
     const timer=setTimeout(()=>{child.kill();reject(new Error('Waktu proses habis. Periksa Git/terminal.'));},timeout);
-    child.on('error',e=>{clearTimeout(timer);reject(e);});child.on('close',code=>{clearTimeout(timer);code===0?resolve(output.trim()):reject(new Error(output||`Proses gagal (${code})`));});
+    child.on('error',e=>{clearTimeout(timer);reject(e);});child.on('close',code=>{clearTimeout(timer); if(code===0)resolve(output.trim()); else reject(new Error(output||`Proses gagal (${code})`));});
   });
 }
 export async function startSpriteStudio(port=4319,projectRoot=root) {
@@ -26,6 +26,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
   const definitions=await readFile(path.join(projectRoot,'lib/characters.ts'),'utf8').catch(()=> '');
   for(const character of roster){const match=definitions.match(new RegExp(`id: '${character.id}'[\\s\\S]*?visualScale: ([0-9.]+)`));character.visualScale=match?Number(match[1]):1;}
   const readConfig=async()=>{const b=await readFile(configFile);return {document:validateSpriteDocument(JSON.parse(b),ids),revision:hash(b)};};
+  // oxlint-disable-next-line eslint/prefer-const -- origin/busy/job reassigned at listen/runJob below
   let origin,busy=false,job={status:'idle',message:''};
   const git=args=>command('git',['-c',`safe.directory=${projectRoot.replaceAll('\\','/')}`,...args],projectRoot);
   const build=async()=>{await command(process.execPath,['node_modules/typescript/bin/tsc','--noEmit'],projectRoot);await command(process.execPath,['node_modules/vite/bin/vite.js','build','--config','vite.github.config.ts'],projectRoot);};

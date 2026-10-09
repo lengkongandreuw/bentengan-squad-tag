@@ -8,6 +8,7 @@ function renderLogo() { $('logoImage').src = logoUrl || (state.document.branding
 const message = text => { $('status').textContent = text; };
 const original = () => `/ui-v2/portraits/${id}.webp`;
 function markDirty() { dirty = true; message('Perubahan belum disimpan.'); }
+// oxlint-disable-next-line typescript/unbound-method -- URL.revokeObjectURL is static, no this-binding
 function clearUploads() { Object.values(localUrls).forEach(URL.revokeObjectURL); uploads = {}; localUrls = {}; for (const kind of ['animated', 'static']) $(kind).value = ''; }
 function controls() {
   for (const key of ['scale', 'x', 'y']) { $(key).value = entry[key]; $(`${key}Number`).value = entry[key]; }
@@ -106,7 +107,7 @@ $('stage').onkeydown = event => {
   entry[key] = Math.max(-50, Math.min(50, entry[key] + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1)));
   transform(); markDirty();
 };
-window.addEventListener('beforeunload', event => { if (dirty || logoDirty || working) { event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('beforeunload', event => { if (dirty || logoDirty || working) { event.preventDefault(); } });
 $('logoFile').onchange = async event => {
   const file = event.target.files[0]; if (!file) return;
   if (file.size > 20 * 1024 * 1024) { event.target.value = ''; return message('Logo melebihi 20 MB.'); }

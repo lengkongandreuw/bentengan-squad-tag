@@ -12,7 +12,7 @@ const pngFiles = async (directory, prefix = '') => {
     if (entry.isDirectory()) files.push(...await pngFiles(path.join(directory, entry.name), relative));
     else if (entry.name.endsWith('.png')) files.push(relative);
   }
-  return files.sort();
+  return files.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 };
 const sourceNames = (await readdir(path.join(root, 'field-sources'))).filter(name => name.endsWith('.png')).sort();
 const mapSourceNames = await pngFiles(path.join(root, 'Assets', 'map'));

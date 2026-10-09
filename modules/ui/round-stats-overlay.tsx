@@ -41,9 +41,9 @@ export const RoundStatsOverlay = ({
   onBackToFieldSelect: () => void;
   onQuit: () => void;
 }) => (
-  <section
+  <dialog
     className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
-    role="dialog"
+    open={statsBoard.visible}
     aria-modal={statsBoard.visible}
     aria-labelledby="round-stats-title"
   >
@@ -174,5 +174,5 @@ export const RoundStatsOverlay = ({
         )}
       </footer>
     </div>
-  </section>
+  </dialog>
 );

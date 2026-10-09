@@ -48,9 +48,10 @@ const teamComboHudSource = await readFile(path.join(root, 'modules/ui/team-combo
 const mobileControlsSource = await readFile(path.join(root, 'modules/ui/mobile-controls.tsx'), 'utf8');
 const actionDockSource = await readFile(path.join(root, 'modules/ui/action-dock.tsx'), 'utf8');
 const characterSelectSource = await readFile(path.join(root, 'modules/ui/character-select-screen.tsx'), 'utf8');
+const uxPrioritySource = await readFile(path.join(root, 'app/ux-priority.css'), 'utf8');
 const githubViteSource = await readFile(path.join(root, 'vite.github.config.ts'), 'utf8');
 const inputSource = await readFile(path.join(root, 'lib/game-core/input.ts'), 'utf8');
-const uxPrioritySource = await readFile(path.join(root, 'app/ux-priority.css'), 'utf8');
+const selectionPortraitSource = await readFile(path.join(root, 'modules/ui/selection-portrait.tsx'), 'utf8');
 const motion = await import('../lib/sprite-motion.js');
 const characterAnimations = await import('../lib/character-animation.js');
 const { fieldCycleDecision } = await import('../modules/game-core/match-control.ts');
@@ -71,8 +72,8 @@ assert(ids.length === 14 && ids.every(id => teamIds.includes(id)), 'definisi kar
 assert(manifest.version === 9 && manifest.characters.length === 14, 'manifest sprite v9 memuat 14 karakter');
 assert(manifest.atlas.columns === 7 && manifest.atlas.rows === 6 && manifest.atlas.padding === 8 && manifest.atlas.runtimeScale === .5, 'atlas master dan runtime 50% konsisten 7×6');
 assert(playerDrawSource.includes('(column * width) / 7') && !playerDrawSource.includes('(column * width) / 8'), 'runtime membaca tujuh kolom sumber tanpa memotong karakter');
-assert(charactersSource.includes("id === 'jago' ? 10 : 9") && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay memuat revisi Jago tanpa mengusik atlas karakter lain');
-assert(uiManifest.version === 8 && uiManifest.files.length === 55, 'paket UI v8 memuat 14 ikon, full-body, banner Raja dan Kaka, video tim, serta delapan track audio');
+assert(charactersSource.includes('jago: 10') && charactersSource.includes('CHARACTER_ASSET_VERSION') && charactersSource.includes('atlas-runtime.webp'), 'cache key gameplay memuat revisi Jago tanpa mengusik atlas karakter lain');
+assert(uiManifest.version === 8 && uiManifest.files.length === 56, 'paket UI v8 memuat 14 ikon, full-body, banner Raja dan Kaka, video tim, serta delapan track audio');
 const uiImageBytes = uiManifest.files.filter(entry => !entry.file.startsWith('videos/') && !entry.file.startsWith('audio/')).reduce((sum, entry) => sum + entry.bytes, 0);
 const uiVideoBytes = uiManifest.files.filter(entry => entry.file.startsWith('videos/')).reduce((sum, entry) => sum + entry.bytes, 0);
 const uiAudioBytes = uiManifest.files.filter(entry => entry.file.startsWith('audio/')).reduce((sum, entry) => sum + entry.bytes, 0);
@@ -82,7 +83,7 @@ assert(uiAudioBytes <= 8500 * 1024, `delapan track audio ${(uiAudioBytes / 1024 
 for (const id of ids) assert(uiManifest.files.some(entry => entry.file === `character-icons/${id}.webp`), `${id}: ikon preview karakter khusus tersedia`);
 assert(prototypeSource.includes("type MenuStep = 'splash' | 'team' | 'character' | 'field'") && prototypeSource.includes("key === 'escape'") && prototypeSource.includes('cycleCharacter'), 'alur layar baru dan navigasi keyboard terpasang');
 assert(uiAssetsSource.includes('ui-v2/${file}?v=') && uiAssetsSource.includes("file.startsWith('controls/team-red-') ? 9 : 8") && !prototypeSource.includes('asset-inbox/') && !prototypeSource.includes('Assets/pictures/'), 'runtime memakai UI v8 dan koreksi logo merah v9 tanpa merujuk PNG sumber');
-assert(charactersSource.includes('CHARACTER_PREVIEW_ICONS') && charactersSource.includes('characterPreviewIcon') && charactersSource.includes('characterFullBodyPortrait') && prototypeSource.includes('variant="full"'), 'seleksi karakter memakai full-body; UI ringkas tetap memakai ikon khusus');
+assert(charactersSource.includes('CHARACTER_PREVIEW_ICONS') && charactersSource.includes('characterPreviewIcon') && charactersSource.includes('characterFullBodyPortrait') && selectionPortraitSource.includes('characterFullBodyPortrait'), 'seleksi karakter memakai full-body; UI ringkas tetap memakai ikon khusus');
 assert(uiManifest.files.some(entry => entry.file === 'skills/raja-titah-halilintar.webp') && prototypeSource.includes('rajaUltimateBannerAsset()'), 'banner Titah Halilintar terpisah dari ikon Raja');
 assert(uiManifest.files.some(entry => entry.file === 'skills/kaka-perisai-hijau.webp') && prototypeSource.includes('kakaUltimateBannerAsset()'), 'banner Perisai Hijau terpisah dari ikon dan sprite Kaka');
 assert(uiManifest.files.some(entry => entry.file === 'videos/team-red.mp4') && uiManifest.files.some(entry => entry.file === 'videos/team-green.mp4') && /<video\s+className="roster-video"/.test(characterSelectSource), 'seleksi karakter memakai tepat satu video tim aktif');
@@ -117,7 +118,7 @@ assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage
 assert((frameViewSource.match(/Math\.min\(2, Math\.max\(1, window\.devicePixelRatio/g) ?? []).length >= 1 && workshopSource.includes('Math.min(2, Math.max(1, window.devicePixelRatio'), 'pixel ratio canvas dibatasi 2×');
 assert(!prototypeSource.includes('ctx.filter = \'drop-shadow'), 'filter bayangan per pemain dihapus dari render loop');
 
-assert(fieldManifest.version === 8 && Object.keys(fieldManifest.objects.assets).length === 75, 'manifest field v8 memuat 75 objek statis serta empat arena final');
+assert(fieldManifest.version === 12 && Object.keys(fieldManifest.objects.assets).length === 93, 'manifest field v12 memuat 93 objek statis serta lima arena final');
 assert(fieldManifest.maps?.kampung?.width === 1769 && fieldManifest.maps?.kampung?.height === 1260, 'sembilan potongan kuadran Map 1 dimirror dan diperluas 15% menjadi terrain 1769×1260');
 assert(fieldManifest.maps?.pasar?.width === 1923 && fieldManifest.maps?.pasar?.height === 1082, 'empat potongan kuadran Map 2 dimirror dan diperluas 15% menjadi terrain 1923×1082');
 assert(fieldManifest.maps?.taman?.width === 1923 && fieldManifest.maps?.taman?.height === 1082, 'terrain dan margin Map 3 mengikuti panduan lalu diperluas 15% menjadi 1923×1082');
@@ -175,7 +176,7 @@ assert(staticMapSource.includes('const STATIC_MAP_SCALE = 0.5') && prototypeSour
 assert((guideFieldsSource.match(/objectScale: (?:0\.9|MAP_OBJECT_SCALE)/g) ?? []).length >= 2 && guideFieldsSource.includes('structuresInBackground: true') && guideFieldsSource.includes('(x + w / 2) * scaleX - mapW(w) / 2') && nearbySource.includes('item.hidden ||') && nearbySource.includes('item.underlay ||'), 'Map 1 dan Map 2 mempertahankan skala objek 90%, sedangkan Map 3 memakai sheet objek final dengan collider tersembunyi');
 assert(staticMapSource.includes('drawSceneryLayer(true)') && staticMapSource.includes('drawSceneryLayer(false)') && staticMapSource.includes('Boolean(item.underlay) === underlay'), 'objek margin diraster di lapisan bawah sebelum benteng dan penjara');
 assert(nearbySource.includes('const NEAR_FIELD_DETAIL_RADIUS = 560') && prototypeSource.includes('drawNearbyFieldDetails(me, activeCamera)') && nearbySource.includes("activeCamera === 'overview'"), 'objek dekat pemain digambar ulang tajam tanpa memperbesar cache atau mode overview');
-assert(prototypeSource.includes('const GUIDE_FIELD_CONFIGS: FieldConfig[]') && prototypeSource.includes("background: 'kanal-map.webp'") && prototypeSource.includes("waterMask: 'kanal-water-mask.png'"), 'Map 4 memakai panduan final, collider tersembunyi, dan mask sungai khusus');
+assert(guideFieldsSource.includes('export const GUIDE_FIELD_CONFIGS') && guideFieldsSource.includes("background: 'kanal-map.webp'") && guideFieldsSource.includes("waterMask: 'kanal1-water-mask.png'"), 'Map 4 memakai panduan final, collider tersembunyi, dan mask sungai khusus');
 assert(scalarsSource.includes('const MAP4_WORLD_SCALE = 1.15') && guideFieldsSource.includes('width: MAP4_WORLD_WIDTH') && guideFieldsSource.includes('height: MAP4_WORLD_HEIGHT') && guideFieldsSource.includes('objectScale: MAP4_WORLD_SCALE'), 'dunia Map 4 diperbesar 15% secara proporsional tanpa memperbesar karakter');
 assert(prototypeSource.includes('riverFallCheck(now)') && riverFallSource.includes('now < p.parkourUntil') && playerDrawSource.includes("'OOOPSS... HATI-HATI'"), 'pemain dan bot yang jatuh di sungai kembali ke benteng, sementara parkour aman dan peringatan tampil');
 assert((guideFieldsSource.match(/guide(?:Obstacle|Collider)\(/g) ?? []).length >= 80, 'konfigurasi panduan memiliki kepadatan halangan dan collider bermakna sebelum skala arena diterapkan');
@@ -199,7 +200,7 @@ const recoveredPlayer = depenetrateFromRects(embeddedPlayer, [collisionRect], 13
 assert(pointHitsExpandedRect(embeddedPlayer.x, embeddedPlayer.y, collisionRect, 13) && !pointHitsExpandedRect(recoveredPlayer.x, recoveredPlayer.y, collisionRect, 13), 'player yang terdorong masuk collider selalu dikeluarkan ke sisi terdekat');
 const detour = steerAroundRects({ x: 40, y: 130 }, { x: 200, y: 0 }, [collisionRect], 13, 100, 1);
 assert(Math.abs(detour.y) > 1 && Math.abs(detour.x) > 1, 'navigasi AI membelok ketika jalur langsung terhalang');
-assert(prototypeSource.includes('recoverFromObstacle(player, now)') && collisionNavSource.includes('spacingPositionAllowed') && prototypeSource.includes('onPointerLeave: release') && prototypeSource.includes("window.addEventListener('blur', releaseAll)"), 'pemulihan collider, spacing aman, serta pelepasan input keyboard dan sentuh terpasang');
+assert(collisionNavSource.includes('recoverFromObstacle') && collisionNavSource.includes('spacingPositionAllowed') && prototypeSource.includes('onPointerCancel: release') && prototypeSource.includes("window.addEventListener('blur', releaseAll)"), 'pemulihan collider, spacing aman, serta pelepasan input keyboard dan sentuh terpasang');
 assert(baseCheckSource.includes('BASE_REENTRY_COOLDOWN_MS = 1500') && baseCheckSource.includes('p.lastExitAt = now'), 'jitter di tepi benteng tidak memicu keluar-masuk dan prioritas berulang');
 assert((prototypeSource.match(/enemySpeed: 1/g) ?? []).length === 3 && (prototypeSource.match(/playerBias: 0/g) ?? []).length === 3 && prototypeSource.includes('AI_SPEED_MULTIPLIER = 1') && prototypeSource.includes('AI_BOOST_DRAIN_MULTIPLIER = 0.66'), 'AI kawan dan lawan memakai kecepatan, konsumsi boost, serta bias pemain yang setara');
 assert(prototypeSource.includes('navigateAroundHazards') && prototypeSource.includes('directionIsTraversable(') && collisionNavSource.includes('export const directionIsTraversable') && collisionNavSource.includes('probe.isBlocked(x, y, now) || probe.isWaterAt(x, y)') && prototypeSource.includes("if (me.state === 'RETURNING')"), 'AI dan pemain yang pulang dari penjara memilih jalur yang menghindari collider serta sungai');

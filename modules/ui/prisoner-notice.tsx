@@ -20,7 +20,7 @@ export const PrisonerNotice = ({
 }) => {
   if (!prisoner || paused) return null;
   return (
-    <div className="prisoner-notice" role="status">
+    <output className="prisoner-notice">
       <Lock size={22} />
       <span>
         <b>{t("MENUNGGU DIBEBASKAN")}</b>
@@ -45,6 +45,6 @@ export const PrisonerNotice = ({
             ? `${requestCooldown}s`
             : 'MINTA RESCUE')}
       </button>
-    </div>
+    </output>
   );
 };

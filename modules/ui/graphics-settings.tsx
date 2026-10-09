@@ -33,7 +33,7 @@ export function GraphicsSettings({onOpen}: {onOpen?:()=>void}) {
       <p>{t("Pilih tampilan yang nyaman untuk perangkat Anda. Perubahan langsung berlaku tanpa memulai ulang pertandingan.")}</p>
       <LanguageSettings />
       <fieldset><legend>{t("Kualitas in-game")}</legend>
-        {t((Object.keys(GRAPHICS_PRESETS) as GraphicsPreset[]).map(value=><label key={value} className={preset===value?'selected':''}>
+        {t((Object.keys(GRAPHICS_PRESETS) as GraphicsPreset[]).map(value=><label key={value} className={preset===value?'selected':''} aria-label={GRAPHICS_PRESETS[value].label}>
           <input type="radio" name={title} value={value} checked={preset===value} onChange={()=>choose(value)}/>
           <span><b>{t(GRAPHICS_PRESETS[value].label)}</b><small>{t(value==='auto'?'Efek lengkap; ketajaman menyesuaikan kemampuan perangkat (default).':value==='high'?'Ketajaman dan efek lengkap.':value==='balanced'?'Ketajaman sedang; partikel dan kilau air lebih sedikit.':'Render lebih rendah; partikel dan kilau air minimal.')}</small></span>
         </label>))}

@@ -38,7 +38,8 @@ export async function inspectMedia(bytes,kind) {
 }
 export async function startLoadingAdmin(port=4322,root=projectRoot) {
   const file=path.join(root,'config/loading-media.json'),token=randomBytes(32).toString('hex');
-  let origin,busy=false;
+  // oxlint-disable-next-line eslint/prefer-const -- reassigned at listen below; oxlint misses cross-closure write
+  let origin;let busy=false;
   const read=async()=>{const raw=await readFile(file);return {document:validateLoadingMedia(JSON.parse(raw)),revision:hash(raw)};};
   const server=http.createServer(async(req,res)=>{
     res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');
