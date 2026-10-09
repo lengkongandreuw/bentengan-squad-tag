@@ -8,7 +8,7 @@ Object.assign(names,{ultimate_takeoff:'Special / Ultimate — Takeoff (sekali)',
 function refreshActions(){const old=$('action').value;options($('action'),actionsForCharacter(id()),a=>names[a]);if(actionsForCharacter(id()).includes(old))$('action').value=old;}
 let uploadValid=false;
 const fileNotice=(text,error=false)=>{$('fileStatus').textContent=text;$('fileStatus').className=error?'error':'success';};
-const filePayload=()=>Promise.all(uploaded.map(f=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve({name:f.name,data:String(reader.result).split(',')[1]});reader.onerror=()=>reject(new Error(`Gagal membaca ${f.name}`));reader.readAsDataURL(f);})));
+const filePayload=()=>Promise.all(uploaded.map(f=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve({name:f.name,data:(typeof reader.result==='string'?reader.result:'').split(',')[1]});reader.onerror=()=>reject(new Error(`Gagal membaca ${f.name}`));reader.readAsDataURL(f);})));
 let processing=false;
 function processingState(value){processing=value;for(const k of ['files','columns','rows','count','order','cropLeft','cropTop','cropWidth','cropHeight','sourceFile','sourceCell','compile','resetCrop','character','action','direction'])$(k).disabled=value;$('settings').disabled=value||!clip;$('quickFps').disabled=value||!clip;refreshBatch();}
 const slotName=s=>`${names[s.split('.')[0]]} ${names[s.split('.')[1]]??''}`.trim();
@@ -22,6 +22,7 @@ function refreshBatch(){
   $('applyCurrent').disabled=processing||pendingUpload||!clip;
 }
 let sourceUrls=[],sourceTicket=0,sourceWidth=0,sourceHeight=0,crop=null,cropDrag=null,pendingUpload=false;
+// oxlint-disable-next-line typescript/unbound-method -- URL.revokeObjectURL is static, no this-binding
 function clearSource(){sourceTicket++;sourceUrls.forEach(URL.revokeObjectURL);sourceUrls=[];sourceWidth=sourceHeight=0;crop=null;pendingUpload=false;$('sourceEditor').hidden=true;$('sourceImage').removeAttribute('src');for(const k of ['cropLeft','cropTop'])$(k).value=0;for(const k of ['cropWidth','cropHeight'])$(k).value='';}
 function sourceBounds(){const sheet=uploaded.length===1&&uploaded[0]?.type==='image/png';const columns=sheet?Math.max(1,+$('columns').value||1):1,rows=sheet?Math.max(1,+$('rows').value||1):1;return {width:Math.max(1,Math.floor(sourceWidth/columns)),height:Math.max(1,Math.floor(sourceHeight/rows)),columns,rows};}
 function renderCrop(){
@@ -183,5 +184,5 @@ function draw(now){
     $('frame').value=frame;$('frameLabel').textContent=`${frame+1}/${c.frames.length}`;
   }requestAnimationFrame(draw);
 }
-window.onbeforeunload=e=>{if(dirty||pendingUpload||Object.values(drafts).some(d=>Object.keys(d).length)){e.preventDefault();e.returnValue='';}};
+window.onbeforeunload=e=>{if(dirty||pendingUpload||Object.values(drafts).some(d=>Object.keys(d).length)){e.preventDefault();}};
 try{state=await api('state');options($('character'),state.roster.map(r=>r.id),id=>state.roster.find(r=>r.id===id).name);options($('direction'),['default',...DIRECTIONS],d=>names[d]);const params=new URLSearchParams(location.search),character=params.get('character'),requested=params.get('slot');if(state.roster.some(c=>c.id===character))$('character').value=character;refreshActions();if(slotAllowed(id(),requested)){$('action').value=requested.split('.')[0];$('direction').value=requested.split('.')[1]??'default';}await loadSlot();requestAnimationFrame(draw);}catch(e){message(e.message);fileNotice(e.message,true);}

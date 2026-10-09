@@ -9,6 +9,7 @@ const source = await readFile(new URL('../app/prototype.tsx', import.meta.url), 
 const rules = JSON.parse(await readFile(new URL('../config/game-rules.json', import.meta.url), 'utf8'));
 const configSource = source.slice(source.indexOf('const DESIGN_W ='), source.indexOf('const CAMERA_OPTIONS:'));
 const js = ts.transpileModule(configSource, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+// oxlint-disable-next-line eslint/no-implied-eval -- test harness evaluates the real arena config slice, no user input involved
 const fields = new Function('GAME_RULES', 'structuredClone', js + '\nreturn FIELD_CONFIGS;')(rules, structuredClone);
 assert.equal(fields.length, 5);
 assert.equal(new Set(fields.map(f => f.id)).size, 5);

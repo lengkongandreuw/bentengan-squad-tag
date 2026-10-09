@@ -4,11 +4,7 @@ import type { MatchEvent, RescueRequest } from './match-types';
 import type { RuntimeActor, LegacyTeam, MatchPhase } from '../../lib/game-core/types.ts';
 import type { GameEvent } from '../../lib/game-core/events.ts';
 import type { PlayerStats } from '../gameplay/bars-score';
-import { createStatsStore, ensureStats } from '../gameplay/bars-score.ts';
-import { makePlayers } from '../gameplay/roster.ts';
-import { seedRefills, spawnGeo as createSpawnGeo } from '../gameplay/spawn.ts';
 import type { Refill } from '../gameplay/spawn';
-import { createTeamComboState } from '../gameplay/team-combo.ts';
 import type { TeamComboState } from '../gameplay/team-combo.ts';
 
 export type ResetRoundWorld = {

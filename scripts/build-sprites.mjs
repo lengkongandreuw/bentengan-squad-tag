@@ -216,7 +216,7 @@ for (const character of buildCharacters) {
     const resizeHeight = Math.max(1, Math.round(frame.height * baseScale));
     const resized = await sharp(frame.input)
       .resize({ width: resizeWidth, height: resizeHeight, fit: 'fill', kernel: sharp.kernel.lanczos3 })
-      .sharpen(.25)
+      .sharpen({ sigma: 0.25 })
       .png({ compressionLevel: 9 })
       .toBuffer();
     const normalized = await sharp({ create: { width: frameWidth, height: frameHeight, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })

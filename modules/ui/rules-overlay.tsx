@@ -3,9 +3,9 @@
 import { t } from '../../lib/language';
 
 export const RulesOverlay = ({ onClose }: { onClose: () => void }) => (
-  <div
+  <dialog
     className="rules-overlay"
-    role="dialog"
+    open
     aria-modal="true"
     aria-labelledby="rules-title"
   >
@@ -39,5 +39,5 @@ export const RulesOverlay = ({ onClose }: { onClose: () => void }) => (
       </ol>
       <p>{t('Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.')}</p>
     </div>
-  </div>
+  </dialog>
 );

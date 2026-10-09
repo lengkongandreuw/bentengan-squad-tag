@@ -339,7 +339,7 @@ void test('module09 new profile does not migrate; zero/active legacy retain iden
   assert.equal(getLevelFromXP(result.progression.xp), 7);
   assert.ok(result.progression.unlockedCharacters.includes('lui'));
   assert.deepEqual(result.progression.unlockedArenaIds, ['kampung']); // Cannot infer per-arena wins.
-  const { progression, ...oldFields } = result;
+  const { progression: _progression, ...oldFields } = result;
   assert.deepEqual(oldFields, active);
   assert.deepEqual(parsePlayerProfile(result), result);
 });
@@ -726,7 +726,7 @@ void test('legacy parser remains read-only; storage now migrates once under modu
   };
   try {
     const migrated = storage.loadPlayerProfile();
-    const { progression, ...preserved } = migrated;
+    const { progression: _progression, ...preserved } = migrated;
     assert.deepEqual(preserved, legacy);
     assert.equal(writes, 1);
     assert.deepEqual(storage.loadPlayerProfile(), migrated);

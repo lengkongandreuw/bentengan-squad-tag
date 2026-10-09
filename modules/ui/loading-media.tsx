@@ -19,5 +19,5 @@ export function LoadingMedia({slot,arenaId,fallback}: {slot:string;arenaId?:stri
   </div>;
 }
 export function LoadingPanel({slot,label}:{slot:string;label:string}) {
-  return <div className="loading-panel-overlay" role="status" aria-busy="true"><LoadingMedia slot={slot}/><p>{t(label)}</p></div>;
+  return <output className="loading-panel-overlay" aria-busy="true"><LoadingMedia slot={slot}/><p>{t(label)}</p></output>;
 }

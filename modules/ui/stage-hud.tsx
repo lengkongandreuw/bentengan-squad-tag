@@ -11,10 +11,9 @@ export const StageHud = ({
   snapshot: Snapshot;
   onToggle: () => void;
 }) => (
-  <div
+  <button
     className="stage-hud"
-    role="button"
-    tabIndex={0}
+    type="button"
     aria-label={t("Buka leaderboard statistik match")}
     onClick={onToggle}
     onKeyDown={(event) => {
@@ -40,5 +39,5 @@ export const StageHud = ({
       </b>
       <span>{snapshot.red}</span>
     </div>
-  </div>
+  </button>
 );

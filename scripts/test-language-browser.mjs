@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';import fs from 'node:fs';
 const {chromium}=await import(process.env.BENTENG_PLAYWRIGHT_MODULE??'playwright');
 const browser=await chromium.launch({headless:true,executablePath:process.env.BENTENG_CHROME_PATH});const url=process.env.BENTENG_UI_URL??'http://127.0.0.1:3035/bentengan-squad-tag/';const errors=[];fs.mkdirSync('outputs/language',{recursive:true});
 try{
- for(const [name,viewport]of [['desktop',{width:1366,height:768}],['mobile',{width:390,height:844}]]){
+ for(const name of ['desktop','mobile']){const viewport=name==='desktop'?{width:1366,height:768}:{width:390,height:844};
   const context=await browser.newContext({viewport}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
   await page.getByLabel('PLAYER NAME',{exact:true}).fill('LanguageQA');await page.getByRole('button',{name:'SAVE NAME',exact:true}).click();assert.equal(await page.locator('html').getAttribute('lang'),'en');
   await page.getByLabel('Audio settings',{exact:true}).click();await page.getByLabel('Game language',{exact:true}).selectOption('id');await page.getByRole('button',{name:'SIMPAN',exact:true}).waitFor();assert.equal(await page.locator('html').getAttribute('lang'),'id');await page.screenshot({path:`outputs/language/${name}-indonesian-settings.png`});await page.getByRole('button',{name:'SIMPAN',exact:true}).click();await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'id');

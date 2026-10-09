@@ -84,6 +84,9 @@
     "map3/terrain.png": "302e13409a5aaa1dd706e1c429f110000ac06973025234e17aee03293cbd2aa9",
     "map4/border-margin.png": "daa0d04750eeaa2b25195dead7f6a3eead53376cfc32c7cfcd99bbbeb97ef4cb",
     "map4/center-barriers.png": "a4cbbb42f9501b3e901ac013759b5a73081d999c18a156fbce94f7db1954430b",
+    "map4/generated/kanal-bridge-clean-v2.png": "42ba676488c096bec65a7395d7dad019201d28c43efe4a785557d05ca92f3401",
+    "map4/generated/kanal-nusantara-building-atlas-v1.png": "501406adfd63506d0566e0c013ba985488dab55ef7237b72ed8258e55f6267e9",
+    "map4/generated/kanal-nusantara-prop-atlas-v1.png": "e15f55048b19755c4eb97d871ae6ce4ab241f30967afebec47297fd653aa384f",
     "map4/guide-final.png": "f8bf8f58781b45276e9ed1dfc110327d81af060c6cdea4fc0da0aa2fd70b2ecf",
     "map4/objects-colliders.png": "b7493d582f1e28c33ed8a94de666d097e347d8a3d7e5f687bb60b494a69e9c4f",
     "map4/terrain.png": "134fd8cebba13685413016c6092a4798722110fa08671e36ea00745b33532841"
@@ -96,7 +99,7 @@
     "taman-map.webp": "a425d5bdfcc6695e6769cb336068a4381a11bb629d628d4667449b40da50dd36",
     "kanal-map.webp": "9809f1c9ea2ceafacef72dbec3783707da8e27d4a9665ce8e0469890d6be64d5",
     "kanal-water-mask.png": "3f8095bc279b70728e83bbc96a4029b93cd5f7b15b34b40dd74a4bd7b77d3dae",
-    "manifest.json": "182372d624b445c5f6aa73ef41738448406c595474fc9f92780f773e9934a9c2",
+    "manifest.json": "56661396f69dfa74aa0db504b4a8d8ac046eead8d63c418745ecdae820502104",
     "objects.webp": "72065b592a451a28a246c74e5381f5fe696c0b2521d73fbb1fce94856cdc0ae1"
   }
 }

@@ -33,7 +33,7 @@ function command(program, args, timeout = 180000) {
     child.stdout.on('data', collect); child.stderr.on('data', collect);
     const timer = setTimeout(() => { child.kill(); reject(new Error('Perintah melewati batas waktu. Periksa terminal/Git sebelum mencoba lagi.')); }, timeout);
     child.on('error', error => { clearTimeout(timer); reject(error); });
-    child.on('close', code => { clearTimeout(timer); code === 0 ? resolve(output.trimEnd()) : reject(new Error(output || `Perintah gagal (${code}).`)); });
+    child.on('close', code => { clearTimeout(timer); if (code === 0) resolve(output.trimEnd()); else reject(new Error(output || `Perintah gagal (${code}).`)); });
   });
 }
 
@@ -44,6 +44,7 @@ export async function startAdmin(port = 4318, projectRoot = root) {
   const roster = Object.entries(rules.teams).flatMap(([team, data]) => data.roster.map(id => ({ id, team, name: id === 'ciici' ? 'Ciici' : id[0].toUpperCase() + id.slice(1) })));
   const ids = roster.map(item => item.id);
   const token = randomBytes(32).toString('hex');
+  // oxlint-disable-next-line eslint/prefer-const -- reassigned at listen below; oxlint misses cross-closure write
   let origin;
   let busy = false;
   let job = { status: 'idle', message: '' };

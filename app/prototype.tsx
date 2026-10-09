@@ -6,6 +6,7 @@ import { arenaCopy, playerArenaCopy } from '../lib/player-copy.ts';
 import {
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -407,7 +408,7 @@ export function BentenganPrototype() {
   useLanguage();
   const [hudPreferences,setHudPreferences]=useHudPreferences();
   const hudPreferencesRef=useRef(hudPreferences);
-  hudPreferencesRef.current=hudPreferences;
+  hudPreferencesRef.current=hudPreferences; // oxlint-disable-line react/react-compiler -- ponytail: state-to-ref mirror for the canvas rAF loop; effect would add a stale frame
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
   const characterVoiceRef = useRef<HTMLAudioElement | null>(null); // === CHARACTER SELECTION VOICE ===
@@ -452,10 +453,10 @@ export function BentenganPrototype() {
   const playerProfileRef = useRef(playerProfile);
   const [matchProgressionResult, setMatchProgressionResult] = useState<ProgressionResult | null>(null);
   const [unlockNoticeDismissed, setUnlockNoticeDismissed] = useState(false);
-  playerProfileRef.current = playerProfile;
-  const fieldIds = FIELD_CONFIGS.map(field => field.id);
-  const selectionGate = () => validatePlayableContent(loadPlayerProfile(), selectedId, selectedFieldId,
-    selectedFaction ? FIXED_ROSTERS[selectedFaction] : [], fieldIds);
+  playerProfileRef.current = playerProfile; // oxlint-disable-line react/react-compiler -- ponytail: state-to-ref mirror for match setup closures; effect would add a stale frame
+  const fieldIds = useMemo(() => FIELD_CONFIGS.map(field => field.id), []);
+  const selectionGate = useCallback(() => validatePlayableContent(loadPlayerProfile(), selectedId, selectedFieldId,
+    selectedFaction ? FIXED_ROSTERS[selectedFaction] : [], fieldIds), [selectedId, selectedFieldId, selectedFaction, fieldIds]);
   const setSelectedId = (id: CharacterId) => {
     if (!playerProfileRef.current || !selectedFaction || !FIXED_ROSTERS[selectedFaction].includes(id) ||
         !isCharacterUnlocked(playerProfileRef.current, id)) {
@@ -478,6 +479,7 @@ export function BentenganPrototype() {
   useEffect(() => {
     if (mode !== 'playing' || networkSession) return;
     if (!playerProfile || !selectedFaction) {
+      // oxlint-disable-next-line react/react-compiler -- ponytail: content-gate redirect on entering playing mode; subscription-free one-shot sync
       setContentGateError('Profil atau tim tidak tersedia. Kembali ke menu.');
       setMode('menu');
       return;
@@ -500,6 +502,7 @@ export function BentenganPrototype() {
     setPlayerProfile(profile);
   };
   useEffect(() => {
+    // oxlint-disable-next-line react/react-compiler -- ponytail: profile refresh on mount + storage events; listener-driven after
     refreshPlayerProfile();
     window.addEventListener(PLAYER_PROFILE_CHANGED_EVENT, refreshPlayerProfile);
     window.addEventListener('storage', refreshPlayerProfile);
@@ -509,6 +512,7 @@ export function BentenganPrototype() {
     };
   }, []);
   useEffect(() => {
+    // oxlint-disable-next-line react/react-compiler -- ponytail: random landing arena seed on mount; user navigation drives later changes
     setLandingArena(FIELD_CONFIGS[Math.floor(Math.random() * FIELD_CONFIGS.length)].id);
     // Warm the small loading posters while the user navigates the menus.
     for (const team of ['red', 'green']) getPresentationImage(arenaImage(`${team}-loading`));
@@ -530,7 +534,7 @@ export function BentenganPrototype() {
   useEffect(() => {
     if (!assetsLoading) return;
     let cancelled = false;
-    setLoadProgress(0);
+    setLoadProgress(0); // oxlint-disable-line react/react-compiler -- ponytail: asset-load progress reset in loader effect
     setLoadError('');
     keys.current.clear();
     const prepare = async () => {
@@ -610,11 +614,11 @@ export function BentenganPrototype() {
       }));
       if (cancelled) return;
       if (gameLoading && selectedFieldId === 'kampung3d') {
-        const module = await import('../lib/kampung-3d');
-        Kampung3DRenderer = module.Kampung3D;
+        const kampungModule = await import('../lib/kampung-3d');
+        Kampung3DRenderer = kampungModule.Kampung3D;
         let probe: Kampung3D | undefined;
         try {
-          probe = new module.Kampung3D(FIELD_BY_ID.kampung3d, getFieldImage('kampung-map.webp'));
+          probe = new kampungModule.Kampung3D(FIELD_BY_ID.kampung3d, getFieldImage('kampung-map.webp'));
           await probe.warmup();
         } catch {
           throw new Error('Map 3D membutuhkan WebGL2 yang aktif. Aktifkan akselerasi grafis atau pilih Kampung Merdeka asli.');
@@ -645,7 +649,7 @@ export function BentenganPrototype() {
       cancelled = true;
     });
     return () => { cancelled = true; };
-  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, selectedId, loadAttempt]);
+  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, selectedId, loadAttempt, selectionGate]);
   const selected = CHARACTER_BY_ID[selectedId] ?? CHARACTER_BY_ID.raja;
   const availableCharacters = useMemo(
     () => rosterCharacters(selectedFaction),
@@ -751,6 +755,7 @@ export function BentenganPrototype() {
   };
 
   useEffect(() => {
+    // oxlint-disable-next-line react/react-compiler -- ponytail: initial music-muted measure before paint; toggle handles later changes
     setMusicMuted(loadMusicMuted());
   }, []);
 
@@ -974,7 +979,7 @@ export function BentenganPrototype() {
     const clientOnly=network?.read().role==='client';
     if (mode === 'playing' && !network) {
       const gate = selectionGate();
-      if (gate) { setContentGateError(gate); setMode('menu'); return; }
+      if (gate) { setContentGateError(gate); setMode('menu'); return; } // oxlint-disable-line react/react-compiler -- ponytail: content-gate redirect in match-init effect; one-shot sync
     }
     // Identity belongs to this initialized match, not to a render or round.
     const matchId = mode === 'playing' ? network?`${network.read().roomCode}:match`:createMatchId() : null;
@@ -1012,7 +1017,7 @@ export function BentenganPrototype() {
     let logs = [
       '5v5 · pemain yang keluar terakhir memiliki prioritas tangkap tertinggi.',
     ];
-    let mission: Mission = {
+    const mission: Mission = {
       refresh: false,
       boost: false,
       parkour: false,
@@ -1374,7 +1379,7 @@ export function BentenganPrototype() {
         PlayerStats
       >;
     let roundStats = makeStatsStore();
-    let matchStats = makeStatsStore();
+    const matchStats = makeStatsStore();
     const ensureStats = (
       store: Record<string, PlayerStats>,
       player: Player,
@@ -3791,7 +3796,7 @@ const spriteFrame = (
       if (isKanalField(field.id)) delete debugHost.__kanalCollision;
       if(coreHost.__bentengGameCore===coreProbe)delete coreHost.__bentengGameCore;
     };
-  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession]);
+  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate]);
 
   const missionCount = useMemo(
     () => Object.values(snapshot.mission).filter(Boolean).length,
@@ -3990,6 +3995,7 @@ const spriteFrame = (
     };
     window.addEventListener('keydown', navigate);
     return () => window.removeEventListener('keydown', navigate);
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- cycleCharacter/confirmCharacter/start/goBack/cycleArena are per-render closures over the listed state; adding them only re-subscribes keydown on the same changes
   }, [
     hoveredFaction,
     assetsLoading,

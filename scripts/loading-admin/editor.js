@@ -55,7 +55,7 @@ $('percent').oninput=()=>{playing=false;cancelAnimationFrame(animationFrame);$('
 $('preserve-progress').onchange=()=>{progressPreview();$('draft-source').textContent=$('preserve-progress').checked?'Wallpaper saja · loading kiri bawah dipertahankan':'Ganti seluruh tampilan loading';};
 function tick(now){if(!playing)return;$('percent').value=Math.min(100,Math.floor((now-progressStart)/120));progressPreview();if(Number($('percent').value)<100)animationFrame=requestAnimationFrame(tick);else{playing=false;$('play').textContent='Putar simulasi loading';}}
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Jeda simulasi':'Putar simulasi loading';if(playing){if(Number($('percent').value)>=100)$('percent').value=0;progressStart=performance.now()-Number($('percent').value)*120;animationFrame=requestAnimationFrame(tick);}else cancelAnimationFrame(animationFrame);};
-$('save').onclick=()=>save('/api/upload');$('save-fit').onclick=()=>save('/api/fit');$('reset').onclick=()=>{if(confirm('Kembalikan slot ini ke bawaan? File lama tetap disimpan.'))save('/api/reset');};
+$('save').onclick=()=>void save('/api/upload');$('save-fit').onclick=()=>void save('/api/fit');$('reset').onclick=()=>{if(confirm('Kembalikan slot ini ke bawaan? File lama tetap disimpan.'))void save('/api/reset');};
 $('reload').onclick=()=>{if(!pending||confirm('Buang pilihan file yang belum disimpan?'))reload().then(()=>{state.selected=$('slot').value;message('Konfigurasi terbaru dimuat.');}).catch(e=>message(e.message));};
-window.addEventListener('beforeunload',e=>{if(pending||busy){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',e=>{if(pending||busy){e.preventDefault();}});
 reload().then(()=>{state.selected=$('slot').value;}).catch(e=>message(e.message));

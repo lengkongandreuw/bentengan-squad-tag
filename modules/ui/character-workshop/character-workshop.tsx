@@ -91,7 +91,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
     };
     raf = requestAnimationFrame(render);
     return () => cancelAnimationFrame(raf);
-  }, [atlasUrl, sequence, direction, playing, fps, scale, anchorX, anchorY, selected.visualScale]);
+  }, [atlasUrl, sequence, direction, playing, fps, scale, anchorX, anchorY, selected.visualScale, selected.id]);
 
   useEffect(() => () => { if (customUrl) URL.revokeObjectURL(customUrl); }, [customUrl]);
 
@@ -122,7 +122,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
       <div className="workshop-layout">
         <aside className="workshop-roster">
           <b>ROSTER · {CHARACTERS.length} KARAKTER</b>
-          <div>{CHARACTERS.map(character => <button key={character.id} className={selectedId === character.id && !customUrl ? 'selected' : ''} onClick={() => { setSelectedId(character.id); setCustomUrl(undefined); setCustomName(undefined); }}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><strong>{character.name}</strong><small>{character.role}</small></span></button>)}</div>
+          <div>{CHARACTERS.map(character => <button key={character.id} aria-label={`Pilih ${character.name}`} className={selectedId === character.id && !customUrl ? 'selected' : ''} onClick={() => { setSelectedId(character.id); setCustomUrl(undefined); setCustomName(undefined); }}><img src={characterAsset(character.id, 'portrait.webp')} alt="" /><span><strong>{character.name}</strong><small>{character.role}</small></span></button>)}</div>
           <label className="upload-sprite"><Upload size={16} /><span>Uji sprite baru<small>PNG transparan · atlas 7×6 adaptif</small></span><input type="file" accept="image/png,image/webp" onChange={event => upload(event.target.files?.[0])} /></label>
         </aside>
         <div className="workshop-stage">

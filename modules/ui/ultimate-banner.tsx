@@ -16,11 +16,10 @@ export const UltimateBanner = ({
   bannerAlt: string;
   bannerClass?: string;
 }) => (
-  <div
+  <output
     className={`ultimate-banner ${bannerClass ?? ''}`}
-    role="status"
     aria-label={t(`${playerName} mengaktifkan ${hudTitle}`)}
   >
     <img src={ULTIMATE_BANNERS[icon]()} alt={t(bannerAlt)} decoding="async" />
-  </div>
+  </output>
 );
