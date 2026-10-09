@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';import {execFileSync} from 'node:child_process';
-function loadCharacters(source){const fragment=source.slice(source.indexOf('export const CHARACTERS:'),source.indexOf('export const CHARACTER_BY_ID'));const exports={};vm.runInNewContext(ts.transpileModule(fragment,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports});return JSON.parse(JSON.stringify(exports.CHARACTERS));}
+function loadCharacters(source){const fragment=source.slice(source.indexOf('export const CHARACTERS:'),source.indexOf('export const CHARACTER_BY_ID'));const ids=[...fragment.matchAll(/(\w+)Data as CharacterDefinition/g)].map(m=>m[1].toLowerCase());return ids.map(id=>JSON.parse(fs.readFileSync(`config/characters/${id}.json`,'utf8')));}
 function loadCopy(){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/player-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports});return exports;}
 test('all 14 characters have distinct concise flavor; every gameplay stat/ID remains unchanged',()=>{
   const before=loadCharacters(execFileSync('git',['show','HEAD:lib/characters.ts'],{encoding:'utf8'})),after=loadCharacters(fs.readFileSync('lib/characters.ts','utf8'));
@@ -14,7 +14,7 @@ test('player-facing maps hide editor notes without changing original description
   assert.equal(roleLabel['All-rounder'],'Serbabisa');assert.equal(playerStateLabel('PRISONER'),'Ditahan');
 });
 test('rules still explain flight immunity, restrictions and duration gates without developer vocabulary',()=>{
-  const source=fs.readFileSync('app/prototype.tsx','utf8'),rules=source.slice(source.indexOf('<h2 id="rules-title">'),source.indexOf('Desktop: WASD gerak'));
+  const source=fs.readFileSync('modules/ui/rules-overlay.tsx','utf8'),rules=source.slice(source.indexOf('<h2 id="rules-title">'),source.indexOf('Desktop: WASD gerak'));
   for(const word of ['collider','core loop','Rules test','takeoff','pickup'])assert(!rules.includes(word),word);
   for(const text of ['5 detik','6,5 detik','2 detik','1,5 detik','4 menit','2 ronde','lepas landas','mendarat','tidak','rescue','level upgrade'])assert(rules.includes(text),text);
 });

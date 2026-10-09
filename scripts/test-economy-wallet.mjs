@@ -40,7 +40,7 @@ const baseProfile = () => ({ schemaVersion: 1, id: 'economy-test', username: 'Ec
 const input = (id, amount=10, type='match_reward') => ({ transactionId: id, amount, type, createdAt: '2026-10-05T00:00:00Z' });
 const freezeDeep = value => { if(value && typeof value==='object'){Object.values(value).forEach(freezeDeep);Object.freeze(value);}return value; };
 
-test('rules are centralized, immutable and reject malformed configuration without fallback',()=>{
+void test('rules are centralized, immutable and reject malformed configuration without fallback',()=>{
   const config=JSON.parse(fs.readFileSync('config/economy.json','utf8'));
   assert.deepEqual(rules.economyRules,config);
   assert.equal(rules.economyRules.matchRewards.rescuePerMatchCap,6,'cap is tokens, not rescues');
@@ -54,7 +54,7 @@ test('rules are centralized, immutable and reject malformed configuration withou
   assert.equal(rules.parseEconomyRules({...config,recentTransactionLimit:1}).recentTransactionLimit,1);
 });
 
-test('credit and spend are atomic immutable profile operations with accurate totals',()=>{
+void test('credit and spend are atomic immutable profile operations with accurate totals',()=>{
   const original=freezeDeep(baseProfile());
   const credited=economy.creditTokens(original,{...input('credit',100),referenceId:'match-one'});
   assert.equal(credited.applied,true);
@@ -73,7 +73,7 @@ test('credit and spend are atomic immutable profile operations with accurate tot
   assert.equal(zero.profile.economy.lifetimeTokenSpent,100);
 });
 
-test('failure results retain input identity: duplicates, insufficient balance and invalid requests',()=>{
+void test('failure results retain input identity: duplicates, insufficient balance and invalid requests',()=>{
   const p=economy.creditTokens(baseProfile(),input('once',10)).profile;
   const duplicate=economy.creditTokens(p,input('once',200));
   assert.equal(duplicate.reason,'duplicate');assert.equal(duplicate.profile,p);
@@ -89,7 +89,7 @@ test('failure results retain input identity: duplicates, insufficient balance an
   assert.equal(economy.spendTokens(p,input('bad',1,'match_reward')).reason,'invalid');
 });
 
-test('unsafe counter overflow, invalid and missing legacy wallet never resets or grants',()=>{
+void test('unsafe counter overflow, invalid and missing legacy wallet never resets or grants',()=>{
   for(const field of ['tokenBalance','lifetimeTokenEarned']) {
     const p=baseProfile();p.economy[field]=Number.MAX_SAFE_INTEGER;
     assert.equal(economy.creditTokens(p,input('overflow')).reason,'invalid');
@@ -102,7 +102,7 @@ test('unsafe counter overflow, invalid and missing legacy wallet never resets or
   assert.equal(economy.creditTokens(broken,input('broken')).reason,'invalid');
 });
 
-test('retained ledger deduplicates across parser roundtrip, evicts only history, never totals',()=>{
+void test('retained ledger deduplicates across parser roundtrip, evicts only history, never totals',()=>{
   let p=baseProfile();
   for(let i=0;i<60;i++)p=economy.creditTokens(p,input(`tx-${i}`,1)).profile;
   assert.equal(p.economy.recentTransactions.length,rules.economyRules.recentTransactionLimit);
@@ -115,7 +115,7 @@ test('retained ledger deduplicates across parser roundtrip, evicts only history,
   assert.ok(Number.isFinite(Date.parse(dated.transaction.createdAt)));
 });
 
-test('default wallets and parsed ledgers are independent', () => {
+void test('default wallets and parsed ledgers are independent', () => {
   const first = economy.createDefaultEconomy();
   const second = economy.createDefaultEconomy();
   assert.deepEqual(first, { version: 1, tokenBalance: 0, lifetimeTokenEarned: 0, lifetimeTokenSpent: 0, recentTransactions: [] });
@@ -126,7 +126,7 @@ test('default wallets and parsed ledgers are independent', () => {
   assert.equal(first.recentTransactions[0].amount, 10);
 });
 
-test('strict counters, transaction fields and signed safe integers', () => {
+void test('strict counters, transaction fields and signed safe integers', () => {
   for (const field of ['tokenBalance', 'lifetimeTokenEarned', 'lifetimeTokenSpent']) {
     for (const value of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, '10']) {
       assert.equal(economy.parsePlayerEconomy({ ...economy.createDefaultEconomy(), [field]: value }), null);
@@ -142,7 +142,7 @@ test('strict counters, transaction fields and signed safe integers', () => {
   assert.equal(economy.parsePlayerEconomy(undefined), null);
 });
 
-test('ledger retains only latest 50 entries without changing totals/input', () => {
+void test('ledger retains only latest 50 entries without changing totals/input', () => {
   const input = { ...economy.createDefaultEconomy(), tokenBalance: 600, lifetimeTokenEarned: 600,
     recentTransactions: Array.from({ length: 60 }, (_, index) => transaction(`match-${index}`)) };
   const parsed = economy.parsePlayerEconomy(input);
@@ -154,7 +154,7 @@ test('ledger retains only latest 50 entries without changing totals/input', () =
   assert.equal(economy.parsePlayerEconomy(input), null);
 });
 
-test('profile storage roundtrip, legacy compatibility and invalid optional economy', () => {
+void test('profile storage roundtrip, legacy compatibility and invalid optional economy', () => {
   const previousWindow = globalThis.window;
   const entries = new Map();
   let writes = 0;
@@ -202,7 +202,7 @@ const progression = load('lib/player-profile/progression.ts');
 const matchProfile = () => ({...baseProfile(),progression:progression.createDefaultProgression()});
 const summary = (patch={}) => ({matchId:'reward-1',arenaId:'kampung',completed:true,won:true,tags:9,rescues:4,...patch});
 
-test('module07 sequential atomic purchases, exact balance, ledger and unchanged unrelated state',()=>{
+void test('module07 sequential atomic purchases, exact balance, ledger and unchanged unrelated state',()=>{
   for(const id of ['raja','kaka']) {
     let p=economy.creditTokens(matchProfile(),input(`seed-${id}`,920)).profile;
     for(const level of [1,2,3]) {
@@ -221,7 +221,7 @@ test('module07 sequential atomic purchases, exact balance, ledger and unchanged 
   }
 });
 
-test('module07 explicit insufficient/invalid/stale/unsupported/locked failures never debit',()=>{
+void test('module07 explicit insufficient/invalid/stale/unsupported/locked failures never debit',()=>{
   const empty=freezeDeep(matchProfile());assert.equal(purchase.canPurchaseUltimateUpgrade(empty,'raja'),false);
   const funded=economy.creditTokens(matchProfile(),input('seed',1000)).profile;
   assert.equal(purchase.canPurchaseUltimateUpgrade(funded,'raja'),true);
@@ -240,7 +240,7 @@ test('module07 explicit insufficient/invalid/stale/unsupported/locked failures n
   } finally {gate.isCharacterUnlocked=originalGate;}
 });
 
-test('module07 persistence writes once, reloads authoritative levels and reports failed write',()=>{
+void test('module07 persistence writes once, reloads authoritative levels and reports failed write',()=>{
   const previousWindow=globalThis.window,entries=new Map();let writes=0,events=0,blocked=false;
   globalThis.window={localStorage:{getItem:key=>entries.get(key)??null,setItem:(key,value)=>{if(blocked)throw new Error('blocked');writes++;entries.set(key,value);}},dispatchEvent:()=>{events++;return true;}};
   try {
@@ -260,7 +260,23 @@ test('module07 persistence writes once, reloads authoritative levels and reports
   } finally {if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;}
 });
 
-test('module08 all catalog tiers resolve, invalid/missing state is base and snapshots never leak to bots',()=>{
+void test('legacy match/profile writes notify once on success and throw without notify on blocked storage',()=>{
+  const previousWindow=globalThis.window,entries=new Map();let events=0,blocked=false;
+  globalThis.window={localStorage:{getItem:key=>entries.get(key)??null,setItem:(key,value)=>{if(blocked)throw new Error('blocked');entries.set(key,value);}},dispatchEvent:()=>{events++;return true;}};
+  try {
+    const before=events,profile=service.createPlayerProfile('PersistTest');
+    assert.equal(events,before+1);assert.equal(profile.menang,0);
+    const recorded=service.recordCompletedMatch('win',{tagMusuh:1,masukPenjara:0,rescueTeam:1});
+    assert.equal(recorded.menang,1);assert.equal(events,before+2);
+    blocked=true;const eventsBefore=events;
+    assert.throws(()=>service.recordCompletedMatch('win',{tagMusuh:1,masukPenjara:0,rescueTeam:0}),/belum tersimpan/);
+    assert.equal(events,eventsBefore,'blocked write notifies nothing');
+    assert.equal(storage.loadPlayerProfile().menang,1,'failed match record not durable');
+    blocked=false;assert.equal(service.recordCompletedMatch('loss',{tagMusuh:0,masukPenjara:1,rescueTeam:0}).kalah,1);
+  } finally {if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;}
+});
+
+void test('module08 all catalog tiers resolve, invalid/missing state is base and snapshots never leak to bots',()=>{
   for(const id of ['raja','kaka'])for(const level of [0,1,2,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
     const stats=effective.getEffectiveUltimateStats(freezeDeep(p),id),config=upgrades.getUltimateUpgradeConfig(id,level);
@@ -276,7 +292,7 @@ test('module08 all catalog tiers resolve, invalid/missing state is base and snap
   p.ultimateUpgrades.levels.raja=3;assert.equal(snapshot.level,2);assert.equal(snapshot.speedMultiplier,1.46);
 });
 
-test('module09 runtime smoke executes actual ultimate block: base/upgraded cast, recharge, effects, scope, audio once',()=>{
+void test('module09 runtime smoke executes actual ultimate block: base/upgraded cast, recharge, effects, scope, audio once',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   const updateStart=source.indexOf('const update = (dt: number, now: number) =>');
   const start=source.indexOf('// Numeric match snapshot feeds authority',updateStart);
@@ -313,7 +329,7 @@ test('module09 runtime smoke executes actual ultimate block: base/upgraded cast,
   `;
   const output=ts.transpileModule(setup,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
   const initializeBlock=vm.runInThisContext(`(function(players,playerUltimateStats,core){${output}\n})`);
-  const initialize=(players,stats)=>initializeBlock(players,stats,load('lib/game-core/ultimate.ts'));
+  const initialize=(players,stats)=>initializeBlock(players,stats,load('modules/gameplay/ultimate.ts'));
   for(const id of ['raja','kaka'])for(const level of [0,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
     const stats=effective.snapshotUltimateStats(p,id);
@@ -351,7 +367,7 @@ test('module09 runtime smoke executes actual ultimate block: base/upgraded cast,
   assert.equal(dependencies.includes('playerProfile,'),false,'profile changes do not restart the match effect');
 });
 
-test('module09 custom ultimate sprites keep all frames within upgraded cast without altering source FPS',()=>{
+void test('module09 custom ultimate sprites keep all frames within upgraded cast without altering source FPS',()=>{
   const model=load('lib/sprite-studio-model.js');
   const frames=Array.from({length:9},(_,i)=>({x:i*10,y:0,width:10,height:10}));
   const clip={asset:'sprite-studio/raja/test.webp',width:90,height:10,frames,fps:10,loop:false,scale:1,x:0,y:0,pivotX:.5,pivotY:1,mirror:false};
@@ -371,7 +387,7 @@ test('module09 custom ultimate sprites keep all frames within upgraded cast with
   assert.equal(clip.frames.length,9);assert.equal(clip.fps,10);
 });
 
-test('module04 exact token formula, cap boundaries, huge counts and incomplete',()=>{
+void test('module04 exact token formula, cap boundaries, huge counts and incomplete',()=>{
   assert.deepEqual(rewards.calculateMatchTokenBreakdown({completed:true,result:'win',tags:5,rescues:3}),{match:10,victory:5,tag:5,rescue:6});
   assert.deepEqual(rewards.calculateMatchTokenBreakdown({completed:true,result:'loss',tags:4,rescues:2}),{match:10,victory:0,tag:4,rescue:4});
   assert.deepEqual(rewards.calculateMatchTokenBreakdown({completed:true,result:'loss',tags:Number.MAX_SAFE_INTEGER,rescues:Number.MAX_SAFE_INTEGER}),{match:10,victory:0,tag:5,rescue:6});
@@ -379,7 +395,7 @@ test('module04 exact token formula, cap boundaries, huge counts and incomplete',
   assert.throws(()=>rewards.calculateMatchTokenBreakdown({completed:true,result:'win',tags:-1,rescues:0}));
 });
 
-test('module04 same result atomically contains tokens/XP/stats/unlocks; duplicate and incomplete no-op',()=>{
+void test('module04 same result atomically contains tokens/XP/stats/unlocks; duplicate and incomplete no-op',()=>{
   const p=freezeDeep(matchProfile()),r=matchEngine.applyMatchProgression(p,summary());
   assert.equal(r.applied,true);assert.equal(r.tokenEarned,26);assert.equal(r.previousTokenBalance,0);assert.equal(r.currentTokenBalance,26);
   assert.equal(r.xpEarned,284);assert.equal(r.profile.menang,1);
@@ -397,7 +413,7 @@ test('module04 same result atomically contains tokens/XP/stats/unlocks; duplicat
   assert.equal(overflowing.progression.xp,0);assert.equal(overflowing.menang,0);
 });
 
-test('module05 legacy zero wallet, per-field recovery, malformed ledger and no retroactive grants',()=>{
+void test('module05 legacy zero wallet, per-field recovery, malformed ledger and no retroactive grants',()=>{
   const p=freezeDeep({...matchProfile(),menang:100,kalah:20});
   const migrated=migration.migratePlayerEconomy(p,null);
   assert.equal(migrated.migrated,true);assert.deepEqual(migrated.profile.economy,economy.createDefaultEconomy());
@@ -410,7 +426,7 @@ test('module05 legacy zero wallet, per-field recovery, malformed ledger and no r
   assert.equal(recovered.progression,p.progression);
 });
 
-test('module04/05 storage persists rewards once, reload dedup and blocked migration keeps source data',()=>{
+void test('module04/05 storage persists rewards once, reload dedup and blocked migration keeps source data',()=>{
   const previousWindow=globalThis.window,entries=new Map();let writes=0,block=false;
   globalThis.window={localStorage:{getItem:key=>entries.get(key)??null,setItem:(key,value)=>{if(block)throw new Error('blocked');writes++;entries.set(key,value);}},dispatchEvent:()=>true};
   try {
@@ -428,7 +444,7 @@ test('module04/05 storage persists rewards once, reload dedup and blocked migrat
   } finally {if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;}
 });
 
-test('module06 exact bases/costs, unsupported characters, independent defaults and state roundtrip',()=>{
+void test('module06 exact bases/costs, unsupported characters, independent defaults and state roundtrip',()=>{
   assert.deepEqual(upgrades.getUltimateUpgradeConfig('raja'),{level:0,cost:0,rechargeSeconds:45,castMs:3200,durationMs:5000,speedMultiplier:1.4});
   assert.deepEqual(upgrades.getUltimateUpgradeConfig('kaka'),{level:0,cost:0,rechargeSeconds:45,castMs:3600,durationMs:5000});
   for(const id of ['raja','kaka']) {
@@ -445,7 +461,7 @@ test('module06 exact bases/costs, unsupported characters, independent defaults a
   assert.equal(upgrades.parseUltimateUpgradeState({version:1,levels:{raja:4}}),null);
 });
 
-test('module06 invalid catalog fails clearly and base values match untouched runtime constants',()=>{
+void test('module06 invalid catalog fails clearly and base values match untouched runtime constants',()=>{
   const config=JSON.parse(fs.readFileSync('config/ultimate-upgrades.json','utf8'));
   for(const change of [c=>c.characters.push(c.characters[0]),c=>c.characters[0].characterId='invalid',
     c=>c.characters[0].levels[0].level=1,c=>c.characters[0].levels[0].cost=1,c=>c.characters[0].levels[1].level=2,
@@ -459,7 +475,7 @@ test('module06 invalid catalog fails clearly and base values match untouched run
   assert.equal(runtime.includes('getPlayerUltimateUpgrade'),false,'no runtime modifiers in module06');
 });
 
-test('transaction operations never access browser storage or emit profile events',()=>{
+void test('transaction operations never access browser storage or emit profile events',()=>{
   const previousWindow=globalThis.window;
   globalThis.window={localStorage:{getItem:()=>assert.fail('unexpected read'),setItem:()=>assert.fail('unexpected write')},dispatchEvent:()=>assert.fail('unexpected event')};
   try {
@@ -472,13 +488,13 @@ test('transaction operations never access browser storage or emit profile events
   }
 });
 
-test('module10–12 rendered UI uses wallet/catalog/result values and omits unsupported upgrades',()=>{
+void test('module10–12 rendered UI uses wallet/catalog/result values and omits unsupported upgrades',()=>{
   assert.equal(rules.economyRules.currency.id,'token','DOI is a display rename, not a second wallet');
   assert.equal(rules.economyRules.currency.label,'DOI');
   const React=nativeRequire('react'),{renderToStaticMarkup}=nativeRequire('react-dom/server');
-  const {TokenWallet}=load('components/token-wallet.tsx');
-  const {UltimateUpgradeDetails,UltimateUpgradePanel}=load('components/ultimate-upgrade-panel.tsx');
-  const {MatchTokenSummary}=load('components/match-token-summary.tsx');
+  const {TokenWallet}=load('modules/ui/token-wallet.tsx');
+  const {UltimateUpgradeDetails,UltimateUpgradePanel}=load('modules/ui/ultimate-upgrade-panel.tsx');
+  const {MatchTokenSummary}=load('modules/ui/match-token-summary.tsx');
   const render=(Component,props)=>renderToStaticMarkup(React.createElement(Component,props));
   assert.match(render(TokenWallet,{profile:matchProfile()}),/Balance: 0 DOI/);
   assert.match(render(TokenWallet,{profile:matchProfile()}),/doi-coin\.png/);
@@ -506,7 +522,7 @@ test('module10–12 rendered UI uses wallet/catalog/result values and omits unsu
   }
 });
 
-test('module11 actual React click handlers confirm once, refresh saved profile, and report blocked storage',()=>{
+void test('module11 actual React click handlers confirm once, refresh saved profile, and report blocked storage',()=>{
   const React=nativeRequire('react'),previousWindow=globalThis.window,previousDocument=globalThis.document;
   const entries=new Map(),slots=[];let blocked=false,refreshes=0,cursor=0;
   globalThis.window={localStorage:{getItem:key=>entries.get(key)??null,setItem:(key,value)=>{if(blocked)throw Error('blocked');entries.set(key,value);}},dispatchEvent:()=>true};
@@ -515,14 +531,14 @@ test('module11 actual React click handlers confirm once, refresh saved profile, 
     const index=cursor++;if(!(index in slots))slots[index]=initial;
     return [slots[index],value=>{slots[index]=typeof value==='function'?value(slots[index]):value;}];
   },useRef:initial=>{const index=cursor++;if(!(index in slots))slots[index]={current:initial};return slots[index];}};
-  const source=ts.transpileModule(fs.readFileSync('components/ultimate-upgrade-panel.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+  const source=ts.transpileModule(fs.readFileSync('modules/ui/ultimate-upgrade-panel.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
   const mod={exports:{}};
   const requireUI=specifier=>{
     if(specifier==='react')return hooks;
     if(specifier==='react-dom')return {createPortal:child=>child};
     if(!specifier.startsWith('.'))return nativeRequire(specifier);
-    const candidate=path.resolve('components',specifier);
-    return load([`${candidate}.ts`,`${candidate}.tsx`,path.join(candidate,'index.ts')].find(fs.existsSync));
+    const candidate=path.resolve('modules/ui',specifier);
+    return load([candidate,`${candidate}.ts`,`${candidate}.tsx`,path.join(candidate,'index.ts')].find((entry)=>entry&&fs.existsSync(entry)));
   };
   vm.runInThisContext(`(function(require,module,exports){${source}\n})`)(requireUI,mod,mod.exports);
   const elements=node=>!node?[]:Array.isArray(node)?node.flatMap(elements):typeof node==='object'&&node.props?[node,...elements(node.props.children)]:[];
@@ -565,7 +581,7 @@ test('module11 actual React click handlers confirm once, refresh saved profile, 
   }
 });
 
-test('module13 complete persisted match→wallet→purchase→reload→runtime journey for Raja and Kaka',()=>{
+void test('module13 complete persisted match→wallet→purchase→reload→runtime journey for Raja and Kaka',()=>{
   const previousWindow=globalThis.window;
   try {
     for(const id of ['raja','kaka']) {

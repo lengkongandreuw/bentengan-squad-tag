@@ -1,0 +1,22 @@
+{
+  "id": "jago",
+  "name": "Jago",
+  "role": "Chaser",
+  "speed": 229,
+  "boost": 92,
+  "agility": 1.14,
+  "visualScale": 1.2,
+  "accent": "#d92d43",
+  "copy": "Lihat celah, langsung kejar. Jangan kasih lawan waktu buat pulang.",
+  "passiveName": "Ledakan Kejar",
+  "passiveCopy": "Boost paling kencang, tapi lebih cepat habis.",
+  "tagRange": 28,
+  "rescueRange": 32,
+  "boostMultiplier": 1.82,
+  "boostDrain": 34,
+  "baseChargeTime": 0.75,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 500,
+  "mirrorWest": true,
+  "dedicatedEast": true
+}

@@ -3,16 +3,16 @@ import {
   PLAYER_PROFILE_SCHEMA_VERSION,
   USERNAME_MAX_LENGTH,
   USERNAME_MIN_LENGTH,
-} from './defaults';
-import { loadPlayerProfile, savePlayerProfile } from './storage';
+} from './defaults.ts';
+import { loadPlayerProfile, savePlayerProfile } from './storage.ts';
 import type { LocalPlayerProfile, MatchResult, PlayerKdaStats } from './types';
 import type { CharacterId } from '../characters';
-import { createDefaultProgression } from './progression';
-import { createDefaultEconomy } from './economy';
-import { createDefaultUltimateUpgrades } from './ultimate-upgrades';
-import { purchaseUltimateUpgrade } from './ultimate-purchase';
-import { applyMatchProgression, type MatchSummary } from './match-progression';
-import { createLocalId } from './match-identity';
+import { createDefaultProgression } from './progression.ts';
+import { createDefaultEconomy } from './economy.ts';
+import { createDefaultUltimateUpgrades } from './ultimate-upgrades.ts';
+import { purchaseUltimateUpgrade } from './ultimate-purchase.ts';
+import { applyMatchProgression, type MatchSummary } from './match-progression.ts';
+import { createLocalId } from './match-identity.ts';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')
@@ -20,7 +20,10 @@ const notifyProfileChanged = () => {
 };
 
 const persist = (profile: LocalPlayerProfile) => {
-  savePlayerProfile(profile);
+  // Absent storage (SSR/tests) keeps the in-memory profile; present but
+  // blocked browser storage throws like recordMatchProgression below.
+  if (!savePlayerProfile(profile) && typeof window !== 'undefined')
+    throw new Error('Profil belum tersimpan; penyimpanan browser gagal.');
   notifyProfileChanged();
   return profile;
 };

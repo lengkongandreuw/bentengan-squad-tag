@@ -1,0 +1,22 @@
+{
+  "id": "robot",
+  "name": "Robot",
+  "role": "Wall",
+  "speed": 198,
+  "boost": 118,
+  "agility": 0.9,
+  "visualScale": 1.04,
+  "accent": "#c99a58",
+  "copy": "Baterai awet, jaga benteng jalan terus. Lawan mau lewat? Harus izin dulu.",
+  "passiveName": "BIG CELL",
+  "passiveCopy": "Boost habis 15% lebih lambat.",
+  "tagRange": 28,
+  "rescueRange": 32,
+  "boostMultiplier": 1.64,
+  "boostDrain": 26,
+  "baseChargeTime": 0.75,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 500,
+  "mirrorWest": false,
+  "dedicatedEast": false
+}

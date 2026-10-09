@@ -1,7 +1,7 @@
-import { PLAYER_PROFILE_STORAGE_KEY } from './defaults';
-import { parsePlayerProfile } from './migrations';
-import { migratePlayerProgression } from './progression-migration';
-import { migratePlayerEconomy } from './economy-migration';
+import { PLAYER_PROFILE_STORAGE_KEY } from './defaults.ts';
+import { parsePlayerProfile } from './migrations.ts';
+import { migratePlayerProgression } from './progression-migration.ts';
+import { migratePlayerEconomy } from './economy-migration.ts';
 import type { LocalPlayerProfile } from './types';
 
 export const loadPlayerProfile = (): LocalPlayerProfile | null => {

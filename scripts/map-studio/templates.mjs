@@ -3,30 +3,38 @@ import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import { kanalObjectPolygons } from '../../lib/kanal-footprints.js';
+import { kanalObjectPolygons } from '../../modules/world/kanal-footprints.ts';
 // Evaluate trusted repository definitions only, never uploaded map data.
 export async function templates(root) {
-  const source = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
-  const start = source.indexOf('const DESIGN_W ='),
-    end = source.indexOf('// Custom maps are');
-  if (start < 0 || end < start)
-    throw new Error('Definisi arena tidak ditemukan.');
-  const ctx = {
-    structuredClone,
-    GAME_RULES: JSON.parse(
-      await readFile(path.join(root, 'config/game-rules.json'), 'utf8'),
-    ),
-    isKanalField: (id) => id === 'kanal2',
-    result: null,
-  };
-  vm.runInNewContext(
-    ts.transpile(source.slice(start, end) + ';result=FIELD_CONFIGS;', {
-      target: ts.ScriptTarget.ES2022,
-    }),
-    ctx,
-    { timeout: 1000 },
-  );
-  const fields = JSON.parse(JSON.stringify(ctx.result));
+  let fields = null;
+  try {
+    const guide = await import('../../modules/world/map-data/guide-fields.ts');
+    if (guide?.buildFieldConfigs && guide?.GUIDE_FIELD_CONFIGS)
+      fields = JSON.parse(JSON.stringify(guide.buildFieldConfigs(guide.GUIDE_FIELD_CONFIGS)));
+  } catch { /* Fall back to the legacy prototype slice below. */ }
+  if (!fields) {
+    const source = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');
+    const start = source.indexOf('const DESIGN_W ='),
+      end = source.indexOf('// Custom maps are');
+    if (start < 0 || end < start)
+      throw new Error('Definisi arena tidak ditemukan.');
+    const ctx = {
+      structuredClone,
+      GAME_RULES: JSON.parse(
+        await readFile(path.join(root, 'config/game-rules.json'), 'utf8'),
+      ),
+      isKanalField: (id) => id === 'kanal2',
+      result: null,
+    };
+    vm.runInNewContext(
+      ts.transpile(source.slice(start, end) + ';result=FIELD_CONFIGS;', {
+        target: ts.ScriptTarget.ES2022,
+      }),
+      ctx,
+      { timeout: 1000 },
+    );
+    fields = JSON.parse(JSON.stringify(ctx.result));
+  }
   const src = await readFile(
       path.join(root, 'lib/field-assets.generated.ts'),
       'utf8',

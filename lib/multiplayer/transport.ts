@@ -1,4 +1,4 @@
-import {decodeProtocolMessage,encodeProtocolMessage,MAX_PROTOCOL_MESSAGE_CHARS,MULTIPLAYER_PROTOCOL_VERSION,type ProtocolMessage} from './protocol';
+import {decodeProtocolMessage,encodeProtocolMessage,MAX_PROTOCOL_MESSAGE_CHARS,MULTIPLAYER_PROTOCOL_VERSION,type ProtocolMessage} from './protocol.ts';
 
 export type WireLink={send:(data:string,target?:string)=>Promise<void>;getPeers:()=>string[];
   onMessage:(fn:(data:unknown,peerId:string)=>void)=>void;onJoin:(fn:(peerId:string)=>void)=>void;

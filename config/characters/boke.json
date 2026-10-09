@@ -1,0 +1,22 @@
+{
+  "id": "boke",
+  "name": "Boke",
+  "role": "Disruptor",
+  "speed": 202,
+  "boost": 116,
+  "agility": 0.88,
+  "visualScale": 1.05,
+  "accent": "#ef677c",
+  "copy": "Lawan sudah rapi? Boke datang bikin barisan mereka buyar.",
+  "passiveName": "Tag Kasar",
+  "passiveCopy": "Jangkauan tag lebar, jeda antar-tag lebih singkat.",
+  "tagRange": 32,
+  "rescueRange": 31,
+  "boostMultiplier": 1.66,
+  "boostDrain": 29,
+  "baseChargeTime": 0.76,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 410,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

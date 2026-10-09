@@ -1,6 +1,6 @@
 import type {CanonicalGameState,TeamId} from '../game-core/types';
-import {createSnapshot} from '../game-core/snapshot';
-import {parseProtocolMessage,type ProtocolMessage} from './protocol';
+import {createSnapshot} from '../game-core/snapshot.ts';
+import {parseProtocolMessage,type ProtocolMessage} from './protocol.ts';
 import type {MatchSummary,ProgressionResult} from '../player-profile/match-progression';
 export type MatchResultPacket=Extract<ProtocolMessage,{type:'MATCH_RESULT'}>;
 export function createMatchResult(state:CanonicalGameState,humans:readonly {peerId:string;entityId:string}[],disconnected:ReadonlySet<string>):MatchResultPacket {

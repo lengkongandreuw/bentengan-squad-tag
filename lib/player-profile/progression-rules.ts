@@ -1,5 +1,5 @@
-import rawRules from '../../config/progression.json';
-import { CHARACTERS, type CharacterId } from '../characters';
+import rawRules from '../../config/progression.json' with { type: 'json' };
+import { CHARACTERS, type CharacterId } from '../characters.ts';
 
 export type ArenaProgressionTier = {
   id: string;

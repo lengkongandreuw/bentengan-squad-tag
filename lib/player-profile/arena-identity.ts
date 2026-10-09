@@ -1,4 +1,4 @@
-import mapConfig from '../../config/map-studio.json';
+import mapConfig from '../../config/map-studio.json' with { type: 'json' };
 
 // Editor replacement IDs identify artwork/geometry, not a new progression tier.
 // Include saved inactive/archived versions so historical statistics remain usable.

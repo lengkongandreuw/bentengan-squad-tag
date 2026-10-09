@@ -5,7 +5,6 @@ import { existsSync } from 'node:fs';
 import ts from 'typescript';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { fieldCycleDecision } from '../lib/field-cycle.js';
 
 // Load these small TS modules using the existing TypeScript dependency;
 // no browser, production build, extra packages, or user storage is needed.
@@ -35,9 +34,10 @@ async function moduleUrl(file) {
   return url;
 }
 const load = async name => import(await moduleUrl(new URL(`../lib/player-profile/${name}.ts`, import.meta.url)));
+const { fieldCycleDecision } = await import(await moduleUrl(new URL('../modules/game-core/match-control.ts', import.meta.url)));
 const { getArenaSelectionProgress } = await load('arena-selection-progress');
-const { MatchProgressionSummary } = await import(await moduleUrl(new URL('../components/match-progression-summary.tsx', import.meta.url)));
-const { UnlockNotificationPanel } = await import(await moduleUrl(new URL('../components/unlock-notification-panel.tsx', import.meta.url)));
+const { MatchProgressionSummary } = await import(await moduleUrl(new URL('../modules/ui/match-progression-summary.tsx', import.meta.url)));
+const { UnlockNotificationPanel } = await import(await moduleUrl(new URL('../modules/ui/unlock-notification-panel.tsx', import.meta.url)));
 const { getNewUnlockNotices } = await load('unlock-notifications');
 const { createDefaultProgression, parsePlayerProgression } = await load('progression');
 const { parsePlayerProfile } = await load('migrations');
@@ -58,7 +58,7 @@ const { migratePlayerProgression, estimateHistoricalXP } = await load('progressi
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
 
-test('edited built-in arenas inherit original unlock requirements and runtime gates', async () => {
+void test('edited built-in arenas inherit original unlock requirements and runtime gates', async () => {
   const maps = JSON.parse(await readFile(new URL('../config/map-studio.json', import.meta.url))).maps;
   const replacements = maps.filter(map => map.replaces);
   assert.ok(replacements.length >= 5);
@@ -78,7 +78,7 @@ test('edited built-in arenas inherit original unlock requirements and runtime ga
   assert.equal(isArenaUnlocked(profile, 'studio-unconfigured-new'), false);
 });
 
-test('edited arena wins count toward original tiers; historical alias stats merge once without mutation', () => {
+void test('edited arena wins count toward original tiers; historical alias stats merge once without mutation', () => {
   const profile = service.createPlayerProfile('MapStats');
   profile.progression.arenaStats.kampung = {played: 2, wins: 1};
   profile.progression.arenaStats['studio-edit-kampung'] = {played: 3, wins: 2};
@@ -100,7 +100,7 @@ test('edited arena wins count toward original tiers; historical alias stats merg
   assert.equal(isArenaUnlocked(result.profile, 'pasar'), true);
 });
 
-test('module15 full persisted player journey reaches all characters/arenas with exactly-once rewards', () => {
+void test('module15 full persisted player journey reaches all characters/arenas with exactly-once rewards', () => {
   const data = new Map(); let writes = 0;
   globalThis.window = { localStorage: { getItem: key => data.get(key), setItem: (key, value) => {
     writes++; data.set(key, value);
@@ -167,7 +167,7 @@ test('module15 full persisted player journey reaches all characters/arenas with 
   } finally { delete globalThis.window; }
 });
 
-test('module15 rotation uses only unlocked catalog entries and preserves three-match/rematch cycle', () => {
+void test('module15 rotation uses only unlocked catalog entries and preserves three-match/rematch cycle', () => {
   const p = service.createPlayerProfile('Rotate15');
   const catalog = ['kampung', 'pasar', 'taman'];
   const available = getPlayableArenaIds(p, catalog);
@@ -186,7 +186,7 @@ test('module15 rotation uses only unlocked catalog entries and preserves three-m
     assert.ok(['raja', 'bebe'].includes(pickUnlockedCharacter(earned, ['raja', 'jago', 'bebe'], () => value)));
 });
 
-test('module15 runtime wiring uses one writer, stable match identity and unrestricted bot lineup', async () => {
+void test('module15 runtime wiring uses one writer, stable match identity and unrestricted bot lineup', async () => {
   const code = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
   assert.equal((code.match(/recordMatchProgression\(\{/g) ?? []).length, 1);
   assert.doesNotMatch(code, /recordCompletedMatch/);
@@ -203,7 +203,7 @@ test('module15 runtime wiring uses one writer, stable match identity and unrestr
   assert.match(code, /onDismiss=\{\(\) => setUnlockNoticeDismissed\(true\)\}/);
 });
 
-test('module14 one nonblocking panel renders multiple unlocks and dismissal/duplicates never award or replay', () => {
+void test('module14 one nonblocking panel renders multiple unlocks and dismissal/duplicates never award or replay', () => {
   const p = service.createPlayerProfile('UnlockNotice'); p.progression.xp = 180;
   const summary = { matchId: 'unlock-event', arenaId: 'kampung', completed: true, won: true, tags: 0, rescues: 0 };
   const result = applyMatchProgression(p, summary);
@@ -239,7 +239,7 @@ test('module14 one nonblocking panel renders multiple unlocks and dismissal/dupl
   assert.doesNotMatch(manyMarkup, /role="dialog"|aria-modal/);
 });
 
-test('module13 resolver snapshots capped breakdown, level, next goal and no-op rewards', () => {
+void test('module13 resolver snapshots capped breakdown, level, next goal and no-op rewards', () => {
   const p = service.createPlayerProfile('ResultUI'); p.progression.xp = 398;
   const summary = { matchId: 'result-ui', arenaId: 'kampung', completed: true, won: true, tags: 4, rescues: 2 };
   const result = applyMatchProgression(p, summary);
@@ -265,7 +265,7 @@ test('module13 resolver snapshots capped breakdown, level, next goal and no-op r
   assert.equal(incomplete.xpEarned, 0); assert.equal(p.progression.xp, 6000);
 });
 
-test('module12 arena requirements show accurate counters and metadata without changing profile', () => {
+void test('module12 arena requirements show accurate counters and metadata without changing profile', () => {
   const p = service.createPlayerProfile('ArenaUI');
   p.progression.xp = 450;
   p.progression.arenaStats.pasar = { played: 3, wins: 2 };
@@ -282,7 +282,7 @@ test('module12 arena requirements show accurate counters and metadata without ch
   assert.equal(getArenaSelectionProgress(p, 'unknown', []).configured, false);
 });
 
-test('module11 character selection selector exposes required level and preserves historical unlocked state', () => {
+void test('module11 character selection selector exposes required level and preserves historical unlocked state', () => {
   const p = service.createPlayerProfile('LockUI');
   assert.deepEqual(getCharacterSelectionState(p, 'jago'), { locked: true, requiredLevel: 4, xpRemaining: 750 });
   assert.deepEqual(getCharacterSelectionState(p, 'raja'), { locked: false, requiredLevel: 1, xpRemaining: 0 });
@@ -296,7 +296,7 @@ test('module11 character selection selector exposes required level and preserves
   assert.equal(getCharacterSelectionState(null, 'jago').locked, true);
 });
 
-test('module10 runtime gates reject locked/unknown/faction mismatch and absent profiles', () => {
+void test('module10 runtime gates reject locked/unknown/faction mismatch and absent profiles', () => {
   const p = service.createPlayerProfile('RuntimeGate');
   const red = ['raja', 'robot', 'jago', 'lala', 'kumis', 'tui', 'bebe'];
   const green = ['ciici', 'kaka', 'buto', 'maria', 'boke', 'lui', 'kodo'];
@@ -321,7 +321,7 @@ test('module10 runtime gates reject locked/unknown/faction mismatch and absent p
   assert.equal(pickUnlockedCharacter(p, red, () => 0.99), 'bebe');
 });
 
-test('module09 new profile does not migrate; zero/active legacy retain identity and historical progress', () => {
+void test('module09 new profile does not migrate; zero/active legacy retain identity and historical progress', () => {
   const fresh = service.createPlayerProfile('Migration');
   assert.equal(migratePlayerProgression(fresh).migrated, false);
   const zero = { ...fresh }; delete zero.progression;
@@ -344,7 +344,7 @@ test('module09 new profile does not migrate; zero/active legacy retain identity 
   assert.deepEqual(parsePlayerProfile(result), result);
 });
 
-test('module09 high history saturates safely; outdated/partial optional data salvaged per field', () => {
+void test('module09 high history saturates safely; outdated/partial optional data salvaged per field', () => {
   const p = service.createPlayerProfile('HighHistory');
   delete p.progression;
   const high = { ...p, menang: Number.MAX_SAFE_INTEGER, kalah: Number.MAX_SAFE_INTEGER };
@@ -372,7 +372,7 @@ test('module09 high history saturates safely; outdated/partial optional data sal
   assert.equal(migratePlayerProgression(future).profile, future);
 });
 
-test('module09 storage migration saves once, reload retains all fields and failed writes never erase legacy', () => {
+void test('module09 storage migration saves once, reload retains all fields and failed writes never erase legacy', () => {
   const legacy = service.createPlayerProfile('LegacyLoad');
   delete legacy.progression;
   legacy.menang = 4;
@@ -398,7 +398,7 @@ test('module09 storage migration saves once, reload retains all fields and faile
   } finally { delete globalThis.window; }
 });
 
-test('module09 incomplete aggregate stats preserve valid counters and identity without whole profile reset', () => {
+void test('module09 incomplete aggregate stats preserve valid counters and identity without whole profile reset', () => {
   const p = service.createPlayerProfile('PartialOld');
   const raw = { ...p, progression: undefined, menang: 3, kalah: undefined,
     kda: { tagMusuh: 7, rescueTeam: 'broken' }, extraField: 99 };
@@ -412,7 +412,7 @@ test('module09 incomplete aggregate stats preserve valid counters and identity w
   assert.equal(migratePlayerProgression(parsed).profile.progression.xp, 536);
 });
 
-test('module08 duplicate callback/re-entry is a deterministic no-op, history bounded', () => {
+void test('module08 duplicate callback/re-entry is a deterministic no-op, history bounded', () => {
   let p = service.createPlayerProfile('DedupTest');
   const summary = { matchId: createMatchId(), arenaId: 'kampung', completed: true, won: true, tags: 1, rescues: 1 };
   assert.notEqual(createMatchId(), summary.matchId);
@@ -435,7 +435,7 @@ test('module08 duplicate callback/re-entry is a deterministic no-op, history bou
   assert.ok(!p.progression.processedMatchIds.includes('not-completed'));
 });
 
-test('module08 storage reload and stale caller cannot award same ID again; duplicates do not write', () => {
+void test('module08 storage reload and stale caller cannot award same ID again; duplicates do not write', () => {
   const p = service.createPlayerProfile('DedupReload');
   const data = new Map([[PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(p)]]);
   let writes = 0;
@@ -452,7 +452,7 @@ test('module08 storage reload and stale caller cannot award same ID again; dupli
   } finally { delete globalThis.window; }
 });
 
-test('module07 resolver updates XP/stats/totals then unlocks; result and input preserved', () => {
+void test('module07 resolver updates XP/stats/totals then unlocks; result and input preserved', () => {
   const p = service.createPlayerProfile('RewardTest');
   p.progression.xp = 100;
   const before = structuredClone(p);
@@ -478,7 +478,7 @@ test('module07 resolver updates XP/stats/totals then unlocks; result and input p
   assert.deepEqual(getArenaStats(lost.profile, 'custom-new'), { played: 1, wins: 0 });
 });
 
-test('module07 incomplete no-op, invalid summary and overflow never mutate profile', () => {
+void test('module07 incomplete no-op, invalid summary and overflow never mutate profile', () => {
   const p = service.createPlayerProfile('NoReward');
   const summary = { matchId: 'unfinished', arenaId: 'kampung', completed: false, won: true, tags: 2, rescues: 1 };
   const result = applyMatchProgression(p, summary);
@@ -492,7 +492,7 @@ test('module07 incomplete no-op, invalid summary and overflow never mutate profi
   assert.equal(p.progression.xp, Number.MAX_SAFE_INTEGER);
 });
 
-test('module07 arena gates use the level, victory and actions earned in this same match', () => {
+void test('module07 arena gates use the level, victory and actions earned in this same match', () => {
   const p = service.createPlayerProfile('SameMatch');
   p.progression.xp = 449;
   p.progression.arenaStats.pasar = { played: 2, wins: 2 };
@@ -507,7 +507,7 @@ test('module07 arena gates use the level, victory and actions earned in this sam
   assert.equal(result.profile.kda.rescueTeam, 2);
 });
 
-test('module07 explicit storage entry persists reward once and reports storage failure', () => {
+void test('module07 explicit storage entry persists reward once and reports storage failure', () => {
   const p = service.createPlayerProfile('StoreReward');
   const data = new Map([[PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(p)]]);
   let writes = 0;
@@ -524,7 +524,7 @@ test('module07 explicit storage entry persists reward once and reports storage f
   } finally { delete globalThis.window; }
 });
 
-test('module06 exact campaign rules and each requirement independently blocks unlock', () => {
+void test('module06 exact campaign rules and each requirement independently blocks unlock', () => {
   const expected = [['pasar',2,1,0,0,0], ['taman',3,3,0,8,2], ['kanal',5,4,0,15,5],
     ['kanal2',7,5,12,25,10], ['studio-kampung-2420b8cf',9,7,20,40,15]];
   assert.deepEqual(progressionRules.arenaProgression.unlockRequirements.map(r =>
@@ -555,7 +555,7 @@ test('module06 exact campaign rules and each requirement independently blocks un
   }
 });
 
-test('module06 historical/custom unlocks, legacy starter, tier membership and immutable resolver', () => {
+void test('module06 historical/custom unlocks, legacy starter, tier membership and immutable resolver', () => {
   const p = service.createPlayerProfile('TierHistory');
   p.progression.unlockedArenaIds.push('studio-unknown', 'kanal2');
   const before = structuredClone(p);
@@ -584,7 +584,7 @@ test('module06 historical/custom unlocks, legacy starter, tier membership and im
   }
 });
 
-test('module05 played increments per call and wins only on victory, including custom IDs', () => {
+void test('module05 played increments per call and wins only on victory, including custom IDs', () => {
   const profile = service.createPlayerProfile('ArenaPlayer');
   const loss = applyArenaMatchStat(profile, 'studio-map-new', false);
   assert.deepEqual(getArenaStats(loss, 'studio-map-new'), { played: 1, wins: 0 });
@@ -596,7 +596,7 @@ test('module05 played increments per call and wins only on victory, including cu
   assert.deepEqual(parsePlayerProfile(second), second);
 });
 
-test('module05 does not mutate input, unrelated profile state or storage; legacy reads safe', () => {
+void test('module05 does not mutate input, unrelated profile state or storage; legacy reads safe', () => {
   const profile = service.createPlayerProfile('SafeArena');
   profile.progression.xp = 450;
   profile.progression.arenaStats.kampung = { played: 5, wins: 3 };
@@ -619,7 +619,7 @@ test('module05 does not mutate input, unrelated profile state or storage; legacy
   } finally { delete globalThis.window; }
 });
 
-test('module05 special IDs are own entries; invalid input and overflow fail without data loss', () => {
+void test('module05 special IDs are own entries; invalid input and overflow fail without data loss', () => {
   const profile = service.createPlayerProfile('ArenaCheck');
   for (const id of ['__proto__', 'constructor', 'toString']) {
     assert.deepEqual(getArenaStats(profile, id), { played: 0, wins: 0 });
@@ -641,7 +641,7 @@ test('module05 special IDs are own entries; invalid input and overflow fail with
   assert.deepEqual(profile.progression.arenaStats.bad, { played: 1, wins: 2 });
 });
 
-test('module04 all character thresholds, starters and unknown IDs', () => {
+void test('module04 all character thresholds, starters and unknown IDs', () => {
   const profile = service.createPlayerProfile('Unlocker');
   for (const { characterId, minLevel } of progressionRules.characterUnlockRequirements) {
     const xp = getXPRequiredForLevel(minLevel);
@@ -666,7 +666,7 @@ test('module04 all character thresholds, starters and unknown IDs', () => {
   assert.equal(isCharacterUnlocked(profile, 'missing'), false);
 });
 
-test('module04 historical unlocks never relock after config change; resolver is immutable/idempotent', () => {
+void test('module04 historical unlocks never relock after config change; resolver is immutable/idempotent', () => {
   const profile = service.createPlayerProfile('Historian');
   profile.progression.unlockedCharacters.push('bebe', 'kodo');
   profile.progression.xp = 450;
@@ -686,7 +686,7 @@ test('module04 historical unlocks never relock after config change; resolver is 
   } finally { requirement.minLevel = originalLevel; }
 });
 
-test('module04 progress helper and resolver never access persistence', () => {
+void test('module04 progress helper and resolver never access persistence', () => {
   const profile = service.createPlayerProfile('PureUnlock');
   profile.progression.xp = 100;
   globalThis.window = { get localStorage() { throw new Error('No storage access'); } };
@@ -697,7 +697,7 @@ test('module04 progress helper and resolver never access persistence', () => {
   } finally { delete globalThis.window; }
 });
 
-test('new profile default and independently mutable progression collections', () => {
+void test('new profile default and independently mutable progression collections', () => {
   const profile = service.createPlayerProfile('Tester');
   assert.deepEqual(profile.progression, {
     version: 1, xp: 0, unlockedCharacters: ['raja', 'kaka'],
@@ -712,7 +712,7 @@ test('new profile default and independently mutable progression collections', ()
   assert.deepEqual(createDefaultProgression(), profile.progression);
 });
 
-test('legacy parser remains read-only; storage now migrates once under module09', () => {
+void test('legacy parser remains read-only; storage now migrates once under module09', () => {
   const legacy = service.createPlayerProfile('Veteran');
   delete legacy.progression;
   legacy.menang = 12;
@@ -734,7 +734,7 @@ test('legacy parser remains read-only; storage now migrates once under module09'
   } finally { delete globalThis.window; }
 });
 
-test('persisted progression survives profile updates without awarding XP/unlocks', () => {
+void test('persisted progression survives profile updates without awarding XP/unlocks', () => {
   const profile = service.createPlayerProfile('Persisted');
   profile.progression.xp = 120;
   profile.progression.arenaStats['studio-custom'] = { played: 3, wins: 1 };
@@ -756,7 +756,7 @@ test('persisted progression survives profile updates without awarding XP/unlocks
   } finally { delete globalThis.window; }
 });
 
-test('invalid optional progression never invalidates a valid old profile', () => {
+void test('invalid optional progression never invalidates a valid old profile', () => {
   const profile = service.createPlayerProfile('SafeUser');
   assert.equal(parsePlayerProgression({ ...profile.progression, xp: -1 }), undefined);
   assert.equal(parsePlayerProgression({ ...profile.progression, unlockedCharacters: ['missing'] }), undefined);
@@ -765,7 +765,7 @@ test('invalid optional progression never invalidates a valid old profile', () =>
   assert.equal(parsed.progression, undefined);
 });
 
-test('module02 loads exact specified rewards, caps, levels and complete unlock roster', () => {
+void test('module02 loads exact specified rewards, caps, levels and complete unlock roster', () => {
   assert.deepEqual(progressionRules.xpRewards, { completeMatch: 100, win: 60, tag: 8, rescue: 15 });
   assert.deepEqual(progressionRules.xpCaps, { tagPerMatch: 64, rescuePerMatch: 60 });
   assert.deepEqual(progressionRules.playerLevelThresholds,
@@ -777,7 +777,7 @@ test('module02 loads exact specified rewards, caps, levels and complete unlock r
   assert.equal(progressionRules.arenaProgression.unlockRequirements.length, 5);
 });
 
-test('module02 malformed rules fail explicitly without changing input or player data', () => {
+void test('module02 malformed rules fail explicitly without changing input or player data', () => {
   for (const mutate of [
     r => { r.version = 2; },
     r => { r.xpRewards.tag = -1; },
@@ -797,7 +797,7 @@ test('module02 malformed rules fail explicitly without changing input or player 
   }
 });
 
-test('module02 arena schema validates tier membership and stat prerequisites only', () => {
+void test('module02 arena schema validates tier membership and stat prerequisites only', () => {
   const input = structuredClone(progressionRules);
   input.arenaProgression = {
     tiers: [{ id: 'test-tier', arenaIds: ['studio-test'] }],
@@ -812,7 +812,7 @@ test('module02 arena schema validates tier membership and stat prerequisites onl
   assert.throws(() => parseProgressionRules(input), /minWins/);
 });
 
-test('module03 specified boundaries and every configured level threshold', () => {
+void test('module03 specified boundaries and every configured level threshold', () => {
   for (const [xp, level] of [[0,1], [199,1], [200,2], [449,2], [450,3], [5999,12], [6000,13]])
     assert.equal(getLevelFromXP(xp), level);
   progressionRules.playerLevelThresholds.forEach((xp, i) => {
@@ -822,7 +822,7 @@ test('module03 specified boundaries and every configured level threshold', () =>
   });
 });
 
-test('module03 progress resets at boundary, max level has no phantom next level', () => {
+void test('module03 progress resets at boundary, max level has no phantom next level', () => {
   assert.deepEqual(getCurrentLevelProgress(325), {
     level: 2, xp: 325, levelStartXP: 200, nextLevelXP: 450,
     xpIntoLevel: 125, xpForNextLevel: 250, xpToNextLevel: 125,
@@ -842,7 +842,7 @@ test('module03 progress resets at boundary, max level has no phantom next level'
   }
 });
 
-test('module03 completion/win/action rewards and independent caps', () => {
+void test('module03 completion/win/action rewards and independent caps', () => {
   const summary = { completed: true, result: 'loss', tags: 0, rescues: 0 };
   assert.equal(calculateMatchXP(summary), 100);
   assert.equal(calculateMatchXP({ ...summary, result: 'win' }), 160);
@@ -858,7 +858,7 @@ test('module03 completion/win/action rewards and independent caps', () => {
   assert.equal(calculateMatchXP({ ...summary, completed: false, result: 'win', tags: 999, rescues: 999 }), 0);
 });
 
-test('module03 invalid input rejected and pure helpers do not mutate data or use storage', () => {
+void test('module03 invalid input rejected and pure helpers do not mutate data or use storage', () => {
   for (const invalid of [-1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => getLevelFromXP(invalid));
     assert.throws(() => getCurrentLevelProgress(invalid));

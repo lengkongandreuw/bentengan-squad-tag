@@ -1,4 +1,4 @@
-import { progressionRules } from './progression-rules';
+import { progressionRules } from './progression-rules.ts';
 import type { MatchResult } from './types';
 
 export type MatchXPSummary = {

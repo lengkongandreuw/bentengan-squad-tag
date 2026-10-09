@@ -1,0 +1,22 @@
+{
+  "id": "bebe",
+  "name": "Bebe",
+  "role": "Rescuer",
+  "speed": 218,
+  "boost": 110,
+  "agility": 1.1,
+  "visualScale": 0.96,
+  "accent": "#4eeaf2",
+  "copy": "Kecil-kecil siap nolong. Bebe dan dronenya pantang tinggalin teman.",
+  "passiveName": "Drone Penolong",
+  "passiveCopy": "Jangkauan rescue lebih jauh. Rekan yang dibebaskan kebal tag lebih lama.",
+  "tagRange": 27,
+  "rescueRange": 41,
+  "boostMultiplier": 1.7,
+  "boostDrain": 29,
+  "baseChargeTime": 0.7,
+  "rescueShieldMs": 2150,
+  "tagCooldownMs": 490,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

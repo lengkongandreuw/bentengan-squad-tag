@@ -1,7 +1,7 @@
-import {parseProtocolMessage,type ProtocolMessage,type NetworkInput} from './protocol';
+import {parseProtocolMessage,type ProtocolMessage,type NetworkInput} from './protocol.ts';
 import type {PlayerInputFrame} from '../game-core/input';
 import type {RuntimeActor} from '../game-core/types';
-import {flightConfig,isFlying,steerFlight} from '../flight-ultimate.js';
+import {flightConfig,isFlying,steerFlight} from '../../modules/gameplay/flight-ultimate.ts';
 
 export const neutralInput=():NetworkInput=>({moveX:0,moveY:0,sprint:false,keyboardSprint:false,sprintPulse:false,
   parkour:false,ultimate:false,rescue:false,pause:false,target:null});

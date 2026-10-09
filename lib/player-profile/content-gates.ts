@@ -1,6 +1,6 @@
 import type { CharacterId } from '../characters';
-import { isCharacterUnlocked, getCharacterUnlockRequirement, getCharacterUnlockProgress } from './character-unlocks';
-import { isArenaUnlocked } from './arena-unlocks';
+import { isCharacterUnlocked, getCharacterUnlockRequirement, getCharacterUnlockProgress } from './character-unlocks.ts';
+import { isArenaUnlocked } from './arena-unlocks.ts';
 import type { LocalPlayerProfile } from './types';
 
 export const getPlayableCharacterIds = (profile: LocalPlayerProfile | null | undefined, roster: readonly CharacterId[]) =>

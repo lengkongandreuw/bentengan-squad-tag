@@ -27,7 +27,7 @@ function protocolFixtures(){
     {version:v,type:'PLAYER_LEFT',peerId:'peer-1',entityId:'entity-0001',reason:'disconnected'},
   ];
 }
-test('13 all twelve versioned messages encode/decode to detached validated data without transport',()=>{
+void test('13 all twelve versioned messages encode/decode to detached validated data without transport',()=>{
   const fixtures=protocolFixtures();assert.equal(fixtures.length,12);
   for(const m of fixtures){
     const copy=protocol.parseProtocolMessage(m);assert.deepEqual(copy,m);assert.notEqual(copy,m);
@@ -37,7 +37,7 @@ test('13 all twelve versioned messages encode/decode to detached validated data 
   const source=fs.readFileSync('lib/multiplayer/protocol.ts','utf8');
   assert.doesNotMatch(source,/\b(?:RTCPeerConnection|WebSocket|fetch|window|document|localStorage)\b/);
 });
-test('13 message guards reject bad versions/types/keys/getters and inconsistent snapshot envelopes',()=>{
+void test('13 message guards reject bad versions/types/keys/getters and inconsistent snapshot envelopes',()=>{
   for(const m of protocolFixtures())for(const alter of [v=>v.version=2,v=>v.type='UNKNOWN',v=>v.extra=true,v=>delete v.version]){
     const bad=structuredClone(m);alter(bad);assert.equal(protocol.parseProtocolMessage(bad),null);assert.equal(protocol.isProtocolMessage(bad),false);
   }
@@ -59,7 +59,7 @@ test('13 message guards reject bad versions/types/keys/getters and inconsistent 
   for(const v of [null,undefined,[],new Date(),Object.create(fixtures[0]),new Proxy({},{getPrototypeOf(){throw Error('proxy');}})])
     assert.equal(protocol.parseProtocolMessage(v),null);
 });
-test('13 event conversion has explicit canonical teams and validates every event variant',()=>{
+void test('13 event conversion has explicit canonical teams and validates every event variant',()=>{
   const events=[
     {type:'PLAYER_TAGGED',actorId:'a',targetId:'b',x:10,y:20},{type:'PLAYER_CAPTURED',actorId:'a',targetId:'b'},
     {type:'PLAYER_RESCUED',actorId:'a',targetIds:['b','c'],x:10,y:20},{type:'ULTIMATE_STARTED',actorId:'a',flight:true},
@@ -77,7 +77,7 @@ test('13 event conversion has explicit canonical teams and validates every event
     assert.equal(protocol.parseNetworkGameEvent({type:'PLAYER_RESCUED',actorId:'a',targetIds:ids,x:0,y:0}),null);
   assert.equal(protocol.parseNetworkGameEvent({type:'FORT_ENTERED',actorId:'a',team:'blue'}),null);
 });
-test('13 bounded JSON decoding rejects junk/oversize and payload mutations cannot touch source',()=>{
+void test('13 bounded JSON decoding rejects junk/oversize and payload mutations cannot touch source',()=>{
   for(const json of ['', '{', 'null', '[]', '{"version":2,"type":"PING"}', ' '.repeat(protocol.MAX_PROTOCOL_MESSAGE_CHARS+1)])
     assert.equal(protocol.decodeProtocolMessage(json),null);
   const m=protocolFixtures()[5],parsed=protocol.parseProtocolMessage(m),before=structuredClone(m);
@@ -87,7 +87,7 @@ test('13 bounded JSON decoding rejects junk/oversize and payload mutations canno
   for(let i=0;i<256;i++){const m=protocolFixtures()[4];m.input.moveY=i+2;assert.equal(protocol.parseProtocolMessage(m),null);}
 });
 
-test('12 snapshot JSON roundtrip preserves render/protection/flight data without assets/maps/profile',()=>{
+void test('12 snapshot JSON roundtrip preserves render/protection/flight data without assets/maps/profile',()=>{
   const a=actor({flight:flight.startFlight({x:200,y:200}),visualTagVector:{x:10,y:-10},ultimateShieldUntil:3000}),canonical=state.describeMatch(truth([a,enemy()]));
   canonical.privateProfile={tokenBalance:999};canonical.images={source:'SECRET_ASSET'};
   const s=snapshots.createSnapshot(canonical),before=structuredClone(canonical);
@@ -100,7 +100,7 @@ test('12 snapshot JSON roundtrip preserves render/protection/flight data without
   s.entities[0].tagDirection.x=999;s.refills[0].x=999;
   assert.deepEqual(canonical,before);
 });
-test('12 strict snapshot parser rejects malformed fields, duplicate identities, invalid references and phase truth',()=>{
+void test('12 strict snapshot parser rejects malformed fields, duplicate identities, invalid references and phase truth',()=>{
   const good=snapshots.createSnapshot(state.describeMatch(truth([actor(),enemy()])));
   const mutations=[s=>s.version=2,s=>s.tick=.5,s=>s.timeMs=Infinity,s=>s.arenaId='',s=>s.entities[0].x=NaN,
     s=>s.entities[0].character='unknown',s=>s.entities[0].team='blue',s=>s.entities[0].action='hack',
@@ -115,14 +115,16 @@ test('12 strict snapshot parser rejects malformed fields, duplicate identities, 
   assert.equal(snapshots.parseSnapshot(hostile),null);assert.equal(getterCalls,0);
   const extraArray=structuredClone(good);extraArray.entities.extra='hack';assert.equal(snapshots.parseSnapshot(extraArray),null);
 });
-test('12 invalid canonical source cannot be serialized and actual dev probe builds snapshots on demand',()=>{
+void test('12 invalid canonical source cannot be serialized and actual dev probe builds snapshots on demand',()=>{
   const canonical=state.describeMatch(truth([actor(),enemy()]));canonical.entities[0].x=Infinity;
   assert.throws(()=>snapshots.createSnapshot(canonical),/invalid canonical/);
   const code=fs.readFileSync('app/prototype.tsx','utf8');assert.ok(code.includes('readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState())'));
-  assert.ok(code.includes('if(network&&localNow-lastNetworkSend>=1000/NETWORK_RATES.snapshotHz)'), 'serialization is network-only and rate limited');
+  assert.ok(code.includes('networkPump?.tickHostSnapshot(localNow, now)'), 'serialization is network-only via the pump adapter');
+  const pump=fs.readFileSync('lib/multiplayer/pump.ts','utf8');
+  assert.ok(pump.includes('NETWORK_RATES.snapshotHz'), 'pump rate-limits host snapshots');
 });
 
-test('11 rendering reads canonical actor truth with detached nested data and legacy visual identity',()=>{
+void test('11 rendering reads canonical actor truth with detached nested data and legacy visual identity',()=>{
   const players=[actor({action:'tag',actionUntil:2000,visualTagVector:{x:20,y:0},flight:flight.startFlight({x:200,y:200})}),enemy()];
   const canonical=state.describeMatch(truth(players)),before=structuredClone(canonical),liveBefore=structuredClone(players);
   const render=renderState.createRenderAdapter(players)(canonical);
@@ -134,7 +136,7 @@ test('11 rendering reads canonical actor truth with detached nested data and leg
   render.refills[0].x=999;render.teamCombos.blue.surgeUntil=999;
   assert.deepEqual(canonical,before);assert.deepEqual(players,liveBefore);
 });
-test('11 existing drawing paths use render projections and do not invoke simulation authority',()=>{
+void test('11 existing drawing paths use render projections and do not invoke simulation authority',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8'),a=source.indexOf('const drawPlayer ='),b=source.indexOf('let cachedStatsBoard',a),drawing=source.slice(a,b);
   assert.ok(drawing.includes('const {phase,roundWinner,ultimateMeter,ultimateBuffUntil,teamCombos}=render'));
   assert.ok(drawing.includes('const {players,refills,phase,rescueRequest}=render'));
@@ -144,7 +146,7 @@ test('11 existing drawing paths use render projections and do not invoke simulat
   assert.ok(drawing.includes('pendingRenderFailure ='));assert.ok(source.includes('if(pendingRenderFailure!==null){paused=true'));
 });
 
-test('09 bot strategy and sequential shared movement match frozen legacy',()=>{
+void test('09 bot strategy and sequential shared movement match frozen legacy',()=>{
   const oldFactory=vm.runInThisContext(ts.transpileModule(`(function(c){
     const {players,bases,worldWidth,worldHeight,refills,rescueRequest,aiProfile,field,move,drainBoost,stats}=c;
     const me=players[0],CHARACTER_BY_ID={raja:stats},AI_BOOST_THRESHOLD=-.15,AI_BOOST_DRAIN_MULTIPLIER=.66,AI_SPEED_MULTIPLIER=1;
@@ -179,7 +181,7 @@ test('09 bot strategy and sequential shared movement match frozen legacy',()=>{
     assert.deepEqual(calls,oldCalls);assert.deepEqual(actual,old);
   }
 });
-test('09 clients never generate/consume bot decisions, controller selection and sequences survive reorder',()=>{
+void test('09 clients never generate/consume bot decisions, controller selection and sequences survive reorder',()=>{
   const driver=bots.createBotAuthority(),players=[actor(),enemy(),actor({entityId:'remote',controller:'remote',controlled:false})];
   let navigation=0;const ctx={...world(),players,refills:[],request:null,localTeam:'blue',profile:{rescueCutoff:1,threatRadius:200,playerBias:20,prediction:.2,steerDistance:90},boostThreshold:-.15,navigate:(p,d)=>{navigation++;return d;}};
   const before=structuredClone(players),frames=[];
@@ -194,31 +196,34 @@ test('09 clients never generate/consume bot decisions, controller selection and 
 function load(file){
   const absolute=path.resolve(file);if(cache.has(absolute))return cache.get(absolute).exports;
   const compiledModule={exports:{}};cache.set(absolute,compiledModule);
-  const code=ts.transpileModule(fs.readFileSync(absolute,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+  if(absolute.endsWith('.json')){compiledModule.exports={__esModule:true,default:JSON.parse(fs.readFileSync(absolute,'utf8'))};return compiledModule.exports;}
+  const code=ts.transpileModule(fs.readFileSync(absolute,'utf8').replaceAll('import.meta','({BASE_URL:"/"})'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText.replaceAll('import.meta','({BASE_URL:"/"})');
   const requireLocal=specifier=>{
     if(!specifier.startsWith('.'))return nativeRequire(specifier);
     const base=path.resolve(path.dirname(absolute),specifier);
-    return load([base,base+'.ts',base+'.js'].find(f=>fs.existsSync(f)));
+    const found=[base,base+'.ts',base+'.json',base+'.js'].find(f=>fs.existsSync(f));
+    if(!found)throw new Error('Cannot resolve "'+specifier+'" from '+absolute);
+    return load(found);
   };
   vm.runInThisContext(`(function(require,module,exports){${code}\n})`,{filename:absolute})(requireLocal,compiledModule,compiledModule.exports);
   return compiledModule.exports;
 }
 const state=load('lib/game-core/state.ts'),entities=load('lib/game-core/entities.ts');
 const input=load('lib/game-core/input.ts'),tick=load('lib/game-core/tick.ts');
-const movement=load('lib/game-core/movement.ts'),interactions=load('lib/game-core/interactions.ts');
-const ultimate=load('lib/game-core/ultimate.ts'),matchRules=load('lib/game-core/match-rules.ts');
-const bots=load('lib/game-core/bot-ai.ts');
+const movement=load('modules/gameplay/movement.ts'),interactions=load('modules/gameplay/tag-combat.ts');
+const ultimate=load('modules/gameplay/ultimate.ts'),matchRules=load('modules/game-core/match-control.ts');
+const bots=load('modules/gameplay/ai-movement.ts');
 const gameEvents=load('lib/game-core/events.ts');
 const renderState=load('lib/game-core/render-state.ts');
 const snapshots=load('lib/game-core/snapshot.ts');
 const protocol=load('lib/multiplayer/protocol.ts');
-const flight=load('lib/flight-ultimate.js'),collision=load('lib/collision-navigation.js'),contact=load('lib/tag-contact.js');
+const flight=load('modules/gameplay/flight-ultimate.ts'),collision=load('modules/gameplay/collision-navigation.ts'),contact=load('modules/gameplay/tag-check.ts');
 const actor=(overrides={})=>({entityId:'entity-0001',controller:'local',id:'you',name:'RAJA',characterId:'raja',team:'blue',controlled:true,
   x:200,y:200,vx:0,vy:0,lastX:200,lastY:200,state:'ACTIVE',exitOrder:10,boost:100,baseCharge:0,exitDeadline:0,
   lastExitAt:0,tagCooldown:0,parkourUntil:0,boostReadyAt:0,fortCharge:0,prisonIndex:0,captures:0,aiSeed:0,
   rescueShieldUntil:0,ultimateShieldUntil:0,fallSafeUntil:0,fallNoticeUntil:0,waterEnteredAt:0,waterFallUntil:0,capturedIds:[],actionUntil:0,...overrides});
 const enemy=(overrides={})=>actor({entityId:'entity-0002',controller:'bot',id:'enemy1',controlled:false,team:'red',x:220,y:200,lastX:220,lastY:200,exitOrder:2,...overrides});
-test('UI tag indicators share eligibility, cooldown, flight and protection without mutating actors',()=>{
+void test('UI tag indicators share eligibility, cooldown, flight and protection without mutating actors',()=>{
   const me=actor(),target=enemy(),before=structuredClone([me,target]);
   assert.equal(interactions.tagRelationship(me,target,1000,false),'target');
   assert.equal(interactions.tagRelationship(target,me,1000,false),'danger');
@@ -236,7 +241,7 @@ test('UI tag indicators share eligibility, cooldown, flight and protection witho
   assert.equal(interactions.tagRelationship(me,{...target,waterEnteredAt:100},1000,true),'protected');
   assert.equal(interactions.tagRelationship(me,{...target,waterEnteredAt:100},1000,false),'target');
 });
-test('HUD preferences reject malformed values and clamp scale without touching gameplay',()=>{
+void test('HUD preferences reject malformed values and clamp scale without touching gameplay',()=>{
   const {normalizeHudPreferences}=load('lib/hud-preferences.ts');
   for(const value of [null,undefined,'large',{}, {scale:NaN,contrast:'true'}])assert.deepEqual(normalizeHudPreferences(value),{scale:1,contrast:false});
   assert.deepEqual(normalizeHudPreferences({scale:100,contrast:true}),{scale:1.3,contrast:true});
@@ -247,7 +252,7 @@ const world=(overrides={})=>({width:1000,height:800,bases:{blue:{x:100,y:100},re
   obstacles:[],waterAt:()=>false,waterBlocks:()=>false,fortCoreAt:()=>false,fortOccupied:()=>false,baseChargeTime:()=>.8,speedAt:()=>1,...overrides});
 const stats={raja:{tagCooldownMs:500,tagRange:28,rescueRange:42,rescueShieldMs:1500,boost:100,baseChargeTime:.8}};
 const supported=new Set(['raja','kaka','bebe','ciici']);
-test('10 core tag emits ordered detached JSON facts only after a valid transition',()=>{
+void test('10 core tag emits ordered detached JSON facts only after a valid transition',()=>{
   const a=actor(),b=enemy(),events=[];
   const emit=facts=>{assert.equal(b.state,'PRISONER');events.push(...facts);};
   assert.ok(interactions.resolveTag([a,b],a.entityId,b.entityId,1000,rule,emit));
@@ -262,7 +267,7 @@ test('10 core tag emits ordered detached JSON facts only after a valid transitio
   b.state='ACTIVE';b.flight=flight.startFlight(b);
   assert.equal(interactions.resolveTag([a,b],a.entityId,b.entityId,2000,rule,()=>{throw Error('Invalid tag emitted');}),null);
 });
-test('10 rescue and base emit stable identity facts while preserving legacy returns',()=>{
+void test('10 rescue and base emit stable identity facts while preserving legacy returns',()=>{
   const a=actor(),held=actor({entityId:'held',state:'PRISONER',x:220,prisonIndex:4}),events=[];
   const result=interactions.resolveRescue([a,held],a.entityId,1000,{kanal2:false,range:42,shieldMs:1500},facts=>events.push(...facts));
   assert.equal(result.type,'rescue');assert.equal(held.state,'RETURNING');
@@ -276,7 +281,7 @@ test('10 rescue and base emit stable identity facts while preserving legacy retu
   interactions.resolveBase([recovering],recovering,.02,1000,[],baseRules(w),facts=>notices.push(...facts));
   assert.equal(notices.at(-1).type,'BOOST_RECOVERED');assert.equal(recovering.boost,100);
 });
-test('10 fort entry memory emits once, restores on reentry and excludes flight/prisoners',()=>{
+void test('10 fort entry memory emits once, restores on reentry and excludes flight/prisoners',()=>{
   const w=world(),p=actor({x:900,y:100}),memory=new Set();
   assert.deepEqual(gameEvents.fortEntryEvents([p],w.bases,80,memory),[{type:'FORT_ENTERED',actorId:p.entityId,team:'blue'}]);
   assert.deepEqual(gameEvents.fortEntryEvents([p],w.bases,80,memory),[]);
@@ -285,11 +290,13 @@ test('10 fort entry memory emits once, restores on reentry and excludes flight/p
   p.state='PRISONER';assert.deepEqual(gameEvents.fortEntryEvents([p],w.bases,80,memory),[]);
   p.state='ACTIVE';p.x=500;assert.deepEqual(gameEvents.fortEntryEvents([p],w.bases,80,memory),[]);
 });
-test('10 event boundary stays finite and runtime connects presentation without moving profile writes into core',()=>{
+void test('10 event boundary stays finite and runtime connects presentation without moving profile writes into core',()=>{
   const p=actor(),score={blue:1,red:0},outcome=matchRules.endRound([p],score,'PLAYING','blue','TEST',1000);
   const event={type:outcome.type,team:outcome.team,reason:outcome.reason};assert.equal(event.type,'MATCH_ENDED');state.assertJsonData(event);
-  for(const file of ['events.ts','bot-ai.ts','interactions.ts','ultimate.ts','match-rules.ts'])
+  for(const file of ['events.ts'])
     assert.doesNotMatch(fs.readFileSync(`lib/game-core/${file}`,'utf8'),/\b(?:window|document|localStorage|AudioContext|gameplayAudio|recordMatchProgression)\b/);
+  for(const file of ['modules/gameplay/tag-combat.ts','modules/gameplay/ultimate.ts','modules/gameplay/ai-movement.ts','modules/game-core/match-control.ts'])
+    assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(?:window|document|localStorage|AudioContext|gameplayAudio|recordMatchProgression)\b/);
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   for(const anchor of ['botAuthority.run(simulationAuthority','presentInteractionEvents(events,now)','presentGameEvents(ultimateFacts',
     'presentGameEvents([{type:outcome.type','fortEntryEvents(players,bases','facts=>events.push(...facts)'])assert.ok(source.includes(anchor),anchor);
@@ -297,7 +304,7 @@ test('10 event boundary stays finite and runtime connects presentation without m
   const begin=source.indexOf('const winRound ='),end=source.indexOf('const fortOccupant',begin),wrapper=source.slice(begin,end);
   assert.ok(wrapper.indexOf('recordMatchProgression(')<wrapper.indexOf('presentGameEvents('));
 });
-test('10 actual interaction presenter preserves player/bot audio routing and never mutates match truth',()=>{
+void test('10 actual interaction presenter preserves player/bot audio routing and never mutates match truth',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8'),start=source.indexOf('const presentInteractionEvents ='),end=source.indexOf('const capture =',start);
   const initialize=vm.runInThisContext(ts.transpileModule(`(function(players,presentGameEvents){
     const network=null,clientOnly=false,sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
@@ -340,7 +347,7 @@ const oldUltimateFactory=vm.runInThisContext(ts.transpileModule(`(function(playe
   };
 })`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText);
 
-test('08 ultimate matches frozen legacy for all characters and base/upgraded team scopes',()=>{
+void test('08 ultimate matches frozen legacy for all characters and base/upgraded team scopes',()=>{
   for(const id of supported)for(const upgraded of [false,true]) {
     const rules=ultRules(id,upgraded?{rechargeSeconds:42,castMs:id==='kaka'?3300:2900,durationMs:6500,speedMultiplier:1.49}:{});
     const actual=[actor({characterId:id}),actor({entityId:'ally',controlled:false}),enemy(),actor({entityId:'held',state:'PRISONER'})];
@@ -355,7 +362,7 @@ test('08 ultimate matches frozen legacy for all characters and base/upgraded tea
     }
   }
 });
-test('08 ultimate eligibility, bonus caps and exactly-once effects cannot bypass guards',()=>{
+void test('08 ultimate eligibility, bonus caps and exactly-once effects cannot bypass guards',()=>{
   const me=actor(),state={...ultState(),meter:100},rules=ultRules('raja');
   for(const changes of [{state:'PRISONER'},{state:'IN_BASE'},{state:'RETURNING'},{parkourUntil:1001},
     {action:'rescue',actionUntil:1001},{flight:flight.startFlight(me)},{characterId:'jago'}]) {
@@ -373,7 +380,7 @@ test('08 ultimate eligibility, bonus caps and exactly-once effects cannot bypass
   assert.deepEqual(ultimate.stepUltimate([me],me,state,0,4201,false,rules),[]);
   ultimate.freezeUltimateActors([me]);assert.equal(me.vx,0);assert.equal(me.lastX,me.x);
 });
-test('08 flight sequence transitions, hooks and safe landing match the shared legacy controller',()=>{
+void test('08 flight sequence transitions, hooks and safe landing match the shared legacy controller',()=>{
   for(const id of ['bebe','ciici']) {
     const me=actor({characterId:id,flight:flight.startFlight({x:200,y:200})}),old=structuredClone(me),c=flight.flightConfig(id);
     for(const [dt,complete] of [[.5,false],[.01,true],[3.5,false],[.5,false],[.5,false],[.01,true]]) {
@@ -391,7 +398,7 @@ test('08 flight sequence transitions, hooks and safe landing match the shared le
     assert.equal(ultimate.stepFlight(me,c,4,false,()=>false).landingFailed,true);
   }
 });
-test('08 match timeout preserves held-first, unique-second and sudden-death precedence',()=>{
+void test('08 match timeout preserves held-first, unique-second and sudden-death precedence',()=>{
   assert.equal(matchRules.suddenDeathTagWinner(false,'red'),null);
   assert.deepEqual(matchRules.suddenDeathTagWinner(true,'red'),{team:'red',reason:'SUDDEN DEATH TAG'});
   const players=[actor({capturedIds:['a','a','b']}),enemy({state:'PRISONER',capturedIds:['c','d','e']})];
@@ -403,7 +410,7 @@ test('08 match timeout preserves held-first, unique-second and sudden-death prec
   assert.deepEqual(matchRules.stepMatchTimer(players,0,true,1),{timer:0,suddenDeath:true,winner:null});
   assert.equal(matchRules.stepMatchTimer(players,240,false,.033).timer,239.967);
 });
-test('08 best-of-three completion is guarded and clears flights without persistence or presentation',()=>{
+void test('08 best-of-three completion is guarded and clears flights without persistence or presentation',()=>{
   const players=[actor({flight:flight.startFlight({x:0,y:0})})],score={blue:0,red:0};
   assert.equal(matchRules.endRound(players,score,'COUNTDOWN','blue','BENTENG DIREBUT',1000),null);
   const first=matchRules.endRound(players,score,'PLAYING','blue','BENTENG DIREBUT',1000);
@@ -414,9 +421,9 @@ test('08 best-of-three completion is guarded and clears flights without persiste
   for(const [phase,until,now,next,expected] of [['COUNTDOWN',3000,2999,false,'countdown'],['COUNTDOWN',3000,3000,false,'start-round'],
     ['ROUND_OVER',4500,4499,false,'continue'],['ROUND_OVER',4500,4499,true,'next-round'],['ROUND_OVER',4500,4500,false,'next-round'],
     ['MATCH_OVER',Infinity,9000,false,'finished']])assert.equal(matchRules.phaseTransition(phase,until,now,next),expected);
-  for(const file of ['ultimate.ts','match-rules.ts'])assert.doesNotMatch(fs.readFileSync(`lib/game-core/${file}`,'utf8'),/\b(?:window|document|localStorage|AudioContext)\b/);
+  for(const file of ['modules/gameplay/ultimate.ts','modules/game-core/match-control.ts'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(?:window|document|localStorage|AudioContext)\b/);
 });
-test('08 actual runtime result adapter persists rewards and announces victory only once',()=>{
+void test('08 actual runtime result adapter persists rewards and announces victory only once',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   const start=source.indexOf('const winRound = (team: Team, reason: string) =>');
   const end=source.indexOf('const fortOccupant =',start);
@@ -469,8 +476,10 @@ const createBaseline=vm.runInThisContext(baselineCode);
 function legacy(players,w,los=()=>true,wins=[]){
   return createBaseline({players,width:w.width,height:w.height,bases:w.bases,baseRadius:w.baseRadius,field:{id:w.kanal2?'kanal2':'kampung',prisons},
     studioQueries:{solidAt:w.studioSolidAt??(()=>false),waterAt:w.waterAt,speedAt:w.speedAt},solidObstacles:w.obstacles,
+    ...flight,...contact,
+    pointHitsExpandedRect:collision.pointHitsExpandedRect,
     hitsObstacle:(x,y)=>movement.hitsSolid(w,x,y),isInsideFortCore:w.fortCoreAt,isWaterAt:w.waterAt,kanalWaterBlocks:w.waterBlocks,
-    hasLineOfSight:los,...flight,...collision,...contact,stats,winRound:(team,reason)=>wins.push({team,reason})});
+    hasLineOfSight:los,stats,winRound:(team,reason)=>wins.push({team,reason})});
 }
 const truth=players=>({matchId:'test-match',arenaId:'kampung',phase:'MATCH_OVER',paused:false,tick:15,simulationTimeMs:500,observedAtMs:1000,fixedDeltaMs:1000/30,
   round:2,timer:-.1,phaseUntil:Infinity,suddenDeath:false,score:{blue:2,red:0},players,refills:[{id:1,x:500,y:500,grade:40,lane:1,expiresAt:2000}],
@@ -635,17 +644,19 @@ void test('07 all-held objective requires two seconds; broken hold resets',()=>{
 void test('runtime adapters are connected and core has no DOM/audio/React dependencies',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   for(const symbol of ['entityRegistry.assign(id)','localInput.sample(','advanceSimulationClock(','moveActor(','resolveTag(','resolveRescue(','resolveBase(','describeMatch(','coreHost.__bentengGameCore=coreProbe'])assert.ok(source.includes(symbol),symbol);
-  for(const file of ['input','tick','movement','interactions','state','entities']){
+  for(const file of ['input','tick','state','entities']){
     const core=fs.readFileSync(`lib/game-core/${file}.ts`,'utf8').replace(/\/\/[^\n]*/g,'');
     assert.doesNotMatch(core,/from ['"]react|\b(?:window|document|Audio|AudioContext|CanvasRenderingContext2D)\b/);
   }
+  for(const file of ['modules/gameplay/tag-combat.ts','modules/gameplay/movement.ts'])
+    assert.doesNotMatch(fs.readFileSync(file,'utf8').replace(/\/\/[^\n]*/g,''),/from ['"]react|\b(?:window|document|Audio|AudioContext|CanvasRenderingContext2D)\b/);
 });
 
-test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison, water and immutable migration',async()=>{
+void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison, water and immutable migration',async()=>{
   const {templates}=await import('./map-studio/templates.mjs');
-  const {prepareArenaMap,kanalPrisonWalls,arenaRulesFor}=await import('../lib/map-arena-rules.js');
-  const {kanalObjectRects,kanalFortPolygon,polygonToRects}=await import('../lib/kanal-footprints.js');
-  const {createMapQueries}=await import('../lib/map-runtime-index.js');
+  const {prepareArenaMap,kanalPrisonWalls,arenaRulesFor}=await import('../modules/world/map-arena-rules.ts');
+  const {kanalObjectRects,kanalFortPolygon,polygonToRects}=await import('../modules/world/kanal-footprints.ts');
+  const {createMapQueries}=await import('../modules/world/map-runtime-index.ts');
   const {validateMap}=await import('../lib/map-studio-model.js');
   const catalog=await templates(process.cwd()),reference=catalog.builtinTemplates.find(m=>m.replaces==='kanal2');
   // Stable synthetic legacy template: future intentional edits to a user's
@@ -658,20 +669,23 @@ test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison,
   const before=JSON.stringify(raw),draft=prepareArenaMap(validateMap(raw),reference.objects),q=createMapQueries(draft);
   assert.equal(JSON.stringify(raw),before);assert.equal(draft.enabled,raw.enabled);
   assert.equal(arenaRulesFor(draft),'kanal2');assert.ok(draft.objects.some(o=>o.nativeCollision));
-  const src=fs.readFileSync('app/prototype.tsx','utf8'),start=src.indexOf('const DESIGN_W ='),end=src.indexOf('// Custom maps are');
-  const ctx={GAME_RULES:JSON.parse(fs.readFileSync('config/game-rules.json')),structuredClone,isKanalField:id=>id==='kanal2',result:null};
-  vm.runInNewContext(ts.transpile(src.slice(start,end)+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),ctx);
-  const field=JSON.parse(JSON.stringify(ctx.result)).find(f=>f.id==='kanal2');
+  const guideModule = await import('../modules/world/map-data/guide-fields.ts');
+  const nativeFields = guideModule.buildFieldConfigs(guideModule.GUIDE_FIELD_CONFIGS);
+  const field = JSON.parse(JSON.stringify(nativeFields)).find(f=>f.id==='kanal2');
   // Evaluate actual runtime field projection with an enabled detached draft;
   // never activate it in the real user's config.
   const fixtureMap={...draft,enabled:true};
+  const src=fs.readFileSync('app/prototype.tsx','utf8'),
+    mergeStart=src.indexOf('// Custom maps are'),mergeEnd=src.indexOf('const FIELD_BY_ID =');
+  assert.ok(mergeStart>0&&mergeEnd>mergeStart,'prototype keeps the studio merge block');
   const copyExports={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/player-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:copyExports});
-  const projected={...ctx,studioMaps:[fixtureMap],studioBuiltinStates:{},studioMapById:{[draft.id]:fixtureMap},
-    arenaRulesFor,prepareArenaMap,arenaCopy:copyExports.arenaCopy,playerArenaCopy:copyExports.playerArenaCopy,kanalColliderObjects:(await import('../lib/map-arena-rules.js')).kanalColliderObjects,
-    kanalObjectPolygons:(await import('../lib/kanal-footprints.js')).kanalObjectPolygons};
-  projected.isKanalField=id=>id==='kanal2'||arenaRulesFor(projected.studioMapById[id])==='kanal2';
-  vm.runInNewContext(ts.transpile(src.slice(start,src.indexOf('const FIELD_BY_ID ='))+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),projected);
+  const projected={structuredClone,
+    FIELD_CONFIGS:JSON.parse(JSON.stringify(nativeFields)),
+    studioMaps:[fixtureMap],studioBuiltinStates:{},
+    arenaRulesFor,prepareArenaMap,arenaCopy:copyExports.arenaCopy,playerArenaCopy:copyExports.playerArenaCopy,kanalColliderObjects:(await import('../modules/world/map-arena-rules.ts')).kanalColliderObjects,
+    kanalObjectPolygons:(await import('../modules/world/kanal-footprints.ts')).kanalObjectPolygons,result:null};
+  vm.runInNewContext(ts.transpile(src.slice(mergeStart,mergeEnd)+';result=FIELD_CONFIGS;',{target:ts.ScriptTarget.ES2022}),projected);
   const replacement=JSON.parse(JSON.stringify(projected.result)).find(f=>f.id===draft.id);
   assert.ok(replacement);assert.ok(!projected.result.some(f=>f.id==='kanal2'));
   for(const k of ['baseRadius','objectScale','designWidth','designHeight'])assert.equal(replacement[k],field[k]);
@@ -706,7 +720,7 @@ test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison,
   assert.doesNotMatch(src,/field\.id\s*===\s*'kanal2'/,'no simulation branch may depend on mutable content ID');
 });
 
-test('performance rectangle broadphase remains exact at seams, outside map and flight filtering',()=>{
+void test('performance rectangle broadphase remains exact at seams, outside map and flight filtering',()=>{
   const rects=Array.from({length:1500},(_,i)=>({x:(i%50)*57-30,y:Math.floor(i/50)*39-20,w:17+(i%7),h:5.05,asset:'bush',hidden:!!(i%2)}));
   const query=collision.createRectQuery(rects);
   for(const radius of [0,13,32,130])for(let i=0;i<4000;i++){

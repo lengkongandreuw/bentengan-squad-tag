@@ -4,7 +4,7 @@ import { readFile, access } from 'node:fs/promises';
 import ts from 'typescript';
 import vm from 'node:vm';
 
-const source = await readFile(new URL('../lib/gameplay-audio.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../modules/audio/gameplay-audio.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(source.replace(/^import .*;\r?\n/gm, ''), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
@@ -50,7 +50,7 @@ async function ready(options) {
   await audio.unlock(); await audio.preload;
   return { ...f, audio };
 }
-test('manifest:20 actual assets, Pages path,4 impacts and5 announcers', async () => {
+void test('manifest:20 actual assets, Pages path,4 impacts and5 announcers', async () => {
   const f = await ready();
   assert.equal(f.TAG_SAMPLE_FILES.length, 4); assert.equal(f.TAG_COUNTER_FILES.length, 5);
   assert.equal(new Set(f.requests).size, 20);
@@ -58,7 +58,7 @@ test('manifest:20 actual assets, Pages path,4 impacts and5 announcers', async ()
   for (const path of f.requests) await access(new URL('../public/' + path.replace('/bentengan-squad-tag/', ''), import.meta.url));
   f.audio.close();
 });
-test('streak tiers1–5,6+ silent; exact10s expiry and explicit reset', () => {
+void test('streak tiers1–5,6+ silent; exact10s expiry and explicit reset', () => {
   const { TagStreakTracker } = fixture(), tracker = new TagStreakTracker();
   for (let n = 1; n <= 5; n++) assert.equal(tracker.tag(n * 1000), n);
   assert.equal(tracker.tag(6000), undefined); assert.equal(tracker.tag(7000), undefined);
@@ -66,7 +66,7 @@ test('streak tiers1–5,6+ silent; exact10s expiry and explicit reset', () => {
   tracker.expire(17000); assert.equal(tracker.count, 0);
   assert.equal(tracker.tag(17001), 1); tracker.reset(); assert.equal(tracker.tag(17002), 1);
 });
-test('each confirmed player tag gets exactly1 nonrepeating impact and delayed announcer', async () => {
+void test('each confirmed player tag gets exactly1 nonrepeating impact and delayed announcer', async () => {
   const f = await ready();
   for (let n = 1; n <= 7; n++) { f.audio.context.currentTime = n; f.audio.playerTag(n * 1000); }
   const impacts = f.events.filter(e => f.TAG_SAMPLE_FILES.includes(e.file));
@@ -76,14 +76,14 @@ test('each confirmed player tag gets exactly1 nonrepeating impact and delayed an
   voices.forEach((e, i) => assert.equal(e.time, i + 1 + .15));
   f.audio.resetTagStreak(); assert.ok(voices.every(e => e.node.stopped)); f.audio.close();
 });
-test('bot impacts, rescue, dash and fort entry do not increment/reset streak', async () => {
+void test('bot impacts, rescue, dash and fort entry do not increment/reset streak', async () => {
   const f = await ready(); f.audio.playerTag(1000);
   for (const sound of ['tag', 'rescue', 'dash', 'fort-enter']) { f.audio.context.currentTime++; f.audio.play(sound); }
   assert.equal(f.audio.streak.count, 1);
   f.audio.expireTagStreak(11000); assert.equal(f.audio.streak.count, 0);
   f.audio.close();
 });
-test('capture prefers special then generic then procedural, never stacks', async () => {
+void test('capture prefers special then generic then procedural, never stacks', async () => {
   for (const missing of [[], ['audio/gameplay/objective-success-benteng.mp3'], ['audio/gameplay/objective-success-benteng.mp3', 'audio/gameplay/objective-success.mp3']]) {
     const f = await ready({ missing }); f.audio.play('fort-captured');
     const custom = f.events.filter(e => e.file);
@@ -93,13 +93,13 @@ test('capture prefers special then generic then procedural, never stacks', async
     f.audio.close();
   }
 });
-test('procedural step/prison and missing custom remain available; no fetch per play', async () => {
+void test('procedural step/prison and missing custom remain available; no fetch per play', async () => {
   const f = await ready({ missing: ['audio/gameplay/boost.mp3'] });
   f.audio.play('dash'); f.audio.play('step'); f.audio.play('prison');
   assert.ok(f.events.length > 0); assert.ok(f.events.every(e => !e.file));
   assert.equal(f.requests.length, 20); f.audio.close();
 });
-test('volume master remains live, samples compensate3x; close stops sources', async () => {
+void test('volume master remains live, samples compensate3x; close stops sources', async () => {
   const f = await ready(); f.audio.play('ultimate');
   assert.equal(f.audio.output.gain.value, .85 * 3);
   f.levels.sfx = 0; f.listeners.get('volume')(); assert.equal(f.audio.output.gain.value, 0);
@@ -107,26 +107,26 @@ test('volume master remains live, samples compensate3x; close stops sources', as
   assert.equal(f.levels.music, .16); f.audio.close();
   assert.ok(f.events.every(e => e.node.stopped)); assert.equal(f.audio.play('victory'), false);
 });
-test('countdown loading is optional and one-shot; result guard and player-only hooks', async () => {
+void test('countdown loading is optional and one-shot; result guard and player-only hooks', async () => {
   const f = await ready({ suspended: true });
   assert.equal(f.audio.play('countdown'), true); assert.equal(f.audio.play('countdown'), false);
   const game = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
   assert.match(game, /const outcome = endRound\(players, score, phase, team, reason, resultNow\);\s+if \(!outcome\) return;/);
   assert.match(game, /presentGameEvents\(\[\{type:outcome.type,team:outcome.team,reason:outcome.reason\}\]/);
-  const core = await readFile(new URL('../lib/game-core/match-rules.ts', import.meta.url), 'utf8');
-  assert.match(core, /if\(phase!=='PLAYING'\)return null/);
+  const core = await readFile(new URL('../modules/game-core/match-control.ts', import.meta.url), 'utf8');
+  assert.match(core, /if\s*\(\s*phase\s*!==\s*'PLAYING'\s*\)\s*return null/);
   assert.match(game, /else if \(winner.controlled\) gameplayAudio.playerTag\(now\)/);
   assert.match(game, /if \(!countdownSoundPlayed && now < phaseUntil\) countdownSoundPlayed = gameplayAudio.playCountdown/);
   assert.match(game, /gameplayAudio.play\(team === players\[0\].team \? 'victory' : 'defeat'\)/);
   assert.doesNotMatch(game, /playAudioCue\(\s+team === players\[0\].team \? 'victory.mp3'/);
   f.audio.close();
 });
-test('whole countdown sample fits existing gameplay countdown, without changing timer', async () => {
+void test('whole countdown sample fits existing gameplay countdown, without changing timer', async () => {
   const f = await ready(); f.audio.playCountdown(2.8);
   const cue = f.events.find(e => e.file === f.SAMPLE_FILES.countdown);
   assert.equal(cue.node.playbackRate.value, 6 / 2.8); f.audio.close();
 });
-test('ready countdown does not wait on an unrelated slow/missing announcer preload', async () => {
+void test('ready countdown does not wait on an unrelated slow/missing announcer preload', async () => {
   const f = await ready(); f.audio.loadingComplete = false;
   assert.equal(f.audio.playCountdown(2.8), true);
   f.audio.close();

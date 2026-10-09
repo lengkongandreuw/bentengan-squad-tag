@@ -1,0 +1,22 @@
+{
+  "id": "maria",
+  "name": "Maria",
+  "role": "Chaser",
+  "speed": 232,
+  "boost": 94,
+  "agility": 1.12,
+  "visualScale": 0.99,
+  "accent": "#df8b49",
+  "copy": "Satu kena, cari yang berikutnya. Maria jago menjaga tempo kejaran.",
+  "passiveName": "Tempo Tag",
+  "passiveCopy": "Jeda antar-tag 28% lebih singkat.",
+  "tagRange": 30,
+  "rescueRange": 32,
+  "boostMultiplier": 1.72,
+  "boostDrain": 32,
+  "baseChargeTime": 0.75,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 360,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

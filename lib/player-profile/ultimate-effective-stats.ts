@@ -1,5 +1,5 @@
 import type { LocalPlayerProfile } from './types';
-import { getPlayerUltimateUpgrade, getUltimateUpgradeConfig } from './ultimate-upgrades';
+import { getPlayerUltimateUpgrade, getUltimateUpgradeConfig } from './ultimate-upgrades.ts';
 
 export type EffectiveUltimateStats = Readonly<{
   level: number; rechargeSeconds: number; castMs: number; durationMs: number; speedMultiplier?: number;

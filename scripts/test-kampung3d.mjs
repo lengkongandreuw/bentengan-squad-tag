@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 import { OrthographicCamera, Vector3 } from 'three';
-import { fieldCycleDecision } from '../lib/field-cycle.js';
+import { fieldCycleDecision } from '../modules/game-core/match-control.ts';
 
 // Evaluate the actual arena definitions, not a hand-copied test configuration.
 const source = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');

@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import sharp from 'sharp';
 import {frameKey} from './studio-runtime-pack.mjs';
 
-test('all packed map frames preserve every visible source pixel, alpha and dimensions; decoded memory falls',async()=>{
+void test('all packed map frames preserve every visible source pixel, alpha and dimensions; decoded memory falls',async()=>{
   const manifest=JSON.parse(await fs.readFile('config/map-runtime.json'));
   const doc=JSON.parse(await fs.readFile('config/map-studio.json'));
   const frames=new Map();

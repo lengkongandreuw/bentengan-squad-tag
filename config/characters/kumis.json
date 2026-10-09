@@ -1,0 +1,22 @@
+{
+  "id": "kumis",
+  "name": "Kumis",
+  "role": "Wall",
+  "speed": 188,
+  "boost": 128,
+  "agility": 0.82,
+  "visualScale": 1.3,
+  "accent": "#e2554a",
+  "copy": "Santai duduknya, lebar jangkauannya. Jangan lewat terlalu dekat.",
+  "passiveName": "Benteng Hidup",
+  "passiveCopy": "Cadangan boost terbesar dan jangkauan tag terluas.",
+  "tagRange": 36,
+  "rescueRange": 30,
+  "boostMultiplier": 1.58,
+  "boostDrain": 25,
+  "baseChargeTime": 0.8,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 540,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

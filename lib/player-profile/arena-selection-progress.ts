@@ -1,7 +1,7 @@
-import { getArenaUnlockProgress } from './arena-unlocks';
-import { progressionRules } from './progression-rules';
+import { getArenaUnlockProgress } from './arena-unlocks.ts';
+import { progressionRules } from './progression-rules.ts';
 import type { LocalPlayerProfile } from './types';
-import { getProgressionArenaId } from './arena-identity';
+import { getProgressionArenaId } from './arena-identity.ts';
 
 export function getArenaSelectionProgress(profile: LocalPlayerProfile, arenaId: string,
   catalog: readonly { id: string; name: string }[]) {

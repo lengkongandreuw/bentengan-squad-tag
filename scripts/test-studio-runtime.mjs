@@ -47,7 +47,7 @@ void test('runtime falls back to editor originals for new/stale frame definition
   assert.equal(runtimeResource(manifest,{...clip,width:128}).packed,null);
   assert.equal(runtimeResource(manifest,{...clip,frames:[{x:1,y:0,width:32,height:32}]}).packed,null);
 });
-test('identical visible poses share storage but retain independent trim offsets and logical frames',async()=>{
+void test('identical visible poses share storage but retain independent trim offsets and logical frames',async()=>{
   const pixels=Buffer.alloc(96*32*4),frames=[{x:0,y:0,width:32,height:32},{x:32,y:0,width:32,height:32},{x:64,y:0,width:32,height:32}];
   for(const [x,y]of [[7,8],[42,12]])pixels.set([80,150,230,128],(y*96+x)*4);
   const input=await sharp(pixels,{raw:{width:96,height:32,channels:4}}).png().toBuffer(),packed=await optimizeAtlas(input,frames);

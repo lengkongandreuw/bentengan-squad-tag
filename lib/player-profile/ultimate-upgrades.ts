@@ -1,5 +1,5 @@
-import config from '../../config/ultimate-upgrades.json';
-import { CHARACTERS, type CharacterId } from '../characters';
+import config from '../../config/ultimate-upgrades.json' with { type: 'json' };
+import { CHARACTERS, type CharacterId } from '../characters.ts';
 import type { LocalPlayerProfile } from './types';
 
 export type UltimateUpgradeLevel = Readonly<{ level: number; cost: number; rechargeSeconds: number; castMs: number; durationMs: number; speedMultiplier?: number }>;

@@ -1,0 +1,22 @@
+{
+  "id": "buto",
+  "name": "Buto",
+  "role": "Wall",
+  "speed": 194,
+  "boost": 122,
+  "agility": 0.86,
+  "visualScale": 0.9,
+  "accent": "#82934b",
+  "copy": "Buto jaga jalur. Lawan yang mau lewat mending pikir dua kali.",
+  "passiveName": "Jangkauan Besar",
+  "passiveCopy": "Jangkauan tag +21% dari jangkauan standar.",
+  "tagRange": 34,
+  "rescueRange": 32,
+  "boostMultiplier": 1.62,
+  "boostDrain": 31,
+  "baseChargeTime": 0.75,
+  "rescueShieldMs": 1500,
+  "tagCooldownMs": 500,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

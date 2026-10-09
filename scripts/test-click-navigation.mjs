@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { clickRoute, clearSegment, pointerWorld } from '../lib/click-navigation.js';
+import { clickRoute, clearSegment, pointerWorld } from '../modules/gameplay/click-navigation.ts';
 const view = { x: 500, y: 300, width: 1000, height: 600, scale: 2 };
 assert.deepEqual(pointerWorld({x:600,y:350},{left:100,top:50,width:1000,height:600},view),{x:500,y:300});
 assert.deepEqual(pointerWorld({x:250,y:600},{left:100,top:100,width:300,height:500},view,true),{x:750,y:300});

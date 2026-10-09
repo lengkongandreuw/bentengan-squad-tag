@@ -1,9 +1,9 @@
-import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults';
-import { CHARACTERS, type CharacterId } from '../characters';
+import { PLAYER_PROFILE_SCHEMA_VERSION } from './defaults.ts';
+import { CHARACTERS, type CharacterId } from '../characters.ts';
 import type { LocalPlayerProfile, PlayerKdaStats } from './types';
-import { parsePlayerProgression } from './progression';
-import { parsePlayerEconomy } from './economy';
-import { parseUltimateUpgradeState } from './ultimate-upgrades';
+import { parsePlayerProgression } from './progression.ts';
+import { parsePlayerEconomy } from './economy.ts';
+import { parseUltimateUpgradeState } from './ultimate-upgrades.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;

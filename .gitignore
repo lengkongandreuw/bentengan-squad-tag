@@ -40,3 +40,10 @@ next-env.d.ts
 /.cache/npm/
 /.preview-admin/
 *.tsbuildinfo
+/graphify-out
+/.workflow
+
+# local-only docs: kept on disk, never pushed
+*.md
+/docs
+/graphify/

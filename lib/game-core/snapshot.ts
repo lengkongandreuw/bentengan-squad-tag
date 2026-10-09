@@ -1,5 +1,5 @@
 import type {CanonicalGameState} from './types';
-import {object,oneOf,integer,nonnegative,finite,bool,id,text,team,character,nullable,list,point,bounded,safely} from './validation';
+import {object,oneOf,integer,nonnegative,finite,bool,id,text,team,character,nullable,list,point,bounded,safely} from './validation.ts';
 
 export const GAME_SNAPSHOT_VERSION=1;
 const flight=nullable(object({stage:oneOf(['FLIGHT_TAKEOFF','FLYING','FLIGHT_LANDING']),elapsed:nonnegative,remaining:nonnegative,

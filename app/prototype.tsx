@@ -1,5 +1,6 @@
 'use client';
 import { t, useLanguage } from '../lib/language';
+import { arenaCopy, playerArenaCopy } from '../lib/player-copy.ts';
 
 
 import {
@@ -9,412 +10,223 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import {
-  BatteryCharging,
-  BellRing,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Flag,
-  Gauge,
-  Lock,
-  LogOut,
-  Map as MapIcon,
-  Menu,
-  Pause,
-  Play,
-  RotateCcw,
-  Shield,
-  UserRound,
-  Users,
-  Volume2,
-  VolumeX,
-  X,
-  Zap,
-} from 'lucide-react';
-import { SelectionPortrait } from '../components/selection-portrait';
-import { CharacterLockBadge } from '../components/character-lock-badge';
-import { MatchProgressionSummary } from '../components/match-progression-summary';
-import { UltimateUpgradePanel } from '../components/ultimate-upgrade-panel';
-import { UnlockNotificationPanel } from '../components/unlock-notification-panel';
-import { GameplayGuidance, HudSettings, useHudPreferences } from '../components/gameplay-guidance';
-import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets';
-import { landingLogoAsset } from '../lib/branding';
-import { clickRoute, pointerWorld } from '../lib/click-navigation';
-import type { RuntimeActor } from '../lib/game-core/types';
-import { createEntityRegistry } from '../lib/game-core/entities';
-import { createLocalInputAdapter, type PlayerInputFrame } from '../lib/game-core/input';
-import { createBotAuthority } from '../lib/game-core/bot-ai';
-import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-core/events';
-import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick';
-import { describeMatch } from '../lib/game-core/state';
-import { createRenderAdapter, type RenderFrame } from '../lib/game-core/render-state';
-import { createSnapshot, type GameSnapshot } from '../lib/game-core/snapshot';
+
+import { CharacterWorkshop } from '../modules/ui/character-workshop/character-workshop.tsx';
+import { MatchEventFeed } from '../modules/ui/match-event-feed.tsx';
+import { RoundStatsOverlay } from '../modules/ui/round-stats-overlay.tsx';
+import { MissionPanel } from '../modules/ui/mission-panel.tsx';
+import { MatchProgressionSummary } from '../modules/ui/match-progression-summary.tsx';
+import { UnlockNotificationPanel } from '../modules/ui/unlock-notification-panel.tsx';
+import { ArenaUnlockPanel } from '../modules/ui/arena-unlock-panel.tsx';
+import { RoundResultAnnouncementCard } from '../modules/ui/round-result-announcement.tsx';
+import { SplashScreen } from '../modules/ui/splash-screen.tsx';
+import { TeamScreen } from '../modules/ui/team-screen.tsx';
+import { RulesOverlay } from '../modules/ui/rules-overlay.tsx';
+import { FieldSelectScreen } from '../modules/ui/field-select-screen.tsx';
+import { CharacterSelectScreen } from '../modules/ui/character-select-screen.tsx';
+import { AssetLoadingScreen } from '../modules/ui/asset-loading-screen.tsx';
+import { LoadingPanel } from '../modules/ui/loading-media.tsx';
+import { MenuActionsRow } from '../modules/ui/menu-actions-row.tsx';
+import { BackButton } from '../modules/ui/back-button.tsx';
+import { ProfileTriggerButton } from '../modules/ui/profile-trigger-button.tsx';
+import { WorkshopLink } from '../modules/ui/workshop-link.tsx';
+import { ArenaIntel } from '../modules/ui/arena-intel.tsx';
+import { StageHud } from '../modules/ui/stage-hud.tsx';
+import { PlayingTopbar } from '../modules/ui/playing-topbar.tsx';
+import { PauseOverlay } from '../modules/ui/pause-overlay.tsx';
+import { CameraSwitcher } from '../modules/ui/camera-switcher.tsx';
+import { BoostStack } from '../modules/ui/boost-stack.tsx';
+import { UltimateMeterHud } from '../modules/ui/ultimate-meter-hud.tsx';
+import { CharacterHud } from '../modules/ui/character-hud.tsx';
+import { UltimateBanner } from '../modules/ui/ultimate-banner.tsx';
+import { PrisonerNotice } from '../modules/ui/prisoner-notice.tsx';
+import { ActiveObjective } from '../modules/ui/active-objective.tsx';
+import { TeamComboHud } from '../modules/ui/team-combo-hud.tsx';
+import { MobileControls } from '../modules/ui/mobile-controls.tsx';
+import { ActionDock } from '../modules/ui/action-dock.tsx';
+import { RendererErrorNotice } from '../modules/ui/renderer-error-notice.tsx';
+import { StatusRibbon } from '../modules/ui/status-ribbon.tsx';
+import { ComboCallout } from '../modules/ui/combo-callout.tsx';
+import { OrientationHint } from '../modules/ui/orientation-hint.tsx';
+import { UltimateBuffIndicator } from '../modules/ui/ultimate-buff-indicator.tsx';
+import { ControlRibbon } from '../modules/ui/control-ribbon.tsx';
+import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets.ts';
+
+
+
+
+
+
+import { GameplayGuidance, useHudPreferences } from '../modules/ui/gameplay-guidance.tsx';
+
+import { clickRoute, pointerWorld } from '../modules/gameplay/click-navigation.ts';
+import type { RuntimeActor, ActorStats as PlayerStats, CanonicalGameState } from '../lib/game-core/types';
+import { createEntityRegistry } from '../lib/game-core/entities.ts';
+import { createLocalInputAdapter, type PlayerInputFrame } from '../lib/game-core/input.ts';
+import { createBotAuthority } from '../modules/gameplay/ai-movement.ts';
+import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-core/events.ts';
+import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick.ts';
+import { describeMatch } from '../lib/game-core/state.ts';
+import { createRenderAdapter, type RenderFrame } from '../lib/game-core/render-state.ts';
+import { createSnapshot, type GameSnapshot } from '../lib/game-core/snapshot.ts';
 import type {MultiplayerSession} from '../lib/multiplayer/session';
-import {createContentIdentity} from '../lib/multiplayer/content';
-import {parseInvite} from '../lib/multiplayer/invite';
-import {createRemoteInputBuffer,createRemoteHumanMovement,wireInput} from '../lib/multiplayer/remote-input';
-import {createSnapshotBuffer,snapshotRenderState} from '../lib/multiplayer/interpolation';
-import {NETWORK_RATES} from '../lib/multiplayer/rates';
-import {createMatchRoster,takeoverDisconnected} from '../lib/multiplayer/roster';
-import {createMatchResult,createResultHandoff,type MatchResultPacket} from '../lib/multiplayer/result';
-import {createNetworkUltimates} from '../lib/multiplayer/ultimates';
-import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol';
-import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../lib/game-core/ultimate';
-import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../lib/game-core/match-rules';
-import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../lib/game-core/movement';
-import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../lib/game-core/interactions';
-import type { CanonicalGameState } from '../lib/game-core/types';
+import {createContentIdentity} from '../lib/multiplayer/content.ts';
+import {parseInvite} from '../lib/multiplayer/invite.ts';
+import {createRemoteInputBuffer,createRemoteHumanMovement} from '../lib/multiplayer/remote-input.ts';
+import {createSnapshotBuffer,snapshotRenderState} from '../lib/multiplayer/interpolation.ts';
+import {NETWORK_RATES} from '../lib/multiplayer/rates.ts';
+import { createNetworkPump } from '../lib/multiplayer/pump.ts';
+import {createMatchRoster,takeoverDisconnected} from '../lib/multiplayer/roster.ts';
+import {createMatchResult,createResultHandoff,type MatchResultPacket} from '../lib/multiplayer/result.ts';
+import {createNetworkUltimates} from '../lib/multiplayer/ultimates.ts';
+import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol.ts';
+import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../modules/gameplay/ultimate.ts';
+import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
+import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
+import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
-import { studioImages, retainStudioImages, createStudioResolver } from '../lib/sprite-studio';
-import { spritePlacement } from '../lib/sprite-studio-model.js';
-import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio';
-import { contains as studioContains, collisionRects } from '../lib/map-studio-model.js';
-import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../lib/map-arena-rules.js';
-import {createMapQueries,objectBounds,visibleBounds} from '../lib/map-runtime-index.js';
-import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../lib/flight-ultimate.js';
-import { studioFlightClip } from '../lib/sprite-studio';
-import { AudioSettings } from '../components/audio-settings';
-import { GraphicsSettings } from '../components/graphics-settings';
-import { LoadingMedia, LoadingPanel, loadingUsesBuiltinProgress } from '../components/loading-media';
-import {roleLabel,arenaCopy,playerArenaCopy,playerStateLabel} from '../lib/player-copy';
+
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
-import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings';
-import { GameplayAudio } from '../lib/gameplay-audio';
-import { ArenaBackdrop, arenaImage } from '../components/arena-backdrop';
-import { imageReady, videoReady } from '../lib/asset-ready';
-import {
-  CHARACTER_BY_ID,
-  CharacterId,
-  characterAsset,
-  characterFullBodyPortrait,
-  characterPreviewIcon,
-  characterRuntimeAsset,
-  characterSelectionVideo,
-  characterUsesDedicatedEast,
-  kakaUltimateBannerAsset,
-  kakaUltimateSpriteAsset,
-  publicAsset,
-  rajaUltimateBannerAsset,
-  uiAudioAsset,
-} from '../lib/characters';
+import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
+import { spritePlacement } from '../lib/sprite-studio-model.js';
+import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio.ts';
+import { contains as studioContains, collisionRects } from '../lib/map-studio-model.js';
+import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../modules/world/map-arena-rules.ts';
+import {createMapQueries,objectBounds,visibleBounds} from '../modules/world/map-runtime-index.ts';
+import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../modules/gameplay/flight-ultimate.ts';
+
+import GAME_RULES from '../config/game-rules.json' with { type: 'json' };
+import { audioLevels, AUDIO_SETTINGS_EVENT, MUSIC_PREVIEW_EVENT } from '../lib/audio-settings.ts';
+import { GameplayAudio } from '../modules/audio/gameplay-audio.ts';
+import { createMatchAudio } from '../modules/audio/audio-port.ts';
+import { closeToneAudio } from '../modules/audio/audio-tone.ts';
+import { playAudioCue as playAudioCueAt } from '../modules/audio/audio-cue.ts';
+import { characterVoiceAsset } from '../modules/audio/character-voice.ts';
+
+
+
+import { createFieldAssetDraw } from '../modules/ui/field-assets.ts';
+
+import { createGroundTileCanvas } from '../modules/ui/ground-tiles.ts';
+
+import { createStaticMapLayer } from '../modules/ui/static-map-layer.ts';
+
+
+
+
+
+
+import { uiAsset as uiAssetAt, matchEventFrames, roundResultAssets, loadingUiFrame as loadingUiFrameAt, loadingUiFrames } from '../modules/ui/ui-assets.ts';
+import { getSprintDustImage, getKakaUltimateImage, getFieldImage } from '../modules/ui/image-cache.ts';
+import { interactiveTarget as interactiveTargetAt, handlePointerOut as handlePointerOutAt } from '../modules/ui/event-target.ts';
+import { rosterCharacters, squadLineup } from '../modules/gameplay/roster.ts';
+import { ArenaBackdrop, arenaImage } from '../modules/ui/arena-backdrop.tsx';
+import { imageReady, videoReady } from '../lib/asset-ready.ts';
+import { CHARACTER_BY_ID, CharacterId, characterFullBodyPortrait, characterPreviewIcon, characterRuntimeAsset, characterSelectionVideo, characterUsesDedicatedEast, kakaUltimateBannerAsset, publicAsset, rajaUltimateBannerAsset, uiAudioAsset, ULTIMATE_CHARACTER_IDS } from '../lib/characters.ts';
 import { characterAnimationMapping } from '../lib/character-animation.js';
-import { DeveloperCredits } from '../components/developer-credits';
-import { PlayerProfileSetup } from '../components/player-profile/player-profile-setup';
-import {
-  loadPlayerProfile,
-  PLAYER_PROFILE_CHANGED_EVENT,
-  EMPTY_KDA,
-  recordMatchProgression,
-  createMatchId,
-  snapshotUltimateStats,
-  isCharacterUnlocked,
-  isArenaUnlocked,
-  getPlayableCharacterIds,
-  getPlayableArenaIds,
-  validatePlayableContent,
-  resolvePlayableContent,
-  getCharacterSelectionState,
-  getNextCharacterGoal,
-  type LocalPlayerProfile,
-  type PlayerKdaStats,
-  type ProgressionResult,
-} from '../lib/player-profile';
-import { getArenaSelectionProgress } from '../lib/player-profile/arena-selection-progress';
+import { DeveloperCredits } from '../modules/ui/developer-credits.tsx';
+import { PlayerProfileSetup } from '../modules/ui/player-profile/player-profile-setup.tsx';
+import { loadPlayerProfile, PLAYER_PROFILE_CHANGED_EVENT, EMPTY_KDA, recordMatchProgression, createMatchId, snapshotUltimateStats, isCharacterUnlocked, getPlayableCharacterIds, getPlayableArenaIds, validatePlayableContent, resolvePlayableContent, type LocalPlayerProfile, type PlayerKdaStats, type ProgressionResult } from '../lib/player-profile/index.ts';
+import { getArenaSelectionProgress } from '../lib/player-profile/arena-selection-progress.ts';
 import { hasSpriteSeries, seriesFrame } from '../lib/series-animation.js';
-import {
-  FIELD_ANIMATED_ATLAS,
-  FIELD_ASSET_VERSION,
-  FIELD_GROUND_ATLAS,
-  FIELD_OBJECT_ATLAS,
-  FieldAnimatedId,
-  FieldAssetId,
-  GroundTileId,
-} from '../lib/field-assets.generated';
 import {
   directionFromVelocity,
   directionalRow,
   shouldMirrorSprite,
   sprintEffectRotation,
 } from '../lib/sprite-motion.js';
-import { fieldCycleDecision } from '../lib/field-cycle.js';
-import { kanalObjectRects, kanalObjectPolygons, kanalFortPolygon, polygonToRects } from '../lib/kanal-footprints.js';
+import { fieldCycleDecision, nextLandingArenaId } from '../modules/game-core/match-control.ts';
+import { FIELD_ANIMATED_ATLAS, FIELD_GROUND_ATLAS, FIELD_OBJECT_ATLAS, FieldAnimatedId } from '../lib/field-assets.generated.ts';
+import { buildFieldConfigs, GUIDE_FIELD_CONFIGS, kanal2X } from '../modules/world/map-data/guide-fields.ts';
+import { factionName, FIXED_ROSTERS, TEAM_COLOR, lineupFor, TEAM_FOR_FACTION, FACTION_FOR_TEAM, teamName } from '../modules/world/team-tables.ts';
+import { isKanalField } from '../modules/world/field-flags.ts';
+import { clamp, distance, other } from '../lib/math.ts';
+
+import { createRectQuery, depenetrateFromRects, steerAroundRects } from '../modules/gameplay/collision-navigation.ts';
+
+
+
+
+
+
+import { type Grade, type Refill } from '../modules/gameplay/spawn.ts';
+
+
+
+
+import { clearKeys, handleKeyDown, handleKeyUp, handleVisibilityChange } from '../modules/gameplay/input-navigation.ts';
+
+import type {
+  MatchEvent,
+  MatchEventKind,
+  RescueRequest,
+} from '../modules/game-core/match-types.ts';
+
+import { buildStatsBoard as buildStatsBoardOf } from '../modules/game-core/stats-board.ts';
+
+import type {
+  DifficultyId,
+  Faction,
+  FieldConfig,
+  FieldId,
+  Obstacle,
+  Team,
+} from '../modules/world/map-data/field-types.ts';
 import {
-  depenetrateFromRects,
-  pointHitsExpandedRect,
-  steerAroundRects,
-  createRectQuery,
-} from '../lib/collision-navigation.js';
+  BASE_RADIUS,
+  BASES,
+  fortGeometry,
+  H,
+  MAP4_GUIDE_HEIGHT,
+  MAP4_GUIDE_WIDTH,
+  W,
+  worldX,
+  worldY,
+} from '../modules/world/map-data/scalars.ts';
+import { decodeStudioWaterMask, extractWaterMask } from '../modules/world/water-mask.ts';
+import { kanalObjectRects, kanalObjectPolygons, kanalFortPolygon, polygonToRects } from '../modules/world/kanal-footprints.ts';
+import { loadMusicMuted, saveMusicMuted } from '../modules/storage/local-settings.ts';
 import {
   advanceTeamCombo,
   createTeamComboState,
   teamComboSeconds,
   teamComboSpeedMultiplier,
-} from '../lib/team-combo.js';
-import GAME_RULES from '../config/game-rules.json';
+} from '../modules/gameplay/team-combo.ts';
 import type { Kampung3D } from '../lib/kampung-3d';
 let Kampung3DRenderer: typeof Kampung3D | undefined;
 const PlayerProfilePanel = lazy(async () => ({
-  default: (await import('../components/player-profile/player-profile-panel')).PlayerProfilePanel,
+  default: (await import('../modules/ui/player-profile/player-profile-panel')).PlayerProfilePanel,
 }));
-const MultiplayerPanel = lazy(async () => ({default:(await import('../components/multiplayer-panel')).MultiplayerPanel}));
+const MultiplayerPanel = lazy(async () => ({default:(await import('../modules/ui/multiplayer-panel')).MultiplayerPanel}));
 
-type Team = 'blue' | 'red';
-type Faction = 'red' | 'green';
-type PlayerState = 'IN_BASE' | 'ACTIVE' | 'PRISONER' | 'RETURNING';
-type Grade = 25 | 40 | 75 | 100;
-type FieldId = 'kampung' | 'pasar' | 'taman' | 'kanal' | 'kanal2' | 'kampung3d' | `studio-${string}`;
-const isKanalField = (id: FieldId) => id === 'kanal2' || arenaRulesFor(studioMapById[id]) === 'kanal2';
+import {
+  initialSnapshot,
+  type Mission,
+  type Snapshot,
+  type StatsBoard,
+} from '../modules/game-core/snapshot-types.ts';
+
 type CameraMode = 'follow' | 'tactical' | 'overview';
 type MenuStep = 'splash' | 'team' | 'character' | 'field';
-type DifficultyId = 'easy' | 'normal' | 'hard';
 type Player = RuntimeActor;
-type Obstacle = {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  asset: FieldAssetId;
-  visualW: number;
-  visualH: number;
-  flip?: boolean;
-  hidden?: boolean;
-  underlay?: boolean;
-};
-type FieldDecoration = {
-  asset: FieldAssetId;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  flip?: boolean;
-  opacity?: number;
-  underlay?: boolean;
-};
-type AnimatedDecoration = {
-  animation: FieldAnimatedId;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  flip?: boolean;
-  opacity?: number;
-};
-type FieldPath = {
-  tile: GroundTileId;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  opacity: number;
-  radius: number;
-};
-type Prison = {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  floorAsset?: FieldAssetId;
-  overlayAsset?: FieldAssetId;
-  flip?: boolean;
-};
-type FieldConfig = {
-  id: FieldId;
-  name: string;
-  kicker: string;
-  difficulty: DifficultyId;
-  aiIntensity: number;
-  ground: GroundTileId;
-  background?: string;
-
-  designWidth?: number;
-  designHeight?: number;
-  width?: number;
-  height?: number;
-  objectScale?: number;
-  structuresInBackground?: boolean;
-  // Some authored maps already include their forts but still need the
-  // gameplay prison buildings rendered above the terrain.
-  basesInBackground?: boolean;
-  waterMask?: string;
-  waterMaskWidth?: number;
-  waterMaskHeight?: number;
-
-
-
-  baseRadius?: number;
-  bases?: Record<Team, { x: number; y: number }>;
-  prisons: Record<Team, Prison>;
-  paths: FieldPath[];
-  obstacles: Obstacle[];
-  decorations: FieldDecoration[];
-  animated: AnimatedDecoration[];
-};
-type Refill = {
-  id: number;
-  x: number;
-  y: number;
-  grade: Grade;
-  lane: 0 | 1 | 2;
-  expiresAt: number;
-};
-type Mission = {
-  refresh: boolean;
-  boost: boolean;
-  parkour: boolean;
-  tag: boolean;
-  rescue: boolean;
-  combo: boolean;
-};
-type PlayerStats = {
-  tags: number;
-  prisons: number;
-  rescues: number;
-};
-type MatchEventKind = 'tag' | 'rescue' | 'rescue-request';
-type MatchEvent = {
-  id: number;
-  kind: MatchEventKind;
-  priority: number;
-  actorName?: string;
-  actorTeam?: Team;
-  targetName?: string;
-  targetTeam?: Team;
-  rescuedCount?: number;
-  expiresAt: number;
-};
-type RoundResultAnnouncement = {
-  visible: boolean;
-  winner?: Team;
-  final: boolean;
-};
-type RescueRequest = {
-  requesterId: string;
-  team: Team;
-  expiresAt: number;
-  assignedRescuerId?: string;
-};
-type StatsBoard = {
-  visible: boolean;
-  final: boolean;
-  round: number;
-  winner?: Team;
-  reason: string;
-  countdown: number;
-  duration: number;
-  mapName: string;
-  format: string;
-  mvpId: string;
-  mvpName: string;
-  score: Record<Team, number>;
-  teams: Record<
-    Team,
-    Array<
-      PlayerStats & {
-        id: string;
-        name: string;
-        characterId: CharacterId;
-        controlled?: boolean;
-        contribution: number;
-        mvp: boolean;
-      }
-    >
-  >;
-};
-type Snapshot = {
-  blue: number;
-  red: number;
-  round: number;
-  timer: number;
-  boost: number;
-  boostCountdown: number;
-  order: number;
-  state: PlayerState;
-  paused: boolean;
-  logs: string[];
-  mission: Mission;
-  team: Array<{
-    name: string;
-    characterId: CharacterId;
-    state: PlayerState;
-    boost: number;
-  }>;
-  blueHeld: number;
-  redHeld: number;
-  pickupCount: number;
-  fortLock: string;
-  baseGrace: number;
-  suddenDeath: boolean;
-  fieldWins: number;
-  comboLevel: number;
-  comboRemaining: number;
-  comboSurgeRemaining: number;
-  comboCallout: string;
-  ultimateMeter: number;
-  ultimateBuffRemaining: number;
-  ultimateCasting: boolean;
-  flightFlying: boolean;
-  flightDebug: string;
-  matchEvents: MatchEvent[];
-  rescueRequestActive: boolean;
-  rescueRequestRemaining: number;
-  rescueRequestCooldown: number;
-  roundResult: RoundResultAnnouncement;
-  statsBoard: StatsBoard;
-};
-
-const DESIGN_W = 1440;
-const DESIGN_H = 800;
-const W = 1538;
-const H = 1096;
-const WORLD_SCALE_X = W / DESIGN_W;
-const WORLD_SCALE_Y = H / DESIGN_H;
-const MAP1_GUIDE_WIDTH = 1452;
-const MAP1_GUIDE_HEIGHT = 1088;
-const MAP1_WORLD_WIDTH = Math.round(W * 1.15);
-const MAP1_WORLD_HEIGHT = Math.round(H * 1.15);
-const MAP2_GUIDE_WIDTH = 1672;
-const MAP2_GUIDE_HEIGHT = 941;
-const MAP2_WORLD_WIDTH = Math.round(MAP2_GUIDE_WIDTH * 1.15);
-const MAP2_WORLD_HEIGHT = Math.round(MAP2_GUIDE_HEIGHT * 1.15);
-const MAP3_GUIDE_WIDTH = 1672;
-const MAP3_GUIDE_HEIGHT = 941;
-const MAP3_WORLD_WIDTH = Math.round(MAP3_GUIDE_WIDTH * 1.15);
-const MAP3_WORLD_HEIGHT = Math.round(MAP3_GUIDE_HEIGHT * 1.15);
-const MAP4_GUIDE_WIDTH = 1699;
-const MAP4_GUIDE_HEIGHT = 926;
-// A 15% physical expansion creates genuine running room between the canal,
-// forts, prison yards, and centre obstacles. Keep the terrain and authored
-// scenery at the same scale so the village reads as one cohesive place.
-const MAP4_WORLD_SCALE = 1.15;
-const MAP4_OBJECT_SCALE = 1.4;
-const MAP4_WORLD_WIDTH = Math.round(MAP4_GUIDE_WIDTH * MAP4_WORLD_SCALE);
-const MAP4_WORLD_HEIGHT = Math.round(MAP4_GUIDE_HEIGHT * MAP4_WORLD_SCALE);
-const MAP4_2_GUIDE_WIDTH = 2059;
-const MAP4_2_INSERT = 360;
-const MAP4_2_LEFT_ANCHOR = 750;
-const MAP4_2_RIGHT_ANCHOR = 950;
-const STATIC_MAP_SCALE = 0.5;
-const NEAR_FIELD_DETAIL_RADIUS = 560;
 const PLAYER_COLLISION_RADIUS = 13;
 const BASE_REENTRY_COOLDOWN_MS = 1500;
+const KANAL2_FALL_RESET_MS = 3000;
+const NEAR_FIELD_DETAIL_RADIUS = 560;
 const AI_SPEED_MULTIPLIER = 1;
 const AI_BOOST_THRESHOLD = -0.15;
 const AI_BOOST_DRAIN_MULTIPLIER = 0.66;
 const RAJA_ULTIMATE_RECHARGE_SECONDS = 45;
 const RAJA_ULTIMATE_TAG_BONUS = 20;
 const RAJA_ULTIMATE_RESCUE_BONUS = 30;
+const RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4;
 const RAJA_ULTIMATE_CAST_MS = 3200;
 const RAJA_ULTIMATE_BUFF_MS = 5000;
-const RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4;
 const KAKA_ULTIMATE_CAST_MS = 3600;
 const KAKA_ULTIMATE_FRAME_COUNT = 9;
 const KAKA_ULTIMATE_SHIELD_MS = 5000;
-const MUSIC_MUTED_STORAGE_KEY = 'bentengan:music-muted';
-const ULTIMATE_CHARACTER_IDS = new Set<CharacterId>(['raja', 'kaka', 'bebe', 'ciici']);
 const ultimateName = (id:CharacterId) => id === 'bebe' ? 'JET FLIGHT' : id === 'ciici' ? 'VAMPIRE FLIGHT' : id === 'kaka' ? 'PERISAI HIJAU' : 'TITAH HALILINTAR';
 const ultimateBannerAsset = (id:CharacterId) => flightConfig(id) ? publicAsset(flightConfig(id)!.icon) : id === 'kaka' ? kakaUltimateBannerAsset() : rajaUltimateBannerAsset();
 const DIFFICULTY_PROFILES = {
@@ -461,2163 +273,8 @@ const DIFFICULTY_PROFILES = {
     boostDrain: number;
   }
 >;
-const worldX = (value: number) => Math.round(value * WORLD_SCALE_X);
-const worldY = (value: number) => Math.round(value * WORLD_SCALE_Y);
-const BASE_RADIUS = 118;
-const KANAL2_FALL_RESET_MS = 3000;
-const BASES = {
-  blue: { x: 174, y: 520 },
-  red: { x: W - 174, y: 520 },
-};
-const DEFAULT_RAW_PRISONS: Record<Team, Prison> = {
-  blue: { x: 244, y: 472, w: 254, h: 190 },
-  red: { x: 942, y: 154, w: 254, h: 190 },
-};
-const TEAM_COLOR = {
-  blue: GAME_RULES.teams.red.color,
-  red: GAME_RULES.teams.green.color,
-};
-const FIXED_ROSTERS = {
-  red: GAME_RULES.teams.red.roster as CharacterId[],
-  green: GAME_RULES.teams.green.roster as CharacterId[],
-};
-const TEAM_FOR_FACTION: Record<Faction, Team> = { red: 'blue', green: 'red' };
-const FACTION_FOR_TEAM: Record<Team, Faction> = { blue: 'red', red: 'green' };
-const factionName = (faction: Faction) => GAME_RULES.teams[faction].label;
-const teamName = (team: Team) => factionName(FACTION_FOR_TEAM[team]);
-const lineupFor = (faction: Faction, selectedId?: CharacterId) => {
-  const roster = FIXED_ROSTERS[faction];
-  return selectedId && roster.includes(selectedId)
-    ? [selectedId, ...roster.filter((id) => id !== selectedId)].slice(
-        0,
-        GAME_RULES.matchSize,
-      )
-    : roster.slice(0, GAME_RULES.matchSize);
-};
-const RAW_FIELD_CONFIGS: FieldConfig[] = [
-  {
-    id: 'kampung',
-    name: 'Kampung Merdeka',
-    kicker: 'Lapangan terbuka dengan area luas, jalur sederhana, dan banyak ruang untuk belajar rotasi, rescue, serta kerja sama tim.',
-    difficulty: 'easy',
-    aiIntensity: 1,
-    ground: 'dirt',
-    prisons: DEFAULT_RAW_PRISONS,
-    paths: [
-      {
-        tile: 'paving',
-        x: 214,
-        y: 306,
-        w: 1012,
-        h: 184,
-        opacity: 0.52,
-        radius: 54,
-      },
-    ],
-    obstacles: [
-      {
-        x: 58,
-        y: 166,
-        w: 174,
-        h: 54,
-        asset: 'warung',
-        visualW: 220,
-        visualH: 183,
-      },
-      {
-        x: 1160,
-        y: 168,
-        w: 176,
-        h: 54,
-        asset: 'hall',
-        visualW: 230,
-        visualH: 190,
-      },
-      {
-        x: 1180,
-        y: 610,
-        w: 168,
-        h: 52,
-        asset: 'guardPost',
-        visualW: 205,
-        visualH: 184,
-      },
-      {
-        x: 286,
-        y: 190,
-        w: 122,
-        h: 26,
-        asset: 'clothesline',
-        visualW: 176,
-        visualH: 142,
-      },
-      {
-        x: 1032,
-        y: 588,
-        w: 122,
-        h: 26,
-        asset: 'clothesline',
-        visualW: 166,
-        visualH: 134,
-        flip: true,
-      },
-      {
-        x: 402,
-        y: 354,
-        w: 168,
-        h: 36,
-        asset: 'drain',
-        visualW: 190,
-        visualH: 72,
-      },
-      {
-        x: 870,
-        y: 410,
-        w: 168,
-        h: 36,
-        asset: 'drain',
-        visualW: 190,
-        visualH: 72,
-      },
-      {
-        x: 650,
-        y: 282,
-        w: 88,
-        h: 58,
-        asset: 'crates',
-        visualW: 100,
-        visualH: 84,
-      },
-      {
-        x: 704,
-        y: 516,
-        w: 74,
-        h: 54,
-        asset: 'crates',
-        visualW: 88,
-        visualH: 74,
-        flip: true,
-      },
-      {
-        x: 534,
-        y: 612,
-        w: 42,
-        h: 44,
-        asset: 'bucket',
-        visualW: 50,
-        visualH: 54,
-      },
-      {
-        x: 866,
-        y: 142,
-        w: 44,
-        h: 60,
-        asset: 'trash',
-        visualW: 52,
-        visualH: 78,
-      },
-      {
-        x: 540,
-        y: 582,
-        w: 136,
-        h: 44,
-        asset: 'coffeeStall',
-        visualW: 196,
-        visualH: 188,
-      },
-      {
-        x: 468,
-        y: 150,
-        w: 92,
-        h: 46,
-        asset: 'snackCart',
-        visualW: 132,
-        visualH: 150,
-      },
-      {
-        x: 934,
-        y: 586,
-        w: 98,
-        h: 48,
-        asset: 'foodCart',
-        visualW: 138,
-        visualH: 148,
-      },
-      {
-        x: 176,
-        y: 286,
-        w: 98,
-        h: 58,
-        asset: 'crates',
-        visualW: 112,
-        visualH: 92,
-      },
-      {
-        x: 390,
-        y: 518,
-        w: 158,
-        h: 34,
-        asset: 'drain',
-        visualW: 180,
-        visualH: 66,
-      },
-      {
-        x: 454,
-        y: 252,
-        w: 136,
-        h: 42,
-        asset: 'marketStallA',
-        visualW: 186,
-        visualH: 148,
-      },
-      {
-        x: 568,
-        y: 438,
-        w: 142,
-        h: 42,
-        asset: 'coffeeStall',
-        visualW: 194,
-        visualH: 184,
-      },
-      {
-        x: 742,
-        y: 174,
-        w: 84,
-        h: 56,
-        asset: 'crates',
-        visualW: 98,
-        visualH: 80,
-        flip: true,
-      },
-      {
-        x: 716,
-        y: 364,
-        w: 154,
-        h: 32,
-        asset: 'drain',
-        visualW: 178,
-        visualH: 62,
-      },
-      {
-        x: 826,
-        y: 610,
-        w: 46,
-        h: 52,
-        asset: 'trash',
-        visualW: 54,
-        visualH: 72,
-      },
-      {
-        x: 908,
-        y: 356,
-        w: 140,
-        h: 42,
-        asset: 'marketStallC',
-        visualW: 188,
-        visualH: 150,
-        flip: true,
-      },
-      {
-        x: 1038,
-        y: 516,
-        w: 92,
-        h: 58,
-        asset: 'crates',
-        visualW: 108,
-        visualH: 90,
-      },
-      {
-        x: 1124,
-        y: 302,
-        w: 154,
-        h: 34,
-        asset: 'drain',
-        visualW: 178,
-        visualH: 64,
-      },
-      {
-        x: 1234,
-        y: 488,
-        w: 94,
-        h: 46,
-        asset: 'snackCart',
-        visualW: 132,
-        visualH: 148,
-        flip: true,
-      },
-      {
-        x: 306,
-        y: 92,
-        w: 72,
-        h: 58,
-        asset: 'parkTree',
-        visualW: 118,
-        visualH: 154,
-      },
-      {
-        x: 1196,
-        y: 92,
-        w: 72,
-        h: 58,
-        asset: 'parkTree',
-        visualW: 118,
-        visualH: 154,
-        flip: true,
-      },
-    ],
-    decorations: [
-      { asset: 'bunting', x: 602, y: 68, w: 236, h: 122, opacity: 0.94 },
-      { asset: 'plant', x: 242, y: 650, w: 62, h: 78 },
-      { asset: 'bush', x: 1060, y: 86, w: 100, h: 66 },
-      { asset: 'bush', x: 420, y: 74, w: 92, h: 60 },
-      { asset: 'plant', x: 884, y: 684, w: 58, h: 74 },
-      { asset: 'bunting', x: 196, y: 82, w: 210, h: 110, opacity: 0.82 },
-      {
-        asset: 'bunting',
-        x: 1018,
-        y: 626,
-        w: 210,
-        h: 110,
-        flip: true,
-        opacity: 0.82,
-      },
-    ],
-    animated: [{ animation: 'flag', x: 690, y: 76, w: 66, h: 92 }],
-  },
-  {
-    id: 'pasar',
-    name: 'Pasar Senggol',
-    kicker: 'Arena beton dengan jalur rapat, sudut sempit, dan banyak peluang untuk mengecoh lawan.',
-    difficulty: 'normal',
-    aiIntensity: 1,
-    ground: 'concrete',
-    prisons: DEFAULT_RAW_PRISONS,
-    paths: [
-      {
-        tile: 'paving',
-        x: 226,
-        y: 116,
-        w: 988,
-        h: 126,
-        opacity: 0.54,
-        radius: 38,
-      },
-      {
-        tile: 'paving',
-        x: 214,
-        y: 338,
-        w: 1012,
-        h: 128,
-        opacity: 0.54,
-        radius: 38,
-      },
-      {
-        tile: 'paving',
-        x: 226,
-        y: 560,
-        w: 988,
-        h: 126,
-        opacity: 0.54,
-        radius: 38,
-      },
-    ],
-    obstacles: [
-      {
-        x: 54,
-        y: 170,
-        w: 176,
-        h: 54,
-        asset: 'warung',
-        visualW: 220,
-        visualH: 183,
-      },
-      {
-        x: 260,
-        y: 126,
-        w: 98,
-        h: 64,
-        asset: 'crates',
-        visualW: 112,
-        visualH: 94,
-      },
-      {
-        x: 1082,
-        y: 610,
-        w: 98,
-        h: 64,
-        asset: 'crates',
-        visualW: 112,
-        visualH: 94,
-        flip: true,
-      },
-      {
-        x: 438,
-        y: 254,
-        w: 148,
-        h: 30,
-        asset: 'drain',
-        visualW: 170,
-        visualH: 60,
-      },
-      {
-        x: 854,
-        y: 516,
-        w: 148,
-        h: 30,
-        asset: 'drain',
-        visualW: 170,
-        visualH: 60,
-      },
-      {
-        x: 390,
-        y: 390,
-        w: 118,
-        h: 58,
-        asset: 'crates',
-        visualW: 128,
-        visualH: 106,
-      },
-      {
-        x: 932,
-        y: 390,
-        w: 118,
-        h: 58,
-        asset: 'crates',
-        visualW: 128,
-        visualH: 106,
-        flip: true,
-      },
-      {
-        x: 636,
-        y: 162,
-        w: 48,
-        h: 66,
-        asset: 'trash',
-        visualW: 56,
-        visualH: 84,
-      },
-      {
-        x: 758,
-        y: 564,
-        w: 48,
-        h: 54,
-        asset: 'bucket',
-        visualW: 54,
-        visualH: 58,
-      },
-      {
-        x: 630,
-        y: 378,
-        w: 180,
-        h: 38,
-        asset: 'drain',
-        visualW: 204,
-        visualH: 72,
-      },
-      {
-        x: 236,
-        y: 150,
-        w: 146,
-        h: 42,
-        asset: 'marketStallA',
-        visualW: 190,
-        visualH: 152,
-      },
-      {
-        x: 608,
-        y: 132,
-        w: 150,
-        h: 42,
-        asset: 'marketStallB',
-        visualW: 194,
-        visualH: 154,
-      },
-      {
-        x: 1018,
-        y: 570,
-        w: 146,
-        h: 42,
-        asset: 'marketStallC',
-        visualW: 190,
-        visualH: 152,
-      },
-      {
-        x: 470,
-        y: 548,
-        w: 94,
-        h: 46,
-        asset: 'snackCart',
-        visualW: 134,
-        visualH: 152,
-      },
-      {
-        x: 780,
-        y: 188,
-        w: 98,
-        h: 46,
-        asset: 'foodCart',
-        visualW: 140,
-        visualH: 150,
-      },
-      {
-        x: 142,
-        y: 294,
-        w: 142,
-        h: 42,
-        asset: 'marketStallA',
-        visualW: 188,
-        visualH: 150,
-      },
-      {
-        x: 300,
-        y: 610,
-        w: 96,
-        h: 46,
-        asset: 'foodCart',
-        visualW: 138,
-        visualH: 148,
-      },
-      {
-        x: 420,
-        y: 470,
-        w: 152,
-        h: 32,
-        asset: 'drain',
-        visualW: 176,
-        visualH: 62,
-      },
-      {
-        x: 520,
-        y: 102,
-        w: 94,
-        h: 58,
-        asset: 'crates',
-        visualW: 108,
-        visualH: 90,
-      },
-      {
-        x: 610,
-        y: 628,
-        w: 48,
-        h: 58,
-        asset: 'trash',
-        visualW: 56,
-        visualH: 78,
-      },
-      {
-        x: 712,
-        y: 274,
-        w: 148,
-        h: 44,
-        asset: 'marketStallB',
-        visualW: 194,
-        visualH: 154,
-      },
-      {
-        x: 842,
-        y: 88,
-        w: 98,
-        h: 46,
-        asset: 'snackCart',
-        visualW: 138,
-        visualH: 150,
-        flip: true,
-      },
-      {
-        x: 896,
-        y: 626,
-        w: 146,
-        h: 42,
-        asset: 'marketStallC',
-        visualW: 190,
-        visualH: 152,
-        flip: true,
-      },
-      {
-        x: 1010,
-        y: 308,
-        w: 46,
-        h: 54,
-        asset: 'bucket',
-        visualW: 54,
-        visualH: 58,
-      },
-      {
-        x: 1112,
-        y: 306,
-        w: 146,
-        h: 42,
-        asset: 'marketStallA',
-        visualW: 190,
-        visualH: 152,
-        flip: true,
-      },
-      {
-        x: 1172,
-        y: 514,
-        w: 152,
-        h: 32,
-        asset: 'drain',
-        visualW: 176,
-        visualH: 62,
-      },
-      {
-        x: 1264,
-        y: 166,
-        w: 92,
-        h: 58,
-        asset: 'crates',
-        visualW: 108,
-        visualH: 90,
-        flip: true,
-      },
-      {
-        x: 318,
-        y: 274,
-        w: 46,
-        h: 54,
-        asset: 'bucket',
-        visualW: 54,
-        visualH: 58,
-      },
-    ],
-    decorations: [
-      { asset: 'bunting', x: 600, y: 66, w: 240, h: 124 },
-      { asset: 'lamp', x: 344, y: 588, w: 46, h: 96 },
-      { asset: 'lamp', x: 1046, y: 106, w: 46, h: 96 },
-      { asset: 'plant', x: 1188, y: 670, w: 58, h: 74 },
-      { asset: 'lamp', x: 566, y: 86, w: 46, h: 96 },
-      { asset: 'lamp', x: 828, y: 616, w: 46, h: 96 },
-      { asset: 'bunting', x: 232, y: 618, w: 220, h: 112, opacity: 0.82 },
-      {
-        asset: 'bunting',
-        x: 984,
-        y: 72,
-        w: 220,
-        h: 112,
-        flip: true,
-        opacity: 0.82,
-      },
-    ],
-    animated: [
-      { animation: 'vendor', x: 690, y: 360, w: 122, h: 100 },
-      { animation: 'flag', x: 1188, y: 92, w: 62, h: 88, flip: true },
-    ],
-  },
-  {
-    id: 'taman',
-    name: 'Taman Kota',
-    kicker: 'Area rumput terbuka dengan ruang lebar untuk rotasi cepat dan duel antar tim.',
-    difficulty: 'hard',
-    aiIntensity: 1,
-    ground: 'grass',
-    prisons: DEFAULT_RAW_PRISONS,
-    paths: [
-      {
-        tile: 'paving',
-        x: 624,
-        y: 72,
-        w: 192,
-        h: 656,
-        opacity: 0.52,
-        radius: 58,
-      },
-      {
-        tile: 'paving',
-        x: 224,
-        y: 324,
-        w: 992,
-        h: 152,
-        opacity: 0.52,
-        radius: 58,
-      },
-    ],
-    obstacles: [
-      {
-        x: 302,
-        y: 188,
-        w: 70,
-        h: 56,
-        asset: 'parkTree',
-        visualW: 124,
-        visualH: 158,
-      },
-      {
-        x: 1068,
-        y: 556,
-        w: 70,
-        h: 56,
-        asset: 'parkTree',
-        visualW: 124,
-        visualH: 158,
-        flip: true,
-      },
-      {
-        x: 500,
-        y: 604,
-        w: 100,
-        h: 42,
-        asset: 'flowerBedSmall',
-        visualW: 126,
-        visualH: 88,
-      },
-      {
-        x: 840,
-        y: 218,
-        w: 100,
-        h: 42,
-        asset: 'flowerBedSmall',
-        visualW: 126,
-        visualH: 88,
-        flip: true,
-      },
-      {
-        x: 544,
-        y: 344,
-        w: 112,
-        h: 34,
-        asset: 'drain',
-        visualW: 132,
-        visualH: 50,
-      },
-      {
-        x: 784,
-        y: 424,
-        w: 112,
-        h: 34,
-        asset: 'drain',
-        visualW: 132,
-        visualH: 50,
-      },
-      {
-        x: 666,
-        y: 154,
-        w: 48,
-        h: 56,
-        asset: 'plant',
-        visualW: 66,
-        visualH: 84,
-      },
-      {
-        x: 726,
-        y: 598,
-        w: 48,
-        h: 56,
-        asset: 'plant',
-        visualW: 66,
-        visualH: 84,
-        flip: true,
-      },
-      {
-        x: 1180,
-        y: 158,
-        w: 150,
-        h: 48,
-        asset: 'hall',
-        visualW: 214,
-        visualH: 178,
-      },
-      {
-        x: 202,
-        y: 354,
-        w: 154,
-        h: 44,
-        asset: 'gardenMedium',
-        visualW: 188,
-        visualH: 142,
-      },
-      {
-        x: 1080,
-        y: 390,
-        w: 154,
-        h: 44,
-        asset: 'gardenMedium',
-        visualW: 188,
-        visualH: 142,
-        flip: true,
-      },
-      {
-        x: 566,
-        y: 176,
-        w: 182,
-        h: 34,
-        asset: 'plantFence',
-        visualW: 218,
-        visualH: 70,
-      },
-      {
-        x: 698,
-        y: 592,
-        w: 182,
-        h: 34,
-        asset: 'flowerFence',
-        visualW: 218,
-        visualH: 74,
-      },
-      {
-        x: 660,
-        y: 366,
-        w: 120,
-        h: 48,
-        asset: 'flowerBedSmall',
-        visualW: 138,
-        visualH: 94,
-      },
-      {
-        x: 130,
-        y: 164,
-        w: 72,
-        h: 56,
-        asset: 'parkTree',
-        visualW: 124,
-        visualH: 158,
-      },
-      {
-        x: 278,
-        y: 604,
-        w: 126,
-        h: 40,
-        asset: 'flowerBedSmall',
-        visualW: 160,
-        visualH: 116,
-      },
-      {
-        x: 388,
-        y: 286,
-        w: 148,
-        h: 42,
-        asset: 'gardenMedium',
-        visualW: 184,
-        visualH: 138,
-      },
-      {
-        x: 476,
-        y: 94,
-        w: 174,
-        h: 32,
-        asset: 'plantFence',
-        visualW: 212,
-        visualH: 68,
-      },
-      {
-        x: 530,
-        y: 514,
-        w: 108,
-        h: 40,
-        asset: 'flowerBedSmall',
-        visualW: 132,
-        visualH: 90,
-      },
-      {
-        x: 768,
-        y: 256,
-        w: 108,
-        h: 40,
-        asset: 'flowerBedSmall',
-        visualW: 132,
-        visualH: 90,
-        flip: true,
-      },
-      {
-        x: 814,
-        y: 646,
-        w: 174,
-        h: 32,
-        asset: 'flowerFence',
-        visualW: 212,
-        visualH: 72,
-      },
-      {
-        x: 930,
-        y: 470,
-        w: 148,
-        h: 42,
-        asset: 'gardenMedium',
-        visualW: 184,
-        visualH: 138,
-        flip: true,
-      },
-      {
-        x: 1034,
-        y: 102,
-        w: 126,
-        h: 40,
-        asset: 'flowerBedSmall',
-        visualW: 160,
-        visualH: 116,
-        flip: true,
-      },
-      {
-        x: 1226,
-        y: 586,
-        w: 72,
-        h: 56,
-        asset: 'parkTree',
-        visualW: 124,
-        visualH: 158,
-        flip: true,
-      },
-      {
-        x: 352,
-        y: 446,
-        w: 146,
-        h: 32,
-        asset: 'drain',
-        visualW: 170,
-        visualH: 60,
-      },
-      {
-        x: 958,
-        y: 286,
-        w: 146,
-        h: 32,
-        asset: 'drain',
-        visualW: 170,
-        visualH: 60,
-      },
-    ],
-    decorations: [
-      { asset: 'lamp', x: 498, y: 612, w: 48, h: 100 },
-      { asset: 'lamp', x: 894, y: 88, w: 48, h: 100 },
-      { asset: 'bunting', x: 606, y: 68, w: 228, h: 118, opacity: 0.86 },
-      { asset: 'bush', x: 228, y: 92, w: 92, h: 60 },
-      { asset: 'bush', x: 1118, y: 650, w: 92, h: 60, flip: true },
-      { asset: 'plant', x: 612, y: 664, w: 60, h: 76 },
-      { asset: 'plant', x: 826, y: 76, w: 60, h: 76 },
-      { asset: 'bush', x: 418, y: 660, w: 94, h: 62 },
-      { asset: 'bush', x: 954, y: 86, w: 94, h: 62, flip: true },
-    ],
-    animated: [
-      { animation: 'fountain', x: 674, y: 332, w: 92, h: 90 },
-      { animation: 'flag', x: 690, y: 82, w: 64, h: 90 },
-    ],
-  },
-  {
-    id: 'kanal',
-    name: 'Alun Kanal Nusantara',
-    kicker: 'Kanal melingkar dengan jalur parkour silang untuk flank cepat dan perebutan jalur tengah.',
-    difficulty: 'hard',
-    aiIntensity: 1.03,
-    ground: 'grass',
-    prisons: {
-      blue: { x: 312, y: 342, w: 254, h: 190 },
-      red: { x: 1026, y: 342, w: 254, h: 190 },
-    },
-    paths: [
-      {
-        tile: 'paving',
-        x: 206,
-        y: 310,
-        w: 1028,
-        h: 182,
-        opacity: 0.62,
-        radius: 82,
-      },
-      {
-        tile: 'paving',
-        x: 620,
-        y: 84,
-        w: 200,
-        h: 632,
-        opacity: 0.58,
-        radius: 76,
-      },
-      {
-        tile: 'dirt',
-        x: 438,
-        y: 178,
-        w: 564,
-        h: 444,
-        opacity: 0.5,
-        radius: 176,
-      },
-    ],
-    obstacles: [
-      {
-        x: 238,
-        y: 126,
-        w: 152,
-        h: 42,
-        asset: 'guardPost',
-        visualW: 202,
-        visualH: 176,
-      },
-      {
-        x: 1050,
-        y: 126,
-        w: 152,
-        h: 42,
-        asset: 'hall',
-        visualW: 214,
-        visualH: 178,
-        flip: true,
-      },
-      {
-        x: 238,
-        y: 630,
-        w: 144,
-        h: 40,
-        asset: 'marketStallA',
-        visualW: 188,
-        visualH: 150,
-      },
-      {
-        x: 1058,
-        y: 630,
-        w: 144,
-        h: 40,
-        asset: 'marketStallC',
-        visualW: 188,
-        visualH: 150,
-        flip: true,
-      },
-      {
-        x: 454,
-        y: 190,
-        w: 168,
-        h: 32,
-        asset: 'drain',
-        visualW: 192,
-        visualH: 68,
-      },
-      {
-        x: 818,
-        y: 190,
-        w: 168,
-        h: 32,
-        asset: 'drain',
-        visualW: 192,
-        visualH: 68,
-        flip: true,
-      },
-      {
-        x: 454,
-        y: 578,
-        w: 168,
-        h: 32,
-        asset: 'drain',
-        visualW: 192,
-        visualH: 68,
-      },
-      {
-        x: 818,
-        y: 578,
-        w: 168,
-        h: 32,
-        asset: 'drain',
-        visualW: 192,
-        visualH: 68,
-        flip: true,
-      },
-      {
-        x: 422,
-        y: 274,
-        w: 146,
-        h: 32,
-        asset: 'plantFence',
-        visualW: 190,
-        visualH: 68,
-      },
-      {
-        x: 872,
-        y: 274,
-        w: 146,
-        h: 32,
-        asset: 'plantFence',
-        visualW: 190,
-        visualH: 68,
-        flip: true,
-      },
-      {
-        x: 422,
-        y: 494,
-        w: 146,
-        h: 32,
-        asset: 'flowerFence',
-        visualW: 190,
-        visualH: 72,
-      },
-      {
-        x: 872,
-        y: 494,
-        w: 146,
-        h: 32,
-        asset: 'flowerFence',
-        visualW: 190,
-        visualH: 72,
-        flip: true,
-      },
-      {
-        x: 570,
-        y: 252,
-        w: 106,
-        h: 38,
-        asset: 'flowerBedSmall',
-        visualW: 132,
-        visualH: 90,
-      },
-      {
-        x: 764,
-        y: 252,
-        w: 106,
-        h: 38,
-        asset: 'flowerBedSmall',
-        visualW: 132,
-        visualH: 90,
-        flip: true,
-      },
-      {
-        x: 570,
-        y: 510,
-        w: 106,
-        h: 38,
-        asset: 'flowerBedSmall',
-        visualW: 132,
-        visualH: 90,
-      },
-      {
-        x: 764,
-        y: 510,
-        w: 106,
-        h: 38,
-        asset: 'flowerBedSmall',
-        visualW: 132,
-        visualH: 90,
-        flip: true,
-      },
-      {
-        x: 620,
-        y: 344,
-        w: 82,
-        h: 50,
-        asset: 'gardenMedium',
-        visualW: 146,
-        visualH: 116,
-      },
-      {
-        x: 738,
-        y: 406,
-        w: 82,
-        h: 50,
-        asset: 'gardenMedium',
-        visualW: 146,
-        visualH: 116,
-        flip: true,
-      },
-      {
-        x: 650,
-        y: 116,
-        w: 54,
-        h: 58,
-        asset: 'crates',
-        visualW: 76,
-        visualH: 70,
-      },
-      {
-        x: 736,
-        y: 626,
-        w: 54,
-        h: 58,
-        asset: 'crates',
-        visualW: 76,
-        visualH: 70,
-        flip: true,
-      },
-      {
-        x: 520,
-        y: 370,
-        w: 48,
-        h: 54,
-        asset: 'bucket',
-        visualW: 54,
-        visualH: 58,
-      },
-      {
-        x: 872,
-        y: 376,
-        w: 48,
-        h: 54,
-        asset: 'trash',
-        visualW: 56,
-        visualH: 78,
-        flip: true,
-      },
-      {
-        x: 332,
-        y: 214,
-        w: 72,
-        h: 56,
-        asset: 'parkTree',
-        visualW: 124,
-        visualH: 158,
-      },
-      {
-        x: 1036,
-        y: 530,
-        w: 72,
-        h: 56,
-        asset: 'parkTree',
-        visualW: 124,
-        visualH: 158,
-        flip: true,
-      },
-      {
-        x: 334,
-        y: 548,
-        w: 92,
-        h: 58,
-        asset: 'crates',
-        visualW: 108,
-        visualH: 90,
-      },
-      {
-        x: 1014,
-        y: 206,
-        w: 92,
-        h: 58,
-        asset: 'crates',
-        visualW: 108,
-        visualH: 90,
-        flip: true,
-      },
-      {
-        x: 680,
-        y: 304,
-        w: 80,
-        h: 44,
-        asset: 'flowerBedSmall',
-        visualW: 108,
-        visualH: 82,
-      },
-      {
-        x: 680,
-        y: 452,
-        w: 80,
-        h: 44,
-        asset: 'flowerBedSmall',
-        visualW: 108,
-        visualH: 82,
-        flip: true,
-      },
-    ],
-    decorations: [
-      { asset: 'bush', x: 170, y: 82, w: 108, h: 70 },
-      { asset: 'bush', x: 1160, y: 650, w: 108, h: 70, flip: true },
-      { asset: 'plant', x: 398, y: 92, w: 62, h: 78 },
-      { asset: 'plant', x: 980, y: 632, w: 62, h: 78, flip: true },
-      { asset: 'bunting', x: 560, y: 58, w: 320, h: 128, opacity: 0.82 },
-      { asset: 'lamp', x: 592, y: 662, w: 48, h: 100 },
-      { asset: 'lamp', x: 800, y: 60, w: 48, h: 100 },
-    ],
-    animated: [
-      { animation: 'fountain', x: 682, y: 354, w: 76, h: 76 },
-      { animation: 'flag', x: 190, y: 320, w: 62, h: 88 },
-      { animation: 'flag', x: 1188, y: 390, w: 62, h: 88, flip: true },
-    ],
-  },
-];
-const KAMPUNG_OPEN_ARENA = {
-  paths: [
-    {
-      tile: 'paving' as GroundTileId,
-      x: 196,
-      y: 286,
-      w: 1048,
-      h: 244,
-      opacity: 0.34,
-      radius: 34,
-    },
-    {
-      tile: 'paving' as GroundTileId,
-      x: 650,
-      y: 72,
-      w: 140,
-      h: 656,
-      opacity: 0.5,
-      radius: 42,
-    },
-  ],
-  obstacles: [
-    {
-      x: 248,
-      y: 104,
-      w: 160,
-      h: 48,
-      asset: 'warung' as FieldAssetId,
-      visualW: 214,
-      visualH: 180,
-    },
-    {
-      x: 886,
-      y: 96,
-      w: 174,
-      h: 50,
-      asset: 'hall' as FieldAssetId,
-      visualW: 224,
-      visualH: 186,
-      flip: true,
-    },
-    {
-      x: 922,
-      y: 616,
-      w: 154,
-      h: 48,
-      asset: 'guardPost' as FieldAssetId,
-      visualW: 202,
-      visualH: 176,
-      flip: true,
-    },
-    {
-      x: 414,
-      y: 104,
-      w: 92,
-      h: 44,
-      asset: 'snackCart' as FieldAssetId,
-      visualW: 130,
-      visualH: 146,
-    },
-    {
-      x: 686,
-      y: 628,
-      w: 96,
-      h: 44,
-      asset: 'foodCart' as FieldAssetId,
-      visualW: 134,
-      visualH: 146,
-    },
-    {
-      x: 352,
-      y: 244,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-    },
-    {
-      x: 536,
-      y: 244,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-    },
-    {
-      x: 772,
-      y: 244,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-      flip: true,
-    },
-    {
-      x: 956,
-      y: 244,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-      flip: true,
-    },
-    {
-      x: 352,
-      y: 530,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-    },
-    {
-      x: 536,
-      y: 530,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-    },
-    {
-      x: 772,
-      y: 530,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-      flip: true,
-    },
-    {
-      x: 956,
-      y: 530,
-      w: 132,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 156,
-      visualH: 58,
-      flip: true,
-    },
-    {
-      x: 426,
-      y: 350,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-    },
-    {
-      x: 574,
-      y: 350,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-    },
-    {
-      x: 754,
-      y: 350,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-      flip: true,
-    },
-    {
-      x: 902,
-      y: 350,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-      flip: true,
-    },
-    {
-      x: 426,
-      y: 440,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-    },
-    {
-      x: 574,
-      y: 440,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-    },
-    {
-      x: 754,
-      y: 440,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-      flip: true,
-    },
-    {
-      x: 902,
-      y: 440,
-      w: 112,
-      h: 28,
-      asset: 'drain' as FieldAssetId,
-      visualW: 136,
-      visualH: 54,
-      flip: true,
-    },
-    {
-      x: 330,
-      y: 320,
-      w: 46,
-      h: 52,
-      asset: 'crates' as FieldAssetId,
-      visualW: 68,
-      visualH: 66,
-    },
-    {
-      x: 1064,
-      y: 426,
-      w: 46,
-      h: 52,
-      asset: 'crates' as FieldAssetId,
-      visualW: 68,
-      visualH: 66,
-      flip: true,
-    },
-    {
-      x: 650,
-      y: 300,
-      w: 46,
-      h: 52,
-      asset: 'bucket' as FieldAssetId,
-      visualW: 52,
-      visualH: 56,
-    },
-    {
-      x: 744,
-      y: 466,
-      w: 46,
-      h: 52,
-      asset: 'trash' as FieldAssetId,
-      visualW: 54,
-      visualH: 74,
-    },
-    {
-      x: 292,
-      y: 650,
-      w: 70,
-      h: 54,
-      asset: 'parkTree' as FieldAssetId,
-      visualW: 118,
-      visualH: 150,
-    },
-    {
-      x: 1078,
-      y: 104,
-      w: 70,
-      h: 54,
-      asset: 'parkTree' as FieldAssetId,
-      visualW: 118,
-      visualH: 150,
-      flip: true,
-    },
-  ],
-  decorations: [
-    {
-      asset: 'bunting' as FieldAssetId,
-      x: 574,
-      y: 56,
-      w: 292,
-      h: 120,
-      opacity: 0.9,
-    },
-    { asset: 'bush' as FieldAssetId, x: 168, y: 78, w: 104, h: 68 },
-    {
-      asset: 'bush' as FieldAssetId,
-      x: 1168,
-      y: 650,
-      w: 104,
-      h: 68,
-      flip: true,
-    },
-    { asset: 'plant' as FieldAssetId, x: 422, y: 660, w: 60, h: 76 },
-    { asset: 'plant' as FieldAssetId, x: 958, y: 74, w: 60, h: 76, flip: true },
-  ],
-  animated: [
-    { animation: 'flag' as FieldAnimatedId, x: 670, y: 74, w: 62, h: 88 },
-    { animation: 'vendor' as FieldAnimatedId, x: 690, y: 366, w: 76, h: 64 },
-  ],
-};
-const guideObstacle = (
-  asset: FieldAssetId,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  visualW: number,
-  visualH: number,
-  flip = false,
-): Obstacle => ({
-  asset,
-  x,
-  y,
-  w,
-  h,
-  visualW,
-  visualH,
-  ...(flip ? { flip } : {}),
-});
-const guideCollider = (
-  asset: FieldAssetId,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-): Obstacle => ({
-  ...guideObstacle(asset, x, y, w, h, 1, 1),
-  hidden: true,
-});
+const FIELD_CONFIGS: FieldConfig[] = buildFieldConfigs(GUIDE_FIELD_CONFIGS);
 
-const MAP_OBJECT_SCALE = 0.9;
-const map2GroupObstacle = (
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-): Obstacle => {
-  const group = { x: 280, y: 320, w: 1115, h: 335 };
-  const groupCenterX = group.x + group.w / 2;
-  const groupCenterY = group.y + group.h / 2;
-  const positionScaleX = MAP2_WORLD_WIDTH / MAP2_GUIDE_WIDTH;
-  const positionScaleY = MAP2_WORLD_HEIGHT / MAP2_GUIDE_HEIGHT;
-  const centerX =
-    groupCenterX +
-    ((x + w / 2 - groupCenterX) * MAP_OBJECT_SCALE) / positionScaleX;
-  const centerY =
-    groupCenterY +
-    ((y + h / 2 - groupCenterY) * MAP_OBJECT_SCALE) / positionScaleY;
-  return {
-    ...guideObstacle(
-      'map2Center',
-      centerX - w / 2,
-      centerY - h / 2,
-      w,
-      h,
-      1,
-      1,
-    ),
-    hidden: true,
-  };
-};
-
-const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
-  {
-    id: 'kampung',
-    name: 'Kampung Merdeka',
-    kicker: 'Lapangan terbuka dengan area luas, jalur sederhana, dan banyak ruang untuk belajar rotasi, rescue, serta kerja sama tim.',
-    difficulty: 'easy',
-    aiIntensity: 1,
-    ground: 'kampungGround',
-    background: 'kampung-map.webp',
-    designWidth: MAP1_GUIDE_WIDTH,
-    designHeight: MAP1_GUIDE_HEIGHT,
-    width: MAP1_WORLD_WIDTH,
-    height: MAP1_WORLD_HEIGHT,
-    objectScale: 0.9,
-    bases: {
-      blue: { x: 166, y: 505 },
-      red: { x: 1286, y: 505 },
-    },
-    prisons: {
-      blue: {
-        x: 150,
-        y: 752,
-        w: 270,
-        h: 205,
-        floorAsset: 'industrialPrisonBlueFloor',
-        overlayAsset: 'industrialPrisonBlueOverlay',
-      },
-      red: {
-        x: 1148,
-        y: 48,
-        w: 270,
-        h: 205,
-        floorAsset: 'industrialPrisonRedFloor',
-        overlayAsset: 'industrialPrisonRedOverlay',
-      },
-    },
-    paths: [],
-    obstacles: [
-      {
-        ...guideObstacle('warung', 238, 142, 170, 42, 205, 154),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('hall', 916, 152, 184, 46, 230, 174),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('guardPost', 964, 888, 188, 46, 230, 190),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('marketStallB', 654, 910, 168, 42, 214, 166),
-        underlay: true,
-      },
-      ...[
-        [500, 228],
-        [878, 228],
-        [380, 308],
-        [582, 332],
-        [792, 332],
-        [1000, 308],
-        [500, 430],
-        [878, 430],
-        [664, 494],
-        [380, 568],
-        [500, 568],
-        [878, 568],
-        [1000, 568],
-        [500, 682],
-        [582, 682],
-        [792, 682],
-        [878, 682],
-      ].map(([x, y], i) =>
-        guideObstacle(
-          i % 3 === 1 ? 'drain' : 'parkBarrier',
-          x,
-          y,
-          108,
-          20,
-          132,
-          54,
-          i % 4 === 0,
-        ),
-      ),
-      guideObstacle('parkTree', 484, 116, 46, 40, 105, 126),
-      guideObstacle('parkTree', 174, 290, 48, 42, 108, 130),
-      guideObstacle('parkTree', 1228, 290, 48, 42, 108, 130, true),
-      guideObstacle('parkTree', 74, 904, 46, 40, 105, 126),
-      guideObstacle('parkTree', 1330, 904, 46, 40, 105, 126, true),
-      { ...guideObstacle('snackCart', 76, 126, 62, 34, 98, 112), underlay: true },
-      { ...guideObstacle('foodCart', 490, 888, 66, 36, 102, 116), underlay: true },
-      { ...guideObstacle('snackCart', 930, 950, 62, 34, 98, 112, true), underlay: true },
-    ],
-    decorations: [
-      { asset: 'bunting', x: 590, y: 18, w: 280, h: 102, opacity: 0.92, underlay: true },
-      { asset: 'plant', x: 108, y: 964, w: 58, h: 72, underlay: true },
-      { asset: 'plant', x: 1282, y: 964, w: 58, h: 72, flip: true, underlay: true },
-    ],
-    animated: [],
-  },
-  {
-    id: 'pasar',
-    name: 'Pasar Senggol',
-    kicker: 'Lorong pasar yang rapat dengan banyak sudut sempit untuk rotasi cepat dan penyergapan.',
-    difficulty: 'normal',
-    aiIntensity: 1,
-    ground: 'kampungGround',
-    background: 'pasar-map.webp',
-    designWidth: MAP2_GUIDE_WIDTH,
-    designHeight: MAP2_GUIDE_HEIGHT,
-    width: MAP2_WORLD_WIDTH,
-    height: MAP2_WORLD_HEIGHT,
-    objectScale: MAP_OBJECT_SCALE,
-    bases: {
-      blue: { x: 170, y: 455 },
-      red: { x: 1502, y: 455 },
-    },
-    prisons: {
-      blue: {
-        x: 205,
-        y: 100,
-        w: 305,
-        h: 220,
-        floorAsset: 'map2PrisonRedFloor',
-        overlayAsset: 'map2PrisonRedOverlay',
-      },
-      red: {
-        x: 1155,
-        y: 96,
-        w: 310,
-        h: 225,
-        floorAsset: 'map2PrisonGreenFloor',
-        overlayAsset: 'map2PrisonGreenOverlay',
-      },
-    },
-    paths: [],
-    obstacles: [
-      guideObstacle('map2BarrierRed', 640, 251, 159, 56, 186, 82),
-      guideObstacle('map2BarrierGreen', 875, 251, 147, 56, 180, 82),
-      guideObstacle('map2PlanterRed', 647, 665, 164, 78, 190, 105),
-      guideObstacle('map2PlanterGreen', 865, 672, 155, 71, 190, 101),
-      guideObstacle('map2Trash', 554, 210, 34, 52, 52, 72),
-      guideObstacle('map2Cart', 1050, 167, 84, 84, 105, 105),
-      ...[
-        [400, 339, 140, 50],
-        [570, 355, 100, 28],
-        [980, 355, 105, 28],
-        [1125, 339, 140, 50],
-        [300, 430, 160, 62],
-        [460, 430, 150, 62],
-        [610, 440, 85, 52],
-        [700, 382, 270, 150],
-        [980, 440, 85, 52],
-        [1065, 430, 150, 62],
-        [1215, 430, 160, 62],
-        [400, 565, 150, 60],
-        [575, 600, 110, 30],
-        [980, 600, 110, 30],
-        [1120, 565, 150, 60],
-      ].map(([x, y, w, h]) => map2GroupObstacle(x, y, w, h)),
-      {
-        ...guideObstacle('marketStallA', 250, 760, 180, 40, 230, 175),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('marketStallB', 752, 830, 176, 40, 220, 172),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('marketStallC', 1218, 760, 180, 40, 230, 175, true),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('snackCart', 548, 790, 66, 36, 104, 118),
-        underlay: true,
-      },
-      {
-        ...guideObstacle('foodCart', 1058, 790, 66, 36, 106, 118, true),
-        underlay: true,
-      },
-    ],
-    decorations: [
-      { asset: 'map2Center', x: 280, y: 320, w: 1115, h: 335, opacity: 0.99 },
-    ],
-    animated: [],
-  },
-  {
-    id: 'taman',
-    name: 'Taman Kota',
-    kicker: 'Taman simetris dengan rute parkour teknis yang memberi banyak pilihan flank.',
-    difficulty: 'hard',
-    aiIntensity: 1,
-    ground: 'parkGrass',
-    background: 'taman-map.webp',
-    designWidth: MAP3_GUIDE_WIDTH,
-    designHeight: MAP3_GUIDE_HEIGHT,
-    width: MAP3_WORLD_WIDTH,
-    height: MAP3_WORLD_HEIGHT,
-    objectScale: 1,
-    structuresInBackground: true,
-    bases: {
-      blue: { x: 150, y: 452 },
-      red: { x: 1518, y: 452 },
-    },
-    prisons: {
-      blue: {
-        x: 399,
-        y: 645,
-        w: 206,
-        h: 186,
-        floorAsset: 'parkPrisonBlueFloor',
-        overlayAsset: 'parkPrisonBlueOverlay',
-      },
-      red: {
-        x: 1046,
-        y: 93,
-        w: 195,
-        h: 159,
-        floorAsset: 'parkPrisonRedFloor',
-        overlayAsset: 'parkPrisonRedOverlay',
-      },
-    },
-    paths: [],
-    obstacles: [
-      // Perimeter collision follows the authored water/hedge margin while
-      // leaving the north and south entrances open.
-      guideCollider('parkCornerNW', 24, 72, 250, 60),
-      guideCollider('parkCornerNE', 1398, 72, 250, 60),
-      guideCollider('parkCornerNW', 24, 190, 80, 130),
-      guideCollider('parkCornerSW', 24, 620, 90, 130),
-      guideCollider('parkCornerNE', 1568, 190, 80, 130),
-      guideCollider('parkCornerSE', 1558, 620, 90, 130),
-      guideCollider('parkCornerSW', 24, 780, 210, 80),
-      guideCollider('parkCornerSE', 1438, 780, 210, 80),
-
-      // Four authored parkour barriers and the central fountain footprint.
-      guideCollider('parkBarrier', 602, 368, 76, 16),
-      guideCollider('parkBarrier', 992, 368, 76, 16),
-      guideCollider('parkBarrier', 594, 520, 80, 18),
-      guideCollider('parkBarrier', 998, 520, 78, 18),
-      guideCollider('flowerBedSmall', 792, 405, 90, 34),
-
-      // Trees, flower beds and benches use only their solid lower footprint.
-      guideCollider('parkTree', 398, 190, 76, 28),
-      guideCollider('parkFlowerFenceLong', 594, 142, 164, 30),
-      guideCollider('parkFlowerFence', 320, 304, 140, 28),
-      guideCollider('parkPlanterLong', 642, 265, 112, 26),
-      guideCollider('gardenMedium', 885, 248, 94, 24),
-      guideCollider('parkTree', 1294, 108, 74, 26),
-      guideCollider('parkFlowerFence', 1208, 307, 142, 26),
-      guideCollider('parkFlowerFence', 318, 592, 140, 26),
-      guideCollider('gardenMedium', 662, 642, 112, 28),
-      guideCollider('parkPlanterLong', 916, 633, 116, 28),
-      guideCollider('parkFlowerFenceLong', 1215, 624, 142, 28),
-      guideCollider('parkTree', 1172, 752, 92, 28),
-      guideCollider('parkFlowerFenceLong', 894, 798, 164, 28),
-
-      // Lamps, bollards and bins remain small tactical blockers.
-      guideCollider('parkLamp', 506, 110, 16, 14),
-      guideCollider('parkLamp', 950, 140, 18, 14),
-      guideCollider('parkLamp', 1008, 214, 14, 14),
-      guideCollider('parkLamp', 1264, 244, 15, 14),
-      guideCollider('parkLamp', 326, 452, 34, 16),
-      guideCollider('parkLamp', 1312, 452, 34, 16),
-      guideCollider('parkLamp', 364, 674, 14, 14),
-      guideCollider('parkLamp', 631, 715, 14, 14),
-      guideCollider('parkLamp', 695, 818, 28, 14),
-      guideCollider('parkLamp', 1143, 840, 14, 14),
-    ],
-    decorations: [],
-    animated: [],
-  },
-  {
-    id: 'kanal',
-    name: 'Alun Kanal Nusantara',
-    kicker: 'Kanal melingkar dengan jembatan silang dan jalur parkour untuk perebutan area tengah.',
-    difficulty: 'hard',
-    aiIntensity: 1.03,
-    ground: 'canalGrass',
-    background: 'kanal-map.webp',
-    waterMask: 'kanal1-water-mask.png',
-    waterMaskWidth: 850,
-    waterMaskHeight: 463,
-    designWidth: MAP4_GUIDE_WIDTH,
-    designHeight: MAP4_GUIDE_HEIGHT,
-    width: MAP4_WORLD_WIDTH,
-    height: MAP4_WORLD_HEIGHT,
-    objectScale: MAP4_WORLD_SCALE,
-    structuresInBackground: true,
-    bases: {
-      blue: { x: 180, y: 446 },
-      red: { x: 1518, y: 446 },
-    },
-    prisons: {
-      blue: {
-        x: 177,
-        y: 535,
-        w: 153,
-        h: 132,
-        floorAsset: 'industrialPrisonBlueFloor',
-        overlayAsset: 'industrialPrisonBlueOverlay',
-      },
-      red: {
-        x: 1328,
-        y: 244,
-        w: 150,
-        h: 130,
-        floorAsset: 'industrialPrisonRedFloor',
-        overlayAsset: 'industrialPrisonRedOverlay',
-      },
-    },
-    paths: [],
-    obstacles: [
-      // Margin/pagar mengikuti footprint padat pada panduan final. Gambar
-      // margin sendiri sudah berada di background sehingga tidak menutup
-      // benteng atau penjara dengan lapisan visual tambahan.
-      guideCollider('jungleNW', 24, 72, 570, 50),
-      guideCollider('jungleNE', 1105, 72, 570, 50),
-      guideCollider('jungleNW', 594, 72, 210, 45),
-      guideCollider('jungleNE', 895, 72, 210, 45),
-      guideCollider('jungleNW', 24, 122, 460, 38),
-      guideCollider('jungleNE', 1215, 122, 460, 38),
-      guideCollider('jungleSW', 24, 820, 570, 66),
-      guideCollider('jungleSE', 1105, 820, 570, 66),
-      guideCollider('jungleSW', 594, 840, 210, 46),
-      guideCollider('jungleSE', 895, 840, 210, 46),
-      guideCollider('jungleSW', 24, 770, 300, 50),
-      guideCollider('jungleSE', 1375, 770, 300, 50),
-      guideCollider('jungleNW', 24, 160, 54, 170),
-      guideCollider('jungleSW', 24, 610, 54, 160),
-      guideCollider('jungleNE', 1621, 160, 54, 170),
-      guideCollider('jungleSE', 1621, 610, 54, 160),
-
-      // Barrier pusat: collider hanya menutupi pot/struktur padat dan
-      // menyisakan jalur lari serta semua jembatan tetap terbuka.
-      guideCollider('canalBarrierLong', 442, 183, 150, 38),
-      guideCollider('canalBarrier', 796, 184, 107, 40),
-      guideCollider('canalBarrierLong', 1107, 183, 150, 38),
-      guideCollider('flowerBedSmall', 690, 282, 91, 54),
-      guideCollider('flowerBedSmall', 918, 282, 91, 54),
-      guideCollider('canalBarrierLong', 594, 408, 150, 54),
-      guideCollider('canalBarrier', 812, 404, 75, 70),
-      guideCollider('canalBarrierLong', 955, 408, 150, 54),
-      guideCollider('flowerBedSmall', 690, 535, 91, 54),
-      guideCollider('flowerBedSmall', 918, 535, 91, 54),
-      guideCollider('canalBarrierLong', 442, 662, 150, 40),
-      guideCollider('canalBarrier', 796, 660, 107, 42),
-      guideCollider('canalBarrierLong', 1107, 662, 150, 40),
-
-      // Objek taktis sisi luar dan pepohonan rendah.
-      guideCollider('canalBarrier', 206, 244, 126, 34),
-      guideCollider('canalBarrier', 1367, 590, 126, 34),
-      guideCollider('canalBarrier', 258, 684, 116, 34),
-      guideCollider('canalBarrier', 1325, 188, 116, 34),
-      guideCollider('flowerBedSmall', 448, 639, 105, 32),
-      guideCollider('flowerBedSmall', 1146, 214, 105, 32),
-    ],
-    decorations: [],
-    animated: [],
-  },
-];
-
-// Nusantara 2 keeps every current sprite at its original size. Only the
-// horizontal coordinate space between the bridge approaches is lengthened.
-// Keep Nusantara 2's approved sprite layout self-contained. Its published
-// config must not depend on any uncommitted changes to Nusantara 1.
-const kanalGuide: FieldConfig = {
-  ...structuredClone(GUIDE_FIELD_CONFIGS.find(field => field.id === 'kanal')!),
-  background: 'kanal-ground.webp',
-  baseRadius: Math.round(BASE_RADIUS * MAP4_OBJECT_SCALE),
-  objectScale: MAP4_OBJECT_SCALE,
-  structuresInBackground: false,
-  basesInBackground: false,
-  bases: {
-    blue: { x: 212, y: 408 },
-    red: { x: 1485, y: 408 },
-  },
-  prisons: {
-    blue: { x: 325, y: 246, w: 118, h: 102, floorAsset: 'industrialPrisonBlueFloor', overlayAsset: 'industrialPrisonBlueOverlay' },
-    red: { x: 1256, y: 246, w: 118, h: 102, floorAsset: 'industrialPrisonRedFloor', overlayAsset: 'industrialPrisonRedOverlay' },
-  },
-  obstacles: [
-    guideObstacle('kanalNusaFountain', 782, 452, 136, 48, 136, 120),
-    guideObstacle('kanalNusaPlanterOval', 672, 326, 146, 34, 146, 90),
-    guideObstacle('kanalNusaPlanterOval', 881, 326, 146, 34, 146, 90),
-    guideObstacle('kanalNusaPlanterOval', 672, 572, 146, 34, 146, 90),
-    guideObstacle('kanalNusaPlanterOval', 881, 572, 146, 34, 146, 90),
-    guideObstacle('kanalNusaPlanterLong', 764, 207, 172, 35, 172, 86),
-    guideObstacle('kanalNusaPlanterLong', 764, 676, 172, 35, 172, 86),
-    guideObstacle('kanalNusaBarrier', 172, 238, 118, 29, 128, 73),
-    guideObstacle('kanalNusaBarrier', 1409, 238, 118, 29, 128, 73, true),
-    guideObstacle('kanalNusaBarrier', 415, 710, 144, 38, 152, 84),
-    guideObstacle('kanalNusaBarrier', 1140, 710, 144, 38, 152, 84, true),
-    guideObstacle('kanalNusaPosRonda', 90, 146, 158, 42, 175, 132),
-    guideObstacle('kanalNusaWarung', 1451, 146, 158, 42, 175, 132),
-    guideObstacle('kanalNusaSembako', 140, 820, 170, 44, 190, 154),
-    guideObstacle('kanalNusaGazebo', 1389, 820, 170, 44, 190, 154),
-    guideObstacle('kanalNusaForest', 24, 215, 116, 38, 136, 142),
-    guideObstacle('kanalNusaForest', 1559, 215, 116, 38, 136, 142, true),
-    guideObstacle('kanalNusaForest', 26, 725, 118, 38, 140, 145),
-    guideObstacle('kanalNusaForest', 1555, 725, 118, 38, 140, 145, true),
-    guideObstacle('kanalNusaBarrier', 270, 608, 124, 30, 130, 74),
-    guideObstacle('kanalNusaBarrier', 1305, 608, 124, 30, 130, 74, true),
-    guideObstacle('kanalNusaLantern', 45, 322, 30, 24, 37, 86),
-    guideObstacle('kanalNusaLantern', 1624, 322, 30, 24, 37, 86),
-    guideObstacle('kanalNusaLantern', 104, 626, 30, 24, 37, 86),
-    guideObstacle('kanalNusaLantern', 1565, 626, 30, 24, 37, 86),
-    guideCollider('kanalNusaBridgeH', 420, 431, 21, 9),
-    guideCollider('kanalNusaBridgeH', 539, 431, 21, 9),
-    guideCollider('kanalNusaBridgeH', 420, 480, 21, 9),
-    guideCollider('kanalNusaBridgeH', 539, 480, 21, 9),
-    guideCollider('kanalNusaBridgeH', 1139, 431, 21, 9),
-    guideCollider('kanalNusaBridgeH', 1258, 431, 21, 9),
-    guideCollider('kanalNusaBridgeH', 1139, 480, 21, 9),
-    guideCollider('kanalNusaBridgeH', 1258, 480, 21, 9),
-  ],
-  decorations: [
-    { asset: 'kanalNusaBridgeH', x: 417, y: 416, w: 146, h: 74 },
-    { asset: 'kanalNusaBridgeH', x: 1136, y: 416, w: 146, h: 74, flip: true },
-  ],
-};
-const kanal2X = (x: number) => {
-  if (x <= MAP4_2_LEFT_ANCHOR) return x;
-  if (x >= MAP4_2_RIGHT_ANCHOR) return x + MAP4_2_INSERT;
-  return x + Math.floor(MAP4_2_INSERT / 2);
-};
-const kanal2Item = <T extends { x: number; w: number }>(item: T): T => ({
-  ...item,
-  x: Math.round(kanal2X(item.x + item.w / 2) - item.w / 2),
-});
-// Two low, mirrored planters use the same grounded silhouette/collision as
-// the approved Nusantara planters; the rest of the new center stays open.
-const kanal2SmallPlanters = [
-  guideObstacle('kanalNusaPlanterOval', 802, 245, 82, 20, 82, 51),
-  guideObstacle('kanalNusaPlanterOval', MAP4_2_GUIDE_WIDTH - 802 - 82, 245, 82, 20, 82, 51),
-];
-GUIDE_FIELD_CONFIGS.push({
-  ...structuredClone(kanalGuide),
-  id: 'kanal2',
-  name: 'Alun Kanal Nusantara 2',
-  kicker: 'Kanal panjang dengan ruang tengah dua kali lebih lebar untuk rotasi dan duel terbuka.',
-  background: 'kanal2-ground.webp',
-  waterMask: 'kanal2-water-mask.png',
-  waterMaskWidth: Math.round(MAP4_2_GUIDE_WIDTH / 2),
-  designWidth: MAP4_2_GUIDE_WIDTH,
-  width: Math.round(MAP4_2_GUIDE_WIDTH * MAP4_OBJECT_SCALE),
-  height: Math.round(MAP4_GUIDE_HEIGHT * MAP4_OBJECT_SCALE),
-  bases: {
-    blue: { ...kanalGuide.bases!.blue, x: Math.round(kanal2X(kanalGuide.bases!.blue.x)) },
-    red: { ...kanalGuide.bases!.red, x: Math.round(kanal2X(kanalGuide.bases!.red.x)) },
-  },
-  prisons: {
-    blue: kanal2Item(kanalGuide.prisons.blue),
-    red: kanal2Item(kanalGuide.prisons.red),
-  },
-  obstacles: [...kanalGuide.obstacles.map(kanal2Item), ...kanal2SmallPlanters],
-  decorations: kanalGuide.decorations.map(kanal2Item),
-});
-
-const FIELD_CONFIGS: FieldConfig[] = GUIDE_FIELD_CONFIGS.map((field) => {
-  const width = field.width ?? W;
-  const height = field.height ?? H;
-  const scaleX = width / (field.designWidth ?? DESIGN_W);
-  const scaleY = height / (field.designHeight ?? DESIGN_H);
-  const mapX = (value: number) => Math.round(value * scaleX);
-  const mapY = (value: number) => Math.round(value * scaleY);
-  const objectScale = field.objectScale ?? 1;
-  const mapW = (value: number) => Math.round(value * objectScale);
-  const mapH = (value: number) => Math.round(value * objectScale);
-  const mapObjectX = (x: number, w: number) =>
-    field.objectScale
-      ? Math.round((x + w / 2) * scaleX - mapW(w) / 2)
-      : mapX(x);
-  const mapObjectY = (y: number, h: number) =>
-    field.objectScale
-      ? Math.round((y + h / 2) * scaleY - mapH(h) / 2)
-      : mapY(y);
-  return {
-    ...field,
-    width,
-    height,
-    bases: field.bases
-      ? {
-          blue: { x: mapX(field.bases.blue.x), y: mapY(field.bases.blue.y) },
-          red: { x: mapX(field.bases.red.x), y: mapY(field.bases.red.y) },
-        }
-      : BASES,
-    prisons: {
-      blue: {
-        ...field.prisons.blue,
-        x: mapObjectX(field.prisons.blue.x, field.prisons.blue.w),
-        y: mapObjectY(field.prisons.blue.y, field.prisons.blue.h),
-        w: mapW(field.prisons.blue.w),
-        h: mapH(field.prisons.blue.h),
-      },
-      red: {
-        ...field.prisons.red,
-        x: mapObjectX(field.prisons.red.x, field.prisons.red.w),
-        y: mapObjectY(field.prisons.red.y, field.prisons.red.h),
-        w: mapW(field.prisons.red.w),
-        h: mapH(field.prisons.red.h),
-      },
-    },
-    paths: field.paths.map((path) => ({
-      ...path,
-      x: mapX(path.x),
-      y: mapY(path.y),
-      w: mapX(path.w),
-      h: mapY(path.h),
-      radius: Math.round(path.radius * Math.min(scaleX, scaleY)),
-    })),
-    obstacles: field.obstacles.map((item) => ({
-      ...item,
-      x: mapObjectX(item.x, item.w),
-      y: mapObjectY(item.y, item.h),
-      w: mapW(item.w),
-      h: mapH(item.h),
-      visualW: mapW(item.visualW),
-      visualH: mapH(item.visualH),
-    })),
-    decorations: field.decorations.map((item) => ({
-      ...item,
-      x: mapObjectX(item.x, item.w),
-      y: mapObjectY(item.y, item.h),
-      w: mapW(item.w),
-      h: mapH(item.h),
-    })),
-    animated: field.animated.map((item) => ({
-      ...item,
-      x: mapObjectX(item.x, item.w),
-      y: mapObjectY(item.y, item.h),
-      w: mapW(item.w),
-      h: mapH(item.h),
-    })),
-  };
-});
 // Clone AFTER normalization: no second scaling and no change to live arena rules.
 FIELD_CONFIGS.push({
   ...structuredClone(FIELD_CONFIGS[0]),
@@ -2706,166 +363,13 @@ const CAMERA_OPTIONS: Array<{ id: CameraMode; label: string }> = [
   { id: 'tactical', label: 'Taktis' },
   { id: 'overview', label: 'Overall' },
 ];
-const initialSnapshot: Snapshot = {
-  blue: 0,
-  red: 0,
-  round: 1,
-  timer: 240,
-  boost: 100,
-  boostCountdown: 0,
-  order: 0,
-  state: 'IN_BASE',
-  paused: false,
-  logs: ['Prototype 5v5 siap.'],
-  mission: {
-    refresh: false,
-    boost: false,
-    parkour: false,
-    tag: false,
-    rescue: false,
-    combo: false,
-  },
-  team: [],
-  blueHeld: 0,
-  redHeld: 0,
-  pickupCount: 0,
-  fortLock: 'Benteng terbuka',
-  baseGrace: 0,
-  suddenDeath: false,
-  fieldWins: 0,
-  comboLevel: 0,
-  comboRemaining: 0,
-  comboSurgeRemaining: 0,
-  comboCallout: '',
-  ultimateMeter: 0,
-  ultimateBuffRemaining: 0,
-  ultimateCasting: false,
-  flightFlying: false,
-  flightDebug: '',
-  matchEvents: [],
-  rescueRequestActive: false,
-  rescueRequestRemaining: 0,
-  rescueRequestCooldown: 0,
-  roundResult: { visible: false, final: false },
-  statsBoard: {
-    visible: false,
-    final: false,
-    round: 1,
-    reason: '',
-    countdown: 0,
-    duration: 0,
-    mapName: '',
-    format: 'Best of 3',
-    mvpId: '',
-    mvpName: '',
-    score: { blue: 0, red: 0 },
-    teams: { blue: [], red: [] },
-  },
-};
+const uiAssetSources = { mapArtwork, publicAsset };
+const uiAsset = (file: string) => uiAssetAt(file, uiAssetSources);
+const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = matchEventFrames(uiAssetSources);
+const ROUND_RESULT_ASSET: Record<Team, string> = roundResultAssets(uiAssetSources);
+const loadingUiFrame = (faction: Faction, progress: number) => loadingUiFrameAt(faction, progress, uiAssetSources);
 
-const other = (team: Team): Team => (team === 'blue' ? 'red' : 'blue');
-const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
-  Math.hypot(a.x - b.x, a.y - b.y);
-const clamp = (v: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, v));
-const formatTime = (seconds: number) => {
-  const s = Math.max(0, Math.ceil(seconds));
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-};
-const statPercent = (value: number, min: number, max: number) =>
-  `${Math.round(clamp((value - min) / (max - min), 0, 1) * 100)}%`;
-const uiAsset = (file: string) => {
-  const customId = file.match(/^fields\/(studio-[a-z0-9-]+)\.webp$/)?.[1];
-  if (customId) return mapArtwork(customId) ?? publicAsset('ui-v2/fields/kampung.webp');
-  file = file.replace('fields/kampung3d.', 'fields/kampung.');
-  return publicAsset(`ui-v2/${file}?v=${file.startsWith('controls/team-red-') ? 9 : 8}`);
-};
-const MATCH_EVENT_FRAME: Record<MatchEventKind, string> = {
-  tag: publicAsset('arena-ui/match-events/notification-tag.png.PNG?v=3'),
-  rescue: publicAsset('arena-ui/match-events/notification-rescue.png.PNG?v=3'),
-  'rescue-request': publicAsset('arena-ui/match-events/notification-rescue.png.PNG?v=3'),
-};
-const ROUND_RESULT_ASSET: Record<Team, string> = {
-  blue: publicAsset('arena-ui/match-events/merah-menang.png?v=3'),
-  red: publicAsset('arena-ui/match-events/hijau-menang.png?v=3'),
-};
-const loadingUiFrame = (faction: Faction, progress: number) => {
-  // === PERUBAHAN: artwork 100% hanya tampil saat progress benar-benar 100% ===
-  // Sebelumnya Math.ceil() membuat progress 81-99% langsung memakai gambar 100%.
-  // Sekarang milestone dibulatkan ke bawah, sehingga 80-99% tetap memakai frame 80.
-  const milestone =
-    progress >= 100
-      ? 100
-      : Math.max(20, Math.floor(progress / 20) * 20);
-
-  const suffix = faction === 'red' && progress < 20 ? '00' : String(milestone);
-  const team = faction === 'red' ? 'MERAH' : 'HIJAU';
-
-  return publicAsset(`loading-ui/TEAM ${team} LOADING ${suffix}_.png?v=1`);
-};
-
-// === TEST CHARACTER SELECTION VOICE ===
-const CHARACTER_VOICE_FILES: Partial<Record<CharacterId, string>> = {
-  bebe: 'characters/bebe.mp3',
-  kodo: 'characters/kodo.mp3',
-  maria: 'characters/maria.mp3',
-  tui: 'characters/tui.mp3',
-  lui: 'characters/lui.mp3',
-  raja: 'characters/raja.mp3',
-  kaka: 'characters/kaka.mp3',
-  jago: 'characters/jago.mp3',
-  lala: 'characters/lala.mp3',
-  buto: 'characters/buto.mp3',
-  boke: 'characters/boke.mp3',
-  kumis: 'characters/kumis.mp3',
-  robot: 'characters/robot.mp3',
-  ciici: 'characters/ciici.mp3',
-};
-
-const characterVoiceAsset = (id: CharacterId) => {
-  const file = CHARACTER_VOICE_FILES[id];
-  return file ? uiAudioAsset(file) : null;
-};
-// === END TEST CHARACTER SELECTION VOICE ===
-
-const LOADING_UI_FRAMES = (['red', 'green'] as Faction[]).flatMap((faction) =>
-  [0, 20, 40, 60, 80, 100]
-    .filter((progress) => faction === 'red' || progress > 0)
-    .map((progress) => loadingUiFrame(faction, progress)),
-);
-
-const CharacterPreview = ({
-  id,
-  alt = '',
-  eager = false,
-  className,
-  variant = 'icon',
-}: {
-  id: CharacterId;
-  alt?: string;
-  eager?: boolean;
-  className?: string;
-  variant?: 'icon' | 'full';
-}) => (
-  <img
-    className={className}
-    data-character={id}
-    src={
-      variant === 'full'
-        ? characterFullBodyPortrait(id)
-        : characterPreviewIcon(id)
-    }
-    alt={t(alt)}
-    loading={eager ? 'eager' : 'lazy'}
-    decoding="async"
-    onError={(event) => {
-      if (event.currentTarget.dataset.fallback === 'true') return;
-      event.currentTarget.dataset.fallback = 'true';
-      const fallback = characterAsset(id, 'portrait.webp');
-      event.currentTarget.src = fallback;
-    }}
-  />
-);
+const LOADING_UI_FRAMES = loadingUiFrames(uiAssetSources);
 
 const spriteImages = new Map<CharacterId, HTMLImageElement>();
 const seriesImages = new Map<CharacterId, HTMLImageElement>();
@@ -2889,22 +393,6 @@ const getPresentationImage = (url: string) => {
   }
   return image;
 };
-const fieldImages = new Map<string, HTMLImageElement>();
-let sprintDustImage: HTMLImageElement | null = null;
-let kakaUltimateImage: HTMLImageElement | null = null;
-const spriteFrame = (
-  width: number,
-  height: number,
-  column: number,
-  row: number,
-) => {
-  const x = Math.round((column * width) / 7),
-    y = Math.round((row * height) / 6);
-  const right = Math.round(((column + 1) * width) / 7),
-    bottom = Math.round(((row + 1) * height) / 6);
-  return { x, y, width: right - x, height: bottom - y };
-};
-
 const getSpriteImage = (id: CharacterId) => {
   const cached = spriteImages.get(id);
   if (cached) return cached;
@@ -2912,33 +400,6 @@ const getSpriteImage = (id: CharacterId) => {
   image.decoding = 'async';
   image.src = characterRuntimeAsset(id);
   spriteImages.set(id, image);
-  return image;
-};
-
-const getSprintDustImage = () => {
-  if (sprintDustImage) return sprintDustImage;
-  sprintDustImage = new Image();
-  sprintDustImage.decoding = 'async';
-  sprintDustImage.src = publicAsset('vfx/sprint-dust.webp?v=7');
-  return sprintDustImage;
-};
-
-const getKakaUltimateImage = () => {
-  if (kakaUltimateImage) return kakaUltimateImage;
-  kakaUltimateImage = new Image();
-  kakaUltimateImage.decoding = 'async';
-  kakaUltimateImage.src = kakaUltimateSpriteAsset();
-  return kakaUltimateImage;
-};
-
-const getFieldImage = (asset: string) => {
-  const url = publicAsset(`field/${asset}?v=${FIELD_ASSET_VERSION}`);
-  const cached = fieldImages.get(url);
-  if (cached) return cached;
-  const image = new Image();
-  image.decoding = 'async';
-  image.src = url;
-  fieldImages.set(url, image);
   return image;
 };
 
@@ -2964,6 +425,7 @@ export function BentenganPrototype() {
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('splash');
   const [multiplayerOpen,setMultiplayerOpen]=useState(false);
+  const [view, setView] = useState<'game' | 'workshop'>('game');
   useEffect(()=>{let active=true;queueMicrotask(()=>{if(active&&parseInvite(window.location.href,FIELD_CONFIGS))setMultiplayerOpen(true);});return()=>{active=false;};},[]);
   const [networkSession,setNetworkSession]=useState<MultiplayerSession|null>(null);
   useEffect(()=>{
@@ -3052,10 +514,9 @@ export function BentenganPrototype() {
     for (const team of ['red', 'green']) getPresentationImage(arenaImage(`${team}-loading`));
     LOADING_UI_FRAMES.forEach(getPresentationImage);
   }, []);
-  const nextLandingArena = () => setLandingArena(current => {
-    const choices = FIELD_CONFIGS.filter(field => field.id !== current);
-    return choices[Math.floor(Math.random() * choices.length)].id;
-  });
+  const nextLandingArena = () => setLandingArena(current =>
+    nextLandingArenaId(current, FIELD_CONFIGS.map(field => field.id), (count) => Math.floor(Math.random() * count)),
+  );
   const [readyFaction, setReadyFaction] = useState<Faction | null>(null);
   const [gameLoading, setGameLoading] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -3128,9 +589,7 @@ export function BentenganPrototype() {
         }
       }
       // The team video is decoration: browsers without H.264 (e.g. plain Chromium) fall back to a static team backdrop.
-      if (!gameLoading && selectedFaction) tasks.push(() => videoReady(characterSelectionVideo(selectedFaction), 10000).catch(error => {
-        console.warn('Video tim dilewati; memakai latar statis.', error);
-      }));
+      if (!gameLoading && selectedFaction) tasks.push(() => videoReady(characterSelectionVideo(selectedFaction), 10000).catch(error => { console.warn('Video tim dilewati; memakai latar statis.', error); }));
       tasks.push(() => document.fonts.ready.then(() => undefined));
       let done = 0;
       // A bounded batch avoids flooding mobile connections with atlas requests.
@@ -3189,14 +648,11 @@ export function BentenganPrototype() {
   }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, selectedId, loadAttempt]);
   const selected = CHARACTER_BY_ID[selectedId] ?? CHARACTER_BY_ID.raja;
   const availableCharacters = useMemo(
-    () =>
-      selectedFaction
-        ? FIXED_ROSTERS[selectedFaction].map((id) => CHARACTER_BY_ID[id])
-        : [],
+    () => rosterCharacters(selectedFaction),
     [selectedFaction],
   );
   const squad = useMemo(
-    () => (selectedFaction ? lineupFor(selectedFaction, selectedId) : []),
+    () => squadLineup(selectedFaction, selectedId),
     [selectedFaction, selectedId],
   );
   const selectedArena =
@@ -3227,13 +683,6 @@ export function BentenganPrototype() {
         : 'Arena ini belum dapat dimainkan.',
     };
   }, [playerProfile, selectedArena.id]);
-  const opponentSquad = useMemo(
-    () =>
-      selectedFaction
-        ? lineupFor(selectedFaction === 'red' ? 'green' : 'red')
-        : [],
-    [selectedFaction],
-  );
 
   const chooseFaction = (faction: Faction) => {
     const first = getPlayableCharacterIds(playerProfileRef.current, FIXED_ROSTERS[faction])[0];
@@ -3244,15 +693,7 @@ export function BentenganPrototype() {
     return first;
   };
 
-  const playAudioCue = (file: string, volume = 0.55) => {
-    try {
-      const cue = new Audio(uiAudioAsset(file));
-      cue.volume = volume * audioLevels().sfx;
-      void cue.play().catch(() => undefined);
-    } catch {
-      /* Audio tetap opsional pada browser yang memblokir media. */
-    }
-  };
+  const playAudioCue = (file: string, volume = 0.55) => playAudioCueAt(file, volume);
 
   // === CHARACTER SELECTION VOICE: loop selama karakter masih disorot ===
   const stopCharacterVoice = () => {
@@ -3279,7 +720,7 @@ export function BentenganPrototype() {
     // Saat sorotan pindah, voice lama harus langsung berhenti.
     stopCharacterVoice();
 
-    const src = characterVoiceAsset(id);
+    const src = characterVoiceAsset(id, uiAudioAsset);
     if (!src) return;
 
     const voice = new Audio(src);
@@ -3304,23 +745,13 @@ export function BentenganPrototype() {
   const toggleBackgroundMusic = () => {
     setMusicMuted((muted) => {
       const next = !muted;
-      try {
-        window.localStorage.setItem(MUSIC_MUTED_STORAGE_KEY, next ? '1' : '0');
-      } catch {
-        /* Preferensi audio tetap opsional jika storage browser diblokir. */
-      }
+      saveMusicMuted(next);
       return next;
     });
   };
 
   useEffect(() => {
-    try {
-      setMusicMuted(
-        window.localStorage.getItem(MUSIC_MUTED_STORAGE_KEY) === '1',
-      );
-    } catch {
-      /* Gunakan musik aktif sebagai default jika storage tidak tersedia. */
-    }
+    setMusicMuted(loadMusicMuted());
   }, []);
 
   useEffect(() => {
@@ -3355,7 +786,7 @@ export function BentenganPrototype() {
   }, []);
 
   useEffect(() => {
-    if (mode === 'menu' && menuStep === 'character') return;
+    if (mode === 'menu' && menuStep === 'character' && view === 'game') return;
     const voice = characterVoiceRef.current;
     if (voice) {
       voice.pause();
@@ -3364,7 +795,7 @@ export function BentenganPrototype() {
     }
     characterVoiceRef.current = null;
     characterVoiceIdRef.current = null;
-  }, [mode, menuStep]);
+  }, [mode, menuStep, view]);
 
   useEffect(() => {
     if (!audioUnlocked || musicMuted) return;
@@ -3415,9 +846,16 @@ export function BentenganPrototype() {
   }, [leaderboardOpen]);
 
   useEffect(() => {
-    if (!ULTIMATE_CHARACTER_IDS.has(selectedId)) return;
+    const ultimate = CHARACTER_BY_ID[selectedId]?.ultimate;
+    if (!ultimate) return;
     const banner = new Image();
     banner.decoding = 'async';
+    banner.src = ultimateBannerAsset(selectedId);
+    if (selectedId === 'kaka') getKakaUltimateImage();
+    if(process.env.NODE_ENV!=='production'&&flightConfig(selectedId)) {
+      const missing=['ultimate_takeoff','ultimate_fly','ultimate_land'].filter(slot=>!studioFlightClip(selectedId,slot));
+      if(missing.length)console.warn(`${selectedId}: animasi Flight belum lengkap (${missing.join(', ')}). Fallback sementara; unggah sequence final melalui Sprite Studio.`);
+    }
     banner.src = ultimateBannerAsset(selectedId);
     if (selectedId === 'kaka') getKakaUltimateImage();
     if(process.env.NODE_ENV!=='production'&&flightConfig(selectedId)) {
@@ -3463,10 +901,7 @@ export function BentenganPrototype() {
       sample.volume = 0.48 * audioLevels().sfx;
       void sample.play().catch(() => undefined);
     };
-    const interactive = (target: EventTarget | null) =>
-      target instanceof Element
-        ? (target.closest('button,[role="button"]') as HTMLElement | null)
-        : null;
+    const interactive = (target: EventTarget | null) => interactiveTargetAt(target);
     const onPointerOver = (event: PointerEvent) => {
       const target = interactive(event.target);
       const now = performance.now();
@@ -3483,9 +918,10 @@ export function BentenganPrototype() {
       lastHoverAt = now;
       playUiTone(560, 0.035, 0.012, 'sine');
     };
-    const onPointerOut = (event: PointerEvent) => {
-      if (interactive(event.target) === lastHoverTarget) lastHoverTarget = null;
-    };
+    const onPointerOut = (event: PointerEvent) =>
+      handlePointerOutAt(event.target, lastHoverTarget, () => {
+        lastHoverTarget = null;
+      });
     const onPointerDown = (event: PointerEvent) => {
       const target = interactive(event.target);
       if (!target || target.matches(':disabled')) return;
@@ -3513,45 +949,12 @@ export function BentenganPrototype() {
   }, []);
 
   useEffect(() => {
-    const down = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (profileOpen) {
-        keys.current.clear();
-        return;
-      }
-      if (mode === 'playing') {
-        if (key === 'tab') {
-          event.preventDefault();
-          setLeaderboardOpen(true);
-          return;
-        }
-        if (
-          [
-            'arrowup',
-            'arrowdown',
-            'arrowleft',
-            'arrowright',
-            ' ',
-            'shift',
-            'capslock',
-          ].includes(key)
-        )
-          event.preventDefault();
-        keys.current.add(key);
-      }
-    };
-    const up = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (key === 'tab') {
-        setLeaderboardOpen(false);
-        return;
-      }
-      keys.current.delete(key);
-    };
-    const releaseAll = () => keys.current.clear();
-    const visibility = () => {
-      if (document.hidden) releaseAll();
-    };
+    const down = (event: KeyboardEvent) =>
+      handleKeyDown(event, keys.current, mode, profileOpen, setLeaderboardOpen);
+    const up = (event: KeyboardEvent) =>
+      handleKeyUp(event, keys.current, setLeaderboardOpen);
+    const releaseAll = () => clearKeys(keys.current);
+    const visibility = () => handleVisibilityChange(keys.current, document.hidden);
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', releaseAll);
@@ -3680,9 +1083,7 @@ export function BentenganPrototype() {
       ? visualObstacles.flatMap(item => kanalObjectRects(item).map((rect: { x: number; y: number; w: number; h: number }) => ({ ...item, ...rect, hidden: true })))
       : visualObstacles;
     const fieldObjectScale = field.objectScale ?? 1;
-    const fortWidth = Math.round(168 * fieldObjectScale);
-    const fortHeight = Math.round(188 * fieldObjectScale);
-    const fortAnchorY = Math.round(130 * fieldObjectScale);
+    const { fortWidth, fortHeight, fortAnchorY } = fortGeometry(fieldObjectScale);
     const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const kanalObjectAtlas = isKanalField(field.id)
@@ -3730,93 +1131,55 @@ export function BentenganPrototype() {
 
     const kanalWaterGlints: { x: number; y: number; phase: number }[] = [];
     const cacheWaterMask = () => {
-      if (!studioMap?.waterMask && (
-        !fieldWaterMask ||
-        !waterMaskContext ||
-        !fieldWaterMask.naturalWidth ||
-        !fieldWaterMask.naturalHeight
-      ))
-        return;
       if (studioMap?.waterMask) {
-        const mask=studioMap.waterMask;
-        waterMaskPixels=new Uint8ClampedArray(mask.width*mask.height*4);
-        mask.rows.forEach((row,y)=>{for(let i=0;i<row.length;i+=2)for(let x=row[i];x<row[i+1];x++)waterMaskPixels![(y*mask.width+x)*4]=255;});
+        const result = decodeStudioWaterMask(studioMap.waterMask, { worldWidth, worldHeight, kanal: isKanalField(field.id) });
+        if (!result) return;
+        waterMaskPixels = result.pixels;
+        kanalWaterGlints.length = 0;
+        kanalWaterGlints.push(...result.glints);
       } else {
-      waterMaskContext!.clearRect(
-        0,
-        0,
-        waterMaskCanvas.width,
-        waterMaskCanvas.height,
-      );
-      waterMaskContext!.drawImage(
-        fieldWaterMask!,
-        0,
-        0,
-        waterMaskCanvas.width,
-        waterMaskCanvas.height,
-      );
-      waterMaskPixels = waterMaskContext!.getImageData(
-        0,
-        0,
-        waterMaskCanvas.width,
-        waterMaskCanvas.height,
-      ).data;
-      }
-      if (waterDebugContext) {
-        const overlay = waterDebugContext.createImageData(
-          waterMaskCanvas.width,
-          waterMaskCanvas.height,
-        );
-        for (let pixel = 0; pixel < waterMaskCanvas.width * waterMaskCanvas.height; pixel++) {
-          if (waterMaskPixels[pixel * 4] <= 127) continue;
-          overlay.data[pixel * 4] = 255;
-          overlay.data[pixel * 4 + 1] = 69;
-          overlay.data[pixel * 4 + 2] = 69;
-          overlay.data[pixel * 4 + 3] = 78;
-        }
-        waterDebugContext.putImageData(overlay, 0, 0);
-      }
-      kanalWaterGlints.length = 0;
-      if (isKanalField(field.id)) {
-        const maskWidth = waterMaskCanvas.width;
-        const maskHeight = waterMaskCanvas.height;
-        for (let y = 9; y < maskHeight - 9; y += 12)
-          for (let x = 9; x < maskWidth - 9; x += 12) {
-            const solidWater = (px: number, py: number) =>
-              waterMaskPixels![(py * maskWidth + px) * 4] > 127;
-            if (
-              solidWater(x, y) &&
-              solidWater(x - 3, y) &&
-              solidWater(x + 3, y) &&
-              solidWater(x, y - 3) &&
-              solidWater(x, y + 3)
-            )
-              kanalWaterGlints.push({
-                x: ((x + 0.5) / maskWidth) * worldWidth,
-                y: ((y + 0.5) / maskHeight) * worldHeight,
-                phase: (x * 17 + y * 31) % 29,
-              });
-          }
+        const result = extractWaterMask({
+          image: fieldWaterMask,
+          context: waterMaskContext,
+          canvas: waterMaskCanvas,
+          debugContext: waterDebugContext,
+          worldWidth,
+          worldHeight,
+          kanal: isKanalField(field.id),
+        });
+        if (!result) return;
+        waterMaskPixels = result.pixels;
+        kanalWaterGlints.length = 0;
+        kanalWaterGlints.push(...result.glints);
       }
     };
 
-    // Raised authored scenery needs a full-resolution cache; otherwise the
-    // close camera resamples it twice and makes fences/foliage look flat.
-    const staticMapScale = isKanalField(field.id)
-      ? 1.5
-      : field.structuresInBackground
-        ? 0.75
-        : STATIC_MAP_SCALE;
-    const staticLayer = document.createElement('canvas');
-    // Studio terrain is drawn directly at source resolution. It never uses
-    // the native static layer, so do not allocate an unused multi-MB canvas.
-    staticLayer.width = studioMap ? 1 : Math.round(worldWidth * staticMapScale);
-    staticLayer.height = studioMap ? 1 : Math.round(worldHeight * staticMapScale);
-    const staticLayerContext = staticLayer.getContext('2d');
-    let staticMapDirty = true;
-    const invalidateStaticMap = () => {
-      staticMapDirty = true;
-    };
+    const { drawFieldAsset, drawAnimatedAsset } = createFieldAssetDraw({
+      kanal: isKanalField(field.id),
+      objectAssets: FIELD_OBJECT_ATLAS.assets,
+      animations: FIELD_ANIMATED_ATLAS.animations,
+      baseAtlas: fieldObjectAtlas,
+      kanalAtlas: kanalObjectAtlas,
+      animatedAtlas: fieldAnimatedAtlas,
+    });
+    const groundTileCanvas = createGroundTileCanvas(fieldGroundAtlas, FIELD_GROUND_ATLAS.tiles);
+    const staticMapLayer = createStaticMapLayer({
+      getContext: () => ctx,
+      field,
+      fieldBackground,
+      studioMap: studioMap ?? null,
+      kanal: isKanalField(field.id),
+      worldWidth,
+      worldHeight,
+      bases,
+      fortWidth,
+      fortHeight,
+      fortAnchorY,
+      groundTile: groundTileCanvas,
+      drawFieldAsset,
+      drawMapTerrain,
+    });
+    const invalidateStaticMap = staticMapLayer.invalidate;
     fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
     kanalObjectAtlas?.addEventListener('load', invalidateStaticMap);
     fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
@@ -3827,15 +1190,19 @@ export function BentenganPrototype() {
     if (fieldWaterMask?.complete || studioMap?.waterMask) cacheWaterMask();
 
 
+    const matchAudio = createMatchAudio();
     const gameplayAudio = new GameplayAudio();
     let countdownSoundPlayed = false;
-    gameplayAudio.unlock();
+    void gameplayAudio.unlock();
     window.addEventListener('pointerdown', gameplayAudio.unlock);
     window.addEventListener('keydown', gameplayAudio.unlock);
     let lastFootstep = 0;
     let wasDashing = false;
     const fortOccupancy = new Set<string>();
     let previousSoundPosition: { x: number; y: number } | null = null;
+// Match boot: multiplayer roster, network plumbing, and stats stores. The
+// frame loop reads these through closure; remote peers only exist when a
+// session is active.
     const beep = (frequency: number, duration = 0.08) => {
       if (audioLevels().sfx === 0) return;
       try {
@@ -3960,7 +1327,29 @@ export function BentenganPrototype() {
     const remoteInputs=createRemoteInputBuffer(matchId??'menu-preview',new Map(players.filter(p=>p.controller==='remote').map(p=>[p.entityId,p.ownerPeerId!])),worldWidth,worldHeight);
     const remoteMovement=createRemoteHumanMovement();
     const snapshots=createSnapshotBuffer(matchId??'menu-preview',field.id,NETWORK_RATES.interpolationDelayMs);
-    let lastNetworkSend=-Infinity,initialNetworkSnapshot=true,clientPresentation:CanonicalGameState|null=null;
+    let clientPresentation:CanonicalGameState|null=null;
+    const networkPump = network ? createNetworkPump({
+      network,
+      matchId: matchId ?? 'menu-preview',
+      myEntityId,
+      sampleInput: (entityId, keysSnapshot, boost, target) => localInput.sample(entityId, keysSnapshot, boost, target),
+      keys: keys.current,
+      mouseBoost: () => mouseBoost,
+      setMouseBoost: (value) => { mouseBoost = value; },
+      mouseRoute: () => mouseRoute,
+      clearMouse,
+      distance,
+      me: () => players[0],
+      publishSnapshot: (now, initial) => {
+        const state=readCanonicalState(now),s=createSnapshot(state),rows=(stats:CanonicalGameState['matchStats'])=>
+          Object.entries(stats).map(([entityId, counts]) => ({ entityId, ...counts }));
+        network.publishSnapshot(initial
+          ? { version: 1, type: 'MATCH_START', matchId: matchId!, arenaId: field.id, startAtMs: phaseUntil, snapshot: s }
+          : { version: 1, type: 'MATCH_FRAME', matchId: matchId!, tick: s.tick, snapshot: s,
+            matchStartedAtMs: matchStartedAt, rescueCooldownUntil: rescueRequestCooldownUntil,
+            roundStats: rows(state.roundStats), matchStats: rows(state.matchStats) });
+      },
+    }) : null;
     const networkOff=network?.onGameplay((peer,m)=>{
       if(!clientOnly&&m.type==='INPUT')remoteInputs.accept(peer,m,performance.now());
       else if(clientOnly&&(m.type==='SNAPSHOT'||m.type==='MATCH_START'))snapshots.push(m.snapshot,performance.now());
@@ -4055,63 +1444,22 @@ export function BentenganPrototype() {
       gameplayAudio.play('rescue', 0.38);
       log(`${requester.name} meminta bantuan rescue.`);
     };
-    const contributionScore = (stats: PlayerStats) =>
-      stats.tags * 100 + stats.rescues * 120 - stats.prisons * 40;
-    const boardRows = (
-      store: Record<string, PlayerStats>,
-      team: Team,
-      mvpId: string,
-    ) =>
-      players
-        .filter((player) => player.team === team)
-        .map((player) => ({
-          id: player.id,
-          name: player.name,
-          characterId: player.characterId,
-          controlled: player.controlled,
-          ...ensureStats(store, player),
-          contribution: contributionScore(ensureStats(store, player)),
-          mvp: player.id === mvpId,
-        }));
-    const buildStatsBoard = (now: number): StatsBoard => {
-      const automatic = phase === 'ROUND_OVER' || phase === 'MATCH_OVER';
-      const final = phase === 'MATCH_OVER';
-      const store = final || leaderboardOpenRef.current ? matchStats : roundStats;
-      const rankedPlayers = players
-        .map((player) => ({
-          player,
-          contribution: contributionScore(ensureStats(store, player)),
-        }))
-        .sort(
-          (a, b) =>
-            b.contribution - a.contribution ||
-            ensureStats(store, b.player).tags - ensureStats(store, a.player).tags ||
-            ensureStats(store, b.player).rescues - ensureStats(store, a.player).rescues ||
-            a.player.name.localeCompare(b.player.name),
-        );
-      const mvp = rankedPlayers[0];
-      return {
-        visible: automatic && now >= resultAnnouncementUntil,
-        final,
+    const buildStatsBoard = (now: number): StatsBoard =>
+      buildStatsBoardOf(now, {
+        phase,
         round,
-        winner: roundWinner,
-        reason: roundEndReason,
-        countdown:
-          phase === 'ROUND_OVER'
-            ? Math.max(0, Math.ceil((phaseUntil - now) / 1000))
-            : 0,
-        duration: Math.max(0, (now - matchStartedAt) / 1000),
-        mapName: field.name,
-        format: 'Best of 3',
-        mvpId: mvp?.player.id ?? '',
-        mvpName: mvp?.player.name ?? '',
-        score: { ...score },
-        teams: {
-          blue: boardRows(store, 'blue', mvp?.player.id ?? ''),
-          red: boardRows(store, 'red', mvp?.player.id ?? ''),
-        },
-      };
-    };
+        roundWinner,
+        roundEndReason,
+        resultAnnouncementUntil,
+        phaseUntil,
+        matchStartedAt,
+        fieldName: field.name,
+        score,
+        players,
+        roundStats,
+        matchStats,
+        isLeaderboardOpen: () => leaderboardOpenRef.current,
+      });
     const log = (text: string) => {
       logs = [text, ...logs].slice(0, 5);
     };
@@ -5132,377 +2480,7 @@ export function BentenganPrototype() {
     };
     const rounded = (x: number, y: number, w: number, h: number, r: number) =>
       roundedOn(ctx, x, y, w, h, r);
-    const drawFieldAsset = (
-      target: CanvasRenderingContext2D,
-      asset: FieldAssetId,
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-      flip = false,
-      opacity = 1,
-    ) => {
-      const source = FIELD_OBJECT_ATLAS.assets[asset];
-      const atlas = asset.startsWith('kanalNusa') ? kanalObjectAtlas : fieldObjectAtlas;
-      if (!atlas?.complete || !atlas.naturalWidth) {
-        target.fillStyle = 'rgba(28,43,31,.34)';
-        roundedOn(target, x, y, w, h, Math.min(12, w / 5));
-        target.fill();
-        return;
-      }
-      target.save();
-      target.globalAlpha = opacity;
-      target.imageSmoothingEnabled = true;
-      target.imageSmoothingQuality = 'high';
-      if (isKanalField(field.id)) {
-        // Atlas sprites have transparent edges, so a shadow follows the true
-        // silhouette rather than drawing a rectangular backdrop.
-        target.shadowColor = 'rgba(5, 16, 12, .46)';
-        target.shadowBlur = 4;
-        target.shadowOffsetY = 5;
-      }
-      if (flip) {
-        target.translate(x * 2 + w, 0);
-        target.scale(-1, 1);
-      }
-      target.drawImage(
-        atlas,
-        source.x,
-        source.y,
-        source.width,
-        source.height,
-        x,
-        y,
-        w,
-        h,
-      );
-      target.restore();
-    };
-    const drawAnimatedAsset = (
-      target: CanvasRenderingContext2D,
-      animationId: FieldAnimatedId,
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-      now: number,
-      flip = false,
-      opacity = 1,
-    ) => {
-      const animation = FIELD_ANIMATED_ATLAS.animations[animationId];
-      const frame =
-        animation.frames[
-          Math.floor((now * animation.fps) / 1000) % animation.frames.length
-        ];
-      if (!fieldAnimatedAtlas.complete || !fieldAnimatedAtlas.naturalWidth)
-        return;
-      target.save();
-      target.globalAlpha = opacity;
-      target.imageSmoothingEnabled = true;
-      target.imageSmoothingQuality = 'high';
-      if (flip) {
-        target.translate(x * 2 + w, 0);
-        target.scale(-1, 1);
-      }
-      target.drawImage(
-        fieldAnimatedAtlas,
-        frame.x,
-        frame.y,
-        frame.width,
-        frame.height,
-        x,
-        y,
-        w,
-        h,
-      );
-      target.restore();
-    };
-    const groundTileCanvas = (tile: GroundTileId) => {
-      const source = FIELD_GROUND_ATLAS.tiles[tile];
-      const surface = document.createElement('canvas');
-      surface.width = source.width;
-      surface.height = source.height;
-      const surfaceContext = surface.getContext('2d');
-      if (
-        surfaceContext &&
-        fieldGroundAtlas.complete &&
-        fieldGroundAtlas.naturalWidth
-      ) {
-        surfaceContext.drawImage(
-          fieldGroundAtlas,
-          source.x,
-          source.y,
-          source.width,
-          source.height,
-          0,
-          0,
-          source.width,
-          source.height,
-        );
-      }
-      return surface;
-    };
-    const drawStaticMap = (target: CanvasRenderingContext2D) => {
-      target.clearRect(0, 0, worldWidth, worldHeight);
-      target.imageSmoothingEnabled = true;
-      target.imageSmoothingQuality = 'high';
-      if (
-        fieldBackground?.complete &&
-        fieldBackground.naturalWidth &&
-        fieldBackground.naturalHeight
-      ) {
-        target.drawImage(fieldBackground, 0, 0, worldWidth, worldHeight);
-      } else {
-        const primaryPattern = target.createPattern(
-          groundTileCanvas(field.ground),
-          'repeat',
-        );
-        target.fillStyle = primaryPattern ?? '#7f815a';
-        target.fillRect(0, 0, worldWidth, worldHeight);
-      }
-      target.fillStyle = isKanalField(field.id)
-        ? 'rgba(19,27,21,.03)'
-        : 'rgba(19,27,21,.08)';
-      target.fillRect(0, 0, worldWidth, worldHeight);
-      // The authored reference already contains its finished plaza. Extra
-      // runtime guide rectangles make the ground look boxed-in at close range.
-      if (isKanalField(field.id) && field.paths.length > 0) {
-        // The cleared centre planters become quiet, walkable mini-plazas.
-        // This is terrain detail only: it deliberately adds no obstruction.
-        const scaleX = worldWidth / (field.designWidth ?? worldWidth);
-        const scaleY = worldHeight / (field.designHeight ?? worldHeight);
-        const plazaZones = [
-          { x: 568, y: 378, w: 202, h: 76 },
-          { x: 930, y: 378, w: 202, h: 76 },
-        ];
-        target.save();
-        plazaZones.forEach((zone) => {
-          const x = Math.round(zone.x * scaleX);
-          const y = Math.round(zone.y * scaleY);
-          const w = Math.round(zone.w * scaleX);
-          const h = Math.round(zone.h * scaleY);
-          const radius = Math.max(12, Math.min(w, h) * 0.22);
-          target.fillStyle = 'rgba(91, 73, 44, .14)';
-          roundedOn(target, x, y, w, h, radius);
-          target.fill();
-          target.strokeStyle = 'rgba(53, 43, 30, .16)';
-          target.lineWidth = 1;
-          roundedOn(target, x, y, w, h, radius);
-          target.stroke();
 
-          // A few low-contrast stones make the grass-to-plaza transition feel
-          // grounded without drawing a rigid grid or a visible white box.
-          const pebbles = [
-            [0.2, 0.3, 3],
-            [0.53, 0.68, 2],
-            [0.82, 0.38, 3],
-            [0.38, 0.47, 2],
-          ];
-          target.fillStyle = 'rgba(54, 44, 30, .17)';
-          pebbles.forEach(([px, py, size]) => {
-            target.beginPath();
-            target.ellipse(
-              x + w * px,
-              y + h * py,
-              size * scaleX,
-              size * 0.65 * scaleY,
-              -0.25,
-              0,
-              Math.PI * 2,
-            );
-            target.fill();
-          });
-        });
-        target.restore();
-      }
-
-      field.paths.forEach((pathConfig) => {
-        const pattern = target.createPattern(
-          groundTileCanvas(pathConfig.tile),
-          'repeat',
-        );
-        target.save();
-        target.globalAlpha = pathConfig.opacity;
-        roundedOn(
-          target,
-          pathConfig.x,
-          pathConfig.y,
-          pathConfig.w,
-          pathConfig.h,
-          pathConfig.radius,
-        );
-        target.clip();
-        target.fillStyle = pattern ?? '#88877a';
-        target.fillRect(pathConfig.x, pathConfig.y, pathConfig.w, pathConfig.h);
-        target.restore();
-        target.strokeStyle = 'rgba(255,245,211,.18)';
-        target.lineWidth = 3;
-        roundedOn(
-          target,
-          pathConfig.x,
-          pathConfig.y,
-          pathConfig.w,
-          pathConfig.h,
-          pathConfig.radius,
-        );
-        target.stroke();
-      });
-      if (!isKanalField(field.id)) {
-        target.strokeStyle = 'rgba(255,255,255,.13)';
-        target.lineWidth = 2;
-        target.setLineDash([16, 18]);
-        [worldY(296), worldY(506)].forEach((y) => {
-          target.beginPath();
-          target.moveTo(worldX(238), y);
-          target.lineTo(worldWidth - worldX(238), y);
-          target.stroke();
-        });
-        target.setLineDash([]);
-      }
-
-      const drawSceneryLayer = (underlay: boolean) => {
-        // Kanal's raised props are drawn at native atlas resolution on the
-        // live canvas below. Baking them into the scaled ground and drawing
-        // them again at close range caused soft/doubled silhouettes.
-        if (isKanalField(field.id) && !underlay) return;
-        const scenery = [
-          ...field.decorations
-            .filter((item) => Boolean(item.underlay) === underlay)
-            .map((item) => ({
-              baseline: item.y + item.h,
-              draw: () =>
-                drawFieldAsset(
-                  target,
-                  item.asset,
-                  item.x,
-                  item.y,
-                  item.w,
-                  item.h,
-                  item.flip,
-                  item.opacity,
-                ),
-            })),
-          ...visualObstacles
-            .filter(
-              (item) =>
-                !item.hidden && Boolean(item.underlay) === underlay,
-            )
-            .map((item) => ({
-              baseline: item.y + item.h,
-              draw: () =>
-                drawFieldAsset(
-                  target,
-                  item.asset,
-                  item.x + item.w / 2 - item.visualW / 2,
-                  item.y + item.h - item.visualH,
-                  item.visualW,
-                  item.visualH,
-                  item.flip,
-                ),
-            })),
-        ].sort((a, b) => a.baseline - b.baseline);
-        scenery.forEach((item) => item.draw());
-      };
-
-      // Border and perimeter art belongs below gameplay-critical structures.
-      drawSceneryLayer(true);
-
-      if (!isKanalField(field.id))
-        (['blue', 'red'] as Team[]).forEach((team) => {
-          const b = bases[team],
-            color = TEAM_COLOR[team];
-          target.fillStyle = `${color}20`;
-          target.beginPath();
-          target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
-          target.fill();
-          target.strokeStyle = `${color}68`;
-          target.lineWidth = 3;
-          target.beginPath();
-          target.arc(b.x, b.y, BASE_RADIUS, 0, Math.PI * 2);
-          target.stroke();
-          const fortAsset: FieldAssetId =
-            team === 'blue' ? 'fortRed' : 'fortGreen';
-          if (!field.structuresInBackground && !field.basesInBackground)
-            drawFieldAsset(
-              target,
-              fortAsset,
-              b.x - fortWidth / 2,
-              b.y - fortAnchorY,
-              fortWidth,
-              fortHeight,
-              false,
-              0.96,
-            );
-        });
-
-      if (!field.structuresInBackground && !isKanalField(field.id))
-        (['blue', 'red'] as Team[]).forEach((team) => {
-          const prison = field.prisons[team];
-          drawFieldAsset(
-            target,
-            prison.floorAsset ?? 'prisonFloor',
-            prison.x,
-            prison.y,
-            prison.w,
-            prison.h,
-            prison.flip ?? team === 'red',
-            0.96,
-          );
-        });
-
-      drawSceneryLayer(false);
-
-      if (!field.background) {
-        target.fillStyle = 'rgba(20,31,23,.94)';
-        target.fillRect(0, 32, worldWidth, 34);
-        target.fillRect(0, worldHeight - 32, worldWidth, 32);
-        target.strokeStyle = 'rgba(255,241,205,.24)';
-        target.lineWidth = 2;
-        target.beginPath();
-        target.moveTo(0, 66);
-        target.lineTo(worldWidth, 66);
-        target.stroke();
-        target.font = '800 15px var(--font-heading)';
-        target.fillStyle = '#fff0cf';
-        target.textAlign = 'center';
-        target.fillText(
-          t(`${field.name.toUpperCase()} · ${field.difficulty.toUpperCase()} · ARENA 5v5`),
-          worldWidth / 2,
-          55,
-        );
-      }
-    };
-    const drawMap = () => {
-      if (studioMap) { drawMapTerrain(ctx, studioMap, performance.now()); return; }
-      if (staticLayerContext && staticMapDirty) {
-        staticLayerContext.setTransform(
-          staticMapScale,
-          0,
-          0,
-          staticMapScale,
-          0,
-          0,
-        );
-        drawStaticMap(staticLayerContext);
-        staticMapDirty = false;
-      }
-      if (staticLayerContext)
-        ctx.drawImage(
-          staticLayer,
-          0,
-          0,
-          staticLayer.width,
-          staticLayer.height,
-          0,
-          0,
-          worldWidth,
-          worldHeight,
-        );
-      else {
-        ctx.fillStyle = '#667556';
-        ctx.fillRect(0, 0, worldWidth, worldHeight);
-      }
-    };
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
       if (studioMap) {
         studioLayers.background.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,performance.now());});
@@ -5684,7 +2662,7 @@ export function BentenganPrototype() {
       }
       ctx.restore();
     };
-    const drawPrisonOverlays = (now: number) => {
+    const drawPrisonOverlays = (_now: number) => {
       if (field.structuresInBackground) return;
       (['blue', 'red'] as Team[]).forEach((team) => {
         const prison = field.prisons[team];
@@ -5778,6 +2756,19 @@ export function BentenganPrototype() {
       drawAnimatedAsset(ctx, animation, -27, -30, 54, 58, now + item.id * 37);
       ctx.restore();
     };
+const spriteFrame = (
+  width: number,
+  height: number,
+  column: number,
+  row: number,
+) => {
+  const x = Math.round((column * width) / 7),
+    y = Math.round((row * height) / 6);
+  const right = Math.round(((column + 1) * width) / 7),
+    bottom = Math.round(((row + 1) * height) / 6);
+  return { x, y, width: right - x, height: bottom - y };
+};
+
     const relationColor = (p: Player, me: Player, now: number) => {
       if (p.team === me.team) return '#9fd0ff';
       if (p.state === 'PRISONER') return '#8f8d84';
@@ -6361,7 +3352,7 @@ export function BentenganPrototype() {
       ctx.scale(scale, scale);
       ctx.translate(-camX, -camY);
       if (selectedFieldId !== 'kampung3d' || mode !== 'playing') {
-        drawMap();
+        staticMapLayer.drawMap();
         drawKanalWater(now);
         drawNearbyFieldDetails(me, activeCamera);
       }
@@ -6475,16 +3466,7 @@ export function BentenganPrototype() {
       if(!clientOnly&&!paused && phase==='PLAYING') routeScheduler.run();
       else routeScheduler.clear();
       if(clientOnly){
-        if(localNow-lastNetworkSend>=1000/NETWORK_RATES.inputHz){
-          const me=players[0];
-          if(!['ACTIVE','IN_BASE'].includes(me.state))clearMouse();
-          while(mouseRoute.length&&distance(me,mouseRoute[0])<=5)mouseRoute.shift();
-          const frame=localInput.sample(myEntityId,keys.current,mouseBoost,mouseRoute[0]);
-          if(frame.moveX||frame.moveY)mouseRoute=[];
-          network!.sendInput({version:1,type:'INPUT',matchId:matchId!,entityId:myEntityId,sequence:frame.sequence,input:wireInput(frame)});
-          if(frame.ultimate)keys.current.delete('capslock');if(frame.rescue)keys.current.delete('r');
-          mouseBoost=false;lastNetworkSend=localNow;
-        }
+        networkPump?.tickClientInput(localNow);
         const s=snapshots.read(localNow);
         if(s){
           clientPresentation=snapshotRenderState(readCanonicalState(localNow,development),s);now=s.timeMs;
@@ -6523,12 +3505,7 @@ export function BentenganPrototype() {
         const stepMs=simulationClock.fixedDeltaMs;
         const steps=advanceSimulationClock(simulationClock,Math.min(Math.max(0,frameMs),MAX_SIMULATION_STEPS*stepMs));
         for(let step=0;step<steps;step++)update(stepMs/1000,now-simulationClock.remainderMs-(steps-1-step)*stepMs);
-        if(network&&localNow-lastNetworkSend>=1000/NETWORK_RATES.snapshotHz){
-          const state=readCanonicalState(now),s=createSnapshot(state),rows=(stats:CanonicalGameState['matchStats'])=>Object.entries(stats).map(([entityId,counts])=>({entityId,...counts}));
-          network.publishSnapshot(initialNetworkSnapshot?{version:1,type:'MATCH_START',matchId:matchId!,arenaId:field.id,startAtMs:phaseUntil,snapshot:s}:
-            {version:1,type:'MATCH_FRAME',matchId:matchId!,tick:s.tick,snapshot:s,matchStartedAtMs:matchStartedAt,rescueCooldownUntil:rescueRequestCooldownUntil,roundStats:rows(state.roundStats),matchStats:rows(state.matchStats)});
-          initialNetworkSnapshot=false;lastNetworkSend=localNow;
-        }
+        if(network)networkPump?.tickHostSnapshot(localNow, now);
       }
       if(pendingMatchResult&&localNow-lastResultAttempt>=5000){const packet=pendingMatchResult;lastResultAttempt=localNow;
         try{const handed=resultHandoff!(packet);if(handed.result)setMatchProgressionResult(handed.result);if(handed.ack){if(clientOnly)network!.ackResult(packet.matchId);pendingMatchResult=null;}}
@@ -6686,6 +3663,7 @@ export function BentenganPrototype() {
       }
       raf = requestAnimationFrame(loop);
     };
+    const stopLoop = () => cancelAnimationFrame(raf);
     const pointerDown = (event: PointerEvent) => {
       const me = players[0], now = performance.now();
       if (event.pointerType !== 'mouse' || ![0, 2].includes(event.button) || mode !== 'playing' ||
@@ -6767,7 +3745,7 @@ export function BentenganPrototype() {
           bridges: field.decorations.filter(item => item.asset === 'kanalNusaBridgeH'),
           waterReady: Boolean(waterMaskPixels),
         }),
-        blocked: (x: number, y: number) => hitsObstacle(x,y) || isInsideFortCore(x,y) || kanalWaterBlocks(x,y),
+        blocked: (x: number, y: number) => hitsObstacle(x,y) || isInsideFortCore(x,y) || kanalWaterBlocks(x, y),
         water: isWaterAt,
         probe: (from: {x:number;y:number}, to: {x:number;y:number}, team: Team = players[0].team) => {
           const probe: Player = { ...players[0], ...from, team, id: '__collision_probe__', state: 'ACTIVE', parkourUntil: 0, baseCharge: 1e6 };
@@ -6793,12 +3771,13 @@ export function BentenganPrototype() {
       window.removeEventListener('blur', clearMouse);
       document.removeEventListener('visibilitychange', stopWhenHidden);
       document.removeEventListener('pointerdown', stopForMenu);
-      cancelAnimationFrame(raf);
+      stopLoop();
       scene3d?.dispose();
       window.removeEventListener('pointerdown', gameplayAudio.unlock);
       window.removeEventListener('keydown', gameplayAudio.unlock);
       gameplayAudio.close();
-      audio?.close();
+      matchAudio.close();
+      closeToneAudio();
       window.clearTimeout(bannerTimeout);
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
       kanalObjectAtlas?.removeEventListener('load', invalidateStaticMap);
@@ -6822,7 +3801,6 @@ export function BentenganPrototype() {
     snapshot.state === 'PRISONER' ||
     snapshot.ultimateCasting ||
     snapshot.paused;
-  const playerMovementLocked = snapshot.state === 'PRISONER' || snapshot.paused || (snapshot.ultimateCasting && !snapshot.flightFlying);
   const start = () => {
     if (!playerProfile || !selectedFaction || assetsLoading) return;
     const gate = selectionGate();
@@ -6866,8 +3844,9 @@ export function BentenganPrototype() {
       completedMatchesRef.current,
       allowed,
     );
+    if (!decision) return;
     completedMatchesRef.current = decision.wins;
-    setSelectedFieldId(decision.fieldId);
+    setSelectedFieldId(decision.fieldId as FieldId);
     return decision.fieldId !== selectedFieldId;
   };
   const rematch = () => {
@@ -6919,8 +3898,11 @@ export function BentenganPrototype() {
     highlightCharacterWithVoice(nextId);
   };
   const cycleArena = (direction: -1 | 1) => {
-    const index = fieldIds.indexOf(selectedFieldId);
-    setSelectedFieldId(fieldIds[(index + direction + fieldIds.length) % fieldIds.length] as FieldId);
+    const roster = getPlayableArenaIds(playerProfileRef.current, fieldIds.filter(id => id !== 'kampung3d'));
+    const pool = roster.length ? roster : fieldIds;
+    const index = pool.indexOf(selectedFieldId);
+    const nextId = pool[(index + direction + pool.length) % pool.length] as FieldId;
+    setSelectedFieldId(nextId);
   };
   const confirmCharacter = () => {
     if (!playerProfileRef.current || !selectedFaction ||
@@ -6933,13 +3915,6 @@ export function BentenganPrototype() {
       FIXED_ROSTERS[selectedFaction],fieldIds);
     if(playable)setSelectedFieldIdState(playable.arenaId as FieldId);
     setMenuStep('field');
-  };
-  const restartMatch = () => {
-    if(networkSession){quit();return;}
-    const gate = selectionGate();
-    if (gate) { setContentGateError(gate); setMode('menu'); return; }
-    keys.current.clear();
-    setRun(value => value + 1);
   };
   const goBack = () => {
     if (rulesOpen) return setRulesOpen(false);
@@ -7060,35 +4035,28 @@ export function BentenganPrototype() {
     setLeaderboardOpen(false);
   };
   if (assetsLoading) return (
-    <main
-      className={`pregame-shell asset-loading-screen ${selectionLoading ? `loading-ui-${selectedFaction ?? 'red'}` : ''}`}
-      aria-busy={!loadError}
-      aria-label={t(`Memuat aset ${loadProgress}%`)}
-    >
-      <LoadingMedia slot={gameLoading?'match':`character-${selectedFaction??'red'}`} arenaId={selectedFieldId}
-        fallback={<ArenaBackdrop id={gameLoading ? selectedFieldId : `${selectedFaction ?? 'red'}-loading`} video={gameLoading} />}/>
-      {t(selectionLoading && loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) && (
-        <img
-          className="team-loading-frame"
-          src={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
-          alt=""
-          aria-hidden="true"
-        />
-      ))}
-      <section className={`asset-loading-card ${selectionLoading&&loadingUsesBuiltinProgress(`character-${selectedFaction??'red'}`) ? 'team-loading-card' : ''} ${loadError ? 'load-error' : ''}`} aria-busy={!loadError} aria-live="polite">
-        <h1>{t(gameLoading ? 'MENYIAPKAN PERTANDINGAN' : 'MENYIAPKAN KARAKTER')}</h1>
-        <p>{t(loadError || 'Sebentar, timmu sedang bersiap.')}</p>
-        <progress max={100} value={loadProgress} aria-label={t("Progres pemuatan aset")} />
-        <p>{t(loadProgress)}{t("%")}</p>
-        {t(loadError && <button onClick={() => setLoadAttempt(v => v + 1)}>{t("COBA LAGI")}</button>)}
-        <button onClick={() => {
-          setGameLoading(false);
-          setMenuStep('team');
-          setLoadError('');
-        }}>{t("KEMBALI KE PILIH TIM")}</button>
-      </section>
-    </main>
+    <AssetLoadingScreen
+      selectionLoading={selectionLoading}
+      gameLoading={gameLoading}
+      faction={selectedFaction ?? 'red'}
+      fieldId={selectedFieldId}
+      frameSrc={loadingUiFrame(selectedFaction ?? 'red', loadProgress)}
+      loadError={loadError}
+      loadProgress={loadProgress}
+      onRetry={() => setLoadAttempt(v => v + 1)}
+      onBack={() => {
+        setGameLoading(false);
+        setMenuStep('team');
+        setLoadError('');
+      }}
+    />
   );
+  if (view === 'workshop')
+    return (
+      <main className="game-shell">
+        <CharacterWorkshop onClose={() => setView('game')} />
+      </main>
+    );
   if (mode === 'menu') {
     const activeFaction = hoveredFaction;
     return (
@@ -7102,484 +4070,116 @@ export function BentenganPrototype() {
         }
       >
         <div className="ink-noise" />
-        {t(contentGateError && <div className="content-gate-notice" role="alert">
+        {contentGateError && <div className="content-gate-notice" role="alert">
           {t(contentGateError)}<button onClick={() => setContentGateError('')} aria-label={t("Tutup pesan")}>{t("×")}</button>
-        </div>)}
-        {t(playerProfile && menuStep === 'splash' && (
-          <button
-            className="profile-trigger"
-            onClick={() => {
+        </div>}
+        {playerProfile && menuStep === 'splash' && (
+          <ProfileTriggerButton
+            onOpen={() => {
               keys.current.clear();
               setProfileOpen(true);
             }}
-            aria-label={t("Buka profil pemain")}
-          >
-            <UserRound size={19} />
-          </button>
-        ))}
-        {t(menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />)}
-        {t(menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />)}
-        {t(menuStep === 'splash' && (
-          <section className="splash-screen" aria-labelledby="game-title">
-            <img
-              className="splash-hero splash-red"
-              src={uiAsset('heroes/red-active.webp')}
-              alt={t("Raja dari Tim Merah")}
-            />
-            <img
-              className="splash-hero splash-green"
-              src={uiAsset('heroes/green-active.webp')}
-              alt={t("Kaka dari Tim Hijau")}
-            />
-            <div className="splash-center">
-              <img
-                className="splash-logo"
-                src={landingLogoAsset()}
-                alt={t("Benteng Squad Tag")}
-                id="game-title"
-              />
-              <button
-                className="enter-game"
-                onClick={() => {
-                  playAudioCue('press-play.mp3', 0.64);
-                  setMenuStep('team');
-                }}
-              >
-                <span>{t("PRESS")}</span>{t(" SPACE ")}<small>{t("atau klik untuk masuk")}</small>
-              </button>
-              <button type="button" className="multiplayer-open" aria-label={t("MULTIPLAYER · LOBBY")} onClick={()=>setMultiplayerOpen(true)}>
-                <img src={uiAsset('controls/multiplayer.webp')} alt="" width="1024" height="366" />
-              </button>
-            </div>
-          </section>
-        ))}
-
-        {t(menuStep === 'team' && (
-          <section className="team-screen" aria-labelledby="team-title">
-            <h1 id="team-title" className="sr-only">{t("Pilih tim")}</h1>
-            <img
-              className="ghost-logo"
-              src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
-              alt=""
-            />
-            {t((['red', 'green'] as Faction[]).map((faction) => (
-              <button
-                key={faction}
-                className={`team-pick team-pick-${faction} ${activeFaction === faction ? 'active' : ''}`}
-                onPointerEnter={() => setHoveredFaction(faction)}
-                onPointerLeave={() => setHoveredFaction(null)}
-                onFocus={() => setHoveredFaction(faction)}
-                onClick={() => {
-                  const firstId = chooseFaction(faction);
-                  if (!firstId) return;
-                  setMenuStep('character');
-                  playCharacterVoice(firstId);
-                }}
-                aria-label={t(`Pilih ${factionName(faction)}`)}
-              >
-                <img
-                  className="team-hero"
-                  src={uiAsset(
-                    `heroes/${faction}-${activeFaction === faction ? 'active' : 'inactive'}.webp`,
-                  )}
-                  alt=""
-                />
-                <img
-                  className="team-banner"
-                  src={uiAsset(
-                    `controls/team-${faction}-${activeFaction === faction ? 'active' : 'normal'}.webp`,
-                  )}
-                  alt={t(factionName(faction))}
-                />
-              </button>
-            )))}
-            <div className="team-hint">{t("Arah kiri/kanan untuk memilih · Enter untuk lanjut")}</div>
-          </section>
-        ))}
-
-        {t(menuStep === 'character' && selectedFaction && (
-          <section
-            className={`roster-screen faction-${selectedFaction}`}
-            aria-labelledby="roster-title"
-          >
-            <video
-              className="roster-video"
-              src={characterSelectionVideo(selectedFaction)}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-hidden="true"
-              onError={event => { event.currentTarget.hidden = true; }}
-            />
-            <header className="roster-branding">
-              <img
-                className="roster-team-main"
-                src={uiAsset(`controls/team-${selectedFaction}-active.webp`)}
-                alt={t(factionName(selectedFaction))}
-              />
-              <button
-                className="roster-team-swap"
-                onClick={() => {
-                  const next = selectedFaction === 'red' ? 'green' : 'red';
-                  const nextId = chooseFaction(next);
-                  if (!nextId) return;
-                  playCharacterVoice(nextId);
-                }}
-                aria-label={t("Ganti tim")}
-              >
-                <img
-                  src={uiAsset(
-                    `controls/team-${selectedFaction === 'red' ? 'green' : 'red'}-normal.webp`,
-                  )}
-                  alt={t(factionName(selectedFaction === 'red' ? 'green' : 'red'))}
-                />
-              </button>
-            </header>
-            <h1 id="roster-title" className="sr-only">{t("Pilih karakter ")}{t(factionName(selectedFaction))}
-            </h1>
-            <div className="roster-stage">
-              <button
-                className="carousel-arrow left"
-                onClick={() => cycleCharacter(-1)}
-                aria-label={t("Karakter sebelumnya")}
-              >{t("‹")}</button>
-              <div className="character-carousel">
-                {t(availableCharacters.map((character, index) => (
-                  <button
-                    key={character.id}
-                    className={`carousel-character ${selectedId === character.id ? 'selected' : ''} ${getCharacterSelectionState(playerProfile, character.id).locked ? 'locked' : ''}`}
-                    disabled={getCharacterSelectionState(playerProfile, character.id).locked}
-                    aria-label={t(getCharacterSelectionState(playerProfile, character.id).locked
-                      ? `${character.name} · TERKUNCI · BUKA DI LEVEL ${getCharacterSelectionState(playerProfile, character.id).requiredLevel}`
-                      : character.name)}
-                    style={
-                      {
-                        '--offset':
-                          index -
-                          availableCharacters.findIndex(
-                            (item) => item.id === selectedId,
-                          ),
-                      } as React.CSSProperties
-                    }
-                    /*onPointerEnter={(event) => {
-                      if (event.pointerType === 'mouse') {
-                        highlightCharacterWithVoice(character.id);
-                      }
-                    }}*/
-                    onFocus={() => highlightCharacterWithVoice(character.id)}
-                    onClick={() => highlightCharacterWithVoice(character.id)}
-                    aria-pressed={selectedId === character.id}
-                  >
-                    <SelectionPortrait
-                      id={character.id}
-                      alt={t(character.name)}
-                      active={selectedId === character.id}
-                    />
-                    <CharacterLockBadge profile={playerProfile} id={character.id} />
-                    {t(ULTIMATE_CHARACTER_IDS.has(character.id) && (
-                      <strong className="ultimate-roster-badge" aria-label={t("Memiliki Ultimate")}>
-                        <img src={uiAsset('controls/ultimate-label.png')} alt="" aria-hidden="true" />
-                      </strong>
-                    ))}
-                    <span>{t(character.name)}</span>
-                  </button>
-                )))}
-              </div>
-              <button
-                className="carousel-arrow right"
-                onClick={() => cycleCharacter(1)}
-                aria-label={t("Karakter berikutnya")}
-              >{t("›")}</button>
-            </div>
-            <aside className={`ability-panel framed-character-panel ${selectedFaction}`}>
-              <img
-                className="character-panel-frame"
-                src={uiAsset(`panels/character-panel-${selectedFaction}.png`)}
-                alt=""
-                aria-hidden="true"
-              />
-              <header className="character-panel-identity">
-              <span className="character-panel-role">
-                {t(factionName(selectedFaction))}{t(" · ")}{t(roleLabel[selected.role])}
-              </span>
-              <h2 className="character-panel-name">{t(selected.name)}</h2>
-              <p className="character-panel-summary">{t(selected.copy)}</p>
-              </header>
-              <section className="character-panel-skill">
-                <small>{t("KEMAMPUAN KHUSUS")}</small>
-                <b>{t(selected.passiveName)}</b>
-                <p>{t(selected.passiveCopy)}</p>
-              </section>
-              <dl className="character-panel-stats">
-                <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">{t("Kecepatan ")}<b>{t(selected.speed)}</b>
-                  </dt>
-                  <dd className="character-panel-stat-track">
-                    <i
-                      style={{ width: statPercent(selected.speed, 188, 240) }}
-                    />
-                  </dd>
-                </div>
-                <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">{t("Boost ")}<b>{t(selected.boost)}</b>
-                  </dt>
-                  <dd className="character-panel-stat-track">
-                    <i
-                      style={{ width: statPercent(selected.boost, 84, 128) }}
-                    />
-                  </dd>
-                </div>
-                <div className="character-panel-stat">
-                  <dt className="character-panel-stat-label">{t("Kelincahan ")}<b>{t(selected.agility.toFixed(2))}</b>
-                  </dt>
-                  <dd className="character-panel-stat-track">
-                    <i
-                      style={{
-                        width: statPercent(selected.agility, 0.82, 1.25),
-                      }}
-                    />
-                  </dd>
-                </div>
-              </dl>
-              <button
-                className="graffiti-primary character-panel-select"
-                onClick={confirmCharacter}
-                disabled={getCharacterSelectionState(playerProfile, selectedId).locked}
-              >
-                <span>{t("PILIH ")}{t(selected.name)}</span>
-              </button>
-            </aside>
-            {t(playerProfile && <UltimateUpgradePanel key={selectedId} profile={playerProfile}
-              characterId={selectedId} onRefresh={refreshPlayerProfile} />)}
-            <div className="character-mobile-summary">
-              <p>{t(selected.passiveCopy)}</p>
-              <b>{t("Kecepatan ")}{t(selected.speed)}{t(" · Boost ")}{t(selected.boost)}{t(" · Kelincahan ")}{t(selected.agility.toFixed(2))}</b>
-            </div>
-            {t(playerProfile&&<div className="character-next-goal" aria-label={t("Target unlock berikutnya")}>
-              {t((()=>{const goal=getNextCharacterGoal(playerProfile);return goal
-                ? `Target berikutnya: ${CHARACTER_BY_ID[goal.characterId].name} · Lv.${goal.minLevel} · ${goal.xpRemaining} XP lagi`
-                : 'Semua karakter telah terbuka';})())}
-            </div>)}
-          </section>
-        ))}
-
-        {t(menuStep === 'field' && selectedFaction && (
-          <section
-            className={`field-select-screen map-selection-screen faction-${selectedFaction}`}
-            aria-labelledby="field-title"
-          >
-            <div className="map-selection-stage">
-              <div className="map-selection-main">
-                <img
-                  className="map-selection-frame"
-                  src={uiAsset('map-selection/map-selection-frame.png')}
-                  alt=""
-                  aria-hidden="true"
-                />
-                <img
-                  className="map-selection-preview"
-                  src={uiAsset(`fields/${selectedArena.id}.webp`)}
-                  alt={t(`Preview arena ${selectedArena.name}`)}
-                />
-                {t(!selectedArenaUnlock.unlocked && (
-                  <div className="map-selection-lock-overlay" aria-label={t("Arena terkunci")}>
-                    <Lock aria-hidden="true" />
-                    <span>{t("ARENA TERKUNCI")}</span>
-                  </div>
-                ))}
-                <div className="map-selection-roster" aria-label={t("Skuad yang akan bermain")}>
-                  {t(squad.map((id, index) => (
-                    <figure key={id} className={index === 0 ? 'controlled' : ''}>
-                      <CharacterPreview
-                        id={id}
-                        alt={t(CHARACTER_BY_ID[id].name)}
-                        eager={index === 0}
-                      />
-                      <figcaption>{t(CHARACTER_BY_ID[id].name)}</figcaption>
-                    </figure>
-                  )))}
-                </div>
-              </div>
-              <button
-                className="map-selection-nav previous"
-                aria-label={t("Arena sebelumnya")}
-                onClick={() => cycleArena(-1)}
-              >
-                <ChevronLeft aria-hidden="true" />
-              </button>
-              <button
-                className="map-selection-nav next"
-                aria-label={t("Arena berikutnya")}
-                onClick={() => cycleArena(1)}
-              >
-                <ChevronRight aria-hidden="true" />
-              </button>
-              <div className="map-selection-info">
-                <img
-                  className="map-selection-info-frame"
-                  src={uiAsset('map-selection/map-selection-info-frame.png')}
-                  alt=""
-                  aria-hidden="true"
-                />
-                <section className="map-selection-details" aria-live="polite">
-                  <span>{t(selectedArena.difficulty)}</span>
-                  <h1 id="field-title">{t(selectedArena.name)}</h1>
-                  <p className={selectedArenaUnlock.unlocked ? undefined : 'map-unlock-requirement'}>
-                    {t(selectedArenaUnlock.unlocked ? selectedArena.kicker : selectedArenaUnlock.requirement)}
-                  </p>
-                </section>
-              </div>
-            </div>
-            <header>
-              <span>{t("LANGKAH TERAKHIR")}</span>
-              <h1 id="field-title">{t("Pilih arena pertarungan")}</h1>
-              <p>{t("Setiap arena punya kepadatan jalur berbeda. Rotasi otomatis terjadi setelah tiga kemenangan.")}</p>
-            </header>
-            <div className="arena-carousel">
-            <button className="arena-nav previous" aria-label={t("Arena sebelumnya")} onClick={() => cycleArena(-1)}>{t("‹")}</button>
-            <div className="field-card-row" aria-label={t("Pilihan arena")}>
-              {t(FIELD_CONFIGS.map((field, index) => (
-                <button
-                  key={field.id}
-                  className={`field-card field-${field.id} difficulty-${field.difficulty} ${selectedFieldId === field.id ? 'selected' : ''} ${!playerProfile || !isArenaUnlocked(playerProfile, field.id) ? 'locked' : ''}`}
-                  onClick={() => setSelectedFieldId(field.id)}
-                  aria-pressed={selectedFieldId === field.id}
-                  style={{ '--arena-offset': ((index - FIELD_CONFIGS.findIndex(item => item.id === selectedFieldId) + FIELD_CONFIGS.length + 1) % FIELD_CONFIGS.length) - 1 } as React.CSSProperties}
-                >
-                  <img
-                    className="field-card-preview"
-                    src={uiAsset(`fields/${field.id}.webp`)}
-                    alt=""
-                    aria-hidden="true"
-                  />
-                  <small>{t("0")}{t(index + 1)}</small>
-                  <em>{t(field.difficulty)}</em>
-                  <strong>{t(field.name)}</strong>
-                  <span>{t(field.kicker)}</span>
-                  <i>
-                    {t(selectedFieldId === field.id
-                      ? 'ARENA AKTIF'
-                      : !playerProfile || !isArenaUnlocked(playerProfile, field.id)
-                        ? 'TERKUNCI · LIHAT PERSYARATAN' : 'PILIH ARENA')}
-                  </i>
-                </button>
-              )))}
-            </div>
-            <button className="arena-nav next" aria-label={t("Arena berikutnya")} onClick={() => cycleArena(1)}>{t("›")}</button>
-            </div>
-            <div className="match-lineup">
-              <div>
-                {t(squad.map((id, index) => (
-                  <figure key={id} className={index === 0 ? 'controlled' : ''}>
-                    <CharacterPreview
-                      id={id}
-                      alt={t(CHARACTER_BY_ID[id].name)}
-                      eager={index === 0}
-                    />
-                    <figcaption>
-                      {t(index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name)}
-                    </figcaption>
-                  </figure>
-                )))}
-              </div>
-            </div>
-            <button
-              className={`map-selection-start launch-${selectedFaction}`}
-              disabled={!selectedArenaUnlock.unlocked}
-              aria-disabled={!selectedArenaUnlock.unlocked}
-              onClick={selectedArenaUnlock.unlocked ? start : undefined}
-            >
-              <span>
-                {t(selectedArenaUnlock.unlocked
-                  ? <><Play size={19} fill="currentColor" />{t(" MULAI MAIN")}</>
-                  : <><Lock size={19} />{t(" ARENA TERKUNCI")}</>)}
-              </span>
-            </button>
-          </section>
-        ))}
-
-        {t(menuStep !== 'splash' && (
-          <button
-            className="graffiti-back"
-            onClick={goBack}
-            aria-label={t("Kembali")}
-          >
-            <img className="back-normal" src={uiAsset('controls/back-inactive.png')} alt="" />
-            <img className="back-hover" src={uiAsset('controls/back-hover.png')} alt="" aria-hidden="true" />
-          </button>
-        ))}
-        <div className={`pregame-actions step-${menuStep}`}>
-          {t(menuStep === 'splash' && <button className="music-toggle" onKeyDown={event => event.stopPropagation()} onClick={() => setCreditsOpen(true)}>{t("ABOUT DEVELOPER")}</button>)}
-          <button
-            className={`sound-trigger ${musicMuted ? 'muted' : ''}`}
-            onClick={toggleBackgroundMusic}
-            aria-pressed={musicMuted}
-            aria-label={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
-          >
-            <img src={uiAsset(`controls/sound-trigger-${musicMuted ? 'off' : 'on'}.png`)} alt="" />
-          </button>
-          <button
-            className="rules-button graffiti-primary"
-            onClick={() => setRulesOpen(true)}
-          >
-            <span>{t("CARA MAIN")}</span>
-          </button>
-          <AudioSettings
-            onOpen={() => keys.current.clear()}
-            trigger={<img src={uiAsset('controls/settings-button.png')} alt="" />}
           />
-          <GraphicsSettings onOpen={() => keys.current.clear()} />
-        </div>
-        {t(creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />)}
-        {t(rulesOpen && (
-          <div
-            className="rules-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rules-title"
-          >
-            <div className="rules-dialog">
-              <button
-                className="rules-close"
-                onClick={() => setRulesOpen(false)}
-                aria-label={t("Tutup")}
-              >{t("×")}</button>
-              <span>{t("BENTENGAN 5V5")}</span>
-              <h2 id="rules-title">{t("Jaga tim. Rebut benteng.")}</h2>
-              <ol>
-                <li>
-                  <b>{t("Bersiap di bentengmu.")}</b>{t(" Setelah siap, keluar dalam 5 detik. Balik ke benteng untuk memperbarui urutan tag.")}</li>
-                <li>
-                  <b>{t("Kejar lawan yang keluar lebih dulu.")}</b>{t(" Sentuh untuk tag. Lawan yang kena masuk penjara timmu.")}</li>
-                <li>
-                  <b>{t("Bebaskan temanmu.")}</b>{t(" Sentuh rekan paling ujung di rantai penjara untuk rescue seluruh rantai. Mereka pulang otomatis dengan kebal tag singkat, lewat jalur aman.")}</li>
-                <li>
-                  <b>{t("Sambung aksi tim.")}</b>{t(" Tag atau rescue dari rekan berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.")}</li>
-                <li>
-                  <b>{t("Ambil 2 ronde untuk menang.")}</b>{t(" Menang ronde dengan menahan semua lawan selama 2 detik, atau mengisi bar perebutan benteng lawan selama 1,5 detik.")}</li>
-                <li>
-                  <b>{t("Waktu normal 4 menit.")}</b>{t(" Seri? Lanjut sudden death: tag atau rebut benteng berikutnya menang. Arena berganti setelah 3 kemenangan pertandingan.")}</li>
-                <li>
-                  <b>{t("Map Kanal:")}</b>{t(" seberangi sungai lewat jembatan atau parkour. Jatuh ke air mengembalikan pemain ke benteng.")}</li>
-                <li>
-                  <b>{t("Ultimate: pilih momenmu.")}</b>{t(" Raja mempercepat rekan aktif; Kaka melindungi tim dari tag. Bebe dan Ciici kebal tag sejak lepas landas sampai selesai mendarat. Selama itu mereka tidak bisa tag, rescue, mengambil boost, atau merebut benteng. Rintangan rendah hanya bisa dilewati saat terbang. Durasi efek mengikuti level upgrade.")}</li>
-              </ol>
-              <p>{t("Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.")}</p>
-            </div>
-          </div>
-        ))}
-        {t(playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />)}
-        {t(playerProfile && profileOpen && (
-          <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")}/>}>
+        )}
+        {menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />}
+        {menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />}
+        {menuStep === 'splash' && (
+          <SplashScreen
+            resolveAsset={uiAsset}
+            onEnter={() => {
+              playAudioCue('press-play.mp3', 0.64);
+              setMenuStep('team');
+            }}
+            onMultiplayer={() => setMultiplayerOpen(true)}
+          />
+        )}
+
+        {menuStep === 'team' && (
+          <TeamScreen
+            activeFaction={activeFaction}
+            logoSrc={publicAsset('brand/benteng-tag-logo.webp?v=9')}
+            resolveAsset={uiAsset}
+            onHover={(faction) => setHoveredFaction(faction)}
+            onPick={(faction) => {
+              const firstId = FIXED_ROSTERS[faction][0];
+              chooseFaction(faction);
+              setMenuStep('character');
+              playCharacterVoice(firstId);
+            }}
+          />
+        )}
+
+        {menuStep === 'character' && selectedFaction && (
+          <CharacterSelectScreen
+            faction={selectedFaction}
+            videoSrc={characterSelectionVideo(selectedFaction)}
+            characters={availableCharacters}
+            selectedId={selectedId}
+            selected={selected}
+            resolveAsset={uiAsset}
+            onCycle={cycleCharacter}
+            onHighlight={highlightCharacterWithVoice}
+            onSwapTeam={() => {
+              const next = selectedFaction === 'red' ? 'green' : 'red';
+              const nextId = FIXED_ROSTERS[next][0];
+              chooseFaction(next);
+              playCharacterVoice(nextId);
+            }}
+            onSelect={() => {
+              stopCharacterVoice();
+              setMenuStep('field');
+            }}
+          />
+        )}
+
+        {menuStep === 'field' && selectedFaction && (
+          <FieldSelectScreen
+            faction={selectedFaction}
+            selectedFieldId={selectedFieldId}
+            fields={FIELD_CONFIGS}
+            squad={squad}
+            resolveAsset={uiAsset}
+            onSelect={setSelectedFieldId}
+            onStep={cycleArena}
+            onStart={start}
+          />
+        )}
+
+        {menuStep !== 'splash' && (
+          <BackButton resolveAsset={uiAsset} onBack={goBack} />
+        )}
+        <MenuActionsRow
+          menuStep={menuStep}
+          musicMuted={musicMuted}
+          resolveAsset={uiAsset}
+          onAbout={() => setCreditsOpen(true)}
+          onToggleMusic={toggleBackgroundMusic}
+          onOpenRules={() => setRulesOpen(true)}
+          onAudioOpen={() => keys.current.clear()}
+        />
+        {menuStep === 'character' && (
+          <WorkshopLink
+            onOpen={() => {
+              stopCharacterVoice();
+              setView('workshop');
+            }}
+          />
+        )}
+        {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
+        {rulesOpen && <RulesOverlay onClose={() => setRulesOpen(false)} />}
+        {playerProfile && menuStep === 'field' && (
+          <ArenaUnlockPanel profile={playerProfile} catalog={FIELD_CONFIGS} selectedId={selectedFieldId} />
+        )}
+        {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
+        {playerProfile && profileOpen && (
+          <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")} />}>
             <PlayerProfilePanel
               profile={playerProfile}
               onClose={() => setProfileOpen(false)}
             />
           </Suspense>
-        ))}
-        {t(multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label={t("Memuat panel multiplayer…")}/>}><MultiplayerPanel
+        )}
+        {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label={t("Memuat panel multiplayer…")} />}><MultiplayerPanel
           initialName={playerProfile?.username}
           arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
           prepareContent={async id=>{
@@ -7595,985 +4195,212 @@ export function BentenganPrototype() {
           onLaunch={session=>{const state=session.read(),local=state.lobby!.participants.find(p=>p.peerId===state.localPeerId)!;
             keys.current.clear();setSelectedFaction(local.team);setSelectedIdState(local.characterId);setSelectedFieldIdState(session.content.arenaId as FieldId);
             setNetworkSession(session);setMultiplayerOpen(false);setSnapshot(initialSnapshot);setMode('playing');}}
-          onClose={()=>setMultiplayerOpen(false)}/></Suspense>)}
+          onClose={()=>setMultiplayerOpen(false)}/></Suspense>}
       </main>
     );
   }
   return (
-    <main className={`game-shell playing-shell ${hudPreferences.contrast?'hud-high-contrast':''}`}
-      style={{'--hud-text-scale':hudPreferences.scale} as CSSProperties}>
-      {t(contentGateError && <div className="content-gate-notice" role="alert">
-        {t(contentGateError)}<button onClick={() => setContentGateError('')} aria-label={t("Tutup pesan")}>{t("×")}</button>
-      </div>)}
-      <header className="game-topbar">
-        <div className="brand-lockup">
-          <img
-            className="game-logo"
-            src={publicAsset('brand/benteng-tag-logo.webp?v=9')}
-            alt={t("Benteng Squad Tag")}
-          />
-          <span className="brand-kicker">
-            <i />{t(" BENTENGAN 5V5")}<br />{t("Field compact · guarded")}</span>
-        </div>
-        <div className="top-actions">
-          <HudSettings value={hudPreferences} onChange={setHudPreferences} onOpen={()=>keys.current.clear()}/>
-          {t(playerProfile && (
-            <button
-              className="icon-button profile-match-trigger"
-              onClick={() => {
-                keys.current.clear();
-                setProfileOpen(true);
-              }}
-              aria-label={t("Buka profil pemain")}
-              title={t("Profil pemain")}
-            >
-              <UserRound size={18} />
-            </button>
-          ))}
-          <AudioSettings onOpen={() => keys.current.clear()} />
-          <button
-            className={`icon-button ${musicMuted ? 'muted' : ''}`}
-            onClick={toggleBackgroundMusic}
-            aria-pressed={musicMuted}
-            aria-label={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
-            title={t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
-          >
-            {t(musicMuted ? <VolumeX size={18} /> : <Volume2 size={18} />)}
-          </button>
-          <button
-            className="icon-button hud-menu-button"
-            onClick={() => setMissionOpen((value) => !value)}
-            aria-label={t("Buka menu misi")}
-          >
-            <Menu size={19} />
-          </button>
-          <button
-            className="icon-button"
-            onClick={() => keys.current.add('p')}
-            aria-label={t("Jeda")}
-          >
-            <Pause size={18} />
-          </button>
-        </div>
-      </header>
+    <main className={`game-shell playing-shell${hudPreferences.contrast ? ' hud-high-contrast' : ''}`}>
+      <PlayingTopbar
+        logoSrc={publicAsset('brand/benteng-tag-logo.webp?v=9')}
+        hasProfile={Boolean(playerProfile)}
+        musicMuted={musicMuted}
+        hudPreferences={hudPreferences}
+        onHudPreferences={setHudPreferences}
+        onHudOpen={() => keys.current.clear()}
+        onOpenProfile={() => {
+          keys.current.clear();
+          setProfileOpen(true);
+        }}
+        onAudioOpen={() => keys.current.clear()}
+        onToggleMusic={toggleBackgroundMusic}
+        onToggleMission={() => setMissionOpen((value) => !value)}
+        onPause={() => keys.current.add('p')}
+      />
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas
             ref={canvasRef}
             aria-label={t(`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`)}
           />
-          <div className="orientation-hint">{t("Putar perangkat untuk arena yang lebih luas. Kontrol tetap tersedia di bawah.")}</div>
-          {t(!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
+          <OrientationHint />
+          {!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
             tagged={snapshot.mission.tag} rescued={snapshot.mission.rescue}
             captured={snapshot.statsBoard.reason==='BENTENG DIREBUT'&&snapshot.statsBoard.winner===(selectedFaction==='red'?'blue':'red')}
-            state={snapshot.state}/>)}
-          {t(rendererError && <div className="renderer-error" role="alert">
-            <strong>{t("MAP 3D TIDAK TERSEDIA")}</strong>
-            <p>{t(rendererError)}</p>
-            <button onClick={() => { setRendererError(''); quit(); }}>{t("KEMBALI KE MENU")}</button>
-          </div>)}
-          <div
-            className="stage-hud"
-            role="button"
-            tabIndex={0}
-            aria-label={t("Buka leaderboard statistik match")}
-            onClick={() => setLeaderboardOpen((value) => !value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                setLeaderboardOpen((value) => !value);
-              }
-            }}
-          >
-            <div className="hud-red">
-              <span>{t(snapshot.blue)}</span>
-              <b>{t("TIM MERAH")}<small>{t(snapshot.blueHeld)}{t("/5 TAHANAN")}</small>
-              </b>
-            </div>
-            <time>
-              {t(snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer))}
-              <small>{t("WAKTU")}</small>
-            </time>
-            <div className="hud-green">
-              <b>{t("HIJAU")}<small>{t(snapshot.redHeld)}{t("/5 TAHANAN")}</small>
-              </b>
-              <span>{t(snapshot.red)}</span>
-            </div>
-          </div>
-          {t(snapshot.matchEvents.length > 0 && (
-            <aside className="match-event-feed" aria-live="polite">
-              {t(snapshot.matchEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className={`match-event-toast ${event.kind}`}
-                >
-                  <img src={MATCH_EVENT_FRAME[event.kind]} alt="" />
-                  <p>
-                    {t(event.kind === 'tag' && (
-                      <>
-                        <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("menangkap")}{t(' ')}
-                        <strong className={event.targetTeam}>{t(event.targetName)}</strong>
-                      </>
-                    ))}
-                    {t(event.kind === 'rescue' && (
-                      <>
-                        <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("menyelamatkan tim")}</>
-                    ))}
-                    {t(event.kind === 'rescue-request' && (
-                      <>
-                        <strong className={event.actorTeam}>{t(event.actorName)}</strong>{t(' ')}{t("meminta rescue!")}</>
-                    ))}
-                  </p>
-                </div>
-              )))}
-            </aside>
-          ))}
-          {t(snapshot.roundResult.visible && snapshot.roundResult.winner && (
-            <section
-              className={`round-result-announcement ${FACTION_FOR_TEAM[snapshot.roundResult.winner]}`}
-              aria-live="assertive"
-              aria-label={t(`${teamName(snapshot.roundResult.winner)} memenangkan ${snapshot.roundResult.final ? 'pertandingan' : 'ronde'}`)}
-            >
-              <img
-                src={ROUND_RESULT_ASSET[snapshot.roundResult.winner]}
-                alt=""
-              />
-              <p>
-                <strong>{t(teamName(snapshot.roundResult.winner).toUpperCase())}</strong>{t(' ')}
-                {t(snapshot.roundResult.final ? 'MENANG MATCH!' : 'MENANG RONDE!')}
-              </p>
-            </section>
-          ))}
-          {t(showStatsBoard && (
-            <section
-              className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
-              role="dialog"
-              aria-modal={statsBoard.visible}
-              aria-labelledby="round-stats-title"
-            >
-              <div className="round-stats-panel">
-                <header className="round-stats-head">
-                  <div>
-                    <span>
-                      {t(statsBoard.final
-                        ? 'PERTANDINGAN SELESAI'
-                        : leaderboardOpen && !statsBoard.visible
-                          ? 'PAPAN SKOR'
-                          : `REKAP RONDE ${statsBoard.round}`)}
-                    </span>
-                    <h2 id="round-stats-title">
-                      {t(statsBoard.winner
-                        ? `${teamName(statsBoard.winner).toUpperCase()} MENANG!`
-                        : 'STATISTIK PEMAIN')}
-                    </h2>
-                    <p>
-                      {t(statsBoard.final
-                        ? 'Main lagi atau pilih karakter lain.'
-                        : statsBoard.visible
-                          ? `Lanjut otomatis ${statsBoard.countdown}s`
-                          : 'Tekan Tab atau klik skor untuk melihat statistik pertandingan.')}
-                    </p>
-                  </div>
-                  <div className="round-match-meta" aria-label={t("Info pertandingan")}>
-                    <span>
-                      <Gauge size={14} />
-                      <small>{t("DURASI")}</small>
-                      <b>{t(formatTime(statsBoard.duration))}</b>
-                    </span>
-                    <span>
-                      <Flag size={14} />
-                      <small>{t("FORMAT")}</small>
-                      <b>{t(statsBoard.format.toUpperCase())}</b>
-                    </span>
-                    <span>
-                      <MapIcon size={14} />
-                      <small>{t("MAP")}</small>
-                      <b>{t(statsBoard.mapName.toUpperCase())}</b>
-                    </span>
-                  </div>
-                  {t(!statsBoard.visible && (
-                    <button
-                      className="round-stats-close"
-                      onClick={closeLeaderboard}
-                      aria-label={t("Tutup leaderboard")}
-                    >
-                      <X size={16} />
-                    </button>
-                  ))}
-                </header>
-                <div className="round-scoreline" aria-label={t("Skor match")}>
-                  <span>{t("TIM MERAH ")}<b>{t(statsBoard.score.blue)}</b>
-                  </span>
-                  <i>{t("BEST OF 3")}</i>
-                  <span>
-                    <b>{t(statsBoard.score.red)}</b>{t(" HIJAU")}</span>
-                </div>
-                <div className="round-stats-grid">
-                  {t((['blue', 'red'] as Team[]).map((team) => (
-                    <article key={team} className={`round-team-card ${team}`}>
-                      <h3>{t(teamName(team).toUpperCase())}</h3>
-                      {t(statsBoard.teams[team].map((player) => (
-                        <div
-                          key={player.id}
-                          className={`round-stat-row ${player.controlled ? 'controlled' : ''} ${player.mvp ? 'mvp' : ''}`}
-                        >
-                          <CharacterPreview id={player.characterId} alt="" />
-                          <b>{t(player.controlled ? 'KAMU' : player.name)}</b>
-                          <span title={t("Tag musuh")}>
-                            <Zap size={13} /> {t(player.tags)}
-                          </span>
-                          <span title={t("Masuk penjara")}>
-                            <Lock size={13} /> {t(player.prisons)}
-                          </span>
-                          <span title={t("Rescue teman")}>
-                            <Shield size={13} /> {t(player.rescues)}
-                          </span>
-                          <strong title={t("Skor kontribusi")}>
-                            {t(player.contribution)}
-                          </strong>
-                        </div>
-                      )))}
-                    </article>
-                  )))}
-                </div>
-                {t(statsBoard.mvpName && (
-                  <aside className="round-mvp-card">
-                    <b>{t("MVP")}</b>
-                    <span>
-                      {t(statsBoard.mvpName)}{t(" · Kontribusi tertinggi di pertandingan ini")}</span>
-                  </aside>
-                ))}
-                {t(statsBoard.final && <MatchProgressionSummary result={matchProgressionResult} />)}
-                {t(statsBoard.final && <UnlockNotificationPanel result={matchProgressionResult}
-                  arenas={FIELD_CONFIGS} dismissed={unlockNoticeDismissed}
-                  onDismiss={() => setUnlockNoticeDismissed(true)} />)}
-                <footer className="round-stats-actions">
-                  {t(statsBoard.final ? (
-                    <>
-                      <button className="primary" onClick={rematch}>
-                        <RotateCcw size={16} />{t(" MAIN LAGI")}</button>
-                      <button onClick={backToCharacterSelect}>
-                        <Users size={16} />{t(" PILIH KARAKTER")}</button>
-                      <button onClick={backToFieldSelect}>
-                        <MapIcon size={16} />{t(" GANTI MAP")}</button>
-                      <button className="danger" onClick={quit}>
-                        <LogOut size={16} />{t(" KELUAR")}</button>
-                    </>
-                  ) : statsBoard.visible ? (
-                    <>
-                      <button className="primary" onClick={requestNextRound}>
-                        <Play size={16} fill="currentColor" />{t(" RONDE BERIKUTNYA")}</button>
-                      <button className="danger" onClick={quit}>
-                        <LogOut size={16} />{t(" KELUAR")}</button>
-                    </>
-                  ) : (
-                    <button className="primary" onClick={closeLeaderboard}>
-                      <Check size={16} />{t(" TUTUP")}</button>
-                  ))}
-                </footer>
-              </div>
-            </section>
-          ))}
-          <div className="arena-intel" aria-label={t("Status aturan pertandingan")}>
-            <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
-              <Flag size={12} />
-              {t(snapshot.baseGrace > 0
-                ? `KELUAR ${snapshot.baseGrace}s`
-                : 'BASE AMAN')}
-            </span>
-            <span
-              className={
-                snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
-              }
-            >
-              <Lock size={12} /> {t(snapshot.fortLock.toUpperCase())}
-            </span>
-            <span>
-              <BatteryCharging size={12} />{t(" REFILL ")}{t(snapshot.pickupCount)}
-            </span>
-            <span>
-              <RotateCcw size={12} />{t(" ROTASI ")}{t(snapshot.fieldWins)}{t("/3")}</span>
-          </div>
-          {t(false && (
-            <div className="start-panel character-select">
-              <div className="character-select-heading">
-                <div>
-                  <p>{t("LANGKAH 1 · PILIH TIM")}</p>
-                  <h1>{t("Merah atau Hijau.")}<br />{t("Tentukan pihakmu.")}</h1>
-                </div>
-                <span>{t("Tim Merah bertahan dari kiri. Tim Hijau bertahan dari kanan. Setiap tim memiliki tujuh karakter tetap dan membawa lima pemain ke field.")}</span>
-              </div>
-              <div className="team-chooser" aria-label={t("Pilih tim")}>
-                {t((['red', 'green'] as Faction[]).map((faction) => (
-                  <button
-                    key={faction}
-                    className={`${faction} ${selectedFaction === faction ? 'selected' : ''}`}
-                    onClick={() => chooseFaction(faction)}
-                    aria-pressed={selectedFaction === faction}
-                  >
-                    <span>
-                      <b>{t(factionName(faction))}</b>
-                      <small>
-                        {t(GAME_RULES.teams[faction].side)}{t(" · 7 karakter")}</small>
-                    </span>
-                    <span className="team-mini-roster">
-                      {t(FIXED_ROSTERS[faction].map((id) => (
-                        <CharacterPreview
-                          key={id}
-                          id={id}
-                          alt={t(CHARACTER_BY_ID[id].name)}
-                        />
-                      )))}
-                    </span>
-                  </button>
-                )))}
-              </div>
-              {t(selectedFaction && (
-                <div className={`selection-step ${selectedFaction}`}>
-                  <div className="selection-step-head">
-                    <span>{t("LANGKAH 2 · PILIH KARAKTER")}{t(' ')}
-                      {t(factionName(selectedFaction!).toUpperCase())}
-                    </span>
-                    <b>{t("2 cadangan · 5 turun ke field")}</b>
-                  </div>
-                  <div className="character-row">
-                    {t(availableCharacters.map((character) => (
-                      <button
-                        key={character.id}
-                        className={
-                          selectedId === character.id ? 'selected' : ''
-                        }
-                        disabled={getCharacterSelectionState(playerProfile, character.id).locked}
-                        onPointerEnter={(event) => {
-                          if (event.pointerType === 'mouse') {
-                            highlightCharacterWithVoice(character.id);
-                          }
-                        }}
-                        onFocus={() => highlightCharacterWithVoice(character.id)}
-                        onClick={() => highlightCharacterWithVoice(character.id)}
-                        aria-pressed={selectedId === character.id}
-                      >
-                        <CharacterPreview
-                          id={character.id}
-                          alt={t(`Portrait ${character.name}`)}
-                          eager={selectedId === character.id}
-                        />
-                        <CharacterLockBadge profile={playerProfile} id={character.id} />
-                        <span>
-                          <b>{t(character.name)}</b>
-                          <small>{t(roleLabel[character.role])}</small>
-                          <em>{t(character.passiveName)}</em>
-                        </span>
-                      </button>
-                    )))}
-                  </div>
-                  <div
-                    className="selected-character"
-                    style={{ borderColor: selected.accent }}
-                  >
-                    <CharacterPreview
-                      id={selected.id}
-                      alt={t(`Portrait ${selected.name}`)}
-                      eager
-                    />
-                    <div className="selected-summary">
-                      <span>
-                        {t(factionName(selectedFaction!))}{t(" · ")}{t(roleLabel[selected.role])}
-                      </span>
-                      <b>{t(selected.name)}</b>
-                      <small>{t(selected.copy)}</small>
-                      <div className="character-passive">
-                        <strong>{t(selected.passiveName)}</strong>
-                        <i>{t(selected.passiveCopy)}</i>
-                      </div>
-                    </div>
-                    <dl>
-                      <div>
-                        <dt>{t("Kecepatan ")}<b>{t(selected.speed)}</b>
-                        </dt>
-                        <dd>
-                          <i>
-                            <span
-                              style={{
-                                width: statPercent(selected.speed, 188, 240),
-                              }}
-                            />
-                          </i>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>{t("Boost ")}<b>{t(selected.boost)}</b>
-                        </dt>
-                        <dd>
-                          <i>
-                            <span
-                              style={{
-                                width: statPercent(selected.boost, 84, 128),
-                              }}
-                            />
-                          </i>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>{t("Kelincahan ")}<b>{t(selected.agility.toFixed(2))}</b>
-                        </dt>
-                        <dd>
-                          <i>
-                            <span
-                              style={{
-                                width: statPercent(
-                                  selected.agility,
-                                  0.82,
-                                  1.25,
-                                ),
-                              }}
-                            />
-                          </i>
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-              ))}
-              <div className="field-row">
-                <span>{t("LANGKAH 3 · PILIH ARENA")}</span>
-                {t(FIELD_CONFIGS.map((field) => (
-                  <button
-                    key={field.id}
-                    className={selectedFieldId === field.id ? 'selected' : ''}
-                    onClick={() => setSelectedFieldId(field.id)}
-                    aria-pressed={selectedFieldId === field.id}
-                  >
-                    <b>{t(field.name)}</b>
-                    <small>{t(field.kicker)}</small>
-                  </button>
-                )))}
-              </div>
-              {t(selectedFaction ? (
-                <div className={`squad-preview ${selectedFaction}`}>
-                  <span>
-                    {t(factionName(selectedFaction!).toUpperCase())}{t(" · LINEUP 5v5")}</span>
-                  <div>
-                    {t(squad.map((id, index) => (
-                      <figure
-                        key={`ally-${id}`}
-                        className={`team-${selectedFaction} ${index === 0 ? 'controlled' : ''}`}
-                      >
-                        <CharacterPreview
-                          id={id}
-                          alt={t(CHARACTER_BY_ID[id].name)}
-                          eager={index === 0}
-                        />
-                        <figcaption>
-                          {t(index === 0
-                            ? 'KAMU'
-                            : selectedFaction === 'red'
-                              ? 'M'
-                              : 'H')}
-                        </figcaption>
-                      </figure>
-                    )))}
-                    <i>{t("VS")}</i>
-                    {t(opponentSquad.map((id) => (
-                      <figure
-                        key={`enemy-${id}`}
-                        className={`team-${selectedFaction === 'red' ? 'green' : 'red'}`}
-                      >
-                        <CharacterPreview
-                          id={id}
-                          alt={t(CHARACTER_BY_ID[id].name)}
-                        />
-                        <figcaption>
-                          {t(selectedFaction === 'red' ? 'H' : 'M')}
-                        </figcaption>
-                      </figure>
-                    )))}
-                  </div>
-                  <button className="start-button" onClick={start}>
-                    <Play size={18} fill="currentColor" />{t(" Main sebagai")}{t(' ')}
-                    {t(selected.name)}
-                  </button>
-                </div>
-              ) : (
-                <div className="choose-team-hint">{t("Pilih Tim Merah atau Tim Hijau untuk membuka roster karakter.")}</div>
-              ))}
-            </div>
-          ))}
-          {t(mode === 'playing' && (
+            state={snapshot.state}/>}
+          {rendererError && (
+            <RendererErrorNotice
+              error={rendererError}
+              onBack={() => { setRendererError(''); quit(); }}
+            />
+          )}
+          <StageHud
+            snapshot={snapshot}
+            onToggle={() => setLeaderboardOpen((value) => !value)}
+          />
+          <MatchEventFeed events={snapshot.matchEvents} frames={MATCH_EVENT_FRAME} />
+          <RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET} />
+          {statsBoard.final && matchProgressionResult && (
+            <MatchProgressionSummary result={matchProgressionResult} />
+          )}
+          {playerProfile && statsBoard.final && (
+            <UnlockNotificationPanel
+              result={matchProgressionResult}
+              arenas={FIELD_CONFIGS}
+              dismissed={unlockNoticeDismissed}
+              onDismiss={() => setUnlockNoticeDismissed(true)}
+            />
+          )}
+          {showStatsBoard && (
+            <RoundStatsOverlay
+              statsBoard={statsBoard}
+              leaderboardOpen={leaderboardOpen}
+              onCloseLeaderboard={closeLeaderboard}
+              onRequestNextRound={requestNextRound}
+              onRematch={rematch}
+              onBackToCharacterSelect={backToCharacterSelect}
+              onBackToFieldSelect={backToFieldSelect}
+              onQuit={quit}
+            />
+          )}
+          <ArenaIntel
+            baseGrace={snapshot.baseGrace}
+            fortLock={snapshot.fortLock}
+            pickupCount={snapshot.pickupCount}
+            fieldWins={snapshot.fieldWins}
+          />
+          {mode === 'playing' && (
             <>
-              <div className="status-ribbon">
-                <span className={`state-dot ${snapshot.state.toLowerCase()}`} />
-                <span>
-                  <b>{t(selected.name)}</b>
-                  {t(selectedFaction ? factionName(selectedFaction) : '')}
-                </span>
-                <strong>{t(snapshot.state.replace('_', ' '))}</strong>
-                <em>{t("PRIORITAS #")}{t(snapshot.order || '—')}</em>
-              </div>
-              {t(snapshot.state === 'PRISONER' && !snapshot.paused && (
-                <div className="prisoner-notice" role="status">
-                  <Lock size={22} />
-                  <span>
-                    <b>{t("MENUNGGU DIBEBASKAN")}</b>
-                    <small>
-                      {t(snapshot.rescueRequestActive
-                        ? `Sinyal aktif ${snapshot.rescueRequestRemaining}s`
-                        : snapshot.rescueRequestCooldown
-                          ? `Sinyal siap ${snapshot.rescueRequestCooldown}s`
-                          : 'Kirim sinyal ke rekan tim.')}
-                    </small>
-                  </span>
-                  <button
-                    className="rescue-request-button"
-                    onClick={() => tapKey('r')}
-                    disabled={snapshot.rescueRequestCooldown > 0}
-                    aria-label={t("Minta rescue")}
-                  >
-                    <BellRing size={16} />
-                    {t(snapshot.rescueRequestActive
-                      ? 'BANTUAN DIKIRIM'
-                      : snapshot.rescueRequestCooldown
-                        ? `${snapshot.rescueRequestCooldown}s`
-                        : 'MINTA RESCUE')}
-                  </button>
-                </div>
-              ))}
-              <button
-                className="active-objective"
-                onClick={() => setMissionOpen(true)}
-                aria-label={t(`Tujuan aktif: ${missionCount} dari 6`)}
-                data-progress={missionCount}
-              >
-                <Flag size={20} />
-                <span>
-                  <small>{t("TUJUAN AKTIF · ")}{t(missionCount)}{t("/6")}</small>
-                  <b>
-                    {t(missionCount === 6
-                      ? 'Semua misi selesai'
-                      : 'Latihan Benteng')}
-                  </b>
-                </span>
-                <i>{t("›")}</i>
-              </button>
-              <div className={`character-hud ${selectedFaction} ${snapshot.state === 'PRISONER' ? 'prisoner' : ''}`}>
-                <CharacterPreview id={selected.id} eager />
-                <span>
-                  <b>{t(selected.name)}</b>
-                  <small>
-                    {t(selectedFaction ? factionName(selectedFaction) : '')}{t(" ·")}{t(' ')}
-                    {t(selected.passiveName)}
-                  </small>
-                  <em>{t(snapshot.state.replace('_', ' '))}</em>
-                </span>
-                {t(ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                  <div
-                    className={`character-ultimate ${selectedId === 'kaka' ? 'kaka' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                    aria-label={t(`Charge ultimate ${Math.floor(snapshot.ultimateMeter)} persen`)}
-                  >
-                    <span>
-                      {t(selectedId === 'kaka' ? <Shield size={12} /> : <Zap size={12} />)}
-                      {t(ultimateName(selectedId))}
-                    </span>
-                    <b>{t(Math.floor(snapshot.ultimateMeter))}{t("%")}</b>
-                    <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
-                  </div>
-                ))}
-              </div>
-              <div
-                className={`team-combo-hud ${selectedFaction} ${snapshot.comboSurgeRemaining ? 'surge' : ''} ${snapshot.comboLevel || snapshot.comboSurgeRemaining ? '' : 'context-hidden'}`}
-                aria-label={t("Status combo aksi tim")}
-              >
-                <Users size={17} />
-                <span>
-                  <small>
-                    {t(snapshot.comboSurgeRemaining ? 'COMBO AKTIF' : 'AKSI TIM')}
-                  </small>
-                  <b>
-                    {t(snapshot.comboSurgeRemaining
-                      ? `SQUAD SURGE ${snapshot.comboSurgeRemaining}s`
-                      : snapshot.comboLevel
-                        ? `LINK ${snapshot.comboLevel}/3 · ${snapshot.comboRemaining}s`
-                        : 'RANGKAI 3 AKSI')}
-                  </b>
-                </span>
-                <i>
-                  {t([1, 2, 3].map((step) => (
-                    <u
-                      key={step}
-                      className={
-                        snapshot.comboSurgeRemaining ||
-                        snapshot.comboLevel >= step
-                          ? 'filled'
-                          : ''
-                      }
-                    />
-                  )))}
-                </i>
-              </div>
-              {t(snapshot.comboCallout && (
-                <div
-                  className={`combo-callout ${snapshot.comboSurgeRemaining ? 'surge' : ''}`}
-                >
-                  <Users size={22} />
-                  <span>{t(snapshot.comboCallout)}</span>
-                </div>
-              ))}
-              <div
-                className="camera-switcher camera-map"
-                aria-label={t("Pilihan kamera")}
-              >
-                <span>
-                  <MapIcon size={13} />{t(" PETA")}</span>
-                {t(CAMERA_OPTIONS.map((camera) => (
-                  <button
-                    key={camera.id}
-                    className={cameraMode === camera.id ? 'selected' : ''}
-                    onClick={() => setCameraMode(camera.id)}
-                    aria-pressed={cameraMode === camera.id}
-                  >
-                    {t(camera.label)}
-                  </button>
-                )))}
-              </div>
-              <div className="boost-stack">
-                <div className="boost-label">
-                  <span>{t("⚡ STAMINA")}</span>
-                  <b>{t(Math.round(snapshot.boost))}{t("%")}</b>
-                  <em>
-                    {t(snapshot.boostCountdown
-                      ? `PULIH ${snapshot.boostCountdown}s`
-                      : 'SIAP')}
-                  </em>
-                </div>
-                <div className="stamina-bar">
-                  <span style={{ width: `${snapshot.boost}%` }} />
-                </div>
-              </div>
-              {t(snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                <div
-                  className={`ultimate-meter-hud ${selectedId === 'kaka' ? 'kaka-shield' : ''} ${snapshot.ultimateMeter >= 100 ? 'ready' : ''}`}
-                  aria-label={t(`Meter Ultimate ${selected.name} ${Math.floor(snapshot.ultimateMeter)} persen`)}
-                >
-                  <span>
-                    {t(selectedId === 'kaka' ? <Shield size={14} /> : <Zap size={14} />)}
-                    {t(' '+ultimateName(selectedId))}
-                  </span>
-                  <b>{t(Math.floor(snapshot.ultimateMeter))}{t("%")}</b>
-                  <i><u style={{ width: `${snapshot.ultimateMeter}%` }} /></i>
-                  <small>{t(snapshot.ultimateMeter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30')}</small>
-                </div>
-              ))}
-              <div
-                className={`action-dock ${playerMechanicsLocked ? 'mechanics-inactive' : ''} ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}
-                aria-label={t("Aksi pemain")}
-                aria-disabled={playerMechanicsLocked}
-              >
-                <div className="arena-intel dock-status" aria-label={t("Status aturan pertandingan")}>
-                  <span className={snapshot.baseGrace > 0 ? 'urgent' : ''}>
-                    <Flag size={12} />
-                    {t(snapshot.baseGrace > 0
-                      ? `KELUAR ${snapshot.baseGrace}s`
-                      : 'BASE AMAN')}
-                  </span>
-                  <span
-                    className={
-                      snapshot.fortLock === 'Benteng terbuka' ? '' : 'urgent'
-                    }
-                  >
-                    <Lock size={12} /> {t(snapshot.fortLock.toUpperCase())}
-                  </span>
-                  <span>
-                    <BatteryCharging size={12} />{t(" REFILL ")}{t(snapshot.pickupCount)}
-                  </span>
-                  <span>
-                    <RotateCcw size={12} />{t(" ROTASI ")}{t(snapshot.fieldWins)}{t("/3")}</span>
-                </div>
-                <span className="ready-action">
-                  <Zap size={19} />
-                  <b>{t("SPACE")}</b>
-                  <small>{t("SPRINT")}</small>
-                </span>
-                <span>
-                  <Gauge size={19} />
-                  <b>{t("SHIFT")}</b>
-                  <small>{t("PARKOUR")}</small>
-                </span>
-                <span
-                  className={snapshot.comboSurgeRemaining ? 'combo-ready' : ''}
-                >
-                  <Users size={19} />
-                  <b>{t("AUTO")}</b>
-                  <small>{t("COMBO")}</small>
-                </span>
-                <span>
-                  <Shield size={19} />
-                  <b>{t("AUTO")}</b>
-                  <small>{t("RESCUE")}</small>
-                </span>
-                {t(ULTIMATE_CHARACTER_IDS.has(selectedId) ? (
-                  <button
-                    className={`ultimate-action ${selectedId === 'kaka' ? 'kaka-ultimate' : ''} ${snapshot.ultimateMeter >= 100 && !snapshot.ultimateCasting ? 'ultimate-ready' : ''}`}
-                    onClick={() => keys.current.add('capslock')}
-                    disabled={
-                      snapshot.ultimateMeter < 100 || playerMechanicsLocked
-                    }
-                    aria-label={t(`${ultimateName(selectedId)} ${Math.floor(snapshot.ultimateMeter)} persen`)}
-                  >
-                    {t(selectedId === 'kaka' ? <Shield size={18} /> : <Zap size={18} />)}
-                    <b>{t("CAPS")}</b>
-                    <small>
-                      {t(snapshot.ultimateCasting
-                        ? 'CASTING'
-                        : snapshot.ultimateMeter >= 100
-                          ? 'ULT READY'
-                          : `ULT ${Math.floor(snapshot.ultimateMeter)}%`)}
-                    </small>
-                    <i style={{ width: `${snapshot.ultimateMeter}%` }} />
-                  </button>
-                ) : (
-                  <span className="locked">
-                    <Lock size={16} />
-                    <b>{t("—")}</b>
-                  </span>
-                ))}
-                <span className="locked">
-                  <Lock size={16} />
-                  <b>{t("—")}</b>
-                </span>
-              </div>
-              {t(snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
-                <div className={`ultimate-buff-indicator ${selectedId === 'kaka' ? 'kaka-shield-indicator' : ''}`}>
-                  {t(selectedId === 'kaka' ? <Shield size={13} /> : <Zap size={13} />)}
-                  {t(flightConfig(selectedId) ? ' FLIGHT · KEBAL TAG · ' : selectedId === 'kaka' ? ' KEBAL TAG · ' : ' TITAH +40% · ')}
-                  {t(snapshot.ultimateBuffRemaining)}{t("s")}</div>
-              ))}
-              {t(snapshot.flightDebug && <output style={{position:'absolute',bottom:140,left:12,zIndex:10,maxWidth:400,padding:6,background:'#000c',color:'#fff',fontSize:10}}>{t(snapshot.flightDebug)}</output>)}
-              <div className={`control-ribbon ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`}>
-                <b>{t("WASD")}</b>{t(" GERAK ")}<b>{t("SPACE")}</b>{t(" SPRINT ")}<b>{t("SHIFT")}</b>{t(" PARKOUR")}{t(' ')}
-                {t(ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                  <>
-                    <b>{t("CAPS LOCK")}</b>{t(" ULTIMATE")}{t(' ')}
-                  </>
-                ))}
-                <b>{t("P")}</b>{t(" JEDA")}</div>
-              <div className={`mobile-controls ${snapshot.state === 'PRISONER' ? 'context-hidden' : ''}`} aria-label={t("Kontrol sentuh")}>
-                <div className="touch-dpad">
-                  <button
-                    aria-label={t("Gerak atas")}
-                    disabled={playerMovementLocked}
-                    {...touchControl('w')}
-                  >{t("▲")}</button>
-                  <button
-                    aria-label={t("Gerak kiri")}
-                    disabled={playerMovementLocked}
-                    {...touchControl('a')}
-                  >{t("◀")}</button>
-                  <button
-                    aria-label={t("Gerak kanan")}
-                    disabled={playerMovementLocked}
-                    {...touchControl('d')}
-                  >{t("▶")}</button>
-                  <button
-                    aria-label={t("Gerak bawah")}
-                    disabled={playerMovementLocked}
-                    {...touchControl('s')}
-                  >{t("▼")}</button>
-                </div>
-                <div className="touch-actions">
-                  <button
-                    className="touch-boost"
-                    aria-label={t("Sprint")}
-                    disabled={playerMechanicsLocked}
-                    {...touchControl(' ')}
-                  >{t("SPRINT")}</button>
-                  <button
-                    aria-label={t("Parkour")}
-                    disabled={playerMechanicsLocked}
-                    {...touchControl('shift')}
-                  >{t("PARKOUR")}</button>
-                  {t(ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-                    <button
-                      className={`touch-ultimate ${selectedId === 'kaka' ? 'kaka-ultimate' : ''}`}
-                      aria-label={t(ultimateName(selectedId))}
-                      disabled={
-                        snapshot.ultimateMeter < 100 || playerMechanicsLocked
-                      }
-                      onClick={() => keys.current.add('capslock')}
-                    >{t("ULT ")}{t(Math.floor(snapshot.ultimateMeter))}{t("%")}</button>
-                  ))}
-                </div>
-              </div>
-              {t(snapshot.paused && (
-                <div className="pause-overlay">
-                  <div>
-                    <small>{t("PERMAINAN DIJEDA")}</small>
-                    <h2>{t("Lagi jeda.")}</h2>
-                    <button onClick={() => keys.current.add('p')}>
-                      <Play size={17} fill="currentColor" />{t(" Lanjut main")}</button>
-                    <button
-                      onClick={toggleBackgroundMusic}
-                      aria-pressed={musicMuted}
-                    >
-                      {t(musicMuted ? <VolumeX size={17} /> : <Volume2 size={17} />)}
-                      {t(musicMuted ? 'Aktifkan musik latar' : 'Matikan musik latar')}
-                    </button>
-                    <div className="pause-settings-row">
-                      <AudioSettings onOpen={() => keys.current.clear()} />
-                      <GraphicsSettings onOpen={() => keys.current.clear()} />
-                    </div>
-                    <button onClick={restartMatch}>
-                      <RotateCcw size={17} />{t(" Mulai ulang")}</button>
-                    <button onClick={quit}>
-                      <LogOut size={17} />{t(" Keluar ke menu")}</button>
-                  </div>
-                </div>
-              ))}
-            </>
-          ))}
-          {t(ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
-            <div
-              className={`ultimate-banner ${selectedId === 'kaka' ? 'kaka-banner' : ''}`}
-              role="status"
-              aria-label={
-                t(`${selected.name} mengaktifkan ${ultimateName(selectedId)}`)
-              }
-            >
-              <img
-                src={ultimateBannerAsset(selectedId)}
-                alt={t(`ULTIMATE SKILL ${selected.name}`)}
-                decoding="async"
+              <StatusRibbon
+                playerName={selected.name}
+                factionLabel={selectedFaction ? factionName(selectedFaction) : ''}
+                state={snapshot.state}
+                order={snapshot.order}
               />
-            </div>
-          ))}
+              <PrisonerNotice
+                prisoner={snapshot.state === 'PRISONER'}
+                paused={snapshot.paused}
+                requestActive={snapshot.rescueRequestActive}
+                requestRemaining={snapshot.rescueRequestRemaining}
+                requestCooldown={snapshot.rescueRequestCooldown}
+                onRequest={() => tapKey('r')}
+              />
+              <ActiveObjective
+                missionCount={missionCount}
+                onOpen={() => setMissionOpen(true)}
+              />
+              <CharacterHud
+                characterId={selected.id}
+                playerName={selected.name}
+                faction={selectedFaction}
+                factionLabel={selectedFaction ? factionName(selectedFaction) : ''}
+                passiveName={selected.passiveName}
+                state={snapshot.state}
+                meter={snapshot.ultimateMeter}
+                ultimate={
+                  ULTIMATE_CHARACTER_IDS.has(selectedId)
+                    ? selected.ultimate
+                    : undefined
+                }
+              />
+              <TeamComboHud
+                faction={selectedFaction}
+                surgeRemaining={snapshot.comboSurgeRemaining}
+                comboLevel={snapshot.comboLevel}
+                comboRemaining={snapshot.comboRemaining}
+              />
+              <ComboCallout
+                callout={snapshot.comboCallout}
+                surge={Boolean(snapshot.comboSurgeRemaining)}
+              />
+              <CameraSwitcher
+                options={CAMERA_OPTIONS}
+                cameraMode={cameraMode}
+                onSelect={(id) => setCameraMode(id as CameraMode)}
+              />
+              <BoostStack boost={snapshot.boost} boostCountdown={snapshot.boostCountdown} />
+              {snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+                <UltimateMeterHud
+                  playerName={selected.name}
+                  icon={selected.ultimate?.icon ?? 'zap'}
+                  hudTitle={selected.ultimate?.hudTitle ?? 'TITAH HALILINTAR'}
+                  shieldClass={selected.ultimate?.shieldClass}
+                  meter={snapshot.ultimateMeter}
+                />
+              )}
+              <ActionDock
+                mechanicsLocked={playerMechanicsLocked}
+                state={snapshot.state}
+                intel={{
+                  baseGrace: snapshot.baseGrace,
+                  fortLock: snapshot.fortLock,
+                  pickupCount: snapshot.pickupCount,
+                  fieldWins: snapshot.fieldWins,
+                }}
+                comboSurge={Boolean(snapshot.comboSurgeRemaining)}
+                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
+                meter={snapshot.ultimateMeter}
+                casting={snapshot.ultimateCasting}
+                ultimateActionClass={selected.ultimate?.actionClass ?? ''}
+                ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
+                ultimateIconId={selected.ultimate?.icon ?? 'zap'}
+                onTapUltimate={() => tapKey('capslock')}
+              />
+              {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
+                <UltimateBuffIndicator ultimate={selected.ultimate} remaining={snapshot.ultimateBuffRemaining} />
+              )}
+              <ControlRibbon
+                state={snapshot.state}
+                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
+              />
+              <MobileControls
+                state={snapshot.state}
+                playerMechanicsLocked={playerMechanicsLocked}
+                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
+                meter={snapshot.ultimateMeter}
+                ultimateActionClass={selected.ultimate?.actionClass ?? ''}
+                ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
+                touch={touchControl}
+              />
+              {snapshot.paused && (
+                <PauseOverlay
+                  musicMuted={musicMuted}
+                  onResume={() => keys.current.add('p')}
+                  onToggleMusic={toggleBackgroundMusic}
+                  onRestart={() => setRun((value) => value + 1)}
+                  onQuit={quit}
+                />
+              )}
+            </>
+          )}
+          {ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
+            <UltimateBanner
+              playerName={selected.name}
+              icon={selected.ultimate?.icon ?? 'zap'}
+              hudTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
+              bannerAlt={selected.ultimate?.bannerAlt ?? 'TITAH HALILINTAR'}
+              bannerClass={selected.ultimate?.bannerClass}
+            />
+          )}
         </div>
-        <aside
-          className={`mission-panel ${missionOpen ? 'open' : ''}`}
-          aria-hidden={!missionOpen}
-        >
-          <button
-            className="mission-close"
-            onClick={() => setMissionOpen(false)}
-            aria-label={t("Tutup tujuan")}
-          >
-            <X size={20} />
-          </button>
-          <div className="mission-head">
-            <span>{t("Latihan · ")}{t(missionCount)}{t("/6 selesai")}</span>
-            <h2>{t("Latihan Benteng")}</h2>
-          </div>
-          <div className="mission-progress">
-            <span style={{ width: `${missionCount * (100 / 6)}%` }} />
-          </div>
-          <div className="computed-status">
-            <span>{t("Keluar benteng")}{t(' ')}
-              <b>{t(snapshot.baseGrace > 0 ? `${snapshot.baseGrace}s` : '—')}</b>
-            </span>
-            <span>{t("Status benteng ")}<b>{t(snapshot.fortLock)}</b>
-            </span>
-            <span>{t("Boost tersedia ")}<b>{t(snapshot.pickupCount)}</b>
-            </span>
-            <span>{t("Rotasi arena ")}<b>{t(snapshot.fieldWins)}{t("/3")}</b>
-            </span>
-          </div>
-          <ul className="mission-list">
-            <li className={snapshot.mission.refresh ? 'done' : ''}>
-              {t(snapshot.mission.refresh ? (
-                <Check size={18} />
-              ) : (
-                <Flag size={18} />
-              ))}
-              <div>
-                <b>{t("Perbarui urutan tag")}</b>
-                <span>{t("Kembali ke benteng dan keluar lagi sebagai urutan terbaru.")}</span>
-              </div>
-            </li>
-            <li className={snapshot.mission.boost ? 'done' : ''}>
-              <BatteryCharging size={18} />
-              <div>
-                <b>{t("Pakai sprint")}</b>
-                <span>{t("Tekan Space untuk sprint")}{t(' ')}
-                  {t(GAME_RULES.boostDurationMs / 1000)}{t(" detik. Pulih 20 detik atau ambil boost di lapangan.")}</span>
-              </div>
-            </li>
-            <li className={snapshot.mission.parkour ? 'done' : ''}>
-              <Gauge size={18} />
-              <div>
-                <b>{t("Lewati rintangan")}</b>
-                <span>{t("Tekan Shift di dekat rintangan atau tepi sungai. Di ponsel, gunakan tombol PARKOUR di sisi kanan.")}</span>
-              </div>
-            </li>
-            <li className={snapshot.mission.tag ? 'done' : ''}>
-              <Zap size={18} />
-              <div>
-                <b>{t("Tag lawan")}</b>
-                <span>{t("+ TAG = bisa kamu tangkap. ! AWAS = bisa menangkapmu.")}</span>
-              </div>
-            </li>
-            <li className={snapshot.mission.rescue ? 'done' : ''}>
-              <Shield size={18} />
-              <div>
-                <b>{t("Rescue teman")}</b>
-                <span>{t("Jangkau rekan terluar untuk membebaskan seluruh rantai.")}</span>
-              </div>
-            </li>
-            <li className={snapshot.mission.combo ? 'done' : ''}>
-              <Users size={18} />
-              <div>
-                <b>{t("Combo aksi tim")}</b>
-                <span>{t("Rangkai tag atau rescue dari rekan berbeda dalam 6,5 detik untuk Squad Surge.")}</span>
-              </div>
-            </li>
-          </ul>
-          {t(mode === 'playing' ? (
-            <>
-              <div className={`team-status ${selectedFaction}`}>
-                <span>
-                  {t(selectedFaction
-                    ? factionName(selectedFaction).toUpperCase()
-                    : 'TIM')}{t(' ')}{t("· 5 PEMAIN UNIK")}</span>
-                {t(snapshot.team.map((member, index) => (
-                  <div key={`${member.name}-${index}`}>
-                    <CharacterPreview id={member.characterId} />
-                    <b>{t(member.name)}</b>
-                    <i style={{ width: `${Math.min(100, member.boost)}%` }} />
-                    <em>{t(playerStateLabel(member.state))}</em>
-                  </div>
-                )))}
-              </div>
-              <div className="event-feed">
-                {t(snapshot.logs.map((entry, index) => (
-                  <p key={`${entry}-${index}`}>{t(entry)}</p>
-                )))}
-              </div>
-            </>
-          ) : (
-            <div className="reference-card">
-              <img
-                src={publicAsset('characters.webp?v=8')}
-                alt={t("Referensi karakter Benteng Squad Tag")}
-              />
-              <div>
-                <b>{t("Empat belas sprite produksi terpasang")}</b>
-                <span>{t("Tim tetap, atlas 7×6 anti-potong, portrait transparan, animasi arah, tag, rescue, tahanan, menang, dan kalah.")}</span>
-              </div>
-            </div>
-          ))}
-          <div className="audio-note">
-            {t(musicMuted ? <VolumeX size={13} /> : <Volume2 size={13} />)}
-            {t(musicMuted
-              ? 'Musik latar mati. Suara arena dan efek tetap aktif.'
-              : 'Musik menu dan pertandingan aktif setelah interaksi pertama.')}
-          </div>
-        </aside>
+        <MissionPanel
+          open={missionOpen}
+          onClose={() => setMissionOpen(false)}
+          missionCount={missionCount}
+          snapshot={snapshot}
+          mode={mode}
+          selectedFaction={selectedFaction}
+          musicMuted={musicMuted}
+        />
       </section>
-      {t(playerProfile && profileOpen && (
-        <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")}/>}>
+      {playerProfile && profileOpen && (
+        <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")} />}>
           <PlayerProfilePanel
             profile={playerProfile}
             onClose={() => setProfileOpen(false)}
           />
         </Suspense>
-      ))}
+      )}
     </main>
   );
 }

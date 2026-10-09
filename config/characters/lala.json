@@ -1,0 +1,22 @@
+{
+  "id": "lala",
+  "name": "Lala",
+  "role": "Scout",
+  "speed": 224,
+  "boost": 100,
+  "agility": 1.24,
+  "visualScale": 1.16,
+  "accent": "#77b9df",
+  "copy": "Lawan ambil jalan memutar? Lala pilih lewat rintangan.",
+  "passiveName": "Langkah Sutra",
+  "passiveCopy": "Parkour paling jauh dan paling hemat boost.",
+  "tagRange": 27,
+  "rescueRange": 34,
+  "boostMultiplier": 1.7,
+  "boostDrain": 30,
+  "baseChargeTime": 0.68,
+  "rescueShieldMs": 1700,
+  "tagCooldownMs": 500,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}

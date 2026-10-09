@@ -1,10 +1,10 @@
-import {createRoom,joinRoom,type RoomTransport,type TransportDriver} from './transport';
-import {MULTIPLAYER_PROTOCOL_VERSION as version,type ProtocolMessage} from './protocol';
-import {createLobby,addParticipant,selectParticipant,readyParticipant,removeParticipant,startLobby,teamCharacters,type LobbyState} from './lobby';
+import {createRoom,joinRoom,type RoomTransport,type TransportDriver} from './transport.ts';
+import {MULTIPLAYER_PROTOCOL_VERSION as version,type ProtocolMessage} from './protocol.ts';
+import {createLobby,addParticipant,selectParticipant,readyParticipant,removeParticipant,startLobby,teamCharacters,type LobbyState} from './lobby.ts';
 import type {CharacterId} from '../characters';
 import type {TeamId} from '../game-core/types';
-import {text} from '../game-core/validation';
-import {contentMismatch,testContent,type ContentIdentity} from './content';
+import {text} from '../game-core/validation.ts';
+import {contentMismatch,testContent,type ContentIdentity} from './content.ts';
 
 export type SessionState={role:'host'|'client';roomCode:string;localPeerId:string;phase:'connecting'|'lobby'|'playing'|'ended';
   lobby:LobbyState|null;error:string;latencyMs:number|null};

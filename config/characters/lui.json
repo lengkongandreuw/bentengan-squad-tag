@@ -1,0 +1,22 @@
+{
+  "id": "lui",
+  "name": "Lui",
+  "role": "Scout",
+  "speed": 226,
+  "boost": 104,
+  "agility": 1.19,
+  "visualScale": 0.93,
+  "accent": "#42d875",
+  "copy": "Jalur sempit bukan alasan berhenti. Lui cari celah, lalu melesat.",
+  "passiveName": "Jalur Sunyi",
+  "passiveCopy": "Sprint stabil, parkour mudah diarahkan.",
+  "tagRange": 28,
+  "rescueRange": 35,
+  "boostMultiplier": 1.72,
+  "boostDrain": 29,
+  "baseChargeTime": 0.68,
+  "rescueShieldMs": 1750,
+  "tagCooldownMs": 480,
+  "mirrorWest": false,
+  "dedicatedEast": true
+}
