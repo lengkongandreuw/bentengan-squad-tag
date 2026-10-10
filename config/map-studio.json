@@ -5768,374 +5768,6 @@
           "mirror": false
         },
         {
-          "id": "obj-5d4b6588fea045e6acc02fa73150976b",
-          "name": "pohon1_animasi salinan salinan",
-          "asset": {
-            "asset": "map-studio/95693ab7d2f0c9ead4f800c22575fbbfb69dc9a4e8e00600e43544567c17732e.webp",
-            "width": 3872,
-            "height": 1136,
-            "frames": [
-              {
-                "x": 0,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1452,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1694,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1936,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2178,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2420,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2662,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2904,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3146,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3388,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3630,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 0,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1452,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1694,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1936,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2178,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2420,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2662,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2904,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3146,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3388,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3630,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 0,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1452,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1694,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1936,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2178,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2420,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2662,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2904,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3146,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3388,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3630,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 0,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1692.6069288987378,
-          "y": 879.6410158597508,
-          "w": 167.46921245868407,
-          "h": 196.5341171002739,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "foreground",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0.17888563049853445,
-              "y": 0.5763161631076761
-            },
-            {
-              "x": 0.8240469208211152,
-              "y": 0.5638218423443868
-            },
-            {
-              "x": 0.8680351906158361,
-              "y": 0.92615714447978
-            },
-            {
-              "x": 0.14956011730205382,
-              "y": 0.9386514652430694
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-70426b92018242f0bbf9eb7067c2d5ea",
           "name": "pohon1_animasi salinan",
           "asset": {
@@ -6763,43 +6395,6 @@
           "mirror": false
         },
         {
-          "id": "obj-d64dfb7b7760420485425b2b48deefb8",
-          "name": "Batas pohon1_animasi salinan salinan",
-          "asset": null,
-          "x": 1692.6069288987378,
-          "y": 879.6410158597508,
-          "w": 167.46921245868407,
-          "h": 196.5341171002739,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "foreground",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0.17888563049853445,
-              "y": 0.5763161631076761
-            },
-            {
-              "x": 0.8240469208211152,
-              "y": 0.5638218423443868
-            },
-            {
-              "x": 0.8680351906158361,
-              "y": 0.92615714447978
-            },
-            {
-              "x": 0.14956011730205382,
-              "y": 0.9386514652430694
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-94fdb6e532b843ee99b55fb0bedbab04",
           "name": "Batas benteweqewng tag",
           "asset": null,
@@ -7262,8 +6857,8 @@
           "h": 185
         },
         "red": {
-          "x": 1409.3076923076924,
-          "y": 293.53846153846155,
+          "x": 1409,
+          "y": 293,
           "w": 243,
           "h": 185
         }
@@ -7292,7 +6887,7 @@
         "fps": 12
       },
       "icon": {
-        "asset": "map-studio/b833b6ceff9ef1043a61c3276118ec99ed2e9077af7a9b49fb737776776763ad.webp",
+        "asset": "map-studio/33cd01eed04171bdced597db9aaa0815b3132e1041c0930ad8aa2afa0946f490.webp",
         "width": 640,
         "height": 360,
         "frames": [
@@ -7505,7 +7100,7 @@
           "h": 49,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
           "behavior": "decoration",
           "slow": 0.5,
@@ -7761,7 +7356,7 @@
             "fps": 12
           },
           "x": 1213.2927127000762,
-          "y": 389.4634444073933,
+          "y": 390.9960056109224,
           "w": 119,
           "h": 49,
           "rotation": 0,
@@ -8699,93 +8294,6 @@
           "visible": true,
           "locked": false,
           "mirror": true
-        },
-        {
-          "id": "obj-visual-21",
-          "name": "parkTree",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1133,
-                "y": 1432,
-                "width": 130,
-                "height": 184
-              }
-            ],
-            "fps": 12
-          },
-          "x": 806.883069323255,
-          "y": 81.00862101765422,
-          "w": 95,
-          "h": 113,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-21",
-          "name": "Batas parkTree",
-          "asset": null,
-          "x": 804.7921285257711,
-          "y": 144.15582037591312,
-          "w": 97.63207690746754,
-          "h": 56.27709326806004,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
         },
         {
           "id": "obj-visual-22",
@@ -9836,411 +9344,6 @@
           "mirror": false
         },
         {
-          "id": "obj-938ee834fdbe4ecaa51228428256cecf",
-          "name": "pohon1_animasi",
-          "asset": {
-            "asset": "map-studio/95693ab7d2f0c9ead4f800c22575fbbfb69dc9a4e8e00600e43544567c17732e.webp",
-            "width": 3872,
-            "height": 1136,
-            "frames": [
-              {
-                "x": 0,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1452,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1694,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1936,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2178,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2420,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2662,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2904,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3146,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3388,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3630,
-                "y": 0,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 0,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1452,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1694,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1936,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2178,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2420,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2662,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2904,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3146,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3388,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3630,
-                "y": 284,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 0,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1452,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1694,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1936,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2178,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2420,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2662,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 2904,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3146,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3388,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 3630,
-                "y": 568,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 0,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 242,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 484,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 726,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 968,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              },
-              {
-                "x": 1210,
-                "y": 852,
-                "width": 242,
-                "height": 284
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1144.5746498919548,
-          "y": 555.3830046958112,
-          "w": 115.4254410114695,
-          "h": 135.45795556717908,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-7d513a01b8864f64b73c67d164d2a869",
-          "name": "Batas pohon1_animasi",
-          "asset": null,
-          "x": 1144.5746498919548,
-          "y": 555.3830046958112,
-          "w": 115.4254410114695,
-          "h": 135.45795556717908,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-cf7cb6569947494ba0acb3cfb31c7265",
           "name": "pohon1_animasi salinan",
           "asset": {
@@ -10575,8 +9678,8 @@
             ],
             "fps": 12
           },
-          "x": 1524.052860885756,
-          "y": 936.755776053843,
+          "x": 841.4657354776402,
+          "y": 502.26157530465923,
           "w": 136.27653081366384,
           "h": 159.92782954991955,
           "rotation": 0,
@@ -10868,7 +9971,7 @@
           "h": 121.28473222698551,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
           "behavior": "decoration",
           "slow": 0.5,
@@ -10899,13 +10002,13 @@
           "id": "obj-589c3c8d78c2411b99cf5ffed0ff4add",
           "name": "Batas coffeeStall",
           "asset": null,
-          "x": 735.023058661099,
-          "y": 988.30265860722,
+          "x": 737.0586976013423,
+          "y": 986.9455931588957,
           "w": 121.87349306303884,
           "h": 121.28473222698551,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
           "behavior": "solid",
           "slow": 0.5,
@@ -10990,93 +10093,6 @@
           "y": 986.8468017578128,
           "w": 121.87349306303884,
           "h": 121.28473222698551,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-2ea808ca433b4f73b3ca4545750e0c8f",
-          "name": "hall",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1603,
-                "y": 1221,
-                "width": 222,
-                "height": 198
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1091.241168844289,
-          "y": 935.5977888436154,
-          "w": 196.30660695043093,
-          "h": 175.08427106389786,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-a7662a5127204c3ca42be3dae06503f5",
-          "name": "Batas hall",
-          "asset": null,
-          "x": 1091.241168844289,
-          "y": 935.5977888436154,
-          "w": 196.30660695043093,
-          "h": 175.08427106389786,
           "rotation": 0,
           "opacity": 1,
           "layer": "world",
@@ -11279,6 +10295,1318 @@
           "visible": true,
           "locked": false,
           "mirror": false
+        },
+        {
+          "id": "obj-36cd1131618e4d70971e72e3c032c9f0",
+          "name": "balai desa",
+          "asset": {
+            "asset": "map-studio/16ff0ef866e5e5e4d65631394d489f94fe5d7527896288156c2f743599fc6df4.webp",
+            "width": 1262,
+            "height": 1262,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1262,
+                "height": 1262
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1063.8504344019398,
+          "y": 896.2070017847523,
+          "w": 240,
+          "h": 240,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-46f74328ebfc464a832e167327524241",
+          "name": "Batas balai desa",
+          "asset": null,
+          "x": 1063.8504344019398,
+          "y": 896.2070017847523,
+          "w": 234.4255329000539,
+          "h": 168.6637010245488,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.04551829297580512,
+              "y": 0.3730296244345527
+            },
+            {
+              "x": 0.5064152385966348,
+              "y": 0.06384687158465935
+            },
+            {
+              "x": 0.9738499269329592,
+              "y": 0.39120323038216576
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0.08474340257636637,
+              "y": 0.945481053923771
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-054ec939ec3a4cbda9337e25bf5ed497",
+          "name": "ppagar3",
+          "asset": {
+            "asset": "map-studio/f892f01b14cd607dbac2c7b206ca4b3a906284666499f65b0edc8106331350ef.webp",
+            "width": 236,
+            "height": 280,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 236,
+                "height": 280
+              }
+            ],
+            "fps": 12
+          },
+          "x": 0,
+          "y": 0,
+          "w": 128.2108975114494,
+          "h": 128.89374831627157,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-5acc4319fcbf400bb2c282a2b1caa363",
+          "name": "Batas ppagar3",
+          "asset": null,
+          "x": 0,
+          "y": 0,
+          "w": 128.2108975114494,
+          "h": 128.89374831627157,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-3542b0c0433a471287a98cacfcdab28e",
+          "name": "ppagar3 salinan",
+          "asset": {
+            "asset": "map-studio/f892f01b14cd607dbac2c7b206ca4b3a906284666499f65b0edc8106331350ef.webp",
+            "width": 236,
+            "height": 280,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 236,
+                "height": 280
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1640.7891024885507,
+          "y": 0,
+          "w": 128.2108975114494,
+          "h": 128.89374831627157,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-9a30ba0f571a491394b4970f46567012",
+          "name": "Batas ppagar3 salinan",
+          "asset": null,
+          "x": 1640.7891024885507,
+          "y": 0,
+          "w": 128.2108975114494,
+          "h": 128.89374831627157,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-51de52bff20e42f8ba748883fdcc34af",
+          "name": "pagar11",
+          "asset": {
+            "asset": "map-studio/992d47efb8ab860c3b627f0bae8e39f6f69369be04933e34798fbd347e0d92d9.webp",
+            "width": 993,
+            "height": 256,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 993,
+                "height": 256
+              }
+            ],
+            "fps": 12
+          },
+          "x": 155.03816801926178,
+          "y": 0,
+          "w": 303.39089229189125,
+          "h": 78.21557746900721,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-d582be800a1d4303b349e2e045d5ac90",
+          "name": "Batas pagar11",
+          "asset": null,
+          "x": 153.50565943224672,
+          "y": 5.896499107623924,
+          "w": 303.39089229189125,
+          "h": 78.21557746900721,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-6f19243933db49fea2b28c8d8b8bc88b",
+          "name": "pagar11 salinan",
+          "asset": {
+            "asset": "map-studio/992d47efb8ab860c3b627f0bae8e39f6f69369be04933e34798fbd347e0d92d9.webp",
+            "width": 993,
+            "height": 256,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 993,
+                "height": 256
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1336,
+          "y": 13,
+          "w": 303,
+          "h": 78,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-ec291dcf38e64eca8306669fe2258e4b",
+          "name": "Batas pagar11 salinan",
+          "asset": null,
+          "x": 1336.7240853145204,
+          "y": 12.33711505758351,
+          "w": 303.39089229189125,
+          "h": 78.21557746900721,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-550d46a77bcd45edb21249e34ba7a112",
+          "name": "pagar4",
+          "asset": {
+            "asset": "map-studio/5e95de804289a69c53434d23b9e6c3ece5fc91f6e0f9d3d88568e49a47e380cc.webp",
+            "width": 338,
+            "height": 204,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 338,
+                "height": 204
+              }
+            ],
+            "fps": 12
+          },
+          "x": 530.5171361462823,
+          "y": 0,
+          "w": 153.19931556438587,
+          "h": 92.46349223412638,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-e9e5c52bea144468983615023cf37808",
+          "name": "Batas pagar4",
+          "asset": null,
+          "x": 530.5171361462823,
+          "y": 0,
+          "w": 153.19931556438587,
+          "h": 92.46349223412638,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-a958009370a04ad984d1b64cf80f132d",
+          "name": "pagar4 salinan",
+          "asset": {
+            "asset": "map-studio/5e95de804289a69c53434d23b9e6c3ece5fc91f6e0f9d3d88568e49a47e380cc.webp",
+            "width": 338,
+            "height": 204,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 338,
+                "height": 204
+              }
+            ],
+            "fps": 12
+          },
+          "x": 0,
+          "y": 1139.636787643386,
+          "w": 199.42532243399785,
+          "h": 120.36321235661407,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-cf2d0d9bfec1413c85d11eb89bbed443",
+          "name": "39631601-7fc1-447a-97cd-613f81b04d2d",
+          "asset": {
+            "asset": "map-studio/ce89ec636d19660a705c6b1c2b8e8c63e73253be763cca1106e1825acea23831.webp",
+            "width": 1262,
+            "height": 1262,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1262,
+                "height": 1262
+              }
+            ],
+            "fps": 12
+          },
+          "x": 410.9770991884428,
+          "y": 300.038220635776,
+          "w": 162.3947354020744,
+          "h": 162.3947354020744,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-5701afd5cbc44b118322fb00fa06ab14",
+          "name": "Batas 39631601-7fc1-447a-97cd-613f81b04d2d",
+          "asset": null,
+          "x": 406.3791524952856,
+          "y": 309.2335878569506,
+          "w": 170.05748880320596,
+          "h": 170.05748880320596,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.035710018145323374,
+              "y": 0.306889545210987
+            },
+            {
+              "x": 0.42548143459871235,
+              "y": 0.007238621301976
+            },
+            {
+              "x": 0.432241299195976,
+              "y": 0.009491703231547521
+            },
+            {
+              "x": 0.7206265040528552,
+              "y": 0.04554008589186359
+            },
+            {
+              "x": 0.9819759633719793,
+              "y": 0.35621595818141255
+            },
+            {
+              "x": 0.9639519267439587,
+              "y": 0.7124319163628251
+            },
+            {
+              "x": 0.48631279027148816,
+              "y": 0.6763838431067841
+            },
+            {
+              "x": 0.05373405477334403,
+              "y": 0.6853955520165194
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-731871655a9f49ab928140b5eb57dd40",
+          "name": "39631601-7fc1-447a-97cd-613f81b04d2d salinan",
+          "asset": {
+            "asset": "map-studio/ce89ec636d19660a705c6b1c2b8e8c63e73253be763cca1106e1825acea23831.webp",
+            "width": 1262,
+            "height": 1262,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1262,
+                "height": 1262
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1181.934824976428,
+          "y": 557.5861016635239,
+          "w": 162.3947354020744,
+          "h": 162.3947354020744,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-7a33a721c22f4f48a29e367fea813b71",
+          "name": "mieayam",
+          "asset": {
+            "asset": "map-studio/147946af7e0051c5e8b9e4cc8aca3f36b96d9f47643dd9747d04b532dd8eccd6.webp",
+            "width": 1262,
+            "height": 1262,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1262,
+                "height": 1262
+              }
+            ],
+            "fps": 12
+          },
+          "x": 768,
+          "y": 0,
+          "w": 235,
+          "h": 248,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-8603de763c304f4c85456302a79ede65",
+          "name": "Batas mieayam",
+          "asset": null,
+          "x": 784.923558728448,
+          "y": 39.84672283304148,
+          "w": 208.37141365840534,
+          "h": 128.4722295300714,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-c1fe8e2aab37439f83c06b30860c574c",
+          "name": "pagar4 salinan",
+          "asset": {
+            "asset": "map-studio/5e95de804289a69c53434d23b9e6c3ece5fc91f6e0f9d3d88568e49a47e380cc.webp",
+            "width": 338,
+            "height": 204,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 338,
+                "height": 204
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1579.0958672885236,
+          "y": 1137.734614405139,
+          "w": 189.90413271147645,
+          "h": 122.26538559486107,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-037ba70001b241ce8fe3b639344e767b",
+          "name": "pagar11 salinan salinan",
+          "asset": {
+            "asset": "map-studio/992d47efb8ab860c3b627f0bae8e39f6f69369be04933e34798fbd347e0d92d9.webp",
+            "width": 993,
+            "height": 256,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 993,
+                "height": 256
+              }
+            ],
+            "fps": 12
+          },
+          "x": 154.46749141298483,
+          "y": 1157.9720453722723,
+          "w": 354.53635169719837,
+          "h": 94.36509599356827,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-ba7a29e8dae14915a10e0da56b11ee49",
+          "name": "pagar11 salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/992d47efb8ab860c3b627f0bae8e39f6f69369be04933e34798fbd347e0d92d9.webp",
+            "width": 993,
+            "height": 256,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 993,
+                "height": 256
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1265.655277646821,
+          "y": 1156.439431552229,
+          "w": 354.53635169719837,
+          "h": 94.36509599356827,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-6b02c9b89f614c14968aa5bdf99772d5",
+          "name": "Batas 39631601-7fc1-447a-97cd-613f81b04d2d salinan",
+          "asset": null,
+          "x": 1181.934824976428,
+          "y": 557.5861016635239,
+          "w": 162.3947354020744,
+          "h": 162.3947354020744,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-8ed278e40b8e4280aba5dc576c0cb48f",
+          "name": "Batas parkBarrier",
+          "asset": null,
+          "x": 1082.829238519436,
+          "y": 628.9999627834411,
+          "w": 119,
+          "h": 49,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-3da15451cb1241428cdfcc84336d38d0",
+          "name": "Batas parkBarrier",
+          "asset": null,
+          "x": 497.23527360162825,
+          "y": 628.3277413504464,
+          "w": 119,
+          "h": 49,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-da47ba5bbf2c47e4a3f567cdff155843",
+          "name": "Batas drain",
+          "asset": null,
+          "x": 601,
+          "y": 759,
+          "w": 119,
+          "h": 49,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-d2921a2121184de38c130d350cf4cdac",
+          "name": "Batas parkBarrier",
+          "asset": null,
+          "x": 715,
+          "y": 761,
+          "w": 119,
+          "h": 49,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-4dc5ec2d658a483ebb83acce2d89c88a",
+          "name": "Batas parkBarrier",
+          "asset": null,
+          "x": 1213.2927127000762,
+          "y": 390.9960056109224,
+          "w": 119,
+          "h": 49,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-e898bd155b75441ba41c148bad19c3b7",
+          "name": "Batas parkBarrier",
+          "asset": null,
+          "x": 615,
+          "y": 236,
+          "w": 119,
+          "h": 49,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-75b321dd1e974807b42a0a75ab99de69",
+          "name": "b208c3c8-a48e-4a58-a91a-f88648762862",
+          "asset": {
+            "asset": "map-studio/ccc3a6b4f314bd6a77165440bc8fbe11ba5effb161438d3f454484b20bda6ec6.webp",
+            "width": 1262,
+            "height": 1262,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1262,
+                "height": 1262
+              }
+            ],
+            "fps": 12
+          },
+          "x": 697.997268369676,
+          "y": 1044.3575234449547,
+          "w": 111.16155450994302,
+          "h": 111.16155450994302,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-c76fdd8f6b1f4f5e844a2716e299c305",
+          "name": "Batas b208c3c8-a48e-4a58-a91a-f88648762862",
+          "asset": null,
+          "x": 701.3899844061741,
+          "y": 1074.2133360418657,
+          "w": 114.30125737504602,
+          "h": 49.334213606273806,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
         }
       ],
       "bases": {
@@ -11293,8 +11621,8 @@
       },
       "prisons": {
         "blue": {
-          "x": 339.191101407902,
-          "y": 786.0868658878744,
+          "x": 353,
+          "y": 777,
           "w": 243,
           "h": 185
         },
@@ -12379,6 +12707,361 @@
             {
               "x": 0,
               "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-263f95ef9f604e7ebd4b155be55f6099",
+          "name": "Collider poligon",
+          "asset": null,
+          "x": 3.5639924823113205,
+          "y": 4.6646406065742925,
+          "w": 1915.3040472066627,
+          "h": 303.5640500626474,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.006129573610590599,
+              "y": 1
+            },
+            {
+              "x": 0.022767047823054224,
+              "y": 0.8895026544909161
+            },
+            {
+              "x": 0.022767047823054224,
+              "y": 0.6850824799426556
+            },
+            {
+              "x": 0.008756563792702569,
+              "y": 0.41988926801907955
+            },
+            {
+              "x": 0.01751315764869257,
+              "y": 0.25966818341926196
+            },
+            {
+              "x": 0.05253941281950285,
+              "y": 0.2375688281260521
+            },
+            {
+              "x": 0.09281958822796221,
+              "y": 0.33701630630751955
+            },
+            {
+              "x": 0.11471101274136235,
+              "y": 0.2983422448633907
+            },
+            {
+              "x": 0.1383537440006455,
+              "y": 0.16574573374210855
+            },
+            {
+              "x": 0.24255691626670967,
+              "y": 0.16022070523779453
+            },
+            {
+              "x": 0.25569174692411983,
+              "y": 0.23204398930274966
+            },
+            {
+              "x": 0.31173380329867617,
+              "y": 0.2375688281260521
+            },
+            {
+              "x": 0.3371278413038424,
+              "y": 0.3204417898376122
+            },
+            {
+              "x": 0.3861646706948666,
+              "y": 0.25966818341926196
+            },
+            {
+              "x": 0.40280205471746794,
+              "y": 0.2928174060400883
+            },
+            {
+              "x": 0.41856387555699004,
+              "y": 0.5027620400496281
+            },
+            {
+              "x": 0.4255692227936719,
+              "y": 0.49171236240302313
+            },
+            {
+              "x": 0.4413309835066191,
+              "y": 0.4033145618681606
+            },
+            {
+              "x": 0.45446581416402926,
+              "y": 0.45303830095889436
+            },
+            {
+              "x": 0.5262697515046826,
+              "y": 0.4585631397821968
+            },
+            {
+              "x": 0.5402802054717468,
+              "y": 0.2651930222425644
+            },
+            {
+              "x": 0.5726794704604452,
+              "y": 0.24861869545366858
+            },
+            {
+              "x": 0.5936952115376163,
+              "y": 0.2209943116561447
+            },
+            {
+              "x": 0.5928195882279621,
+              "y": 0.49171236240302313
+            },
+            {
+              "x": 0.6094570323771384,
+              "y": 0.49171236240302313
+            },
+            {
+              "x": 0.6155866360510164,
+              "y": 0.23204398930274966
+            },
+            {
+              "x": 0.6926444335027439,
+              "y": 0.2375688281260521
+            },
+            {
+              "x": 0.7101575610881491,
+              "y": 0.16022070523779453
+            },
+            {
+              "x": 0.7872154186664515,
+              "y": 0.20441960550522578
+            },
+            {
+              "x": 0.7977232591417497,
+              "y": 0.25966818341926196
+            },
+            {
+              "x": 0.8380034946767838,
+              "y": 0.2541433445959595
+            },
+            {
+              "x": 0.9098073718908624,
+              "y": 0.25966818341926196
+            },
+            {
+              "x": 0.9483363608065883,
+              "y": 0.342541145130822
+            },
+            {
+              "x": 0.9754815853044879,
+              "y": 0.3756903677516483
+            },
+            {
+              "x": 0.9623466945205028,
+              "y": 0.5359112626704544
+            },
+            {
+              "x": 0.9623466945205028,
+              "y": 0.6464084184985267
+            },
+            {
+              "x": 0.9991243165637711,
+              "y": 0.8121541522406354
+            },
+            {
+              "x": 1,
+              "y": 0.3149167613332981
+            },
+            {
+              "x": 0.9964973865082339,
+              "y": 0.016574326788895845
+            },
+            {
+              "x": 0.9273204393496925,
+              "y": 0
+            },
+            {
+              "x": 0.0008756533729415142,
+              "y": 0.022099355293209853
+            },
+            {
+              "x": 0,
+              "y": 0.5248617747048611
+            },
+            {
+              "x": 0.004378296927994999,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-8788d4bfbac2442491f32fabce0b52c7",
+          "name": "Collider poligon",
+          "asset": null,
+          "x": 1.8867924528301885,
+          "y": 737.5786259489239,
+          "w": 563.5220509655071,
+          "h": 335.4297565964032,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.005952460019761493,
+              "y": 0.005000152778631305
+            },
+            {
+              "x": 0.08035713738324729,
+              "y": 0.09999996566772347
+            },
+            {
+              "x": 0.08333331630343599,
+              "y": 0.2750001630783143
+            },
+            {
+              "x": 0.07738106064244266,
+              "y": 0.3999998626708932
+            },
+            {
+              "x": 0.08333331630343599,
+              "y": 0.48500039997102384
+            },
+            {
+              "x": 0.14285720124536233,
+              "y": 0.4200001304626517
+            },
+            {
+              "x": 0.22619061972818236,
+              "y": 0.49500001888275236
+            },
+            {
+              "x": 0.19940480508771588,
+              "y": 0.5550001356124932
+            },
+            {
+              "x": 0.12202394880404138,
+              "y": 0.6650000635147119
+            },
+            {
+              "x": 0.1369048434049849,
+              "y": 0.7450001047134442
+            },
+            {
+              "x": 0.16666673478625604,
+              "y": 0.774999991416931
+            },
+            {
+              "x": 0.27380958463058575,
+              "y": 0.7900001064300578
+            },
+            {
+              "x": 0.9791666453792949,
+              "y": 0.8049998781204181
+            },
+            {
+              "x": 1,
+              "y": 0.9250001115798994
+            },
+            {
+              "x": 1,
+              "y": 0.9900000377655047
+            },
+            {
+              "x": 0.002976281099572788,
+              "y": 1
+            },
+            {
+              "x": 0.011904817860138901,
+              "y": 0.15000012016296838
+            },
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-1227ca24b4e044318f0ef1d7074408da",
+          "name": "Collider poligon",
+          "asset": null,
+          "x": 1373,
+          "y": 727,
+          "w": 543,
+          "h": 347,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.9938269721137153,
+              "y": 0
+            },
+            {
+              "x": 0.9320988125271267,
+              "y": 0.06280219036599867
+            },
+            {
+              "x": 0.876543256971571,
+              "y": 0.43478260869565216
+            },
+            {
+              "x": 0.861111111111111,
+              "y": 0.6328503152598505
+            },
+            {
+              "x": 0.8271603054470487,
+              "y": 0.6763285761294159
+            },
+            {
+              "x": 0.8055559794108071,
+              "y": 0.7922706604003906
+            },
+            {
+              "x": 0.6358027988009982,
+              "y": 0.7971015598462976
+            },
+            {
+              "x": 0.21604919433593756,
+              "y": 0.8502416196076767
+            },
+            {
+              "x": 0,
+              "y": 0.9227054430090862
+            },
+            {
+              "x": 0,
+              "y": 1
+            },
+            {
+              "x": 1,
+              "y": 0.9903382011081865
+            },
+            {
+              "x": 1,
+              "y": 0.009661964748216838
             }
           ],
           "visible": true,
@@ -22174,7 +22857,7 @@
       "description": "Kanal panjang · ruang tengah 2× · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 2883,
       "height": 1296,
-      "enabled": false,
+      "enabled": true,
       "terrain": {
         "asset": "field/kanal2-ground.webp",
         "width": 4118,
@@ -22189,7 +22872,20 @@
         ],
         "fps": 12
       },
-      "icon": null,
+      "icon": {
+        "asset": "map-studio/c059bbc047230b796c341acf3f3aace5bc6c6d862f4c42415c13c8061b3e376e.webp",
+        "width": 640,
+        "height": 360,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 640,
+            "height": 360
+          }
+        ],
+        "fps": 12
+      },
       "terrainMode": "stretch",
       "tileSize": 256,
       "objects": [
@@ -25936,6 +26632,7 @@
     "kampung3d": "deleted",
     "kampung": "active",
     "pasar": "active",
-    "kanal": "active"
+    "kanal": "active",
+    "kanal2": "active"
   }
 }

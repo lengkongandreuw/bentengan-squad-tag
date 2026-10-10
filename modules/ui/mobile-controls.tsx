@@ -18,6 +18,9 @@ export const MobileControls = ({
   ultimateActionClass,
   ultimateTitle,
   touch,
+  parkourReady=false,
+  parkourHint='',
+  parkourCooldownSeconds=0,
 }: {
   state: string;
   playerMechanicsLocked: boolean;
@@ -26,6 +29,9 @@ export const MobileControls = ({
   ultimateActionClass: string;
   ultimateTitle: string;
   touch: (key: string) => TouchProps;
+  parkourReady?:boolean;
+  parkourHint?:string;
+  parkourCooldownSeconds?:number;
 }) => (
   <div
     className={`mobile-controls ${state === 'PRISONER' ? 'context-hidden' : ''}`}
@@ -56,10 +62,13 @@ export const MobileControls = ({
       </button>
       <button
         aria-label={t("Parkour")}
+        title={t(parkourHint)}
+        className={parkourReady?'parkour-ready':''}
         disabled={playerMechanicsLocked}
         {...touch('shift')}
       >
         {t("PARKOUR")}
+        {parkourCooldownSeconds>0?` · ${parkourCooldownSeconds}s`:''}
       </button>
       {hasUltimate && (
         <button

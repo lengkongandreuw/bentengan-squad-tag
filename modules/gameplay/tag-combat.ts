@@ -268,7 +268,7 @@ export function resolveBase(
       if (e.type === 'forced-exit' || e.type === 'boost-recovered')
         facts.push({ type: e.type === 'forced-exit' ? 'FORCED_EXIT' : 'BOOST_RECOVERED', actorId: e.actorId });
       else if (e.type === 'objective' && e.reason === 'BENTENG DIREBUT' && previousFortCharge < 1.5)
-        facts.push({ type: 'FORT_CAPTURED', team: e.team, reason: e.reason });
+        facts.push({ type: 'FORT_CAPTURED', actorId:p.entityId, team: e.team, reason: e.reason });
     }
     emit(facts);
   }

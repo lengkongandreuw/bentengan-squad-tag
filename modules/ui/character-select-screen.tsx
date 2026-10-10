@@ -1,8 +1,8 @@
 import { t } from '../../lib/language';
 import { roleLabel } from '../../lib/player-copy';
 import {
+  CHARACTER_BY_ID,
   ULTIMATE_CHARACTER_IDS,
-  ultimateIcon,
   type CharacterDefinition,
   type CharacterId,
 } from '../../lib/characters.ts';
@@ -10,6 +10,15 @@ import type { Faction } from '../world/map-data/field-types';
 import { factionName } from '../world/team-tables.ts';
 import { SelectionPortrait } from './selection-portrait.tsx';
 import { statPercent } from './format.ts';
+import {UltimateUpgradePanel} from './ultimate-upgrade-panel.tsx';
+import type {LocalPlayerProfile} from '../../lib/player-profile/index.ts';
+import {CharacterLockBadge} from './character-lock-badge.tsx';
+import {getNextCharacterGoal,getCharacterSelectionState} from '../../lib/player-profile/index.ts';
+
+const CharacterNextGoal=({profile}:{profile:LocalPlayerProfile})=>{
+  const goal=getNextCharacterGoal(profile);
+  return <div className="character-next-goal" aria-label={t('Target unlock berikutnya')}>{t(goal?`Target berikutnya: ${CHARACTER_BY_ID[goal.characterId].name} · Lv.${goal.minLevel} · ${goal.xpRemaining} XP lagi`:'Semua karakter telah terbuka')}</div>;
+};
 
 // Character select screen: roster video, team swap, carousel grid, ability
 // panel, and the select button. Hover/cycle/voice wiring arrives as
@@ -25,6 +34,8 @@ export const CharacterSelectScreen = ({
   onHighlight,
   onSwapTeam,
   onSelect,
+  profile,
+  onProfileRefresh,
 }: {
   faction: Faction;
   videoSrc: string;
@@ -36,6 +47,8 @@ export const CharacterSelectScreen = ({
   onHighlight: (id: CharacterId) => void;
   onSwapTeam: () => void;
   onSelect: () => void;
+  profile?:LocalPlayerProfile|null;
+  onProfileRefresh?:()=>void;
 }) => (
   <section
     className={`roster-screen faction-${faction}`}
@@ -85,7 +98,7 @@ export const CharacterSelectScreen = ({
         {characters.map((character, index) => (
           <button
             key={character.id}
-            className={`carousel-character ${selectedId === character.id ? 'selected' : ''}`}
+            className={`carousel-character ${selectedId === character.id ? 'selected' : ''} ${getCharacterSelectionState(profile,character.id).locked?'locked':''}`}
             style={
               {
                 '--offset':
@@ -104,10 +117,10 @@ export const CharacterSelectScreen = ({
               alt={t(character.name)}
               active={selectedId === character.id}
             />
+            <CharacterLockBadge profile={profile??null} id={character.id}/>
             {ULTIMATE_CHARACTER_IDS.has(character.id) && (
               <strong className="ultimate-roster-badge" aria-label={t("Memiliki Ultimate")}>
-                {ultimateIcon(character.ultimate?.icon ?? 'zap', 12)}
-                {t("ULTIMATE")}
+                <img src={resolveAsset('controls/ultimate-label.png')} alt="" aria-hidden="true" />
               </strong>
             )}
             <span>{t(character.name)}</span>
@@ -178,5 +191,8 @@ export const CharacterSelectScreen = ({
         <span>{t("PILIH ")}{t(selected.name)}</span>
       </button>
     </aside>
+    {profile&&onProfileRefresh&&<UltimateUpgradePanel key={selectedId} profile={profile} characterId={selectedId} onRefresh={onProfileRefresh}/>}
+    <div className="character-mobile-summary"><p>{t(selected.passiveCopy)}</p><b>{t('Kecepatan ')}{selected.speed}{t(' · Boost ')}{selected.boost}{t(' · Kelincahan ')}{selected.agility.toFixed(2)}</b></div>
+    {profile&&<CharacterNextGoal profile={profile}/>}
   </section>
 );

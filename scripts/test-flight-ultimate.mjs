@@ -70,8 +70,8 @@ void test('three flight actions support optional eight directions with backward-
 });
 void test('runtime retains existing team ultimates and gates all flight interactions',()=>{
   const code=fs.readFileSync('app/prototype.tsx','utf8');
-  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','playerMovementLocked','studioFlightClip(me.characterId,slot,me.flight.direction)','resolveTag(players,winner.entityId,loser.entityId','resolveRescue(players,rescuer.entityId','resolveBase(players,p,dt,now'])assert.ok(code.includes(pattern),pattern);
+  for(const pattern of ['RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000','playerMechanicsLocked','studioFlightClip(me.characterId,slot,me.flight.direction)','resolveTag(players,winner.entityId,loser.entityId','resolveRescue(players,rescuer.entityId','resolveBase(players,p,dt,now'])assert.ok(code.includes(pattern),pattern);
   const rules=fs.readFileSync('modules/gameplay/tag-combat.ts','utf8');
   for(const pattern of ['!flightBusy(a)&&!flightBusy(b)','flightBusy(actor)','flightBusy(p)','now>=b.ultimateShieldUntil','now>=a.parkourUntil&&now>=b.parkourUntil'])assert.ok(rules.includes(pattern),pattern);
-  assert.equal(code.split("onClick={() => keys.current.add('capslock')}").length-1,2,'desktop/mobile ultimate queues a one-shot until consumed');
+  assert(code.includes("onTapUltimate={() => tapKey('capslock')}"));assert(code.includes("touch={touchControl}"));const mobile=fs.readFileSync('modules/ui/mobile-controls.tsx','utf8');assert(mobile.includes("{...touch('capslock')}"));const desktop=fs.readFileSync('modules/ui/action-dock.tsx','utf8');assert(desktop.includes('onClick={onTapUltimate}'));assert(code.includes("keys.current.delete('capslock')"),'ultimate one-shot consumed by runtime');
 });

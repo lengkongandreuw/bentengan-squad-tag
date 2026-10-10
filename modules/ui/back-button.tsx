@@ -9,6 +9,7 @@ export const BackButton = ({
   onBack: () => void;
 }) => (
   <button className="graffiti-back" onClick={onBack} aria-label={t("Kembali")}>
-    <img src={resolveAsset('controls/back.webp')} alt={t("Kembali")} />
+    <img className="back-normal" src={resolveAsset('controls/back-inactive.png')} alt="" />
+    <img className="back-hover" src={resolveAsset('controls/back-hover.png')} alt="" aria-hidden="true" />
   </button>
 );

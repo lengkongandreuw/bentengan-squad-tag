@@ -22,6 +22,7 @@ import {
   speedAt,
   frameAt,
   mapIssues,
+  autoFixMap,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
 import {mapVersions} from './map-versions.mjs';
@@ -92,6 +93,64 @@ const map = () => ({
     blue: { x: 80, y: 100, w: 240, h: 160 },
     red: { x: 1480, y: 100, w: 240, h: 160 },
   },
+});
+void test('auto-fix uncrosses polygons, removes duplicates, preserves source and is idempotent', () => {
+  const source = map();
+  source.objects = [{ ...object(), shape: 'polygon', points: [
+    {x: 0, y: 0}, {x: 1, y: 1}, {x: 0, y: 1}, {x: 1, y: 0}, {x: 0, y: 0},
+  ] }];
+  const before = structuredClone(source);
+  assert.ok(mapIssues(source).some(i => i.message.includes('bersilangan')));
+  const result = autoFixMap(source);
+  assert.equal(result.fixes.length, 1);
+  assert.equal(result.map.objects[0].points.length, 4);
+  assert.ok(!mapIssues(result.map).some(i => /bersilangan|terlalu tipis/.test(i.message)));
+  assert.deepEqual(source, before);
+  assert.equal(result.map.enabled, source.enabled);
+  assert.deepEqual(result.map.bases, source.bases);
+  assert.deepEqual(result.map.prisons, source.prisons);
+  assert.deepEqual(autoFixMap(result.map).fixes, []);
+  assert.deepEqual(validateMap(result.map), result.map);
+});
+void test('auto-fix preserves valid concave shapes, locked areas, degenerate shapes and assets', () => {
+  const source = map();
+  const concave = [{x: 0,y: 0},{x: 1,y: 0},{x: .5,y: .5},{x: 1,y: 1},{x: 0,y: 1}];
+  const crossed = [{x: 0,y: 0},{x: 1,y: 1},{x: 0,y: 1},{x: 1,y: 0}];
+  source.objects = [
+    {...object(), id:'obj-concave', shape:'polygon', points:concave},
+    {...object(), id:'obj-locked', locked:true, shape:'polygon', points:crossed},
+    {...object(), id:'obj-degenerate', shape:'polygon', points:[{x:0,y:0},{x:.5,y:.5},{x:1,y:1}]},
+    {...object('decoration'), id:'obj-decoration', shape:'polygon', points:crossed},
+  ];
+  const result = autoFixMap(source);
+  assert.deepEqual(result.map, source);
+  assert.equal(result.fixes.length, 0);
+  assert.equal(result.skipped.length, 1);
+  assert.ok(mapIssues(result.map).some(i=>i.object==='obj-locked'));
+});
+void test('auto-fix returns invisible collision areas to bounds without changing other objects or overlaps', () => {
+  const source = map();
+  source.objects = [
+    {...object(),id:'obj-bound',x:1790,y:1190,w:100,h:100},
+    {...object(),id:'obj-overlap'},
+    {...object(),id:'obj-overlap2'},
+  ];
+  const result = autoFixMap(source);
+  assert.equal(result.fixes.length, 1);
+  assert.equal(result.map.objects[0].x, 1700);
+  assert.equal(result.map.objects[0].y, 1100);
+  assert.deepEqual(result.map.objects.slice(1), source.objects.slice(1));
+  assert.equal(result.map.objects.length, source.objects.length);
+});
+void test('polygon guard detects nonadjacent touching vertices and collinear overlapping edges', () => {
+  const source = map();
+  source.objects = [{...object(),shape:'polygon',points:[
+    {x:0,y:0},{x:1,y:0},{x:1,y:1},{x:.5,y:0},{x:0,y:1},
+  ]}];
+  assert.ok(mapIssues(source).some(i=>i.message.includes('bersilangan')));
+  const result = autoFixMap(source);
+  assert.equal(result.fixes.length, 0, 'ambiguous touching shape requires manual review');
+  assert.equal(result.skipped.length, 1);
 });
 const toolCode = (
   await readFile(new URL('./editor-tools.js', import.meta.url), 'utf8')
@@ -322,6 +381,16 @@ void test('HTTP harness exposes built-in catalog and browser guard from running 
     const editor = await (await fetch(origin + '/editor.js')).text();
     assert.match(editor, /validateCatalog\(await api\('\/api\/templates'\)\)/);
     assert.ok((await fetch(origin + '/editor-tools.js')).ok);
+    const model = await fetch(origin + '/model.js');
+    assert.equal(model.status, 200);
+    assert.match(model.headers.get('content-type'), /javascript/);
+    const browserModel = await model.text();
+    assert.doesNotMatch(browserModel, /^import\s.+from\s+['"]/m,
+      'browser model must not request unserved repository/TypeScript modules');
+    const browserExports = await import('data:text/javascript;base64,' +
+      Buffer.from(browserModel).toString('base64'));
+    assert.equal(browserExports.validateMap(map()).id, map().id);
+    assert.equal(typeof browserExports.solidAt, 'function');
     assert.match(editor, /drawGameplayAssets\(now, true\)/);
     const html = await (await fetch(origin + '/')).text();
     for (const id of [

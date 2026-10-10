@@ -8,7 +8,8 @@ export type GameEvent =
   | {type:'ULTIMATE_STARTED';actorId:EntityId;flight:boolean}
   | {type:'ULTIMATE_APPLIED';actorId:EntityId;effect:'shield'|'speed';durationMs:number;speedMultiplier:number}
   | {type:'FORT_ENTERED';actorId:EntityId;team:LegacyTeam}
-  | {type:'FORT_CAPTURED';team:LegacyTeam;reason:'BENTENG DIREBUT'}
+  | {type:'FORT_CAPTURED';actorId:EntityId;team:LegacyTeam;reason:'BENTENG DIREBUT'}
+  | {type:'HELP_REQUESTED';actorId:EntityId}
   | {type:'ROUND_ENDED'|'MATCH_ENDED';team:LegacyTeam;reason:string}
   | {type:'FORCED_EXIT'|'BOOST_RECOVERED';actorId:EntityId};
 export type GameEventSink=(events:readonly GameEvent[])=>void;

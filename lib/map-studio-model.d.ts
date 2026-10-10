@@ -79,6 +79,11 @@ export function mapIssues(
   m: StudioMap,
 ): Array<{ object?: string; message: string }>;
 export function validateAsset(a: unknown): MapAsset | null;
+export function autoFixMap(m: StudioMap): {
+  map: StudioMap;
+  fixes: Array<{ object: string; message: string }>;
+  skipped: Array<{ object: string; message: string }>;
+};
 export const BEHAVIORS: string[];
 export const LAYERS: string[];
 export const BUILTIN_IDS: string[];

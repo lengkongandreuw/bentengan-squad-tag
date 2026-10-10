@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from 'react';
 import { publicAsset } from '../../lib/characters.ts';
 
 const groups = [
-  { title: 'Game Design', names: ['Andreuw Lengkong', 'Andria Wahyudi'] },
-  { title: 'Programmer', names: ['Andreuw Lengkong', 'Andria Wahyudi', 'David Tjia', 'Timothy Tiwow', 'Hani Ladjamba'] },
-  { title: 'Art', names: ['Juliando Kalangie', 'Ariellya Sayow', 'Karen Wendry', 'Andreuw Lengkong'] },
+  { title: 'Game Director', names: ['Andreuw Lengkong'] },
+  { title: 'Game Design', names: ['Andria Wahyudi', 'Andreuw Lengkong'] },
+  { title: 'Programmer', names: ['Andreuw Lengkong', 'Andria Wahyudi', 'Sir David Tjia', 'Timothy Tiwow', 'Hani Ladjamba', 'Clio Mataheru', 'Sir Kevin', 'Adrian Lumowa'] },
+  { title: 'Art', names: ['Juliando Kalangie', 'Ariellya Sayow', 'Averil', 'Karen Wendry', 'Andreuw Lengkong'] },
+  { title: 'BigDade® Interactive', names: ['Melisa Rende', 'Andria Wahyudi', 'Charlie Dumingan', 'Andreuw Lengkong', 'Gorga Silalahi', 'Andre Gisisi'] },
 ];
 
 export function DeveloperCredits({onClose}:{onClose:()=>void}) {

@@ -6,7 +6,7 @@ import { kanalObjectPolygons, kanalObjectRects, pointInPolygon } from '../module
 import { pointHitsExpandedRect } from '../modules/gameplay/collision-navigation.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
-const source = (await readFile(path.join(root, 'app/prototype.tsx'), 'utf8')).replace(/\r\n/g,'\n');
+const source = (await readFile(path.join(root, 'modules/world/map-data/guide-fields.ts'), 'utf8')).replace(/\r\n/g,'\n');
 const originalStart = source.indexOf('const kanalGuide: FieldConfig = {');
 const originalEnd = source.indexOf('\n};', originalStart);
 assert(originalStart >= 0 && originalEnd > originalStart, 'Nusantara 2 source layout must remain');

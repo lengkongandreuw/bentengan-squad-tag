@@ -32,7 +32,7 @@ try{
     assert(await page.getByLabel("Multiplayer arena").isDisabled());await shot(page,`${kind}-lobby`);
     await inside(page,page.getByRole('button',{name:"Close multiplayer"}),'Close lobby');
     await page.getByRole('button',{name:"Close multiplayer"}).click();
-    await page.getByRole('button',{name:"HOW TO PLAY",exact:true}).click();
+    await page.getByRole('button',{name:/^(HOW TO PLAY|GAME RULES)$/}).click();
     await inside(page,page.getByRole('button',{name:"Close",exact:true}),'Close rules');
     assert(!await page.locator('.rules-dialog').innerText().then(t=>t.includes('tetap rentan tag')));
     await page.locator('.rules-dialog').hover();await page.mouse.wheel(0,800);await page.waitForTimeout(200);

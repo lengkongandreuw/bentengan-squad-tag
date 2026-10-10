@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pages-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--config", "vite.github.config.ts", "--port", "3011", "--strictPort"],
+      "port": 3011
+    }
+  ]
+}

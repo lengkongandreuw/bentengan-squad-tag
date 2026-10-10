@@ -1883,6 +1883,57 @@
           "top": 7
         }
       }
+    },
+    "map-studio/16ff0ef866e5e5e4d65631394d489f94fe5d7527896288156c2f743599fc6df4.webp": {
+      "asset": "map-runtime/47c032978e55a86749dffb36275322fbc79fa2241b7f6cd3c9303e25103b32b3.webp",
+      "width": 1259,
+      "height": 1262,
+      "sourceWidth": 1262,
+      "sourceHeight": 1262,
+      "frames": {
+        "0,0,1262,1262": {
+          "x": 2,
+          "y": 2,
+          "width": 1255,
+          "height": 1258,
+          "left": 2,
+          "top": 2
+        }
+      }
+    },
+    "map-studio/ce89ec636d19660a705c6b1c2b8e8c63e73253be763cca1106e1825acea23831.webp": {
+      "asset": "map-runtime/c62bf582336b1ceb4095539fa27feccaf407405b1520be9c0cd818322d2a42ad.webp",
+      "width": 1261,
+      "height": 1255,
+      "sourceWidth": 1262,
+      "sourceHeight": 1262,
+      "frames": {
+        "0,0,1262,1262": {
+          "x": 2,
+          "y": 2,
+          "width": 1257,
+          "height": 1251,
+          "left": 2,
+          "top": 9
+        }
+      }
+    },
+    "map-studio/147946af7e0051c5e8b9e4cc8aca3f36b96d9f47643dd9747d04b532dd8eccd6.webp": {
+      "asset": "map-runtime/5d465d539b8745ffe874b2dcf7a620d907ab08a799286a0ec05948f589a11ab9.webp",
+      "width": 1262,
+      "height": 1215,
+      "sourceWidth": 1262,
+      "sourceHeight": 1262,
+      "frames": {
+        "0,0,1262,1262": {
+          "x": 2,
+          "y": 2,
+          "width": 1258,
+          "height": 1211,
+          "left": 2,
+          "top": 49
+        }
+      }
     }
   }
 }

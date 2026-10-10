@@ -5,6 +5,7 @@ import { readFile, writeFile, mkdir, rename, realpath } from 'node:fs/promises';
 import { randomBytes, createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
+import { build } from 'esbuild';
 import { compileSprites } from '../sprite-studio/compile.mjs';
 import {
   validateDocument,
@@ -76,6 +77,18 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
     job = { status: 'idle', message: '' };
   let catalogPromise;
   const catalog = () => catalogPromise ??= templates(projectRoot);
+  // The shared model now imports TypeScript modules. Serve one browser-ready
+  // bundle instead of exposing repository source paths to the editor.
+  // Rebuild on request so editing the model while Studio is running cannot
+  // leave a new editor importing stale exports from an old cached bundle.
+  const browserModel = () => build({
+    entryPoints: [path.join(projectRoot, 'lib/map-studio-model.js')],
+    bundle: true,
+    write: false,
+    format: 'esm',
+    platform: 'browser',
+    target: 'es2022',
+  }).then(result => result.outputFiles[0].text);
   const read = async () => {
     const b = await readFile(config);
     const document = validateDocument(JSON.parse(b));
@@ -330,7 +343,9 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
           'Content-Type',
           mime[path.extname(file)] ?? 'application/octet-stream',
         );
-        return res.end(await readFile(file));
+        return res.end(url.pathname === '/model.js'
+          ? await browserModel()
+          : await readFile(file));
       }
       if (
         req.method !== 'POST' ||

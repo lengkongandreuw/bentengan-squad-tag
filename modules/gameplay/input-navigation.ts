@@ -60,6 +60,7 @@ export const handleKeyDown = (
       ].includes(key)
     )
       event.preventDefault();
+    if(key==='shift'&&!event.repeat&&!keys.has('shift'))keys.add('parkour-pulse');
     keys.add(key);
   }
 };

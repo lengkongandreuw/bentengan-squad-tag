@@ -57,6 +57,9 @@ export type Snapshot = {
   order: number;
   state: PlayerState;
   paused: boolean;
+  parkourReady?:boolean;
+  parkourHint?:string;
+  parkourCooldownSeconds?:number;
   logs: string[];
   mission: Mission;
   team: Array<{
@@ -99,6 +102,9 @@ export const initialSnapshot: Snapshot = {
   order: 0,
   state: 'IN_BASE',
   paused: false,
+  parkourReady:false,
+  parkourHint:'Tidak ada tempat mendarat yang aman',
+  parkourCooldownSeconds:0,
   logs: ['Prototype 5v5 siap.'],
   mission: {
     refresh: false,

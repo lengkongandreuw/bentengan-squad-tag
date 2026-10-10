@@ -13,6 +13,7 @@ import {
   frameAt,
   mapIssues,
   validateMap,
+  autoFixMap,
 } from '/model.js';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas'),
@@ -299,6 +300,7 @@ function open(m, options = {}) {
   drag=null;pointsMode=false;selectedNode=-1;
   history = [];
   future = [];
+  $('autoFixSummary').textContent = '';
   testing = false;
   drawing = null;
   $('drawingTools').hidden = true;
@@ -319,7 +321,7 @@ function applyViewMode() {
   document.querySelector('main > aside:last-child').inert=inspectOnly;
   const assets=document.querySelectorAll('main > aside:first-child section')[1];
   if(assets)assets.inert=inspectOnly;
-  for(const id of ['save','undo','redo','test','polygon','solidArea'])$(id).disabled=inspectOnly;
+  for(const id of ['save','undo','redo','test','polygon','solidArea','autoFix'])$(id).disabled=inspectOnly;
   $('resetMap').disabled=inspectOnly||!map.replaces;
   $('editVersion').hidden=!inspectOnly;
   const saved=state.document.maps.find(m=>m.id===map.id || map.replaces&&m.replaces===map.replaces);
@@ -360,6 +362,23 @@ function add(asset, name = 'Area baru') {
   select(o.id);
   return o;
 }
+function repairColliders(recordHistory = true) {
+  if (inspectOnly || testing || loading || drawing) return 0;
+  const result = autoFixMap(map);
+  if (result.fixes.length) {
+    if (recordHistory) remember();
+    map = result.map;
+    selectedNode = -1;
+    fields();
+  }
+  $('autoFixSummary').textContent = result.fixes.length
+    ? `Auto-fix: ${result.fixes.map(f => f.message).join(' ')} Bisa Undo; simpan untuk menerapkan.`
+    : 'Tidak ada perbaikan geometri aman yang diperlukan.';
+  if (result.skipped.length)
+    $('autoFixSummary').textContent += ` ${result.skipped.map(f => f.message).join(' ')}`;
+  return result.fixes.length;
+}
+$('autoFix').onclick = safe(() => { repairColliders(); check(); });
 function check() {
   const issues = mapIssues(map);
   $('issues').replaceChildren();
@@ -978,6 +997,7 @@ $('enabled').onchange = () => {
   if (testing) return;
   remember();
   map.enabled = $('enabled').checked;
+  if (map.enabled) repairColliders(false);
   check();
   publishSummary();
 };
@@ -1076,6 +1096,7 @@ $('finishPolygon').onclick = safe(() => {
   drawing = null;
   pointer = null;
   $('drawingTools').hidden = true;
+  repairColliders(false);
   $('bounds').checked = true;
   pointsMode = true;
   propertyFields();
@@ -1103,6 +1124,8 @@ $('undo').onclick = () => {
   map = history.pop();
   dirty = true;
   fields();
+  check();
+  $('autoFixSummary').textContent = 'Undo diterapkan. Geometri sebelumnya dipulihkan; auto-fix tidak dijalankan ulang sampai Anda memeriksa, mengaktifkan, atau menyimpan.';
 };
 $('redo').onclick = () => {
   if (!future.length || testing) return;
@@ -1110,6 +1133,8 @@ $('redo').onclick = () => {
   map = future.pop();
   dirty = true;
   fields();
+  check();
+  $('autoFixSummary').textContent = 'Redo diterapkan. Periksa hasil sebelum menyimpan.';
 };
 $('new').onclick = () => open(blank());
 $('clone').onclick = () => {
@@ -1291,6 +1316,7 @@ $('clearWaterMask').onclick = () => {
 };
 $('fit').onclick = fit;
 $('validate').onclick = safe(() => {
+  repairColliders();
   validateMap(map);
   check();
 });
@@ -1321,6 +1347,7 @@ $('save').onclick = safe(async () => {
       el.reportValidity();
       throw new Error('Perbaiki nilai field yang ditandai sebelum menyimpan.');
     }
+  repairColliders();
   map = validateMap(map);
   if (map.archived || map.deleted) {
     map.enabled = false;
@@ -1363,6 +1390,7 @@ $('test').onclick = () => {
     'publish',
     'polygon',
     'solidArea',
+    'autoFix',
   ])
     $(id).disabled = testing;
   canvas.focus();

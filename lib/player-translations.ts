@@ -1,6 +1,12 @@
 // Proper names (Tim Merah, Tim Hijau, arenas and named abilities) stay Indonesian.
 // ${n} is a runtime placeholder; never translate IDs, asset paths or game rules.
 export const playerTranslations: Record<string,string> = {
+  'MULAI MATCH':'LET’S PLAY',
+  'Mulai Match':'LET’S PLAY',
+  'Pilih arena':'Choose your arena',
+  'Skuad':'Squad',
+  'Parkour dalam cooldown':'Parkour on cooldown','Parkour siap dalam ${0} detik':'Parkour ready in ${0} seconds',
+  'Parkour siap':'Parkour ready','Parkour belum tersedia saat ini':'Parkour is unavailable right now','Tunggu selesai mendarat':'Wait until you finish landing','Boost belum cukup untuk parkour':'Not enough boost for parkour','Tidak ada tempat mendarat yang aman':'No safe landing ahead',
   '${0} memenangkan pertandingan':'${0} wins the match','${0} memenangkan ronde':'${0} wins the round',
   'Level pemain':'Player level','Total kemenangan':'Total wins','Rescue tim':'Team rescues','Main di ${0}':'Play in ${0}','Menang di ${0}':'Win in ${0}',
   'Versi protokol berbeda. Perbarui game kedua pemain.':'Connection versions differ. Both players need to update the game.',

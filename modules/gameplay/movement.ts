@@ -16,6 +16,7 @@ export type CollisionWorld = {
   studioFlightSolidAt?: (x: number, y: number, r: number) => boolean;
   obstacleAt?: (x: number, y: number, r: number) => boolean;
   flightObstacleAt?: (x: number, y: number, r: number) => boolean;
+  parkourSolidAt?: (x: number, y: number, r: number) => boolean;
   waterAt: (x: number, y: number) => boolean;
   waterBlocks: (x: number, y: number) => boolean;
   fortCoreAt: (x: number, y: number) => boolean;
@@ -31,7 +32,7 @@ export function hitsSolid(world: CollisionWorld, x: number, y: number) {
       : world.obstacles.some((o) => pointHitsExpandedRect(x, y, o, 13)))
   );
 }
-export function movementBlocked(world: CollisionWorld, x: number, y: number, p: RuntimeActor, now: number) {
+export function movementBlocked(world: CollisionWorld, x: number, y: number, p: RuntimeActor, _now: number) {
   if (isFlying(p))
     return (
       !!(world.studioFlightSolidAt ? world.studioFlightSolidAt(x, y, 13) : world.studioSolidAt?.(x, y, 13, true)) ||
@@ -40,10 +41,10 @@ export function movementBlocked(world: CollisionWorld, x: number, y: number, p: 
         : world.obstacles.some((o) => !flightPassesObstacle(o) && pointHitsExpandedRect(x, y, o, 13))) ||
       world.fortCoreAt(x, y)
     );
-  if (world.studioSolidAt?.(x, y, 13, now < p.parkourUntil)) return true;
+  if (world.studioSolidAt?.(x, y, 13, false)) return true;
   if (world.kanal && world.waterBlocks(x, y)) return true;
   const entersCore = world.kanal && !world.fortCoreAt(p.x, p.y) && world.fortCoreAt(x, y);
-  if (now >= p.parkourUntil && (hitsSolid(world, x, y) || entersCore)) return true;
+  if (hitsSolid(world, x, y) || entersCore) return true;
   if (
     p.state === 'IN_BASE' &&
     p.baseCharge < world.baseChargeTime(p) &&
@@ -135,29 +136,34 @@ export function moveActor(
   else if (enterWaterFall(world, p, now, p.x, y)) return { type: 'water-fall', entityId: p.entityId };
   return null;
 }
-export function parkourLanding(
-  world: CollisionWorld,
-  p: RuntimeActor,
-  direction: Point,
-  nominalDistance: number,
-  now: number,
-) {
-  const magnitude = Math.hypot(direction.x, direction.y);
-  if (magnitude < 0.01) return null;
-  const ux = direction.x / magnitude,
-    uy = direction.y / magnitude;
-  let crossedWater = false;
-  for (let d = 10; d <= Math.max(nominalDistance, 132); d += 6) {
-    const x = clamp(p.x + ux * d, 34, world.width - 34),
-      y = clamp(p.y + uy * d, 58, world.height - 32),
-      water = world.waterAt(x, y);
-    crossedWater ||= water;
-    if (crossedWater && !water && d >= nominalDistance * 0.72 && !movementBlocked(world, x, y, p, now))
-      return { x, y, crossedWater: true };
+export const PARKOUR_LOW_ASSETS=new Set(['bucket','bush','crates','drain','trash','plant','plantFence','flowerBedSmall','flowerFence','parkBarrier','parkFlowerFence','parkFlowerFenceLong','parkPlanterLong','map2BarrierGreen','map2BarrierRed','map2PlanterGreen','map2PlanterRed','canalBarrier','canalBarrierLong','kanalNusaBarrier','kanalNusaPlanterLong','kanalNusaPlanterOval']);
+export const parkourPassesObstacle=(o:CollisionWorld['obstacles'][number])=>PARKOUR_LOW_ASSETS.has(o.asset);
+// Explicit river allowance, scaled by agility. Water must start on the normal
+// vault path near the actor; distant water cannot extend an unrelated vault.
+export const PARKOUR_WATER_BASE_REACH=132;
+export function parkourLanding(world:CollisionWorld,p:RuntimeActor,direction:Point,nominalDistance:number,now:number) {
+  const magnitude=Math.hypot(direction.x,direction.y);if(magnitude<.01||nominalDistance<=0)return null;
+  const ux=direction.x/magnitude,uy=direction.y/magnitude;
+  const waterReach=PARKOUR_WATER_BASE_REACH*(nominalDistance/54);
+  let crossedWater=false,context=false;
+  const hardAt=(x:number,y:number)=>!!world.studioSolidAt?.(x,y,13,true)||
+    (world.parkourSolidAt?world.parkourSolidAt(x,y,13):world.obstacles.some(o=>!parkourPassesObstacle(o)&&pointHitsExpandedRect(x,y,o,13)))||
+    (world.kanal&&world.fortCoreAt(x,y));
+  const max=Math.max(nominalDistance,waterReach);
+  for(let d=2;d<=max+2;d+=2){
+    const step=Math.min(d,crossedWater?max:nominalDistance),x=p.x+ux*step,y=p.y+uy*step;
+    if(x<34||x>world.width-34||y<58||y>world.height-32||hardAt(x,y))return null;
+    // Never vault out of an unprepared fort or through an occupied enemy fort.
+    if(p.state==='IN_BASE'&&p.baseCharge<world.baseChargeTime(p)&&distance({x,y},world.bases[p.team])>=world.baseRadius)return null;
+    for(const team of ['blue','red'] as const)if(p.team!==team&&distance({x,y},world.bases[team])<world.baseRadius&&world.fortOccupied(team,p.id))return null;
+    const water=world.waterAt(x,y);
+    if(step<=44&&water)context=true;
+    if(water){if(!context)return null;crossedWater=true;}
+    if(crossedWater&&context&&!water&&step>=nominalDistance*.72&&!world.waterBlocks(x,y)&&!movementBlocked(world,x,y,p,now))return {x,y,crossedWater:true};
+    // A clear ground path is a valid free jump; no nearby collider is required.
+    if(!crossedWater&&step>=nominalDistance)return !movementBlocked(world,x,y,p,now)?{x,y,crossedWater:false}:null;
   }
-  const x = clamp(p.x + ux * nominalDistance, 34, world.width - 34),
-    y = clamp(p.y + uy * nominalDistance, 58, world.height - 32);
-  return !crossedWater && !movementBlocked(world, x, y, p, now) ? { x, y, crossedWater: false } : null;
+  return null;
 }
 export function drainBoost(p: RuntimeActor, rate: number, dt: number, now: number) {
   p.boost = Math.max(0, p.boost - rate * dt);

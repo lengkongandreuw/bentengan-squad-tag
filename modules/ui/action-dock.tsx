@@ -17,6 +17,10 @@ export const ActionDock = ({
   ultimateTitle,
   ultimateIconId,
   onTapUltimate,
+  parkourReady=false,
+  parkourHint='',
+  parkourCooldownSeconds=0,
+  onTapParkour,
 }: {
   mechanicsLocked: boolean;
   state: string;
@@ -34,6 +38,10 @@ export const ActionDock = ({
   ultimateTitle: string;
   ultimateIconId: UltimateIconId;
   onTapUltimate: () => void;
+  parkourReady?:boolean;
+  parkourHint?:string;
+  parkourCooldownSeconds?:number;
+  onTapParkour?:()=>void;
 }) => (
   <div
     className={`action-dock ${mechanicsLocked ? 'mechanics-inactive' : ''} ${state === 'PRISONER' ? 'context-hidden' : ''}`}
@@ -52,11 +60,11 @@ export const ActionDock = ({
       <b>{t("SPACE")}</b>
       <small>{t("SPRINT")}</small>
     </span>
-    <span>
+    <button type="button" aria-label={t('Parkour')} title={t(parkourHint)} disabled={mechanicsLocked} className={parkourReady?'parkour-ready':''} onClick={onTapParkour}>
       <Gauge size={19} />
       <b>{t("SHIFT")}</b>
-      <small>{t("PARKOUR")}</small>
-    </span>
+      <small>{t("PARKOUR")}{parkourCooldownSeconds>0?` · ${parkourCooldownSeconds}s`:''}</small>
+    </button>
     <span className={comboSurge ? 'combo-ready' : ''}>
       <Users size={19} />
       <b>{t("AUTO")}</b>

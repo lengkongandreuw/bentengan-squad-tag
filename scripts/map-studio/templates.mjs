@@ -11,6 +11,11 @@ export async function templates(root) {
     const guide = await import('../../modules/world/map-data/guide-fields.ts');
     if (guide?.buildFieldConfigs && guide?.GUIDE_FIELD_CONFIGS)
       fields = JSON.parse(JSON.stringify(guide.buildFieldConfigs(guide.GUIDE_FIELD_CONFIGS)));
+    // Gameplay adds this experimental variant after normalization. Keep it
+    // listed as non-editable, just as the pre-refactor catalog did.
+    if (fields && !fields.some(field => field.id === 'kampung3d'))
+      fields.push({ ...structuredClone(fields[0]), id: 'kampung3d',
+        name: 'Kampung Merdeka 3D' });
   } catch { /* Fall back to the legacy prototype slice below. */ }
   if (!fields) {
     const source = await readFile(path.join(root, 'app/prototype.tsx'), 'utf8');

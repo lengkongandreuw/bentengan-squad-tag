@@ -64,7 +64,7 @@ void test('13 event conversion has explicit canonical teams and validates every 
     {type:'PLAYER_TAGGED',actorId:'a',targetId:'b',x:10,y:20},{type:'PLAYER_CAPTURED',actorId:'a',targetId:'b'},
     {type:'PLAYER_RESCUED',actorId:'a',targetIds:['b','c'],x:10,y:20},{type:'ULTIMATE_STARTED',actorId:'a',flight:true},
     {type:'ULTIMATE_APPLIED',actorId:'a',effect:'shield',durationMs:5000,speedMultiplier:1.4},
-    {type:'FORT_ENTERED',actorId:'a',team:'blue'},{type:'FORT_CAPTURED',team:'red',reason:'BENTENG DIREBUT'},
+    {type:'FORT_ENTERED',actorId:'a',team:'blue'},{type:'FORT_CAPTURED',actorId:'a',team:'red',reason:'BENTENG DIREBUT'},{type:'HELP_REQUESTED',actorId:'a'},
     {type:'ROUND_ENDED',team:'blue',reason:'TEST'},{type:'MATCH_ENDED',team:'red',reason:'TEST'},
     {type:'FORCED_EXIT',actorId:'a'},{type:'BOOST_RECOVERED',actorId:'a'},
   ];
@@ -275,7 +275,7 @@ void test('10 rescue and base emit stable identity facts while preserving legacy
   held.entityId='changed';assert.equal(events[0].targetIds[0],'held');assert.doesNotThrow(()=>state.assertJsonData(events));
   const w=world(),p=actor({x:900,y:100,fortCharge:1.49}),notices=[];
   const base=interactions.resolveBase([p],p,.02,1000,[],baseRules(w),facts=>notices.push(...facts));
-  assert.equal(base[0].type,'objective');assert.deepEqual(notices,[{type:'FORT_CAPTURED',team:'blue',reason:'BENTENG DIREBUT'}]);
+  assert.equal(base[0].type,'objective');assert.deepEqual(notices,[{type:'FORT_CAPTURED',actorId:p.entityId,team:'blue',reason:'BENTENG DIREBUT'}]);
   interactions.resolveBase([p],p,.02,1020,[],baseRules(w),facts=>notices.push(...facts));assert.equal(notices.length,1);
   const recovering=actor({x:500,boost:0,boostReadyAt:1000});
   interactions.resolveBase([recovering],recovering,.02,1000,[],baseRules(w),facts=>notices.push(...facts));
@@ -307,7 +307,7 @@ void test('10 event boundary stays finite and runtime connects presentation with
 void test('10 actual interaction presenter preserves player/bot audio routing and never mutates match truth',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8'),start=source.indexOf('const presentInteractionEvents ='),end=source.indexOf('const capture =',start);
   const initialize=vm.runInThisContext(ts.transpileModule(`(function(players,presentGameEvents){
-    const network=null,clientOnly=false,sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
+    let localSignSerial=0;const network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
       distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),gameplayAudio={play:(...args)=>sounds.push(args),resetTagStreak:()=>sounds.push(['reset']),playerTag:now=>sounds.push(['playerTag',now])},
       addMatchEvent=event=>feed.push(event),burst=(...args)=>bursts.push(args),log=text=>logs.push(text),beep=()=>{};
     ${source.slice(start,end)}
@@ -565,10 +565,10 @@ void test('06 movement/collision matches frozen legacy across obstacles, slow te
   }
   assert.equal(checked,216);
 });
-void test('06 parkour landing and boost preserve legacy constraints without audio callbacks',()=>{
+void test('06 free parkour and boost preserve resource/input rules without audio callbacks',()=>{
   for(const water of [false,true])for(const dx of [-1,0,1])for(const dy of [-1,0,1]){
     const w=world({waterAt:x=>water&&x>215&&x<265});const p=actor();
-    assert.deepEqual(movement.parkourLanding(w,p,{x:dx,y:dy},54,1000),legacy([p],w).findParkourLanding(p,{x:dx,y:dy},54,1000));
+    const landing=movement.parkourLanding(w,p,{x:dx,y:dy},54,1000);if(!dx&&!dy)assert.equal(landing,null);else if(!water||dx<=0){assert(landing);assert(Math.abs(Math.hypot(landing.x-p.x,landing.y-p.y)-54)<1e-9);}else if(landing)assert(landing.x>265&&!w.waterAt(landing.x,landing.y));
   }
   const p=actor();movement.drainBoost(p,30,.1,1000);assert.equal(p.boost,97);assert.equal(p.boostReadyAt,21000);
   const frame=input.createLocalInputAdapter().sample(p.entityId,new Set(['d']));
@@ -697,7 +697,7 @@ void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, pr
     fortCoreAt:collision.createRectQuery(fortRects)});
   const native={...common,obstacles:[...rects,...walls]},editor={...common,obstacles:walls,studioSolidAt:q.solidAt,studioFlightSolidAt:q.flightSolidAt};
   const point=draft.objects.find(o=>o.name==='Batas kanalNusaPlanterLong');
-  assert.equal(movement.movementBlocked(editor,point.x+point.w/2,point.y+point.h/2,actor({x:900,y:700,parkourUntil:2000}),1000),false);
+  assert.equal(movement.movementBlocked(editor,point.x+point.w/2,point.y+point.h/2,actor({x:900,y:700,parkourUntil:2000}),1000),true,'landed animation does not grant wall immunity');
   assert.equal(movement.movementBlocked(editor,461.5,415.5,actor({x:900,y:700,parkourUntil:0}),1000),true);
   let waterPoint;
   for(let y=100;!waterPoint&&y<field.height-100;y+=31)for(let x=100;x<field.width-100;x+=31)if(q.waterAt(x,y)){waterPoint={x,y};break;}

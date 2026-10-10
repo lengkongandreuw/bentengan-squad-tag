@@ -1,5 +1,7 @@
 'use client';
 import { t, useLanguage } from '../lib/language';
+import {createParkourController,evaluateParkour,parkourReasonText,parkourCooldownRemaining} from '../modules/gameplay/parkour.ts';
+import {createEventSigns,drawEventSigns,type SignBounds} from '../modules/ui/event-signs.ts';
 import { arenaCopy, playerArenaCopy } from '../lib/player-copy.ts';
 
 
@@ -19,7 +21,7 @@ import { RoundStatsOverlay } from '../modules/ui/round-stats-overlay.tsx';
 import { MissionPanel } from '../modules/ui/mission-panel.tsx';
 import { MatchProgressionSummary } from '../modules/ui/match-progression-summary.tsx';
 import { UnlockNotificationPanel } from '../modules/ui/unlock-notification-panel.tsx';
-import { ArenaUnlockPanel } from '../modules/ui/arena-unlock-panel.tsx';
+import { mapSelectionFiles } from '../modules/ui/map-selection-assets.ts';
 import { RoundResultAnnouncementCard } from '../modules/ui/round-result-announcement.tsx';
 import { SplashScreen } from '../modules/ui/splash-screen.tsx';
 import { TeamScreen } from '../modules/ui/team-screen.tsx';
@@ -31,7 +33,6 @@ import { LoadingPanel } from '../modules/ui/loading-media.tsx';
 import { MenuActionsRow } from '../modules/ui/menu-actions-row.tsx';
 import { BackButton } from '../modules/ui/back-button.tsx';
 import { ProfileTriggerButton } from '../modules/ui/profile-trigger-button.tsx';
-import { WorkshopLink } from '../modules/ui/workshop-link.tsx';
 import { ArenaIntel } from '../modules/ui/arena-intel.tsx';
 import { StageHud } from '../modules/ui/stage-hud.tsx';
 import { PlayingTopbar } from '../modules/ui/playing-topbar.tsx';
@@ -84,7 +85,7 @@ import {createNetworkUltimates} from '../lib/multiplayer/ultimates.ts';
 import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol.ts';
 import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../modules/gameplay/ultimate.ts';
 import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
-import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
+import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, parkourPassesObstacle, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
 import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
 
@@ -92,7 +93,7 @@ import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPr
 import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio.ts';
-import { contains as studioContains, collisionRects } from '../lib/map-studio-model.js';
+import { collisionRects } from '../lib/map-studio-model.js';
 import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../modules/world/map-arena-rules.ts';
 import {createMapQueries,objectBounds,visibleBounds} from '../modules/world/map-runtime-index.ts';
 import { flightConfig, isFlying, flightBusy, flightSlot, sequenceComplete, steerFlight, flightPassesObstacle } from '../modules/gameplay/flight-ultimate.ts';
@@ -119,7 +120,7 @@ import { createStaticMapLayer } from '../modules/ui/static-map-layer.ts';
 
 
 import { uiAsset as uiAssetAt, matchEventFrames, roundResultAssets, loadingUiFrame as loadingUiFrameAt, loadingUiFrames } from '../modules/ui/ui-assets.ts';
-import { getSprintDustImage, getKakaUltimateImage, getFieldImage } from '../modules/ui/image-cache.ts';
+import { getSprintDustImage, getKakaUltimateImage, getFieldImage, getEventSignImages } from '../modules/ui/image-cache.ts';
 import { interactiveTarget as interactiveTargetAt, handlePointerOut as handlePointerOutAt } from '../modules/ui/event-target.ts';
 import { rosterCharacters, squadLineup } from '../modules/gameplay/roster.ts';
 import { ArenaBackdrop, arenaImage } from '../modules/ui/arena-backdrop.tsx';
@@ -549,7 +550,7 @@ export function BentenganPrototype() {
           if (hasSpriteSeries(id)) images.push(getSeriesImage(id));
           urls.push(characterPreviewIcon(id));
         }
-        images.push(getSprintDustImage(), getKakaUltimateImage());
+        images.push(getSprintDustImage(), getKakaUltimateImage(),...Object.values(getEventSignImages()));
         for (const asset of ['objects.webp', 'animated.webp', 'grounds.webp']) images.push(getFieldImage(asset));
         if(isKanalField(selectedFieldId))images.push(getFieldImage('kanal-object-atlas.webp'));
         // Decode only the selected arena. Rotation uses the same readiness gate
@@ -580,6 +581,7 @@ export function BentenganPrototype() {
           urls.push(uiAsset(`controls/team-${faction}-active.webp`), uiAsset(`controls/team-${faction}-normal.webp`));
         }
         for (const field of FIELD_CONFIGS) urls.push(uiAsset(`fields/${field.id}.webp`));
+        urls.push(...Object.values(mapSelectionFiles(selectedFaction)).map(uiAsset));
       }
       images.push(...[...new Set(urls)].map(getPresentationImage));
       const tasks = [...new Set(images)].map(image => () => imageReady(image));
@@ -658,12 +660,12 @@ export function BentenganPrototype() {
   const selectedArena =
     FIELD_CONFIGS.find((field) => field.id === selectedFieldId) ??
     FIELD_CONFIGS[0];
-  const selectedArenaUnlock = useMemo(() => {
+  const arenaSelectionStates = useMemo(() => FIELD_CONFIGS.map(arena => {
     if (!playerProfile) {
-      return { unlocked: false, requirement: 'Buat profil pemain untuk melihat progres pembukaan arena.' };
+      return { id: arena.id, unlocked: false, requirement: 'Buat profil pemain untuk melihat progres pembukaan arena.' };
     }
-    const progress = getArenaSelectionProgress(playerProfile, selectedArena.id, FIELD_CONFIGS);
-    if (progress.unlocked) return { unlocked: true, requirement: '' };
+    const progress = getArenaSelectionProgress(playerProfile, arena.id, FIELD_CONFIGS);
+    if (progress.unlocked) return { id: arena.id, unlocked: true, requirement: '' };
     const requirements = progress.checks
       .filter(check => !check.met)
       .map(check => {
@@ -677,12 +679,16 @@ export function BentenganPrototype() {
         return check.label;
       });
     return {
+      id: arena.id,
       unlocked: false,
+      requirementParts: requirements,
       requirement: requirements.length
         ? `Selesaikan syarat: ${requirements.join(', ')}.`
         : 'Arena ini belum dapat dimainkan.',
     };
-  }, [playerProfile, selectedArena.id]);
+  }), [playerProfile]);
+  const selectedArenaUnlock = arenaSelectionStates.find(arena => arena.id === selectedArena.id)
+    ?? { unlocked: false, requirement: 'Arena ini belum dapat dimainkan.' };
 
   const chooseFaction = (faction: Faction) => {
     const first = getPlayableCharacterIds(playerProfileRef.current, FIXED_ROSTERS[faction])[0];
@@ -1046,7 +1052,6 @@ export function BentenganPrototype() {
     }> = [];
     let refills: Refill[] = [],
       audio: AudioContext | null = null,
-      parkourLatch = false,
       boostLatch = false,
       boostBurstUntil = 0;
     let ultimateMeter = 0,
@@ -1310,6 +1315,10 @@ export function BentenganPrototype() {
       ];
     };
     let players = makePlayers();
+    const eventSigns=createEventSigns(),signImages=getEventSignImages(),signBounds=new Map<string,SignBounds>();
+    const signReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+    const localParkour=createParkourController();
+    let localSignSerial=0,parkourFeedback='',parkourFeedbackUntil=0;
     const myEntityId=players[0].entityId;
     const humanIdentities=players.filter(p=>p.ownerPeerId).map(p=>({peerId:p.ownerPeerId!,entityId:p.entityId}));
     const networkUltimates=createNetworkUltimates(humanIdentities);
@@ -1325,14 +1334,14 @@ export function BentenganPrototype() {
     let pendingMatchResult:MatchResultPacket|null=null;
     let lastResultAttempt=-Infinity;
     const remoteInputs=createRemoteInputBuffer(matchId??'menu-preview',new Map(players.filter(p=>p.controller==='remote').map(p=>[p.entityId,p.ownerPeerId!])),worldWidth,worldHeight);
-    const remoteMovement=createRemoteHumanMovement();
+    let remoteMovement=createRemoteHumanMovement();
     const snapshots=createSnapshotBuffer(matchId??'menu-preview',field.id,NETWORK_RATES.interpolationDelayMs);
     let clientPresentation:CanonicalGameState|null=null;
     const networkPump = network ? createNetworkPump({
       network,
       matchId: matchId ?? 'menu-preview',
       myEntityId,
-      sampleInput: (entityId, keysSnapshot, boost, target) => localInput.sample(entityId, keysSnapshot, boost, target),
+      sampleInput: (entityId, keysSnapshot, boost, target) => {const frame=localInput.sample(entityId, keysSnapshot, boost, target);keys.current.delete('parkour-pulse');const me=players[0];localParkour.remember(entityId,{x:frame.moveX||((frame.targetX??me.x)-me.x),y:frame.moveY||((frame.targetY??me.y)-me.y)});return frame;},
       keys: keys.current,
       mouseBoost: () => mouseBoost,
       setMouseBoost: (value) => { mouseBoost = value; },
@@ -1355,7 +1364,7 @@ export function BentenganPrototype() {
       else if(clientOnly&&(m.type==='SNAPSHOT'||m.type==='MATCH_START'))snapshots.push(m.snapshot,performance.now());
       else if(clientOnly&&m.type==='MATCH_FRAME'){lastNetworkFrame=m;snapshots.push(m.snapshot,performance.now());}
       else if(clientOnly&&m.type==='MATCH_RESULT'){pendingMatchResult=m;snapshots.push(m.snapshot,performance.now());}
-      else if(clientOnly&&m.type==='GAME_EVENT'){receivedNetworkEvents.push(fromNetworkGameEvent(m.event));if(receivedNetworkEvents.length>256)receivedNetworkEvents.shift();}
+      else if(clientOnly&&m.type==='GAME_EVENT'){const event=fromNetworkGameEvent(m.event);eventSigns.accept(event,m.eventId);receivedNetworkEvents.push(event);if(receivedNetworkEvents.length>256)receivedNetworkEvents.shift();}
     });
     const networkStateOff=network?.subscribe(state=>{if(!clientOnly){
       for(const change of takeoverDisconnected(players,new Set(state.lobby?.participants.map(p=>p.peerId)),disconnectedPeers)){
@@ -1432,6 +1441,8 @@ export function BentenganPrototype() {
         assignedRescuerId: assignedRescuer?.id,
       };
       rescueRequestCooldownUntil = now + 10000;
+      const helpEvent:GameEvent={type:'HELP_REQUESTED',actorId:requester.entityId};
+      eventSigns.accept(helpEvent,`${matchId}:help:${++localSignSerial}`);publishNetworkFacts([helpEvent]);
       addMatchEvent(
         {
           kind: 'rescue-request',
@@ -1529,6 +1540,7 @@ export function BentenganPrototype() {
     };
     seedRefills();
     const resetRound = () => {
+      eventSigns.clear();localParkour.reset();remoteMovement=createRemoteHumanMovement();keys.current.clear();parkourFeedback='';parkourFeedbackUntil=0;
       if(network)networkUltimates.reset();
       gameplayAudio.resetTagStreak();
       countdownSoundPlayed = false;
@@ -1646,6 +1658,7 @@ export function BentenganPrototype() {
     ] : solidObstacles;
     const obstacleAt = createRectQuery(solidObstacles);
     const flightObstacleAt = createRectQuery(solidObstacles.filter(o=>!flightPassesObstacle(o)));
+    const parkourSolidAt=createRectQuery(solidObstacles.filter(o=>!parkourPassesObstacle(o)));
     const kanalFortPolygons = isKanalField(field.id)
       ? Object.values(bases).map(base => kanalFortPolygon(base, fortWidth, fortHeight, fortAnchorY))
       : [];
@@ -1704,6 +1717,7 @@ export function BentenganPrototype() {
       studioSolidAt:studioQueries?.solidAt,waterAt:isWaterAt,waterBlocks:kanalWaterBlocks,
       studioFlightSolidAt:studioQueries?.flightSolidAt,
       obstacleAt,flightObstacleAt,
+      parkourSolidAt,
       fortCoreAt:isInsideFortCore,fortOccupied:(team,id)=>!!fortOccupant(team,id),
       baseChargeTime:p=>CHARACTER_BY_ID[p.characterId].baseChargeTime,
       speedAt:(x,y)=>studioQueries?.speedAt(x,y)??1,
@@ -1721,18 +1735,6 @@ export function BentenganPrototype() {
       if(fell)waterFallEffects(p);
       return fell;
     };
-    const isNearWater = (x: number, y: number) =>
-      (field.waterMask || studioMap)
-        ? [
-            [0, 0],
-            [-30, 0],
-            [30, 0],
-            [0, -30],
-            [0, 30],
-          ].some(([offsetX, offsetY]) =>
-            isWaterAt(x + offsetX, y + offsetY),
-          )
-        : false;
     const recoverFromObstacle = (p: Player, now: number) => {
       if (
         isFlying(p) ||
@@ -1997,6 +1999,7 @@ export function BentenganPrototype() {
     };
     const presentInteractionEvents = (events:readonly GameEvent[],now:number) => {
       if(network&&!clientOnly)publishNetworkFacts(events);
+      if(!clientOnly)for(const event of events)eventSigns.accept(event,`${matchId}:sign:${++localSignSerial}`);
       presentGameEvents(events,event=>{
       if(event.type==='PLAYER_TAGGED'||event.type==='PLAYER_CAPTURED'){
         const winner=players.find(p=>p.entityId===event.actorId),loser=players.find(p=>p.entityId===event.targetId);
@@ -2135,6 +2138,7 @@ export function BentenganPrototype() {
     };
     const update = (dt: number, now: number) => {
       const input = localInput.sample(players[0].entityId, keys.current, mouseBoost, mouseRoute.at(-1));
+      keys.current.delete('parkour-pulse');
       if(network)input.pause=false;
       const humanFrames=new Map<string,PlayerInputFrame>();
       if(network){humanFrames.set(myEntityId,input);for(const p of players)if(p.controller==='remote')humanFrames.set(p.entityId,remoteInputs.sample(p.entityId,now));}
@@ -2273,7 +2277,7 @@ export function BentenganPrototype() {
         clearMouse();
         freezeUltimateActors(players);
         boostLatch = input.keyboardSprint;
-        parkourLatch = input.parkour;
+        localParkour.step(me,input.parkour,input.parkourPulse,{x:0,y:0},selected.agility,now,findParkourLanding);
         return;
       }
       dx = input.moveX;
@@ -2314,48 +2318,9 @@ export function BentenganPrototype() {
         drainBoost(me, selected.boostDrain * (playerComboMultiplier > 1 ? 0.8 : 1), dt, now);
         mission.boost = true;
       }
-      const parkourKey = input.parkour;
-      const parkourCost = 8 / selected.agility;
-      if (
-        parkourKey &&
-        !flightBusy(me) &&
-        !parkourLatch &&
-        me.boost >= parkourCost &&
-        now > me.parkourUntil &&
-        !(isKanalField(field.id) && me.waterEnteredAt) &&
-        (dx || dy) &&
-        (me.state === 'ACTIVE' || me.state === 'IN_BASE')
-      ) {
-        const near =
-          obstacles.some(
-            (o) =>
-              me.x + 44 > o.x &&
-              me.x - 44 < o.x + o.w &&
-              me.y + 44 > o.y &&
-              me.y - 44 < o.y + o.h,
-          ) || isNearWater(me.x, me.y) || !!studioMap?.objects.some(o => o.behavior === 'parkour' && studioContains({...o,x:o.x-40,y:o.y-40,w:o.w+80,h:o.h+80},me.x,me.y));
-        if (near) {
-          const parkourDistance = 54 * selected.agility;
-          const landing = findParkourLanding(
-            me,
-            { x: dx, y: dy },
-            parkourDistance,
-            now,
-          );
-          if (landing) {
-            me.parkourUntil = now + 360;
-            me.fallSafeUntil = now + (landing.crossedWater ? 620 : 430);
-            me.boost = Math.max(0, me.boost - parkourCost);
-            me.boostReadyAt = now + 20000;
-            me.x = landing.x;
-            me.y = landing.y;
-            mission.parkour = true;
-            burst(me.x, me.y, landing.crossedWater ? '#65e9ff' : '#f4df9a', 9);
-            beep(460);
-          }
-        }
-      }
-      parkourLatch = parkourKey;
+      const vault=localParkour.step(me,input.parkour,input.parkourPulse,{x:dx,y:dy},selected.agility,now,findParkourLanding);
+      if(vault.performed&&vault.landing){mission.parkour=true;burst(me.x,me.y,vault.landing.crossedWater?'#65e9ff':'#f4df9a',9);beep(460);parkourFeedback='';parkourFeedbackUntil=0;}
+      else if(vault.requested){parkourFeedback=parkourReasonText[vault.reason];parkourFeedbackUntil=now+900;}
       const mouseBefore = { x: me.x, y: me.y };
       if(isFlying(me) && config) {
         const steering=steerFlight(me.flight!,dx,dy,dt,config.turnMultiplier);
@@ -2402,7 +2367,7 @@ export function BentenganPrototype() {
       }
       if(me.flight){me.flight.distance+=distance(me,mouseBefore);if(isFlying(me)&&flightGroundValid(me.x,me.y))me.flight.lastGround={x:me.x,y:me.y};}
       for(const p of players)if(p.controller==='remote'||network&&p.controller==='bot'&&p.flight)remoteMovement(p,humanFrames.get(p.entityId)??localInput.sample(p.entityId,new Set()),CHARACTER_BY_ID[p.characterId],dt,now,{
-        move,landing:findParkourLanding,near:p=>obstacles.some(o=>p.x+44>o.x&&p.x-44<o.x+o.w&&p.y+44>o.y&&p.y-44<o.y+o.h)||isNearWater(p.x,p.y)||!!studioMap?.objects.some(o=>o.behavior==='parkour'&&studioContains({...o,x:o.x-40,y:o.y-40,w:o.w+80,h:o.h+80},p.x,p.y)),
+        move,landing:findParkourLanding,near:()=>true,
         returnVector:(p,now)=>navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
         combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:isKanalField(field.id),boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
       });
@@ -3088,6 +3053,9 @@ const spriteFrame = (
         const fallScale = sinking ? 1 - fallProgress * 0.8 : 1;
         const drawHeight = height * fallScale;
         const drawWidth = width * fallScale;
+        if(studio){const placement=spritePlacement(studio.clip,frame,74*stats.visualScale),packed=studio.packedFrame,sy=placement.height/frame.height;
+          signBounds.set(p.entityId,{x:p.x+studio.clip.x,top:p.y+18+bob+studio.clip.y-placement.height*studio.clip.pivotY+(packed?.top??0)*sy,height:packed?packed.height*sy:placement.height,visible:!sinking});
+        }else signBounds.set(p.entityId,{x:p.x,top:p.y+18-drawHeight+bob,height:drawHeight,visible:!sinking});
         ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
@@ -3306,6 +3274,7 @@ const spriteFrame = (
       canvas.dataset.graphicsPreset = quality;
       canvas.dataset.pixelRatio = String(dpr);
       ctx.clearRect(0, 0, cw, ch);
+      signBounds.clear();
       const me = players[0];
       const activeCamera = cameraModeRef.current;
       const scale =
@@ -3411,6 +3380,7 @@ const spriteFrame = (
       }
       ctx.restore();
       if (mode === 'playing') {
+        drawEventSigns(ctx,eventSigns.read(),signBounds,view,signImages,signReducedMotion.matches);
         const marker = (
           point: { x: number; y: number },
           label: string,
@@ -3512,6 +3482,7 @@ const spriteFrame = (
         catch(error){setContentGateError(error instanceof Error?error.message:'Reward multiplayer belum tersimpan.');}
       }
       const drawStart=profileRuntime?performance.now():0;
+      eventSigns.advance(frameMs,paused||document.hidden,players);
       // The result overlay covers the arena; ~10 fps behind it is enough and keeps weak GPUs smooth.
       const resultOverlayShown=(phase==='ROUND_OVER'||phase==='MATCH_OVER')&&cachedStatsBoard.visible;
       if(!resultOverlayShown||localNow-lastDraw>=100){
@@ -3559,6 +3530,9 @@ const spriteFrame = (
         } else if(cachedStatsBoard.visible) {
           cachedStatsBoard={...cachedStatsBoard,visible:false};
         }
+        const parkourStatus=evaluateParkour(me,localParkour.direction(me.entityId),selected.agility,now,findParkourLanding);
+        const vaultLocked=paused||players.some(p=>coreUltimateCasting(p,now,ULTIMATE_CHARACTER_IDS));
+        const parkourCooldownSeconds=Math.ceil(parkourCooldownRemaining(me,now)/1000);
         setSnapshot({
           blue: score.blue,
           red: score.red,
@@ -3572,6 +3546,9 @@ const spriteFrame = (
           order: me.exitOrder,
           state: me.state,
           paused,
+          parkourReady:!vaultLocked&&parkourStatus.reason==='ready',
+          parkourCooldownSeconds,
+          parkourHint:vaultLocked?parkourReasonText.locked:parkourCooldownSeconds>0?`Parkour siap dalam ${parkourCooldownSeconds} detik`:parkourFeedbackUntil>now?parkourFeedback:parkourReasonText[parkourStatus.reason],
           logs,
           mission: { ...mission,tag:mission.tag||(matchStats[me.id]?.tags??0)>0,
             rescue:mission.rescue||(matchStats[me.id]?.rescues??0)>0 },
@@ -3721,7 +3698,7 @@ const spriteFrame = (
       }
       return state;
     };
-    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}) };
+    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}) };
     if(development)coreHost.__bentengGameCore=coreProbe;
     if (development && isKanalField(field.id)) {
       collisionToggle = document.createElement('button');
@@ -3772,6 +3749,7 @@ const spriteFrame = (
       document.removeEventListener('visibilitychange', stopWhenHidden);
       document.removeEventListener('pointerdown', stopForMenu);
       stopLoop();
+      eventSigns.clear();signBounds.clear();localParkour.reset();
       scene3d?.dispose();
       window.removeEventListener('pointerdown', gameplayAudio.unlock);
       window.removeEventListener('keydown', gameplayAudio.unlock);
@@ -4007,8 +3985,9 @@ const spriteFrame = (
   ]);
 
   const touchKey = (key: string, pressed: boolean) =>
-    pressed ? keys.current.add(key) : keys.current.delete(key);
+    {if(pressed){if(key==='shift'&&!keys.current.has(key))keys.current.add('parkour-pulse');keys.current.add(key);}else keys.current.delete(key);};
   const tapKey = (key: string) => {
+    if(key==='shift')keys.current.add('parkour-pulse');
     keys.current.add(key);
     window.setTimeout(() => keys.current.delete(key), 120);
   };
@@ -4111,6 +4090,8 @@ const spriteFrame = (
 
         {menuStep === 'character' && selectedFaction && (
           <CharacterSelectScreen
+            profile={playerProfile}
+            onProfileRefresh={refreshPlayerProfile}
             faction={selectedFaction}
             videoSrc={characterSelectionVideo(selectedFaction)}
             characters={availableCharacters}
@@ -4127,6 +4108,8 @@ const spriteFrame = (
             }}
             onSelect={() => {
               stopCharacterVoice();
+              const valid=resolvePlayableContent(loadPlayerProfile()??playerProfileRef.current,selectedId,selectedFieldId,FIXED_ROSTERS[selectedFaction],fieldIds);
+              if(valid)setSelectedFieldIdState(valid.arenaId as FieldId);
               setMenuStep('field');
             }}
           />
@@ -4138,6 +4121,7 @@ const spriteFrame = (
             selectedFieldId={selectedFieldId}
             fields={FIELD_CONFIGS}
             squad={squad}
+            arenaStates={arenaSelectionStates}
             resolveAsset={uiAsset}
             onSelect={setSelectedFieldId}
             onStep={cycleArena}
@@ -4157,19 +4141,8 @@ const spriteFrame = (
           onOpenRules={() => setRulesOpen(true)}
           onAudioOpen={() => keys.current.clear()}
         />
-        {menuStep === 'character' && (
-          <WorkshopLink
-            onOpen={() => {
-              stopCharacterVoice();
-              setView('workshop');
-            }}
-          />
-        )}
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && <RulesOverlay onClose={() => setRulesOpen(false)} />}
-        {playerProfile && menuStep === 'field' && (
-          <ArenaUnlockPanel profile={playerProfile} catalog={FIELD_CONFIGS} selectedId={selectedFieldId} />
-        )}
         {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
         {playerProfile && profileOpen && (
           <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")} />}>
@@ -4185,7 +4158,7 @@ const spriteFrame = (
           prepareContent={async id=>{
             const field=FIELD_BY_ID[id as FieldId],map=runtimeStudioMapById[id];
             retainMapImages(map?[map]:[]);
-            const images=[...['objects.webp','animated.webp','grounds.webp'].map(getFieldImage),
+            const images=[...Object.values(getEventSignImages()),...['objects.webp','animated.webp','grounds.webp'].map(getFieldImage),
               ...(isKanalField(field.id)?[getFieldImage('kanal-object-atlas.webp')]:[]),
               ...(field.background?[getFieldImage(field.background)]:[]),...(field.waterMask?[getFieldImage(field.waterMask)]:[]),
               ...(map?mapImages(map):[])];
@@ -4345,6 +4318,10 @@ const spriteFrame = (
                 ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
                 ultimateIconId={selected.ultimate?.icon ?? 'zap'}
                 onTapUltimate={() => tapKey('capslock')}
+                parkourReady={snapshot.parkourReady}
+                parkourHint={snapshot.parkourHint}
+                parkourCooldownSeconds={snapshot.parkourCooldownSeconds}
+                onTapParkour={()=>tapKey('shift')}
               />
               {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
                 <UltimateBuffIndicator ultimate={selected.ultimate} remaining={snapshot.ultimateBuffRemaining} />
@@ -4361,7 +4338,11 @@ const spriteFrame = (
                 ultimateActionClass={selected.ultimate?.actionClass ?? ''}
                 ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
                 touch={touchControl}
+                parkourReady={snapshot.parkourReady}
+                parkourHint={snapshot.parkourHint}
+                parkourCooldownSeconds={snapshot.parkourCooldownSeconds}
               />
+              <output className="parkour-feedback" aria-live="polite">{t(snapshot.parkourHint)}</output>
               {snapshot.paused && (
                 <PauseOverlay
                   musicMuted={musicMuted}

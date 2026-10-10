@@ -21,6 +21,9 @@ async function moduleUrl(file) {
   let code = ts.transpileModule(await readFile(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
+  // JSON fixtures are converted to JavaScript data URLs above; strip their
+  // import attributes as well, otherwise Node rejects the new MIME type.
+  code=code.replace(/\s+with\s*\{\s*type:\s*['"]json['"]\s*\}/g,'').replaceAll('import.meta','({env:{BASE_URL:"/"}})');
   const imports = [...code.matchAll(/from ['"]([^'"]+)['"]/g)];
   for (const match of imports) {
     const dependency = match[1].startsWith('.')
@@ -193,7 +196,7 @@ void test('module15 runtime wiring uses one writer, stable match identity and un
   assert.match(code, /const matchId = mode === 'playing' \? network\?`\$\{network\.read\(\)\.roomCode\}:match`:createMatchId\(\) : null/);
   assert.ok(code.includes('matchId && !network'), 'online MVP cannot award solo progression');
   assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession\]/);
-  const lineup = code.slice(code.indexOf('const lineupFor ='), code.indexOf('const RAW_FIELD_CONFIGS'));
+  const lineup = await readFile(new URL('../modules/world/team-tables.ts', import.meta.url),'utf8');
   assert.doesNotMatch(lineup, /getPlayable|isCharacterUnlocked|playerProfile/);
   assert.match(lineup, /roster\.slice\(0, GAME_RULES.matchSize\)/);
   assert.match(code, /const userRoster = lineupFor\(faction, selectedId\)/);
