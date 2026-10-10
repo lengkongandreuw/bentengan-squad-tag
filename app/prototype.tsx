@@ -2,6 +2,14 @@
 import { t, useLanguage } from '../lib/language';
 import {createParkourController,evaluateParkour,parkourReasonText,parkourCooldownRemaining} from '../modules/gameplay/parkour.ts';
 import {createEventSigns,drawEventSigns,type SignBounds} from '../modules/ui/event-signs.ts';
+import { PASAR2_ATLAS, PASAR2_TERRAIN_RECTS, PASAR2_FORT_RECTS, pasar2ObjectRects, pasar2PrisonRects } from '../lib/pasar2-layout.js';
+import { TAMAN_ATLAS, TAMAN_FORT_RECTS, tamanObjectRects, tamanPrisonRects, tamanPrisonSlot } from '../lib/taman-layout.js';
+import { drawTamanViewportGround } from '../lib/taman-visuals.js';
+import { createSolidMask } from '../modules/world/solid-mask.ts';
+import { createMapPropDepth } from '../modules/ui/map-prop-depth.ts';
+import { createPasar2PrisonEgress } from '../modules/gameplay/pasar2-prison-egress.js';
+import type { FieldAssetId } from '../lib/field-assets.generated.ts';
+import { withApprovedKanalMask } from '../modules/world/approved-kanal-mask.ts';
 import { arenaCopy, playerArenaCopy } from '../lib/player-copy.ts';
 
 
@@ -359,6 +367,8 @@ FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
     baseRadius:map.baseRadius ?? (map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : nativeFieldConfigs.kanal2.baseRadius)} : {}),
   structuresInBackground: !!(map.replaces && nativeFieldConfigs[map.replaces].structuresInBackground &&
     map.terrain?.asset === `field/${nativeFieldConfigs[map.replaces].background}`),
+  ...(map.replaces === 'kanal' ? {waterMask:nativeFieldConfigs.kanal.waterMask,
+    waterMaskWidth:nativeFieldConfigs.kanal.waterMaskWidth,waterMaskHeight:nativeFieldConfigs.kanal.waterMaskHeight} : {}),
 })));
 const SELECTION_FIELDS = orderArenaSelection(FIELD_CONFIGS, getProgressionArenaId);
 const FIELD_BY_ID = Object.fromEntries(
@@ -567,6 +577,9 @@ export function BentenganPrototype() {
         for (const field of [FIELD_BY_ID[selectedFieldId]]) {
           if (studioMapById[field.id]) images.push(...mapImages(studioMapById[field.id]));
           if (field.background) images.push(getFieldImage(field.background));
+          if (field.id === 'pasar') images.push(getFieldImage(PASAR2_ATLAS.file));
+          if (field.id === 'taman') images.push(getFieldImage(TAMAN_ATLAS.file));
+          if (field.solidMask) images.push(getFieldImage(field.solidMask));
 
           if (field.waterMask) images.push(getFieldImage(field.waterMask));
 
@@ -1075,7 +1088,10 @@ export function BentenganPrototype() {
     const clearMouse = () => { mouseRoute = []; mouseBoost = false; mouseStuckTime = 0; };
     let bannerTimeout = 0;
     const field = FIELD_BY_ID[selectedFieldId];
-    const studioMap = runtimeStudioMapById[selectedFieldId];
+    const studioSource = runtimeStudioMapById[selectedFieldId];
+    const studioMap = studioSource?.replaces === 'kanal'
+      ? withApprovedKanalMask(studioSource,getFieldImage(field.waterMask!),field.waterMaskWidth!,field.waterMaskHeight!) : studioSource;
+    const originalKanal = field.id === 'kanal' || studioMap?.replaces === 'kanal';
     const studioQueries = studioMap ? createMapQueries(studioMap) : null;
     const studioLayers = {
       background:studioMap?.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z)??[],
@@ -1095,7 +1111,11 @@ export function BentenganPrototype() {
     const visualObstacles = field.obstacles;
     const obstacles = isKanalField(field.id)
       ? visualObstacles.flatMap(item => kanalObjectRects(item).map((rect: { x: number; y: number; w: number; h: number }) => ({ ...item, ...rect, hidden: true })))
-      : visualObstacles;
+      : field.id === 'pasar'
+        ? visualObstacles.flatMap(item => pasar2ObjectRects(item).map(rect => ({...item,...rect,hidden:true})))
+        : field.id === 'taman'
+          ? visualObstacles.flatMap(item => tamanObjectRects(item).map(rect => ({...item,...rect,hidden:true})))
+          : visualObstacles;
     const fieldObjectScale = field.objectScale ?? 1;
     const { fortWidth, fortHeight, fortAnchorY } = fortGeometry(fieldObjectScale);
     const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
@@ -1104,6 +1124,10 @@ export function BentenganPrototype() {
       ? getFieldImage('kanal-object-atlas.webp')
       : null;
     const fieldAnimatedAtlas = getFieldImage('animated.webp');
+    const mapAtlas = field.id === 'pasar' ? PASAR2_ATLAS : field.id === 'taman' ? TAMAN_ATLAS : null;
+    const mapObjectAtlas = mapAtlas ? getFieldImage(mapAtlas.file) : null;
+    const fieldSolidMask = field.solidMask ? getFieldImage(field.solidMask) : null;
+    const solidMask = createSolidMask(fieldSolidMask, field.solidMaskWidth ?? 1, field.solidMaskHeight ?? 1, worldWidth, worldHeight, PLAYER_COLLISION_RADIUS);
     const fieldGroundAtlas = getFieldImage('grounds.webp');
     const fieldBackground = field.background
       ? getFieldImage(field.background)
@@ -1175,7 +1199,11 @@ export function BentenganPrototype() {
       baseAtlas: fieldObjectAtlas,
       kanalAtlas: kanalObjectAtlas,
       animatedAtlas: fieldAnimatedAtlas,
+      fieldId: field.id,
+      mapAssets: mapAtlas?.assets,
+      mapAtlas: mapObjectAtlas,
     });
+    const drawMapPropDepth = createMapPropDepth(field, () => ctx, mapObjectAtlas, drawFieldAsset);
     const groundTileCanvas = createGroundTileCanvas(fieldGroundAtlas, FIELD_GROUND_ATLAS.tiles);
     const staticMapLayer = createStaticMapLayer({
       getContext: () => ctx,
@@ -1196,6 +1224,9 @@ export function BentenganPrototype() {
     const invalidateStaticMap = staticMapLayer.invalidate;
     fieldObjectAtlas.addEventListener('load', invalidateStaticMap);
     kanalObjectAtlas?.addEventListener('load', invalidateStaticMap);
+    mapObjectAtlas?.addEventListener('load', invalidateStaticMap);
+    fieldSolidMask?.addEventListener('load', solidMask.cache);
+    if (fieldSolidMask?.complete) solidMask.cache();
     fieldGroundAtlas.addEventListener('load', invalidateStaticMap);
     fieldBackground?.addEventListener('load', invalidateStaticMap);
 
@@ -1660,14 +1691,22 @@ export function BentenganPrototype() {
     // wide front gate and entire interior remain open for rescues. No other
     // arena receives these additional collision rules.
     const kanalPrisonWalls: Obstacle[] = isKanalField(field.id) ? createKanalPrisonWalls(field.prisons) : [];
-    const solidObstacles = [...obstacles, ...kanalPrisonWalls];
+    const mapWalls: Obstacle[] = (field.id === 'pasar'
+      ? [...Object.values(field.prisons).flatMap(pasar2PrisonRects), ...PASAR2_FORT_RECTS, ...PASAR2_TERRAIN_RECTS]
+      : field.id === 'taman'
+        ? [...Object.values(field.prisons).flatMap(tamanPrisonRects), ...TAMAN_FORT_RECTS] : [])
+      .map(rect => ({...rect,asset:'prisonFloor' as FieldAssetId,visualW:1,visualH:1,hidden:true}));
+    const solidObstacles = [...obstacles, ...kanalPrisonWalls, ...mapWalls];
     const recoveryObstacles = studioMap ? [
       ...studioMap.objects.filter(o=>o.nativeCollision&&o.shape==='polygon'&&['solid','parkour'].includes(o.behavior)).flatMap(collisionRects),
       ...solidObstacles,
     ] : solidObstacles;
-    const obstacleAt = createRectQuery(solidObstacles);
-    const flightObstacleAt = createRectQuery(solidObstacles.filter(o=>!flightPassesObstacle(o)));
-    const parkourSolidAt=createRectQuery(solidObstacles.filter(o=>!parkourPassesObstacle(o)));
+    const rectObstacleAt = createRectQuery(solidObstacles);
+    const obstacleAt = (x:number,y:number,r=PLAYER_COLLISION_RADIUS) => solidMask.hits(x,y) || rectObstacleAt(x,y,r);
+    const flightRectAt = createRectQuery(solidObstacles.filter(o=>!flightPassesObstacle(o)));
+    const flightObstacleAt = (x:number,y:number,r=PLAYER_COLLISION_RADIUS) => solidMask.hits(x,y) || flightRectAt(x,y,r);
+    const parkourRectAt = createRectQuery(solidObstacles.filter(o=>!parkourPassesObstacle(o)));
+    const parkourSolidAt = (x:number,y:number,r=PLAYER_COLLISION_RADIUS) => solidMask.hits(x,y) || parkourRectAt(x,y,r);
     const kanalFortPolygons = isKanalField(field.id)
       ? Object.values(bases).map(base => kanalFortPolygon(base, fortWidth, fortHeight, fortAnchorY))
       : [];
@@ -1677,7 +1716,7 @@ export function BentenganPrototype() {
 
 
     const hasLineOfSight = (a: Player, b: Player) => {
-      if (solidObstacles.some((o) => segmentHitsRect(a, b, o))) return false;
+      if (solidMask.segment(a,b) || solidObstacles.some((o) => segmentHitsRect(a, b, o))) return false;
       if (studioMap) {
         const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 4));
         for (let i = 0; i <= steps; i++) {
@@ -1688,6 +1727,8 @@ export function BentenganPrototype() {
     };
     const hitsObstacle = (x: number, y: number) =>
       (studioQueries ? studioQueries.solidAt(x, y, PLAYER_COLLISION_RADIUS) : false) || obstacleAt(x,y,PLAYER_COLLISION_RADIUS);
+    const pasar2PrisonEgress = field.id === 'pasar'
+      ? createPasar2PrisonEgress(field.prisons, hitsObstacle, PLAYER_COLLISION_RADIUS) : null;
     // The fort core is solid while its capture circle remains walkable. This
     // prevents walking through the tower but preserves the original base
     // entry, capture, and return rules.
@@ -1933,6 +1974,11 @@ export function BentenganPrototype() {
         return;
       }
       players.forEach((p) => {
+        if (originalKanal && !isWaterAt(p.x,p.y)) {
+          p.waterEnteredAt = 0;
+          p.waterFallUntil = 0;
+          return;
+        }
         if (
           isFlying(p) ||
           p.state === 'PRISONER' ||
@@ -1941,12 +1987,26 @@ export function BentenganPrototype() {
           !isWaterAt(p.x, p.y)
         )
           return;
+        // Preserve the restored original canal's existing grace period;
+        // studio hazards and Nusantara 2 retain the remote reset flow.
+        if (originalKanal) {
+          if (!p.waterEnteredAt) {
+            p.waterEnteredAt = now;
+            p.waterFallUntil = now + 720;
+            burst(p.x,p.y+7,'#65e9ff',12);
+            if (p.controlled) {
+              gameplayAudio.play('dash',.38);
+              log('AIR DALAM · gunakan PARKOUR untuk naik ke daratan.');
+            }
+          }
+          if (now-p.waterEnteredAt < 7000) return;
+        }
         resetFallenPlayer(p, now);
       });
     };
     const botAuthority = createBotAuthority();
     const simulationAuthority: 'host' | 'client' = clientOnly?'client':'host';
-    const layoutPrisons = () => layoutPrisoners(players,field.prisons,isKanalField(field.id));
+    const layoutPrisons = () => layoutPrisoners(players,field.prisons,isKanalField(field.id),field.id === 'taman' ? tamanPrisonSlot : undefined);
     const registerTeamAction = (
       actor: Player,
       actionLabel: 'TAG' | 'RESCUE',
@@ -2087,7 +2147,7 @@ export function BentenganPrototype() {
           const events:GameEvent[]=[];
           const event=resolveRescue(players,rescuer.entityId,now,{
             kanal2:isKanalField(field.id),range:rescuerStats.rescueRange,shieldMs:rescuerStats.rescueShieldMs,
-          },facts=>events.push(...facts));
+          },facts=>events.push(...facts),(p,owner,index,count)=>pasar2PrisonEgress?.release(p,owner,index,count));
           if(event?.type==='rescue') {
             const held=event.targetIds.map(id=>players.find(p=>p.entityId===id)!);
             addStat(rescuer, 'rescues');
@@ -2336,7 +2396,7 @@ export function BentenganPrototype() {
         dx=steering.x;dy=steering.y;
       }
       if (me.state === 'RETURNING') {
-        const vector = navigateAroundHazards(
+        const vector = pasar2PrisonEgress?.vector(me) ?? navigateAroundHazards(
           me,
           baseVector(me),
           now,
@@ -2377,13 +2437,13 @@ export function BentenganPrototype() {
       if(me.flight){me.flight.distance+=distance(me,mouseBefore);if(isFlying(me)&&flightGroundValid(me.x,me.y))me.flight.lastGround={x:me.x,y:me.y};}
       for(const p of players)if(p.controller==='remote'||network&&p.controller==='bot'&&p.flight)remoteMovement(p,humanFrames.get(p.entityId)??localInput.sample(p.entityId,new Set()),CHARACTER_BY_ID[p.characterId],dt,now,{
         move,landing:findParkourLanding,near:()=>true,
-        returnVector:(p,now)=>navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
+        returnVector:(p,now)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
         combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:isKanalField(field.id),boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
       });
       botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
-        navigate:navigateAroundHazards,
+        navigate:(p,desired,now,probe,bias)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,desired,now,probe,bias),
       },now,(p,intent)=>{
         if(network&&p.flight)return;
         if(intent.blocked){p.vx=0;p.vy=0;return;}
@@ -2474,7 +2534,7 @@ export function BentenganPrototype() {
       field.decorations.forEach((item) => {
         if (
           !item.underlay &&
-          (isKanalField(field.id) || !showEverything) &&
+          (isKanalField(field.id) || field.id === 'pasar' || !showEverything) &&
           isNearby(item.x, item.y, item.w, item.h)
         )
           drawFieldAsset(
@@ -2490,7 +2550,8 @@ export function BentenganPrototype() {
       });
       visualObstacles.forEach((item) => {
         if (
-          (!isKanalField(field.id) && showEverything) ||
+          ((field.id === 'pasar' || field.id === 'taman') && mode === 'playing') ||
+          (!isKanalField(field.id) && field.id !== 'pasar' && field.id !== 'taman' && showEverything) ||
           item.hidden ||
           item.underlay ||
           !isNearby(item.x+item.w/2-item.visualW/2, item.y+item.h-item.visualH, item.visualW, item.visualH)
@@ -2695,16 +2756,19 @@ export function BentenganPrototype() {
     };
     let debugLayer: HTMLCanvasElement | null = null;
     let debugWaterSource: Uint8ClampedArray | null = null;
+    let debugSolidSource: Uint8ClampedArray | null = null;
     const drawColliderDebug = () => {
-      if (!debugColliders || (!isKanalField(field.id))) return;
-      if (!debugLayer || debugWaterSource !== waterMaskPixels) {
+      if (!debugColliders || (!isKanalField(field.id) && field.id !== 'pasar' && field.id !== 'taman')) return;
+      if (!debugLayer || debugWaterSource !== waterMaskPixels || debugSolidSource !== solidMask.pixels) {
         debugWaterSource = waterMaskPixels;
+        debugSolidSource = solidMask.pixels;
         debugLayer = document.createElement('canvas');
         debugLayer.width = Math.ceil(worldWidth);
         debugLayer.height = Math.ceil(worldHeight);
         const layer = debugLayer.getContext('2d')!;
         layer.fillStyle = '#fff';
         if (waterMaskPixels) layer.drawImage(waterMaskCanvas, 0, 0, worldWidth, worldHeight);
+        if (solidMask.pixels) layer.drawImage(solidMask.canvas, 0, 0, worldWidth, worldHeight);
         for (const box of [...solidObstacles, ...kanalFortRects]) layer.fillRect(box.x, box.y, box.w, box.h);
         layer.fillRect(0, 0, 34, worldHeight);
         layer.fillRect(worldWidth-34, 0, 34, worldHeight);
@@ -3316,6 +3380,8 @@ const spriteFrame = (
         ? clamp(me.y, halfH, worldHeight - halfH)
         : worldHeight / 2;
       view = { x: camX, y: camY, width: cw, height: ch, scale };
+      if (field.id === 'taman' && !scene3d && !studioMap)
+        drawTamanViewportGround(ctx,fieldBackground,cw,ch,worldWidth,worldHeight,scale,camX,camY);
       visibleWorld={left:camX-halfW,right:camX+halfW,top:camY-halfH,bottom:camY+halfH};
       if (isKanalField(field.id) && !followsPlayer) {
         // Contain-fitting is already correct. Letterboxing is necessary when
@@ -3355,7 +3421,7 @@ const spriteFrame = (
         ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
         ctx.beginPath(); ctx.arc(target.x, target.y, 9, 0, Math.PI * 2); ctx.stroke();
       }
-      drawColliderDebug();
+      if (field.id !== 'taman') drawColliderDebug();
       if (mode === 'playing') {
         drawFieldAnimations(now);
         refills.forEach((item) => drawRefill(item, now));
@@ -3366,11 +3432,15 @@ const spriteFrame = (
           ];
           entries.sort((a,b)=>a.z-b.z||a.y-b.y).forEach(item=>item.draw());
         }
-        if (!scene3d && !studioMap) players
+        if (!scene3d && !studioMap && (field.id === 'taman' || field.id === 'pasar')) {
+          drawMapPropDepth(players,now,p=>drawPlayer(p,me,now,render));
+          if (field.id === 'taman') drawColliderDebug();
+        }
+        if (!scene3d && !studioMap && field.id !== 'taman' && field.id !== 'pasar') players
           .slice()
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now, render));
-        if (selectedFieldId !== 'kampung3d') drawPrisonOverlays(now);
+        if (selectedFieldId !== 'kampung3d' && field.id !== 'taman') drawPrisonOverlays(now);
         if (studioMap) studioLayers.foreground.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,now);});
         const rescueRequester = rescueRequest
           ? players.find((player) => player.id === rescueRequest?.requesterId)
@@ -3723,7 +3793,7 @@ const spriteFrame = (
     };
     const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}) };
     if(development)coreHost.__bentengGameCore=coreProbe;
-    if (development && isKanalField(field.id)) {
+    if (development && (isKanalField(field.id) || field.id === 'pasar' || field.id === 'taman')) {
       collisionToggle = document.createElement('button');
       collisionToggle.type = 'button';
       collisionToggle.textContent = `COLLISION ${debugColliders ? 'ON' : 'OFF'} · F8`;
@@ -3734,7 +3804,7 @@ const spriteFrame = (
       window.addEventListener('keydown', collisionKey);
       // Development probes use a detached player and the actual move/blocked
       // functions. They never change the live actors, timers, or game rules.
-      debugHost.__kanalCollision = {
+      if (isKanalField(field.id)) debugHost.__kanalCollision = {
         geometry: () => ({
           width: worldWidth, height: worldHeight, radius: PLAYER_COLLISION_RADIUS,
           props: visualObstacles.map((item, index) => ({ id: `${item.asset}-${index}`, polygons: kanalObjectPolygons(item) })),
@@ -3782,6 +3852,8 @@ const spriteFrame = (
       window.clearTimeout(bannerTimeout);
       fieldObjectAtlas.removeEventListener('load', invalidateStaticMap);
       kanalObjectAtlas?.removeEventListener('load', invalidateStaticMap);
+      mapObjectAtlas?.removeEventListener('load', invalidateStaticMap);
+      fieldSolidMask?.removeEventListener('load', solidMask.cache);
       fieldGroundAtlas.removeEventListener('load', invalidateStaticMap);
       fieldBackground?.removeEventListener('load', invalidateStaticMap);
 

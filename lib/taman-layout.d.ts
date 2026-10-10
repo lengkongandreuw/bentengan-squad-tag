@@ -1,0 +1,16 @@
+import bundle from './taman-atlas.generated.json';
+import type { Obstacle, Prison, Team } from '../modules/world/map-data/field-types';
+type Rect = { x:number; y:number; w:number; h:number };
+type Polygon = [number,number][];
+export const TAMAN_ATLAS: typeof bundle.objects;
+export const TAMAN_WIDTH: number, TAMAN_HEIGHT: number;
+export const TAMAN_FOOTPRINTS: Record<string,Polygon[]>;
+export const TAMAN_PROPS: Obstacle[];
+export const TAMAN_BASES: Record<Team,{x:number;y:number}>;
+export const TAMAN_PRISONS: Record<Team,Prison>;
+export const TAMAN_FORT_RECTS: Rect[];
+export function tamanPrisonSlot(prison:Prison,index:number):{x:number;y:number};
+export function tamanObjectPolygons(item:Obstacle):Polygon[];
+export function tamanObjectRects(item:Obstacle):Rect[];
+export function tamanPrisonPolygons(prison:Prison):Polygon[];
+export function tamanPrisonRects(prison:Prison):Rect[];

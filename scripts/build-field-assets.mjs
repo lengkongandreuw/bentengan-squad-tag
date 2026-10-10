@@ -1,12 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { buildTamanAssets } from './build-taman-assets.mjs';
 
 const root = process.cwd();
 const sourceDir = path.join(root, 'field-sources');
 const mapSourceDir = path.join(root, 'Assets', 'map');
 const map2SourceDir = path.join(mapSourceDir, 'map2');
-const map3SourceDir = path.join(mapSourceDir, 'map3');
 const map4SourceDir = path.join(mapSourceDir, 'map4');
 const outputDir = path.join(root, 'public', 'field');
 const generatedFile = path.join(root, 'lib', 'field-assets.generated.ts');
@@ -291,29 +291,10 @@ await sharp(map2GuideComposite)
   .webp({ quality: 86, effort: 6, smartSubsample: true })
   .toFile(path.join(outputDir, 'pasar-map.webp'));
 
-// Map 3 is authored as two aligned 1672x941 layers supplied by the user:
-// terrain below and the complete object placement above it. Keeping the
-// authored layout intact prevents the runtime from substituting old objects.
-const map3GuideWidth = 1672;
-const map3GuideHeight = 941;
-const map3WorldWidth = Math.round(map3GuideWidth * 1.15);
-const map3WorldHeight = Math.round(map3GuideHeight * 1.15);
-const map3Terrain = await sharp(path.join(map3SourceDir, 'terrain.png'))
-  .resize(map3GuideWidth, map3GuideHeight, { fit: 'fill' })
-  .png()
-  .toBuffer();
-const map3Objects = await sharp(path.join(map3SourceDir, 'objects-layout.png'))
-  .resize(map3GuideWidth, map3GuideHeight, { fit: 'fill' })
-  .png()
-  .toBuffer();
-const map3GuideComposite = await sharp(map3Terrain)
-  .composite([{ input: map3Objects, left: 0, top: 0 }])
-  .png()
-  .toBuffer();
-await sharp(map3GuideComposite)
-  .resize(map3WorldWidth, map3WorldHeight, { fit: 'fill' })
-  .webp({ quality: 88, alphaQuality: 100, effort: 6, smartSubsample: true })
-  .toFile(path.join(outputDir, 'taman-map.webp'));
+// Taman is modular: preserve separate ground and object assets.
+const tamanBundle = await buildTamanAssets();
+const map3WorldWidth = tamanBundle.width;
+const map3WorldHeight = tamanBundle.height;
 
 // Map 4 uses the final authored guide at its original 1699x926 size. The
 // separate source layers stay in Assets/map/map4 for collider authoring and
@@ -494,9 +475,12 @@ const manifest = {
       height: map2WorldHeight,
     },
     taman: {
-      file: 'taman-map.webp',
+      file: 'taman/ground.webp',
       width: map3WorldWidth,
       height: map3WorldHeight,
+      objects: 'taman/objects.webp',
+      layout: 'lib/taman-layout.js',
+      solidMask: tamanBundle.solidMask,
     },
     kanal: {
       file: 'kanal-map.webp',

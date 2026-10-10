@@ -12,9 +12,12 @@
       "height": 1082
     },
     "taman": {
-      "file": "taman-map.webp",
-      "width": 1923,
-      "height": 1082
+      "file": "taman/ground.webp",
+      "width": 1920,
+      "height": 960,
+      "objects": "taman/objects.webp",
+      "layout": "lib/taman-layout.js",
+      "solidMask": { "file": "taman/void-mask.png", "width": 960, "height": 480 }
     },
     "kanal": {
       "file": "kanal-map.webp",

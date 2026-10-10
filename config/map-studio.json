@@ -8806,7 +8806,7 @@
       "description": "Lorong pasar · jalur rapat · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 1923,
       "height": 1082,
-      "enabled": true,
+      "enabled": false,
       "terrain": {
         "asset": "field/pasar-map.webp",
         "width": 1923,
@@ -10375,7 +10375,7 @@
       "description": "Taman simetris · parkour teknis · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 1923,
       "height": 1082,
-      "enabled": true,
+      "enabled": false,
       "terrain": {
         "asset": "field/taman-map.webp",
         "width": 1923,
@@ -15599,7 +15599,7 @@
       "description": "Kanal cincin · jembatan dan parkour · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 1954,
       "height": 1065,
-      "enabled": true,
+      "enabled": false,
       "terrain": {
         "asset": "field/kanal-map.webp",
         "width": 1699,
@@ -20723,7 +20723,7 @@
       "description": "Kanal panjang · ruang tengah 2× · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 2883,
       "height": 1296,
-      "enabled": true,
+      "enabled": false,
       "terrain": {
         "asset": "field/kanal2-ground.webp",
         "width": 4118,

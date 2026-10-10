@@ -385,8 +385,10 @@ void test('Kampung template and library use normalized valid assets', async () =
   }
   assert.ok(t.template.objects.some(o => o.asset && o.layer === 'background'), 'underlay artwork must not disappear');
   const taman = t.builtinTemplates.find(m => m.replaces === 'taman');
-  assert.equal(taman.terrain.asset, 'field/taman-map.webp');
-  assert.ok(t.builtins.find(b => b.id === 'taman').structuresInBackground);
+  assert.equal(taman.terrain.asset, 'field/taman/ground.webp');
+  assert.equal(t.builtins.find(b => b.id === 'taman').structuresInBackground,false);
+  assert.ok(taman.objects.some(o=>o.asset?.asset==='field/taman/objects.webp'));
+  assert.ok(t.builtinTemplates.find(m=>m.replaces==='pasar').objects.some(o=>o.asset?.asset==='field/pasar2/objects.webp'));
   assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
 });
 

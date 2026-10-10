@@ -1,0 +1,22 @@
+import type { Obstacle, Prison } from '../modules/world/map-data/field-types';
+export type TamanTreeVisual = {
+  width:number; height:number; pixels:ImageData; mask:Float32Array;
+  variants:Map<number,HTMLCanvasElement>;
+};
+export function tamanGroundColor(r:number,g:number,b:number,x:number,y:number):number[];
+export function tamanGroundFinish(image:HTMLImageElement,width:number,height:number):HTMLCanvasElement|HTMLImageElement;
+export type TamanEdgePalette = {grass:number[];stone:number[];start:number;end:number;
+  sample:Uint8ClampedArray;width:number;height:number;patches:number[][];edge:number};
+export function tamanEdgePalette(sample:Uint8ClampedArray,width:number,height:number):TamanEdgePalette[];
+export function tamanOuterEdgeColor(wx:number,wy:number,side:TamanEdgePalette):number[];
+export function drawTamanViewportGround(ctx:CanvasRenderingContext2D,image:HTMLImageElement|null,cw:number,ch:number,worldWidth:number,worldHeight:number,scale:number,camX:number,camY:number):void;
+export function tamanPropFilter(asset:string,x:number,y:number):string;
+export function tamanDepthProfile(item:Obstacle):{top:number;bottom:number;y:number;splitY:number};
+export function tamanCanopyMask(x:number,y:number):number;
+export function tamanTreeVisual(image:HTMLImageElement|null,frame:{x:number;y:number;width:number;height:number}):TamanTreeVisual|null;
+export function tamanTreeFadeSprite(visual:TamanTreeVisual|null,opacity:number):HTMLCanvasElement|null;
+export function tamanOcclusionOpacity(item:Obstacle,players:{x:number;y:number}[],visual?:TamanTreeVisual|null):number;
+export function tamanFadeOpacity(a:number,b:number,dt:number):number;
+export function drawTamanContactShadows(ctx:CanvasRenderingContext2D,props:Obstacle[]):void;
+export function drawTamanPrisonGrounding(ctx:CanvasRenderingContext2D,prisons:Record<string,Prison>):void;
+export function drawTamanWaterRipples(ctx:CanvasRenderingContext2D,props:Obstacle[],now:number):void;

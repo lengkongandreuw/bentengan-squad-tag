@@ -72,6 +72,10 @@ export type FieldConfig = {
   aiIntensity: number;
   ground: GroundTileId;
   background?: string;
+  objectLayer?: string;
+  solidMask?: string;
+  solidMaskWidth?: number;
+  solidMaskHeight?: number;
 
   designWidth?: number;
   designHeight?: number;

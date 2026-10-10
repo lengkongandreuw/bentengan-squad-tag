@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import { kanalObjectPolygons } from '../../modules/world/kanal-footprints.ts';
+import { TAMAN_ATLAS, tamanObjectPolygons } from '../../lib/taman-layout.js';
+import { PASAR2_ATLAS, pasar2ObjectPolygons } from '../../lib/pasar2-layout.js';
 // Evaluate trusted repository definitions only, never uploaded map data.
 export async function templates(root) {
   let fields = null;
@@ -57,7 +59,10 @@ export async function templates(root) {
   const kanalMeta = await sharp(
     await readFile(path.join(root, 'public/field/kanal-object-atlas.webp')),
   ).metadata();
-  const asset = (id) => ({
+  const asset = (id, fieldId) => {
+    const bundle=fieldId==='taman'?TAMAN_ATLAS:fieldId==='pasar'?PASAR2_ATLAS:null;
+    if(bundle?.assets[id])return {asset:'field/'+bundle.file,width:bundle.width,height:bundle.height,frames:[bundle.assets[id]],fps:12};
+    return ({
     asset: id.startsWith('kanalNusa')
       ? 'field/kanal-object-atlas.webp'
       : 'field/objects.webp',
@@ -65,7 +70,8 @@ export async function templates(root) {
     height: id.startsWith('kanalNusa') ? kanalMeta.height : atlas.height,
     frames: [atlas.assets[id]],
     fps: 12,
-  });
+    });
+  };
   const points = [
     { x: 0, y: 0 },
     { x: 1, y: 0 },
@@ -77,7 +83,7 @@ export async function templates(root) {
     const visual = (o, id) => ({
       id,
       name: o.asset,
-      asset: asset(o.asset),
+      asset: asset(o.asset,field.id),
       x: o.x + o.w / 2 - (o.visualW ?? o.w) / 2,
       y: o.y + o.h - (o.visualH ?? o.h),
       w: o.visualW ?? o.w,
@@ -97,8 +103,9 @@ export async function templates(root) {
     for (const [i, o] of field.obstacles.entries()) {
       const v = visual(o, `obj-visual-${i}`);
       if (!o.hidden) objects.push(v);
-      if (field.id === 'kanal2') {
-        for (const [j, poly] of kanalObjectPolygons(o).entries()) {
+      if (['kanal2','taman','pasar'].includes(field.id)) {
+        const polygons=field.id==='taman'?tamanObjectPolygons(o):field.id==='pasar'?pasar2ObjectPolygons(o):kanalObjectPolygons(o);
+        for (const [j, poly] of polygons.entries()) {
           const x = Math.min(...poly.map((p) => p[0])),
             y = Math.min(...poly.map((p) => p[1])),
             w = Math.max(...poly.map((p) => p[0])) - x,

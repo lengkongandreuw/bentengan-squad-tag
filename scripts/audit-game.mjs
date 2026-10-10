@@ -55,6 +55,7 @@ const selectionPortraitSource = await readFile(path.join(root, 'modules/ui/selec
 const motion = await import('../lib/sprite-motion.js');
 const characterAnimations = await import('../lib/character-animation.js');
 const { fieldCycleDecision } = await import('../modules/game-core/match-control.ts');
+const { GUIDE_FIELD_CONFIGS } = await import('../modules/world/map-data/guide-fields.ts');
 const { sweptContactDistance } = await import('../modules/gameplay/tag-check.ts');
 const { depenetrateFromRects, pointHitsExpandedRect, steerAroundRects } = await import('../modules/gameplay/collision-navigation.ts');
 const { advanceTeamCombo, createTeamComboState, teamComboSpeedMultiplier } = await import('../modules/gameplay/team-combo.ts');
@@ -121,7 +122,19 @@ assert(!prototypeSource.includes('ctx.filter = \'drop-shadow'), 'filter bayangan
 assert(fieldManifest.version === 12 && Object.keys(fieldManifest.objects.assets).length === 93, 'manifest field v12 memuat 93 objek statis serta lima arena final');
 assert(fieldManifest.maps?.kampung?.width === 1769 && fieldManifest.maps?.kampung?.height === 1260, 'sembilan potongan kuadran Map 1 dimirror dan diperluas 15% menjadi terrain 1769×1260');
 assert(fieldManifest.maps?.pasar?.width === 1923 && fieldManifest.maps?.pasar?.height === 1082, 'empat potongan kuadran Map 2 dimirror dan diperluas 15% menjadi terrain 1923×1082');
-assert(fieldManifest.maps?.taman?.width === 1923 && fieldManifest.maps?.taman?.height === 1082, 'terrain dan margin Map 3 mengikuti panduan lalu diperluas 15% menjadi 1923×1082');
+assert(fieldManifest.maps?.taman?.width === 1920 && fieldManifest.maps?.taman?.height === 960 && fieldManifest.maps.taman.file === 'taman/ground.webp' && fieldManifest.maps.taman.objects === 'taman/objects.webp' && fieldManifest.maps.taman.layout === 'lib/taman-layout.js', 'Taman approved 1920×960 memakai ground, atlas objek, dan layout terpisah');
+assert(fieldManifest.maps?.taman?.solidMask?.file === 'taman/void-mask.png' && fieldManifest.maps.taman.solidMask.width === 960 && fieldManifest.maps.taman.solidMask.height === 480, 'mask batas Taman approved tetap 960×480');
+const tamanBundle = await readJson('public/field/taman/manifest.json');
+const tamanGroundPath = path.join(root, 'public/field/taman/ground.webp');
+const tamanObjectsPath = path.join(root, 'public/field/taman/objects.webp');
+const tamanMaskPath = path.join(root, 'public/field/taman/void-mask.png');
+const tamanGround = await sharp(tamanGroundPath).metadata();
+const tamanObjects = await sharp(tamanObjectsPath).metadata();
+const tamanMask = await sharp(tamanMaskPath).metadata();
+assert(tamanGround.width === 1920 && tamanGround.height === 960 && !tamanGround.hasAlpha, 'ground Taman approved 1920×960 tanpa alpha');
+assert(tamanObjects.width === 2048 && tamanObjects.height === 2560 && tamanObjects.hasAlpha && tamanBundle.objects.width === tamanObjects.width && tamanBundle.objects.height === tamanObjects.height && tamanBundle.objects.file === 'taman/objects.webp', 'atlas Taman terpisah 2048×2560 transparan dan sinkron dengan manifest');
+assert(tamanMask.width === 960 && tamanMask.height === 480 && !tamanMask.hasAlpha && tamanBundle.solidMask.file === fieldManifest.maps.taman.solidMask.file, 'mask Taman terpisah dan sinkron dengan manifest field');
+assert((await stat(tamanGroundPath)).size + (await stat(tamanObjectsPath)).size + (await stat(tamanMaskPath)).size <= 2 * 1024 * 1024, 'bundle Taman approved berada dalam budget 2 MiB');
 assert(fieldManifest.maps?.kanal?.width === 1699 && fieldManifest.maps?.kanal?.height === 926 && fieldManifest.maps?.kanal?.waterMask?.width === 850 && fieldManifest.maps?.kanal?.waterMask?.height === 463, 'aset Map 4 mempertahankan panduan asli 1699×926 dan mask air setengah resolusi');
 assert(Object.keys(fieldManifest.animated.animations).join(',') === 'fountain,flag,vendor,boost25,boost40,boost75,boost100', 'tujuh animasi objek dan pickup terdaftar eksplisit');
 for (const [id, animation] of Object.entries(fieldManifest.animated.animations)) assert(animation.frames.length === 6, `${id}: enam frame animasi terpotong lengkap`);
@@ -181,8 +194,7 @@ assert(scalarsSource.includes('const MAP4_WORLD_SCALE = 1.15') && guideFieldsSou
 assert(prototypeSource.includes('riverFallCheck(now)') && riverFallSource.includes('now < p.parkourUntil') && playerDrawSource.includes("'OOOPSS... HATI-HATI'"), 'pemain dan bot yang jatuh di sungai kembali ke benteng, sementara parkour aman dan peringatan tampil');
 assert((guideFieldsSource.match(/guide(?:Obstacle|Collider)\(/g) ?? []).length >= 80, 'konfigurasi panduan memiliki kepadatan halangan dan collider bermakna sebelum skala arena diterapkan');
 assert(prototypeSource.includes('kepadatan arena tidak mencukupi') && prototypeSource.includes('keluar batas arena') && prototypeSource.includes('masuk zona penjara') && prototypeSource.includes('menutup akses benteng'), 'validator geometri mencegah arena kosong, objek keluar batas, dan penjara terhalang');
-const guideFieldSource = guideFieldsSource.match(/export const GUIDE_FIELD_CONFIGS:[\s\S]*?export function buildFieldConfigs/)?.[0] ?? '';
-assert((guideFieldSource.match(/difficulty: 'easy'/g) ?? []).length === 1 && (guideFieldSource.match(/difficulty: 'normal'/g) ?? []).length === 1 && (guideFieldSource.match(/difficulty: 'hard'/g) ?? []).length === 2, 'tingkat kesulitan arena tersusun Easy, Normal, Hard, Hard');
+assert(GUIDE_FIELD_CONFIGS.map(field => `${field.id}:${field.difficulty}`).join(',') === 'kampung:easy,pasar:normal,taman:hard,kanal:hard,kanal2:hard', 'katalog runtime approved tetap lima arena unik: Easy, Normal, Hard, Hard, Hard');
 assert(prototypeSource.includes('DIFFICULTY_PROFILES[field.difficulty]') && aiVectorSource.includes('aiProfile.steerDistance') && aiVectorSource.includes('aiProfile.prediction') && aiVectorSource.includes('aiProfile.rescueCutoff'), 'kesulitan mengubah prediksi target, navigasi, boost, dan keputusan rescue musuh');
 const fieldOrder = ['kampung', 'pasar', 'taman', 'kanal'];
 assert(fieldCycleDecision('kampung', 2, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('kampung', 2, fieldOrder).wins === 2, 'field bertahan sebelum tiga kemenangan pertandingan');
@@ -239,11 +251,15 @@ assert(prototypeSource.includes("new Audio(uiAudioAsset('ingame-ambience.mp3'))"
 assert(!prototypeSource.includes('sprite-sources/raja new sprites.png'), 'PNG sumber Raja tidak pernah dirujuk runtime');
 assert(globalStyles.includes('align-items: start') && /\.stage-card\s*\{\s*height:\s*min\(79vh,\s*900px\)/.test(globalStyles), 'stage tidak meregang mengikuti panel misi dan kamera Overall tetap terpusat');
 
+const lfMetadataFiles = new Set([
+  'public/field/manifest.json', 'public/field/taman/manifest.json',
+  ...manifest.characters.map(character => `public/characters/${character.id}/animations.json`),
+]);
 const sha256 = async file => {
   const bytes = await readFile(path.join(root, file));
-  // Git's Windows checkout can convert this text manifest to CRLF. Its LF
-  // golden baseline must remain the same across Windows and Linux CI.
-  return createHash('sha256').update(file === 'public/field/manifest.json'
+  // These versioned JSON metadata files have canonical LF golden hashes.
+  // Normalize Windows checkout CRLF only; values and binary hashes stay strict.
+  return createHash('sha256').update(lfMetadataFiles.has(file)
     ? bytes.toString('utf8').replaceAll('\r\n', '\n') : bytes).digest('hex');
 };
 for (const [filename, hash] of Object.entries(fieldBaseline.sources)) assert(hash === await sha256(`field-sources/${filename}`), `${filename}: sumber field cocok golden baseline`);

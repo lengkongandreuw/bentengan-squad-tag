@@ -1,5 +1,7 @@
 import type { FieldConfig, Obstacle } from './field-types.ts';
 import type { FieldAssetId } from '../../../lib/field-assets.generated';
+import { TAMAN_WIDTH, TAMAN_HEIGHT, TAMAN_PROPS, TAMAN_BASES, TAMAN_PRISONS } from '../../../lib/taman-layout.js';
+import { PASAR2_WIDTH, PASAR2_HEIGHT, PASAR2_PROPS, PASAR2_DECORATIONS, PASAR2_BASES, PASAR2_PRISONS } from '../../../lib/pasar2-layout.js';
 import {
   BASE_RADIUS,
   BASES,
@@ -461,6 +463,10 @@ export const GUIDE_FIELD_CONFIGS: FieldConfig[] = [
 // config must not depend on any uncommitted changes to Nusantara 1.
 const kanalGuide: FieldConfig = {
   ...structuredClone(GUIDE_FIELD_CONFIGS.find(field => field.id === 'kanal')!),
+  designHeight: MAP4_GUIDE_HEIGHT,
+  waterMaskHeight: 463,
+  paths: [],
+  animated: [],
   background: 'kanal-ground.webp',
   baseRadius: Math.round(BASE_RADIUS * MAP4_OBJECT_SCALE),
   objectScale: MAP4_OBJECT_SCALE,
@@ -533,7 +539,7 @@ GUIDE_FIELD_CONFIGS.push({
   ...structuredClone(kanalGuide),
   id: 'kanal2',
   name: 'Alun Kanal Nusantara 2',
-  kicker: 'Kanal panjang dengan ruang tengah dua kali lebih lebar untuk rotasi dan duel terbuka.',
+  kicker: 'Kanal panjang · ruang tengah 2×',
   background: 'kanal2-ground.webp',
   waterMask: 'kanal2-water-mask.png',
   waterMaskWidth: Math.round(MAP4_2_GUIDE_WIDTH / 2),
@@ -551,6 +557,28 @@ GUIDE_FIELD_CONFIGS.push({
   obstacles: [...kanalGuide.obstacles.map(kanal2Item), ...kanal2SmallPlanters],
   decorations: kanalGuide.decorations.map(kanal2Item),
 });
+
+// Preserve the approved local map variants within the extracted map catalog.
+GUIDE_FIELD_CONFIGS[GUIDE_FIELD_CONFIGS.findIndex(field => field.id === 'taman')] = {
+  id: 'taman', name: 'Taman Kota', kicker: 'Taman simetris · parkour teknis',
+  difficulty: 'hard', aiIntensity: 1, ground: 'parkGrass',
+  background: 'taman/ground.webp', designWidth: TAMAN_WIDTH, designHeight: TAMAN_HEIGHT,
+  solidMask: 'taman/void-mask.png', solidMaskWidth: 960, solidMaskHeight: 480,
+  width: TAMAN_WIDTH, height: TAMAN_HEIGHT, objectScale: 1,
+  structuresInBackground: false, bases: TAMAN_BASES,
+  prisons: TAMAN_PRISONS as FieldConfig['prisons'],
+  obstacles: TAMAN_PROPS as Obstacle[], paths: [], decorations: [], animated: [],
+};
+GUIDE_FIELD_CONFIGS[GUIDE_FIELD_CONFIGS.findIndex(field => field.id === 'pasar')] = {
+  ...structuredClone(GUIDE_FIELD_CONFIGS.find(field => field.id === 'pasar')!),
+  id: 'pasar', name: 'Pasar Senggol', kicker: 'Pasar lapang · neutral-cool',
+  difficulty: 'normal', aiIntensity: 1,
+  background: 'pasar2/ground.webp',
+  designWidth: PASAR2_WIDTH, designHeight: PASAR2_HEIGHT,
+  width: PASAR2_WIDTH, height: PASAR2_HEIGHT, objectScale: 1,
+  bases: PASAR2_BASES, prisons: PASAR2_PRISONS as FieldConfig['prisons'],
+  obstacles: PASAR2_PROPS as Obstacle[], decorations: PASAR2_DECORATIONS as FieldConfig['decorations'], paths: [], animated: [],
+};
 
 export function buildFieldConfigs(guide: FieldConfig[]): FieldConfig[] {
   return guide.map((field) => {

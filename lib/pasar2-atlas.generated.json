@@ -1,0 +1,145 @@
+{
+  "version": 2,
+  "width": 2100,
+  "height": 1050,
+  "ground": "pasar2/ground.webp",
+  "objects": {
+    "file": "pasar2/objects.webp",
+    "width": 2048,
+    "height": 3072,
+    "assets": {
+      "map2Center": {
+        "x": 8,
+        "y": 8,
+        "width": 424,
+        "height": 244
+      },
+      "map2Cart": {
+        "x": 520,
+        "y": 8,
+        "width": 242,
+        "height": 204
+      },
+      "map2BarrierRed": {
+        "x": 1032,
+        "y": 8,
+        "width": 236,
+        "height": 135
+      },
+      "map2PlanterRed": {
+        "x": 1544,
+        "y": 8,
+        "width": 275,
+        "height": 143
+      },
+      "marketStallA": {
+        "x": 8,
+        "y": 520,
+        "width": 303,
+        "height": 241
+      },
+      "map2Trash": {
+        "x": 520,
+        "y": 520,
+        "width": 280,
+        "height": 162
+      },
+      "marketStallB": {
+        "x": 1032,
+        "y": 520,
+        "width": 271,
+        "height": 170
+      },
+      "marketStallC": {
+        "x": 1544,
+        "y": 520,
+        "width": 310,
+        "height": 210
+      },
+      "snackCart": {
+        "x": 8,
+        "y": 1032,
+        "width": 340,
+        "height": 189
+      },
+      "foodCart": {
+        "x": 520,
+        "y": 1032,
+        "width": 212,
+        "height": 228
+      },
+      "lamp": {
+        "x": 1032,
+        "y": 1032,
+        "width": 123,
+        "height": 232
+      },
+      "plant": {
+        "x": 1544,
+        "y": 1032,
+        "width": 245,
+        "height": 179
+      },
+      "plantFence": {
+        "x": 8,
+        "y": 1544,
+        "width": 496,
+        "height": 151
+      },
+      "canalBridgeH": {
+        "x": 520,
+        "y": 1544,
+        "width": 496,
+        "height": 189
+      },
+      "canalBridgeV": {
+        "x": 1032,
+        "y": 1544,
+        "width": 353,
+        "height": 411
+      },
+      "bunting": {
+        "x": 1544,
+        "y": 1544,
+        "width": 496,
+        "height": 204
+      },
+      "fortRed": {
+        "x": 8,
+        "y": 2056,
+        "width": 167,
+        "height": 188
+      },
+      "fortGreen": {
+        "x": 520,
+        "y": 2056,
+        "width": 167,
+        "height": 188
+      },
+      "map2PrisonRedFloor": {
+        "x": 1032,
+        "y": 2056,
+        "width": 291,
+        "height": 199
+      },
+      "map2PrisonRedOverlay": {
+        "x": 1544,
+        "y": 2056,
+        "width": 291,
+        "height": 199
+      },
+      "map2PrisonGreenFloor": {
+        "x": 8,
+        "y": 2568,
+        "width": 298,
+        "height": 203
+      },
+      "map2PrisonGreenOverlay": {
+        "x": 520,
+        "y": 2568,
+        "width": 298,
+        "height": 203
+      }
+    }
+  }
+}

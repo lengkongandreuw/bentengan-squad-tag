@@ -1,6 +1,7 @@
 import type { FieldAnimatedId, FieldAssetId } from '../../lib/field-assets.generated.ts';
 import type { AnimatedDecoration } from '../world/map-data/field-types';
 import { roundedOn } from './canvas-shapes.ts';
+import { tamanPropFilter, tamanTreeVisual, tamanTreeFadeSprite } from '../../lib/taman-visuals.js';
 
 // Atlas metadata + loaded images for one field. Values are captured for
 // the lifetime of a match run (all const in the composition root).
@@ -17,6 +18,9 @@ export type FieldAssetWorld = {
   baseAtlas: HTMLImageElement;
   kanalAtlas: HTMLImageElement | null;
   animatedAtlas: HTMLImageElement;
+  fieldId?: string;
+  mapAssets?: FieldAssetWorld['objectAssets'];
+  mapAtlas?: HTMLImageElement | null;
 };
 
 // Blits one field object sprite (kanal objects ride their own atlas),
@@ -33,8 +37,9 @@ const drawFieldAsset = (
   flip = false,
   opacity = 1,
 ): void => {
-  const source = world.objectAssets[asset];
-  const atlas = asset.startsWith('kanalNusa') ? world.kanalAtlas : world.baseAtlas;
+  const mapSource = world.mapAssets?.[asset];
+  const source = mapSource ?? world.objectAssets[asset];
+  const atlas = mapSource ? world.mapAtlas : asset.startsWith('kanalNusa') ? world.kanalAtlas : world.baseAtlas;
   if (!atlas?.complete || !atlas.naturalWidth) {
     target.fillStyle = 'rgba(28,43,31,.34)';
     roundedOn(target, x, y, w, h, Math.min(12, w / 5));
@@ -42,9 +47,12 @@ const drawFieldAsset = (
     return;
   }
   target.save();
-  target.globalAlpha = opacity;
+  const treeFade = world.fieldId === 'taman' && asset === 'parkTree' && mapSource && opacity < 1
+    ? tamanTreeFadeSprite(tamanTreeVisual(atlas, mapSource), opacity) : null;
+  target.globalAlpha = treeFade ? 1 : opacity;
   target.imageSmoothingEnabled = true;
   target.imageSmoothingQuality = 'high';
+  if (world.fieldId === 'taman') target.filter = tamanPropFilter(asset, x, y);
   if (world.kanal) {
     // Atlas sprites have transparent edges, so a shadow follows the true
     // silhouette rather than drawing a rectangular backdrop.
@@ -56,7 +64,8 @@ const drawFieldAsset = (
     target.translate(x * 2 + w, 0);
     target.scale(-1, 1);
   }
-  target.drawImage(
+  if (treeFade) target.drawImage(treeFade, x, y, w, h);
+  else target.drawImage(
     atlas,
     source.x,
     source.y,

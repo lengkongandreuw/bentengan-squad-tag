@@ -118,6 +118,7 @@ export function resolveRescue(
   now: number,
   rules: { kanal2: boolean; range: number; shieldMs: number },
   emit?: GameEventSink,
+  onReleased?: (player: RuntimeActor, owner: LegacyTeam, index: number, count: number) => void,
 ): InteractionEvent | null {
   const actor = players.find((p) => p.entityId === rescuerId);
   if (!actor || flightBusy(actor) || actor.state !== 'ACTIVE' || (rules.kanal2 && actor.waterEnteredAt))
@@ -126,11 +127,13 @@ export function resolveRescue(
     .filter((p) => p.team === actor.team && p.state === 'PRISONER')
     .sort((a, b) => b.prisonIndex - a.prisonIndex);
   if (!held[0] || distance(actor, held[0]) >= rules.range) return null;
-  for (const p of held) {
+  for (const [index, p] of held.entries()) {
+    const owner = p.prisonOwner;
     p.state = 'RETURNING';
     p.prisonOwner = undefined;
     p.rescueShieldUntil = now + rules.shieldMs;
     p.x += actor.team === 'blue' ? -22 : 22;
+    if (owner) onReleased?.(p, owner, index, held.length);
   }
   actor.action = 'rescue';
   actor.actionUntil = now + 460;
@@ -149,6 +152,7 @@ export function layoutPrisoners(
   players: RuntimeActor[],
   prisons: Record<LegacyTeam, { x: number; y: number; w: number; h: number }>,
   kanal: boolean,
+  slotPosition?: (prison: { x: number; y: number; w: number; h: number }, index: number) => Point,
 ) {
   for (const owner of ['blue', 'red'] as const) {
     const prison = prisons[owner];
@@ -156,7 +160,10 @@ export function layoutPrisoners(
       .filter((p) => p.state === 'PRISONER' && p.prisonOwner === owner)
       .forEach((p, i) => {
         p.prisonIndex = i;
-        if (kanal) {
+        if (slotPosition) {
+          const slot = slotPosition(prison, i);
+          p.x = slot.x; p.y = slot.y;
+        } else if (kanal) {
           const column = i % 3,
             row = Math.floor(i / 3),
             left = prison.x + 34 + column * ((prison.w - 68) / 2);

@@ -5,6 +5,8 @@ import { BASE_RADIUS, worldX, worldY } from '../world/map-data/scalars.ts';
 import { TEAM_COLOR } from '../world/team-tables.ts';
 import { roundedOn } from './canvas-shapes.ts';
 import type { FieldAssetDraw } from './field-assets.ts';
+import { tamanGroundFinish, drawTamanPrisonGrounding, drawTamanContactShadows } from '../../lib/taman-visuals.js';
+import { drawPasar2ShoreDepth, drawPasar2ContactShadows } from '../../lib/pasar2-visuals.js';
 
 const STATIC_MAP_SCALE = 0.5;
 
@@ -80,7 +82,7 @@ export const createStaticMapLayer = (
       fieldBackground.naturalWidth &&
       fieldBackground.naturalHeight
     ) {
-      target.drawImage(fieldBackground, 0, 0, worldWidth, worldHeight);
+      target.drawImage(field.id === 'taman' ? tamanGroundFinish(fieldBackground, worldWidth, worldHeight) : fieldBackground, 0, 0, worldWidth, worldHeight);
     } else {
       const primaryPattern = target.createPattern(
         groundTileCanvas(field.ground),
@@ -176,7 +178,7 @@ export const createStaticMapLayer = (
       );
       target.stroke();
     });
-    if (!kanal) {
+    if (!kanal && field.id !== 'taman') {
       target.strokeStyle = 'rgba(255,255,255,.13)';
       target.lineWidth = 2;
       target.setLineDash([16, 18]);
@@ -190,11 +192,19 @@ export const createStaticMapLayer = (
     }
 
     const visualObstacles: Obstacle[] = field.obstacles;
+    if (field.id === 'pasar') {
+      drawPasar2ShoreDepth(target);
+      drawPasar2ContactShadows(target, visualObstacles);
+    }
+    if (field.id === 'taman') {
+      drawTamanPrisonGrounding(target, field.prisons);
+      drawTamanContactShadows(target, visualObstacles);
+    }
     const drawSceneryLayer = (underlay: boolean) => {
       // Kanal's raised props are drawn at native atlas resolution on the
       // live canvas below. Baking them into the scaled ground and drawing
       // them again at close range caused soft/doubled silhouettes.
-      if (kanal && !underlay) return;
+      if ((kanal || field.id === 'pasar' || field.id === 'taman') && !underlay) return;
       const scenery = [
         ...field.decorations
           .filter((item) => Boolean(item.underlay) === underlay)

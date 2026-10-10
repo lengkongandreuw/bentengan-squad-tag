@@ -99,7 +99,11 @@
     "taman-map.webp": "a425d5bdfcc6695e6769cb336068a4381a11bb629d628d4667449b40da50dd36",
     "kanal-map.webp": "9809f1c9ea2ceafacef72dbec3783707da8e27d4a9665ce8e0469890d6be64d5",
     "kanal-water-mask.png": "3f8095bc279b70728e83bbc96a4029b93cd5f7b15b34b40dd74a4bd7b77d3dae",
-    "manifest.json": "56661396f69dfa74aa0db504b4a8d8ac046eead8d63c418745ecdae820502104",
+    "manifest.json": "780141bec8f25f99d36cbfd0fdb79c34b3b9e58074af22fd05c25d2aa64e50ff",
+    "taman/ground.webp": "8ad3f149f2cc94a0e67c190143bc14a28bfd0052a519ce508f1ded68f63f8523",
+    "taman/objects.webp": "ef07fb30756d16fdccc444f4b86280667652f3daa7769661d457e51ab4282730",
+    "taman/void-mask.png": "877148ed41f3904aa59fa34ed635a31d29d3cfc00d08158ecc17506b5c09df11",
+    "taman/manifest.json": "cc19d4784787cb2a40ffafc836890a5ce8054f453c136a1318d0088b1c4a50cd",
     "objects.webp": "72065b592a451a28a246c74e5381f5fe696c0b2521d73fbb1fce94856cdc0ae1"
   }
 }

@@ -1,0 +1,15 @@
+import bundle from './pasar2-atlas.generated.json';
+import type { Obstacle, Prison, Team, FieldDecoration } from '../modules/world/map-data/field-types';
+type Rect = { x:number; y:number; w:number; h:number };
+type Polygon = [number,number][];
+export const PASAR2_ATLAS: typeof bundle.objects;
+export const PASAR2_WIDTH: number, PASAR2_HEIGHT: number;
+export const PASAR2_FOOTPRINTS: Record<string,Polygon[]>;
+export const PASAR2_PROPS: Obstacle[];
+export const PASAR2_DECORATIONS: (FieldDecoration & {nonCollidable:true})[];
+export const PASAR2_BASES: Record<Team,{x:number;y:number}>;
+export const PASAR2_PRISONS: Record<Team,Prison>;
+export const PASAR2_FORT_RECTS: Rect[], PASAR2_TERRAIN_RECTS: Rect[];
+export function pasar2ObjectPolygons(item:Obstacle):Polygon[];
+export function pasar2ObjectRects(item:Obstacle):Rect[];
+export function pasar2PrisonRects(prison:Prison):Rect[];

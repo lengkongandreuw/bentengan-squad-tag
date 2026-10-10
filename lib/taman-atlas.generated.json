@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "width": 1920,
+  "height": 960,
+  "ground": "taman/ground.webp",
+  "solidMask": {
+    "file": "taman/void-mask.png",
+    "width": 960,
+    "height": 480
+  },
+  "objects": {
+    "file": "taman/objects.webp",
+    "width": 2048,
+    "height": 2560,
+    "assets": {
+      "parkBench": {
+        "x": 8,
+        "y": 8,
+        "width": 279,
+        "height": 125
+      },
+      "parkBarrier": {
+        "x": 520,
+        "y": 8,
+        "width": 245,
+        "height": 96
+      },
+      "parkLamp": {
+        "x": 1032,
+        "y": 8,
+        "width": 83,
+        "height": 184
+      },
+      "parkPlanterLong": {
+        "x": 1544,
+        "y": 8,
+        "width": 496,
+        "height": 140
+      },
+      "parkPlanter": {
+        "x": 8,
+        "y": 520,
+        "width": 246,
+        "height": 224
+      },
+      "parkCornerNW": {
+        "x": 520,
+        "y": 520,
+        "width": 496,
+        "height": 389
+      },
+      "parkCornerNE": {
+        "x": 1032,
+        "y": 520,
+        "width": 496,
+        "height": 389
+      },
+      "parkCornerSW": {
+        "x": 1544,
+        "y": 520,
+        "width": 496,
+        "height": 389
+      },
+      "parkCornerSE": {
+        "x": 8,
+        "y": 1032,
+        "width": 496,
+        "height": 389
+      },
+      "flowerBedSmall": {
+        "x": 520,
+        "y": 1032,
+        "width": 121,
+        "height": 110
+      },
+      "parkTree": {
+        "x": 1032,
+        "y": 1032,
+        "width": 138,
+        "height": 137
+      },
+      "gardenMedium": {
+        "x": 1544,
+        "y": 1032,
+        "width": 146,
+        "height": 105
+      },
+      "parkFlowerFence": {
+        "x": 8,
+        "y": 1544,
+        "width": 344,
+        "height": 161
+      },
+      "fortRed": {
+        "x": 520,
+        "y": 1544,
+        "width": 167,
+        "height": 188
+      },
+      "fortGreen": {
+        "x": 1032,
+        "y": 1544,
+        "width": 167,
+        "height": 188
+      },
+      "parkPrisonBlueFloor": {
+        "x": 1544,
+        "y": 1544,
+        "width": 496,
+        "height": 477
+      },
+      "parkPrisonRedOverlay": {
+        "x": 8,
+        "y": 2056,
+        "width": 496,
+        "height": 477
+      },
+      "parkPrisonBlueOverlay": {
+        "x": 520,
+        "y": 2056,
+        "width": 496,
+        "height": 477
+      }
+    }
+  }
+}
