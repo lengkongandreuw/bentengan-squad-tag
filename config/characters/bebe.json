@@ -18,5 +18,27 @@
   "rescueShieldMs": 2150,
   "tagCooldownMs": 490,
   "mirrorWest": false,
-  "dedicatedEast": true
+  "dedicatedEast": true,
+  "ultimate": {
+    "kind": "flight",
+    "name": "JET FLIGHT",
+    "shortLabel": "FLIGHT",
+    "hudTitle": "JET FLIGHT",
+    "buffText": "JET FLIGHT · ",
+    "bannerAlt": "BEBE — JET FLIGHT",
+    "icon": "zap",
+    "hudClass": "",
+    "shieldClass": "",
+    "actionClass": "",
+    "indicatorClass": "",
+    "bannerClass": "",
+    "trackEdge": "#08282b",
+    "trackFill": "#4eeaf2",
+    "castBurst": "#4eeaf2",
+    "castBeepHz": 380,
+    "castMs": 700,
+    "bannerMs": 820,
+    "strip": false,
+    "castLog": "BEBE activates JET FLIGHT."
+  }
 }

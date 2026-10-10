@@ -32,6 +32,7 @@
           <strong id="versionBadge" role="status"></strong>
           <p id="versionDetails"></p>
           <button id="editVersion" hidden>Buka draft editor</button>
+          <button id="exportDraft">Ekspor draft JSON · cadangan</button>
           <p>“Aktif lokal” mengikuti konfigurasi repo ini. GitHub Pages baru berubah setelah Build/publish berhasil.</p>
           <label class="check"
             ><input type="checkbox" id="showArchived" />Tampilkan Arsip &
@@ -214,19 +215,12 @@
           ■ Merah: solid · Oranye: parkour · Biru: air · Kuning: lambat · Hijau:
           jembatan
         </div>
-        <section>
-          <h2>
-            Pemeriksaan map <button id="validate">Periksa sekarang</button>
-          </h2>
-          <ul id="issues"></ul>
-          <button id="autoFix">Auto-fix collider</button>
-          <p>Titik berulang dan sisi bersilang diperbaiki otomatis saat selesai menggambar, aktivasi, atau simpan. Bisa dibatalkan dengan Undo. Jalur/spawn tertutup tetap perlu diperiksa.</p>
-          <div id="autoFixSummary" role="status" aria-live="polite"></div>
-        </section>
       </section>
       <aside>
+        <div class="inspector-edit-region">
         <section>
           <h2>03 · Pilihan</h2>
+          <strong id="selectionTitle"></strong>
           <p id="nothing">Pilih objek, benteng, atau penjara.</p>
           <div id="properties" hidden>
             <label>Nama objek<input id="objectName" /></label>
@@ -241,6 +235,12 @@
               proporsi</label
             >
             <div id="objectOnly">
+              <details open>
+                <summary>Mirror / transform visual</summary>
+                <label class="check"><input id="mirror" type="checkbox" /> Mirror horizontal ↔</label>
+                <label class="check"><input id="mirrorY" type="checkbox" /> Mirror vertikal ↕</label>
+                <p>Hanya membalik gambar. Posisi dan collider tidak berubah.</p>
+              </details>
               <label
                 >Perilaku<select id="behavior">
                   <option value="decoration">Dekorasi · visual saja</option>
@@ -317,8 +317,6 @@
                     min="0"
                     max="100" /></label
                 ><label class="check"
-                  ><input id="mirror" type="checkbox" /> Mirror</label
-                ><label class="check"
                   ><input id="visible" type="checkbox" /> Gambar terlihat (batas
                   tetap aktif)</label
                 ><label class="check"
@@ -335,6 +333,7 @@
                 ><button id="delete" class="danger">Hapus objek</button>
               </div>
             </div>
+            <div id="structureProperties" hidden></div>
           </div>
         </section>
         <section>
@@ -342,6 +341,16 @@
           <button id="area">+ Area tanpa gambar</button>
           <div id="objects"></div>
         </section>
+        </div>
+        <input id="structureFile" type="file" accept="image/png,image/gif,image/webp" hidden />
+        <details id="validationPanel" class="inspector-section">
+          <summary>Pemeriksaan map · <span id="issueCount">0</span> issue</summary>
+          <button id="validate">Periksa sekarang</button>
+          <ul id="issues"></ul>
+          <button id="autoFix">Auto-fix collider</button>
+          <p>Titik berulang dan sisi bersilang diperbaiki otomatis saat selesai menggambar, aktivasi, atau simpan. Bisa dibatalkan dengan Undo. Jalur/spawn tertutup tetap perlu diperiksa.</p>
+          <div id="autoFixSummary" role="status" aria-live="polite"></div>
+        </details>
       </aside>
     </main>
     <script type="module" src="/editor.js"></script>

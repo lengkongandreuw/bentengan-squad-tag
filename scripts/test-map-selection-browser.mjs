@@ -16,6 +16,8 @@ try {
     await p.locator('.enter-game').click();await p.getByRole('button',{name:'Choose Tim Merah',exact:true}).click();
     await p.getByRole('button',{name:/^CHOOSE RAJA$/i}).click({timeout:60000});
     await p.locator('.map-select-v2').waitFor({timeout:60000});
+    assert.match(await p.locator('.map-arena-row').first().getAttribute('aria-label'),/^Kampung Merdeka/,'edited Kampung remains first');
+    assert.match(await p.locator('.map-arena-row[aria-pressed="true"]').getAttribute('aria-label'),/^Kampung Merdeka/,'default selection is edited Kampung');
     await p.waitForFunction(()=>[...document.querySelectorAll('.map-select-v2 img')].every(i=>i.complete&&i.naturalWidth>0));
     assert(await p.locator('.map-start-match').isEnabled());
     assert.equal(await p.locator('.arena-unlock-panel').count(),0);

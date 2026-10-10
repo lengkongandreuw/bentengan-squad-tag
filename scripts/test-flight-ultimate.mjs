@@ -4,6 +4,23 @@ import fs from 'node:fs';
 import {flightConfig,startFlight,advanceFlight,isFlying,flightBusy,flightSlot,sequenceComplete,steerFlight,safeFlightLanding,flightPassesObstacle} from '../modules/gameplay/flight-ultimate.ts';
 import {DIRECTIONS,actionsForCharacter,slotAllowed,slotLoop,spriteSlot,studioFlightSlot,validateSpriteDocument} from '../lib/sprite-studio-model.js';
 import {solidAt} from '../lib/map-studio-model.js';
+import {ULTIMATE_CHARACTER_IDS,CHARACTER_BY_ID} from '../lib/characters.ts';
+import {stepUltimate,gainUltimate} from '../modules/gameplay/ultimate.ts';
+
+void test('actual character catalog includes all four ultimate owners and flight activation recharges through the runtime gate',()=>{
+  assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(),['bebe','ciici','kaka','raja']);
+  for(const id of ['bebe','ciici']){
+    assert.equal(CHARACTER_BY_ID[id].ultimate.kind,'flight');
+    const actor={characterId:id,entityId:'local-'+id,controlled:true,state:'ACTIVE',x:250,y:400,vx:0,vy:0,parkourUntil:0,actionUntil:0,flight:null};
+    const state={meter:0,impactAt:0,impactApplied:false,buffUntil:0,shieldUntil:0};
+    const rules={supported:ULTIMATE_CHARACTER_IDS,rechargeSeconds:45,castMs:CHARACTER_BY_ID[id].ultimate.castMs,durationMs:4000,speedMultiplier:1.4,kanal2:false};
+    stepUltimate([actor],actor,state,45,1000,false,rules);assert.equal(state.meter,100);
+    assert.equal(gainUltimate(10,actor,20,ULTIMATE_CHARACTER_IDS),30);
+    const events=stepUltimate([actor],actor,state,0,1001,true,rules);
+    assert.equal(events[0].type,'ULTIMATE_STARTED');assert(events[0].flight);assert.equal(actor.flight.stage,'FLIGHT_TAKEOFF');assert.equal(state.meter,0);
+    assert.equal(stepUltimate([actor],actor,state,0,1002,true,rules).length,0,'held activation cannot restart flight');
+  }
+});
 
 void test('shared config, complete-sequence gating and exact actual flight duration',()=>{
   for(const id of ['bebe','ciici']){

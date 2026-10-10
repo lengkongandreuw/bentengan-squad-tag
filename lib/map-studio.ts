@@ -3,6 +3,7 @@ import runtime from '../config/map-runtime.json';
 import {runtimeResource, runtimeFrameKey, type RuntimeManifest} from './studio-runtime-resource.ts';
 import {
   validateDocument,
+  mapAssets,
   frameAt,
   type StudioMap,
   type MapObject,
@@ -19,7 +20,7 @@ export const studioMapById = Object.fromEntries(
 );
 const cache = new Map<string, HTMLImageElement>();
 export function retainMapImages(maps: readonly StudioMap[]) {
-  const used=new Set(maps.flatMap(m=>[m.terrain,m.icon,...m.objects.map(o=>o.asset)].filter((a):a is MapAsset=>!!a).map(a=>resource(a).asset)));
+  const used=new Set(maps.flatMap(m=>mapAssets(m).map(a=>resource(a).asset)));
   for(const [asset,image]of cache)if(!used.has(asset)){image.removeAttribute('src');cache.delete(asset);}
 }
 const resources=new WeakMap<MapAsset,ReturnType<typeof runtimeResource>>();
@@ -41,8 +42,7 @@ export function mapImage(a: MapAsset) {
 export function mapImages(m: StudioMap) {
   return [
     ...new Set(
-      [m.terrain, m.icon, ...m.objects.map((o) => o.asset)]
-        .filter((a): a is MapAsset => !!a)
+      mapAssets(m)
         .map(mapImage),
     ),
   ];
@@ -111,8 +111,19 @@ export function drawMapObject(
   ctx.translate(o.x + o.w / 2, o.y + o.h / 2);
   ctx.rotate((o.rotation * Math.PI) / 180);
   ctx.globalAlpha = o.opacity;
-  if (o.mirror) ctx.scale(-1, 1);
+  ctx.scale(o.mirror ? -1 : 1, o.mirrorY ? -1 : 1);
   drawAsset(ctx, o.asset, -o.w / 2, -o.h / 2, o.w, o.h, now);
+  ctx.restore();
+}
+export function drawStructureVisual(ctx: CanvasRenderingContext2D,
+  v: import('./map-studio-model.js').StructureVisual & {x: number; y: number}, now: number) {
+  if (!v.visible || !v.asset) return;
+  ctx.save();
+  ctx.translate(v.x + v.w / 2, v.y + v.h / 2);
+  ctx.rotate(v.rotation * Math.PI / 180);
+  ctx.globalAlpha = v.opacity;
+  ctx.scale(v.mirror ? -1 : 1, v.mirrorY ? -1 : 1);
+  drawAsset(ctx, v.asset, -v.w / 2, -v.h / 2, v.w, v.h, now);
   ctx.restore();
 }
 export function mapArtwork(id: string) {

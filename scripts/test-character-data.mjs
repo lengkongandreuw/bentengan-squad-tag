@@ -30,7 +30,11 @@ assert.equal(characterUsesDedicatedEast('jago'), true);
 assert.equal(characterUsesDedicatedEast('raja'), false);
 assert.equal(characterUsesDedicatedEast('kaka'), false);
 // Ultimate set and frozen ultimate numbers.
-assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(), ['kaka', 'raja']);
+assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(), ['bebe', 'ciici', 'kaka', 'raja']);
+for(const id of ['bebe','ciici']) {
+  assert.equal(CHARACTER_BY_ID[id].ultimate.kind,'flight');
+  assert.equal(CHARACTER_BY_ID[id].ultimate.castMs,id==='bebe'?700:650);
+}
 assert.deepEqual(CHARACTER_BY_ID.kaka.ultimate, {
   kind: 'shield', name: 'Perisai Hijau', shortLabel: 'PERISAI', hudTitle: 'Perisai Hijau',
   buffText: ' KEBAL TAG · ', bannerAlt: 'ULTIMATE SKILL KAKA', icon: 'shield',

@@ -18,5 +18,27 @@
   "rescueShieldMs": 2200,
   "tagCooldownMs": 500,
   "mirrorWest": false,
-  "dedicatedEast": false
+  "dedicatedEast": false,
+  "ultimate": {
+    "kind": "flight",
+    "name": "VAMPIRE FLIGHT",
+    "shortLabel": "FLIGHT",
+    "hudTitle": "VAMPIRE FLIGHT",
+    "buffText": "VAMPIRE FLIGHT · ",
+    "bannerAlt": "CIICI — VAMPIRE FLIGHT",
+    "icon": "zap",
+    "hudClass": "",
+    "shieldClass": "",
+    "actionClass": "",
+    "indicatorClass": "",
+    "bannerClass": "",
+    "trackEdge": "#2b0812",
+    "trackFill": "#d45a43",
+    "castBurst": "#d45a43",
+    "castBeepHz": 380,
+    "castMs": 650,
+    "bannerMs": 820,
+    "strip": false,
+    "castLog": "CIICI activates VAMPIRE FLIGHT."
+  }
 }

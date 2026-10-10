@@ -2,8 +2,22 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import sharp from 'sharp';
-import {mapSelectionTheme,mapSelectionFiles} from '../modules/ui/map-selection-assets.ts';
+import {mapSelectionTheme,mapSelectionFiles,orderArenaSelection} from '../modules/ui/map-selection-assets.ts';
 import {uiAsset} from '../modules/ui/ui-assets.ts';
+void test('arena selection sorts easy to hard and editor replacements keep canonical Kampung first without mutating inputs',()=>{
+  const fields=[{id:'kanal',difficulty:'hard'}, {id:'custom-normal',difficulty:'normal'},
+    {id:'studio-pasar-new-id',difficulty:'normal'}, {id:'taman',difficulty:'hard'},
+    {id:'studio-kampung-new-id',difficulty:'easy',name:'Renamed village'},
+    {id:'kanal2',difficulty:'hard'}, {id:'custom-easy',difficulty:'easy'}];
+  const before=JSON.stringify(fields),aliases={'studio-pasar-new-id':'pasar','studio-kampung-new-id':'kampung'};
+  const expected=['studio-kampung-new-id','custom-easy','studio-pasar-new-id','custom-normal','taman','kanal','kanal2'];
+  assert.deepEqual(orderArenaSelection(fields,id=>aliases[id]??id).map(f=>f.id),expected);
+  assert.equal(JSON.stringify(fields),before);
+  const originals=fields.map(f=>({...f,id:aliases[f.id]??f.id}));
+  assert.deepEqual(orderArenaSelection(originals).map(f=>f.id),expected.map(id=>aliases[id]??id));
+  assert.deepEqual(orderArenaSelection([]),[]);
+  assert.deepEqual(orderArenaSelection([{id:'custom-a',difficulty:'hard'},{id:'custom-b',difficulty:'hard'}]).map(f=>f.id),['custom-a','custom-b']);
+});
 
 void test('map selection uses native faction artwork and only seven required active/shared assets',async()=>{
   assert.equal(mapSelectionTheme(null),'purple');assert.equal(mapSelectionTheme('red'),'red');

@@ -24,8 +24,23 @@ export interface MapObject {
   visible: boolean;
   locked: boolean;
   mirror: boolean;
+  mirrorY?: boolean;
   nativeCollision?: true | 'rect' | 'bands';
 }
+export interface StructureVisual {
+  asset: MapAsset | null;
+  w: number;
+  h: number;
+  offsetX: number;
+  offsetY: number;
+  rotation: number;
+  opacity: number;
+  mirror: boolean;
+  mirrorY?: boolean;
+  visible: boolean;
+}
+export function resolveStructureVisual(anchor: {x: number; y: number}, override: StructureVisual | undefined, fallback?: StructureVisual): (StructureVisual & {x: number; y: number}) | null;
+export function mapAssets(m: StudioMap): MapAsset[];
 export interface StudioMap {
   id: `studio-${string}`;
   name: string;
@@ -33,6 +48,7 @@ export interface StudioMap {
   width: number;
   height: number;
   enabled: boolean;
+  baseRadius?: number;
   archived?: boolean;
   deleted?: boolean;
   replaces?: string;
@@ -44,10 +60,10 @@ export interface StudioMap {
   terrainMode: string;
   tileSize: number;
   objects: MapObject[];
-  bases: Record<'blue' | 'red', { x: number; y: number }>;
+  bases: Record<'blue' | 'red', { x: number; y: number; visual?: StructureVisual }>;
   prisons: Record<
     'blue' | 'red',
-    { x: number; y: number; w: number; h: number }
+    { x: number; y: number; w: number; h: number; floorVisual?: StructureVisual; overlayVisual?: StructureVisual }
   >;
 }
 export function validateMap(m: unknown): StudioMap;

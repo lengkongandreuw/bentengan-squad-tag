@@ -23,6 +23,8 @@ import {
   frameAt,
   mapIssues,
   autoFixMap,
+  mapAssets,
+  resolveStructureVisual,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
 import {mapVersions} from './map-versions.mjs';
@@ -93,6 +95,26 @@ const map = () => ({
     blue: { x: 80, y: 100, w: 240, h: 160 },
     red: { x: 1480, y: 100, w: 240, h: 160 },
   },
+});
+const visual = asset => ({asset,w:160,h:180,offsetX:-80,offsetY:-130,rotation:0,opacity:.9,mirror:false,visible:true});
+void test('structure overrides are additive, validated, isolated from gameplay and retained by auto-fix',()=>{
+  const old=map();assert.deepEqual(validateMap(old),old);
+  const asset={asset:'map-studio/'+ 'a'.repeat(64)+'.webp',width:64,height:32,frames:[{x:0,y:0,width:64,height:32}],fps:12};
+  const m=map();m.baseRadius=95;m.bases.blue.visual=visual(asset);m.prisons.red.floorVisual=visual(asset);m.prisons.red.overlayVisual={...visual(asset),mirrorY:true};
+  m.objects=[{...object(),mirrorY:true}];
+  assert.deepEqual(validateMap(m),m);assert.equal(mapAssets(m).length,3);
+  const fixed=autoFixMap(m).map;assert.deepEqual(fixed.bases,m.bases);assert.deepEqual(fixed.prisons,m.prisons);assert.equal(fixed.baseRadius,95);
+  const before=JSON.stringify(m);const resolved=resolveStructureVisual(m.bases.blue,m.bases.blue.visual);
+  assert.equal(resolved.x,m.bases.blue.x-80);assert.equal(resolved.y,m.bases.blue.y-130);
+  assert.equal(resolveStructureVisual(m.bases.blue,undefined,visual(asset)).x,resolved.x);
+  assert.equal(resolveStructureVisual(m.bases.blue,{...visual(asset),visible:false},visual(asset)),null);
+  assert.equal(resolveStructureVisual(m.bases.blue,{...visual(asset),asset:null},visual(asset)),null);
+  assert.equal(JSON.stringify(m),before);
+  for(const bad of [{w:0},{h:NaN},{opacity:2},{offsetX:9000},{asset:{...asset,asset:'../bad.png'}},{visible:'yes'},{mirrorY:'no'}]) {
+    assert.throws(()=>validateMap({...m,bases:{...m.bases,blue:{...m.bases.blue,visual:{...visual(asset),...bad}}}}));
+  }
+  assert.throws(()=>validateMap({...m,baseRadius:0}));
+  assert.deepEqual(old.bases,map().bases);
 });
 void test('auto-fix uncrosses polygons, removes duplicates, preserves source and is idempotent', () => {
   const source = map();
@@ -408,8 +430,12 @@ void test('HTTP harness exposes built-in catalog and browser guard from running 
       'iconPreview',
       'unlockIdentity',
       'cleanPreview',
+      'validationPanel',
+      'issueCount',
     ])
       assert.ok(html.includes(`id="${id}"`));
+    assert.ok(html.indexOf('id="validationPanel"') > html.indexOf('id="objects"'),
+      'validation stays in the inspector after the object list, not below canvas');
     const nativePreview = await fetch(origin + '/ui-v2/fields/taman.webp');
     assert.equal(nativePreview.status, 200);
     assert.match(nativePreview.headers.get('content-type'), /image\/webp/);
@@ -500,11 +526,22 @@ void test('local API upload, session guard, revision conflict and safe map merge
     validateAsset(asset);
     const m = map();
     m.objects = [{ ...object('decoration'), asset }];
+    m.bases.blue.visual=visual(asset);
+    m.bases.red.visual={...visual(asset),mirror:true};
+    m.prisons.blue.floorVisual=visual(asset);
+    m.prisons.blue.overlayVisual={...visual(asset),mirrorY:true};
+    m.prisons.red.floorVisual=visual(asset);
+    m.prisons.red.overlayVisual=visual(asset);
+    m.baseRadius=100;
     const saved = await post('/api/save', { map: m });
     assert.equal(saved.status, 200);
     const next = await saved.json();
     assert.equal((await post('/api/save', { map: m })).status, 409);
     state = { ...state, ...next };
+    const reloaded = await (await fetch(origin + '/api/state')).json();
+    assert.equal(reloaded.capabilities.structureVisuals,1);
+    assert.deepEqual(reloaded.document.maps.find(entry=>entry.id===m.id).prisons,m.prisons,'API reload retains both prison visuals');
+    assert.deepEqual(reloaded.document.maps.find(entry=>entry.id===m.id).bases,m.bases,'API reload retains both base visuals');
     const second = { ...map(), id: 'studio-second', name: 'Second' };
     assert.equal((await post('/api/save', { map: second })).status, 200);
     const disk = JSON.parse(

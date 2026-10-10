@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import sharp from 'sharp';
 import {frameKey} from './studio-runtime-pack.mjs';
+import {mapAssets} from '../lib/map-studio-model.js';
 
 void test('all packed map frames preserve every visible source pixel, alpha and dimensions; decoded memory falls',async()=>{
   const manifest=JSON.parse(await fs.readFile('config/map-runtime.json'));
   const doc=JSON.parse(await fs.readFile('config/map-studio.json'));
   const frames=new Map();
-  for(const m of doc.maps)for(const a of [m.terrain,m.icon,...m.objects.map(o=>o.asset)].filter(Boolean)){
+  for(const m of doc.maps)for(const a of mapAssets(m)){
     if(!frames.has(a.asset))frames.set(a.asset,new Map());
     for(const f of a.frames)frames.get(a.asset).set(frameKey(f),f);
   }

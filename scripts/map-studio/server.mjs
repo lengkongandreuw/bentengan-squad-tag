@@ -11,6 +11,7 @@ import {
   validateDocument,
   validateMap,
   mapIssues,
+  mapAssets,
   BUILTIN_IDS,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
@@ -76,6 +77,17 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
   let busy = false,
     job = { status: 'idle', message: '' };
   let catalogPromise;
+  let schema = {validateDocument, validateMap, mapIssues, mapAssets}, schemaRevision = '';
+  const refreshSchema = async () => {
+    const source = new URL('../../lib/map-studio-model.js', import.meta.url);
+    const revision = hash(await readFile(source));
+    if (revision !== schemaRevision) {
+      // UI assets reload per request; validation must follow that same version.
+      // Otherwise a long-lived Node process silently strips newly added fields.
+      schema = await import(`${source.href}?revision=${revision}`);
+      schemaRevision = revision;
+    }
+  };
   const catalog = () => catalogPromise ??= templates(projectRoot);
   // The shared model now imports TypeScript modules. Serve one browser-ready
   // bundle instead of exposing repository source paths to the editor.
@@ -90,8 +102,9 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
     target: 'es2022',
   }).then(result => result.outputFiles[0].text);
   const read = async () => {
+    await refreshSchema();
     const b = await readFile(config);
-    const document = validateDocument(JSON.parse(b));
+    const document = schema.validateDocument(JSON.parse(b));
     if (document.maps.some(m=>m.replaces==='kanal2' && !m.rulesVersion)) {
       const reference = (await catalog()).builtinTemplates.find(m=>m.replaces==='kanal2');
       document.maps = document.maps.map(m=>prepareArenaMap(m,reference.objects));
@@ -103,7 +116,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
     };
   };
   const saveDocument = async (document, current) => {
-    validateDocument(document);
+    schema.validateDocument(document);
     const backup = path.join(projectRoot, '.preview-admin');
     await mkdir(backup, { recursive: true });
     await writeFile(
@@ -131,11 +144,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
       projectRoot,
     );
   const verify = async (m) => {
-    for (const a of [
-      m.terrain,
-      m.icon,
-      ...m.objects.map((o) => o.asset),
-    ].filter(Boolean)) {
+    for (const a of schema.mapAssets(m)) {
       const file = await safeFile(path.join(projectRoot, 'public'), a.asset),
         meta = await sharp(await readFile(file)).metadata();
       if (meta.width !== a.width || meta.height !== a.height)
@@ -148,15 +157,14 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
       const current = await read();
       for (const m of current.document.maps) {
         await verify(m);
-        if (m.enabled && mapIssues(m).length)
-          throw new Error(`${m.name}: ${mapIssues(m)[0].message}`);
+        if (m.enabled && schema.mapIssues(m).length)
+          throw new Error(`${m.name}: ${schema.mapIssues(m)[0].message}`);
       }
       const assets = [
         ...new Set(
           current.document.maps
             .flatMap((m) =>
-              [m.terrain, m.icon, ...m.objects.map((o) => o.asset)]
-                .filter(Boolean)
+              schema.mapAssets(m)
                 .map((a) => `public/${a.asset}`),
             )
             .filter((p) => p.startsWith('public/map-studio/')),
@@ -301,7 +309,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
       res.setHeader('Cache-Control', 'no-store');
       if (req.method === 'GET') {
         if (url.pathname === '/api/state')
-          return json(200, { ...(await read()), token, job });
+          return json(200, { ...(await read()), token, job, capabilities: {structureVisuals: 1} });
         if (url.pathname === '/api/templates')
           return json(200, await catalog());
         if (url.pathname === '/api/job') return json(200, job);
@@ -479,11 +487,11 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
             },
           });
         }
-        const map = validateMap(data.map);
+        const map = schema.validateMap(data.map);
         if (map.replaces === 'kampung3d')
           throw new Error('Map 3D belum mendukung edit visual di editor 2D.');
         await verify(map);
-        const issues = mapIssues(map);
+        const issues = schema.mapIssues(map);
         if (map.enabled && issues.length)
           return json(400, {
             error: 'Map belum bisa diaktifkan: ' + issues[0].message,

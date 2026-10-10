@@ -23,7 +23,7 @@ export type CharacterRole =
   | 'Scout'
   | 'Disruptor';
 
-export type UltimateKind = 'shield' | 'surge';
+export type UltimateKind = 'shield' | 'surge' | 'flight';
 export type UltimateDescriptor = {
   kind: UltimateKind;
   name: string;

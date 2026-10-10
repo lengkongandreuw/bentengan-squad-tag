@@ -14,6 +14,7 @@ import {
   mapIssues,
   validateMap,
   autoFixMap,
+  resolveStructureVisual,
 } from '/model.js';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas'),
@@ -53,6 +54,7 @@ let state,
   loading = false,
   uploadUrl,
   tileCache;
+let replacement = null, fileTarget = null;
 const keys = new Set(),
   cache = new Map(),
   uid = () => crypto.randomUUID().replaceAll('-', ''),
@@ -62,6 +64,7 @@ const keys = new Set(),
   snap = (n) => ($('grid').checked ? Math.round(n / 20) * 20 : n);
 const notice = (s, error = false) => {
     $('status').textContent = s;
+    $('status').title = s;
     $('status').className = error ? 'error' : '';
   },
   safe = (fn) => async () => {
@@ -72,6 +75,16 @@ const notice = (s, error = false) => {
     }
   };
 async function api(route, data) {
+  if (data) {
+    const live = await (await fetch('/api/state')).json();
+    if (live.capabilities?.structureVisuals !== 1)
+      throw new Error('Server editor masih versi lama dan tidak menyimpan visual Benteng/Penjara. Draft tetap di panel ini. Jalankan ulang npm run admin:maps sebelum mencoba Simpan; jangan refresh draft yang belum tersimpan.');
+    if (live.revision !== state.revision)
+      throw new Error('Map tersimpan telah berubah dari tab/proses lain. Draft ini belum ditimpa. Ekspor draft sebagai cadangan sebelum memuat ulang versi terbaru.');
+    // A backend restart need not discard the in-memory draft. Refresh its token
+    // only when the persisted document revision still matches exactly.
+    state.token = live.token;
+  }
   const r = await fetch(
       route,
       data
@@ -121,7 +134,86 @@ const object = () => map.objects.find((o) => o.id === selected),
     return k === 'base' ? map.bases[t] : k === 'prison' ? map.prisons[t] : null;
   };
 const baseRadius = () =>
-  builtins.find((b) => b.id === map.replaces)?.baseRadius ?? 118;
+  map.baseRadius ?? builtins.find((b) => b.id === (map.replaces ?? map.arenaRules))?.baseRadius ?? 118;
+function selectionParts(id = selected) {
+  const [kind, team] = id.split(':');
+  return ['base', 'prison'].includes(kind) && ['blue', 'red'].includes(team) ? {kind, team} : null;
+}
+function structureFallback(kind, team, slot) {
+  const native = builtins.find(b => b.id === (map.replaces ?? map.arenaRules));
+  const scale = native?.objectScale ?? 1, p = map.prisons[team];
+  const base = kind === 'base';
+  const name = base ? (team === 'blue' ? 'fortRed' : 'fortGreen') :
+    native?.prisons?.[team]?.[slot === 'floorVisual' ? 'floorAsset' : 'overlayAsset'] ??
+    (slot === 'floorVisual' ? 'prisonFloor' : 'prisonOverlay');
+  return {asset: library.find(a => a.name === name)?.clip ?? null,
+    w: base ? Math.round(168 * scale) : p.w,
+    h: base ? Math.round(188 * scale) : p.h,
+    offsetX: base ? -Math.round(168 * scale) / 2 : 0,
+    offsetY: base ? -Math.round(130 * scale) : 0,
+    rotation: 0, opacity: slot === 'overlayVisual' ? .98 : .96,
+    mirror: !base && (native?.prisons?.[team]?.flip ?? team === 'red'), visible: true};
+}
+function structureTarget(target) {
+  const part = selectionParts(target.id);
+  if (!part) throw new Error('Pilih Benteng atau Penjara terlebih dahulu.');
+  const anchor = part.kind === 'base' ? map.bases[part.team] : map.prisons[part.team];
+  return {anchor, visual: anchor[target.slot] ?? structureFallback(part.kind, part.team, target.slot)};
+}
+function replaceStructure(target, asset) {
+  if (testing || loading || inspectOnly) throw new Error('Selesaikan upload/uji cepat dan buka versi editor dahulu.');
+  const {anchor, visual} = structureTarget(target);
+  const candidate = {...structuredClone(visual), asset: structuredClone(asset)};
+  const next = structuredClone(map), part = selectionParts(target.id);
+  (part.kind === 'base' ? next.bases[part.team] : next.prisons[part.team])[target.slot] = candidate;
+  validateMap(next);
+  remember();anchor[target.slot] = candidate;
+  propertyFields();notice('Visual diganti. Posisi, ukuran area gameplay, dan collider tetap. Simpan untuk menerapkan.');
+}
+function structureFields() {
+  const root = $('structureProperties'), part = selectionParts();
+  root.hidden = !part;root.replaceChildren();
+  if (!part) return;
+  const anchor = part.kind === 'base' ? map.bases[part.team] : map.prisons[part.team];
+  const native = builtins.find(b => b.id === (map.replaces ?? map.arenaRules));
+  if (native?.structuresInBackground && map.terrain?.asset === 'field/' + native.background) {
+    const warning = document.createElement('p');warning.className = 'warning';
+    warning.textContent = 'Gambar struktur asli menyatu dengan terrain. Penggantian visual tidak menghapus gambar lama. Gunakan terrain tanpa struktur untuk hasil penuh.';root.append(warning);
+  }
+  if (part.kind === 'base') {
+    const label = document.createElement('label'), input = document.createElement('input');
+    label.textContent = 'Radius capture · kedua benteng';input.type = 'number';input.min = '20';input.max = '400';input.value = baseRadius();input.id = 'baseRadius';
+    input.onchange = () => editField(input, m => {m.baseRadius = +input.value;});label.append(input);root.append(label);
+  }
+  for (const slot of part.kind === 'base' ? ['visual'] : ['floorVisual', 'overlayVisual']) {
+    const target = {id: selected, slot}, v = anchor[slot] ?? structureFallback(part.kind, part.team, slot);
+    const section = document.createElement('details');section.open = true;section.className = 'structure-visual';section.dataset.slot = slot;
+    const title = document.createElement('summary');title.textContent = slot === 'visual' ? 'Visual Benteng' : slot === 'floorVisual' ? 'Lantai Penjara' : 'Overlay Penjara · di atas karakter';section.append(title);
+    const thumb = document.createElement('canvas');thumb.width = 160;thumb.height = 90;
+    const paint = () => {if(v.asset){const f = v.asset.frames[0], r = Math.min(150/f.width,80/f.height);drawAsset(thumb.getContext('2d'),v.asset,(160-f.width*r)/2,(90-f.height*r)/2,f.width*r,f.height*r);}};
+    const img = image(v.asset);if(img?.complete)paint();else img?.addEventListener('load',paint,{once:true});section.append(thumb);
+    const path = document.createElement('p');path.textContent = anchor[slot] ? v.asset?.asset ?? 'Tanpa gambar' : 'Visual bawaan';section.append(path);
+    const action = (text, fn, name) => {const b = document.createElement('button');b.textContent=text;b.dataset.action=name;b.onclick=safe(fn);section.append(b);};
+    action('Ganti dari file',()=>{fileTarget=target;$('structureFile').click();},'file');
+    action('Pilih dari library',()=>{replacement=target;renderReplacement();$('library').scrollIntoView({block:'nearest'});},'library');
+    action('Pulihkan visual bawaan',()=>{if(testing||loading||inspectOnly)return;const current=structureTarget(target).anchor;remember();delete current[slot];propertyFields();},'reset');
+    const grid = document.createElement('div');grid.className='pair';
+    for(const [key,text,min,max] of [['w','Lebar visual',1,map.width],['h','Tinggi visual',1,map.height],['offsetX','Offset X',-map.width,map.width],['offsetY','Offset Y',-map.height,map.height],['rotation','Rotasi °',-180,180],['opacity','Opacity %',0,100],['mirror','Mirror horizontal ↔'],['mirrorY','Mirror vertikal ↕'],['visible','Visual terlihat']]) {
+      const label=document.createElement('label'),input=document.createElement('input');label.textContent=text;input.dataset.visualKey=key;
+      const bool=['mirror','mirrorY','visible'].includes(key);input.type=bool?'checkbox':'number';
+      if(bool){label.className='check';input.checked=!!v[key];}else{input.min=min;input.max=max;input.step=key==='opacity'?'1':'any';input.value=key==='opacity'?v[key]*100:v[key];}
+      input.onchange=()=>{if(testing||loading)return;editField(input,m=>{const dest=part.kind==='base'?m.bases[part.team]:m.prisons[part.team];dest[slot]??=structuredClone(v);dest[slot][key]=bool?input.checked:key==='opacity'?+input.value/100:+input.value;});};
+      label.append(input);grid.append(label);
+    }
+    section.append(grid);const hint=document.createElement('p');hint.textContent='Ukuran, offset, rotasi, dan mirror hanya mengubah gambar, bukan area gameplay.';section.append(hint);root.append(section);
+  }
+}
+function renderReplacement() {
+  let banner=$('replacementBanner');
+  if(!banner){banner=document.createElement('div');banner.id='replacementBanner';$('library').before(banner);}
+  banner.replaceChildren();banner.hidden=!replacement;
+  if(replacement){const text=document.createElement('p');text.textContent=`Pilih aset pengganti ${replacement.id} · ${replacement.slot}. Klik library tidak menambah objek.`;const cancel=document.createElement('button');cancel.textContent='Batal';cancel.onclick=()=>{replacement=null;renderReplacement();};banner.append(text,cancel);}
+}
 function image(a) {
   if (!a) return null;
   if (!cache.has(a.asset)) {
@@ -146,6 +238,8 @@ function propertyFields() {
   $('nothing').hidden = !!v;
   $('properties').hidden = !v;
   $('objectOnly').hidden = !o;
+  $('selectionTitle').textContent = o?.name ?? (selectionParts() ? `${selected.startsWith('base:') ? 'BENTENG' : 'PENJARA'} ${selected.endsWith(':blue') ? 'MERAH' : 'HIJAU'}` : '');
+  structureFields();
   if (!v) return;
   $('objectName').disabled = !o;
   $('objectName').value = o?.name ?? selected;
@@ -157,7 +251,7 @@ function propertyFields() {
   if (!o) return;
   for (const k of ['behavior', 'shape', 'layer', 'rotation', 'z'])
     $(k).value = o[k];
-  for (const k of ['mirror', 'visible', 'locked']) $(k).checked = o[k];
+  for (const k of ['mirror', 'mirrorY', 'visible', 'locked']) $(k).checked = !!o[k];
   $('fps').value = o.asset?.fps ?? 12;
   $('fps').disabled = !o.asset;
   $('slow').value = o.slow * 100;
@@ -191,6 +285,7 @@ function nodeFields() {
   });
 }
 function select(id) {
+  replacement = null;renderReplacement();
   selected = id;
   pointsMode = false;
   selectedNode = -1;
@@ -226,7 +321,10 @@ function resize() {
 }
 function fit() {
   $('zoom').value = clamp(
-    Math.floor((($('viewport').clientWidth - 22) / map.width) * 100),
+    Math.floor(Math.min(
+      ($('viewport').clientWidth - 22) / map.width,
+      ($('viewport').clientHeight - 22) / map.height,
+    ) * 100),
     10,
     160,
   );
@@ -292,11 +390,12 @@ function open(m, options = {}) {
   $('test').disabled = false;
   $('duplicateMap').disabled = false;
   document.querySelector('.workspace').inert = false;
-  document.querySelector('main > aside:last-child').inert = false;
+  document.querySelector('.inspector-edit-region').inert = false;
   for (const id of ['mapName', 'description', 'width', 'height', 'enabled'])
     $(id).disabled = false;
   dirty = !inspectOnly && !state.document.maps.some((v) => v.id === m.id);
   selected = '';
+  replacement = null;fileTarget = null;renderReplacement();
   drag=null;pointsMode=false;selectedNode=-1;
   history = [];
   future = [];
@@ -315,10 +414,10 @@ function open(m, options = {}) {
   applyViewMode();
 }
 function applyViewMode() {
-  const allowed=new Set(['maps','showArchived','new','clone','duplicateMap','editVersion','zoom','fit','grid','bounds','cleanPreview','structures','validate']);
+  const allowed=new Set(['maps','showArchived','new','clone','duplicateMap','editVersion','exportDraft','zoom','fit','grid','bounds','cleanPreview','structures','validate']);
   for(const el of document.querySelectorAll('main > aside:first-child input,main > aside:first-child textarea,main > aside:first-child select,main > aside:first-child button'))
     if(!allowed.has(el.id))el.disabled=inspectOnly;
-  document.querySelector('main > aside:last-child').inert=inspectOnly;
+  document.querySelector('.inspector-edit-region').inert=inspectOnly;
   const assets=document.querySelectorAll('main > aside:first-child section')[1];
   if(assets)assets.inert=inspectOnly;
   for(const id of ['save','undo','redo','test','polygon','solidArea','autoFix'])$(id).disabled=inspectOnly;
@@ -381,6 +480,8 @@ function repairColliders(recordHistory = true) {
 $('autoFix').onclick = safe(() => { repairColliders(); check(); });
 function check() {
   const issues = mapIssues(map);
+  $('issueCount').textContent = String(issues.length);
+  if (issues.length) $('validationPanel').open = true;
   $('issues').replaceChildren();
   for (const i of issues) {
     const li = document.createElement('li');
@@ -428,9 +529,9 @@ function drawObject(o, now) {
   ctx.rotate((o.rotation * Math.PI) / 180);
   if (o.visible) {
     ctx.globalAlpha = o.opacity;
-    if (o.mirror) ctx.scale(-1, 1);
+    ctx.scale(o.mirror ? -1 : 1, o.mirrorY ? -1 : 1);
     drawAsset(ctx, o.asset, -o.w / 2, -o.h / 2, o.w, o.h, now);
-    if (o.mirror) ctx.scale(-1, 1);
+    ctx.scale(o.mirror ? -1 : 1, o.mirrorY ? -1 : 1);
     ctx.globalAlpha = 1;
   }
   if (!$('cleanPreview').checked && ($('bounds').checked || o.id === selected)) {
@@ -600,39 +701,26 @@ function drawGameplayAssets(now, overlay = false) {
   const native = builtins.find(b => b.id === (map.replaces ?? map.arenaRules));
   // Authored Taman/Kanal backgrounds already contain the native structures.
   // Do not paint unrelated generic structures over the same pixels.
-  if (native?.structuresInBackground && map.terrain?.asset === 'field/' + native.background) return;
-  const scale = native?.objectScale ?? 1;
+  const baked = native?.structuresInBackground && map.terrain?.asset === 'field/' + native.background;
   for (const t of ['blue', 'red']) {
-    const b = map.bases[t],
-      p = map.prisons[t];
-    const clip = (name) => library.find((a) => a.name === name)?.clip;
-    if (!overlay)
-      drawAsset(
-        ctx,
-        clip(t === 'blue' ? 'fortRed' : 'fortGreen'),
-        b.x - 84 * scale,
-        b.y - 130 * scale,
-        168 * scale,
-        188 * scale,
-        now,
-      );
-    ctx.save();
-    ctx.translate(p.x + (t === 'red' ? p.w : 0), p.y);
-    if (t === 'red') ctx.scale(-1, 1);
-    drawAsset(
-      ctx,
-      clip(overlay ? native?.prisons?.[t]?.overlayAsset ?? 'prisonOverlay' : native?.prisons?.[t]?.floorAsset ?? 'prisonFloor'),
-      0,
-      0,
-      p.w,
-      p.h,
-      now,
-    );
-    ctx.restore();
+    const slots = overlay ? [['prison','overlayVisual']] : [['base','visual'],['prison','floorVisual']];
+    for(const [kind,slot] of slots) {
+      const anchor=kind==='base'?map.bases[t]:map.prisons[t];
+      const v=resolveStructureVisual(anchor,anchor[slot],baked?undefined:structureFallback(kind,t,slot));
+      if(!v)continue;
+      ctx.save();ctx.translate(v.x+v.w/2,v.y+v.h/2);ctx.rotate(v.rotation*Math.PI/180);
+      ctx.globalAlpha=v.opacity;ctx.scale(v.mirror?-1:1,v.mirrorY?-1:1);
+      drawAsset(ctx,v.asset,-v.w/2,-v.h/2,v.w,v.h,now);ctx.restore();
+    }
   }
 }
 function drawGuides() {
   if ($('cleanPreview').checked) return;
+  const part=selectionParts();
+  if(part){const anchor=marker();for(const slot of part.kind==='base'?['visual']:['floorVisual','overlayVisual']){
+    const v=resolveStructureVisual(anchor,anchor[slot],structureFallback(part.kind,part.team,slot));if(!v)continue;
+    ctx.save();ctx.translate(v.x+v.w/2,v.y+v.h/2);ctx.rotate(v.rotation*Math.PI/180);ctx.strokeStyle='#fff';ctx.lineWidth=1/zoom();ctx.setLineDash([6/zoom(),4/zoom()]);ctx.strokeRect(-v.w/2,-v.h/2,v.w,v.h);ctx.restore();
+  }}
   for (const t of ['blue', 'red']) {
     const b = map.bases[t],
       p = map.prisons[t],
@@ -802,8 +890,13 @@ canvas.onpointerdown = (e) => {
       }
     }
   }
-  let id = '';
+  let id = map.objects
+    .filter(v => (v.visible || $('bounds').checked) && !v.locked &&
+      ($('layerFilter').value === 'all' || v.layer === $('layerFilter').value))
+    .sort((a,b)=>layers.indexOf(b.layer)-layers.indexOf(a.layer)||b.z-a.z||b.y+b.h-(a.y+a.h))
+    .find(v=>contains({...v,shape:'rect'},p.x,p.y))?.id ?? '';
   for (const t of ['blue', 'red']) {
+    if(id)break;
     const b = map.bases[t],
       pr = map.prisons[t];
     if (Math.hypot(p.x - b.x, p.y - b.y) < baseRadius()) id = 'base:' + t;
@@ -815,23 +908,6 @@ canvas.onpointerdown = (e) => {
     )
       id = 'prison:' + t;
   }
-  if (!id)
-    id =
-      map.objects
-        .filter(
-          (v) =>
-            (v.visible || $('bounds').checked) &&
-            !v.locked &&
-            ($('layerFilter').value === 'all' ||
-              v.layer === $('layerFilter').value),
-        )
-        .sort(
-          (a, b) =>
-            layers.indexOf(b.layer) - layers.indexOf(a.layer) ||
-            b.z - a.z ||
-            b.y + b.h - (a.y + a.h),
-        )
-        .find((v) => contains({ ...v, shape: 'rect' }, p.x, p.y))?.id ?? '';
   if (id !== selected || !pointsMode) select(id);
   const v = object() ?? marker();
   if (v && !v.locked) {
@@ -1016,6 +1092,7 @@ for (const k of [
   'slow',
   'opacity',
   'mirror',
+  'mirrorY',
   'visible',
   'locked',
 ]) {
@@ -1027,7 +1104,7 @@ for (const k of [
           [kind, t] = selected.split(':'),
           v = o ?? (kind === 'base' ? m.bases[t] : m.prisons[t]);
         if (k === 'fps' && o.asset) o.asset.fps = +el.value;
-        else if (['mirror', 'visible', 'locked'].includes(k)) o[k] = el.checked;
+        else if (['mirror', 'mirrorY', 'visible', 'locked'].includes(k)) o[k] = el.checked;
         else if (k === 'objectName') o.name = el.value;
         else if (['slow', 'opacity'].includes(k)) o[k] = +el.value / 100;
         else if (['behavior', 'shape', 'layer'].includes(k)) o[k] = el.value;
@@ -1175,7 +1252,7 @@ $('maps').onchange = () => {
       $('test').disabled = true;
       $('duplicateMap').disabled = true;
       document.querySelector('.workspace').inert = true;
-      document.querySelector('main > aside:last-child').inert = true;
+      document.querySelector('.inspector-edit-region').inert = true;
       for (const id of ['mapName', 'description', 'width', 'height', 'enabled'])
         $(id).disabled = true;
       $('mapOrigin').textContent =
@@ -1337,6 +1414,13 @@ function mapChoices() {
     : `Anda mengedit ${map.replaces?'pengganti '+map.replaces:'map buatan editor'}. ${map.enabled?'Aktif pada konfigurasi lokal; Build/publish diperlukan untuk deployment.':'Draft nonaktif: game tetap memakai versi aktif yang terpisah.'} Arsip/Sampah tidak menghapus aset.`;
   publishSummary();
 }
+$('exportDraft').onclick = safe(() => {
+  if (!map) return;
+  const url = URL.createObjectURL(new Blob([JSON.stringify(map, null, 2)], {type:'application/json'}));
+  const link = document.createElement('a');link.href = url;link.download = `${map.id}-draft.json`;link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notice('Draft diekspor sebagai JSON. Aset gambar tetap berada di folder proyek; map tidak diubah.');
+});
 $('save').onclick = safe(async () => {
   if(inspectOnly)throw new Error('Preview hanya baca. Buka versi editor sebelum menyimpan.');
   if (loading) return;
@@ -1357,8 +1441,13 @@ $('save').onclick = safe(async () => {
   }
   check();
   const r = await api('/api/save', { map });
+  const saved = r.document?.maps.find(m => m.id === map.id);
+  if (!saved || JSON.stringify(validateMap(saved)) !== JSON.stringify(map))
+    throw new Error('Hasil simpan tidak cocok dengan draft. Pengaturan visual belum dikonfirmasi tersimpan; draft dipertahankan. Jangan refresh panel.');
   state.document = r.document;
   state.revision = r.revision;
+  map = validateMap(saved);
+  propertyFields();
   dirty = false;
   mapChoices();
   notice(
@@ -1492,6 +1581,8 @@ async function uploadFile(f, target) {
   if (f.size > 30 * 1024 * 1024)
     throw new Error('File ditolak: maksimal 30 MB.');
   const selectedBefore = selected;
+  const structureBefore = target === 'structure' ? fileTarget : null;
+  if (target === 'structure' && !structureBefore) throw new Error('Pilih visual struktur dahulu.');
   if (target === 'replace' && !object()) throw new Error('Pilih objek dahulu.');
   if (uploadUrl) URL.revokeObjectURL(uploadUrl);
   uploadUrl = URL.createObjectURL(f);
@@ -1511,11 +1602,16 @@ async function uploadFile(f, target) {
         r.readAsDataURL(f);
       }),
       result = await api('/api/upload', {
-        kind: target,
+        kind: target === 'structure' ? 'object' : target,
         file: { name: f.name, data },
       });
-    if (target === 'object') add(result.asset, f.name.replace(/\.[^.]+$/, ''));
+    if (target === 'structure') {
+      // Target captured before async upload. Map switches are blocked by loading.
+      loading = false;
+      replaceStructure(structureBefore, result.asset);
+    } else if (target === 'object') add(result.asset, f.name.replace(/\.[^.]+$/, ''));
     else {
+      if (target === 'replace' && !map.objects.some(o=>o.id===selectedBefore)) throw new Error('Objek berubah. Upload ulang.');
       remember();
       if (target === 'terrain') map.terrain = result.asset;
       else if (target === 'icon') map.icon = result.asset;
@@ -1532,8 +1628,14 @@ async function uploadFile(f, target) {
   } finally {
     loading = false;
     $('save').disabled = false;
+    $('file').value = '';
+    $('structureFile').value = '';
   }
 }
+$('structureFile').onchange = safe(async () => {
+  try { await uploadFile($('structureFile').files[0], 'structure'); }
+  finally { $('structureFile').value = ''; fileTarget = null; }
+});
 $('file').onchange = safe(() => uploadFile($('file').files[0], $('uploadKind').value));
 $('chooseMapPreview').onclick = () => $('mapPreviewFile').click();
 $('mapPreviewFile').onchange = safe(async () => {
@@ -1564,7 +1666,9 @@ function renderLibrary() {
     else i.addEventListener('load', paint, { once: true });
     b.append(thumb, document.createTextNode(item.name));
     b.onclick = () => {
-      if (!loading) add(item.clip, item.name);
+      if (loading || testing || inspectOnly) return;
+      if(replacement){const target=replacement;replaceStructure(target,item.clip);replacement=null;renderReplacement();}
+      else add(item.clip, item.name);
     };
     b.draggable = true;
     b.ondragstart = (e) =>

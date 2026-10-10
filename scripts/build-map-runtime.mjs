@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {validateDocument} from '../lib/map-studio-model.js';
+import {validateDocument,mapAssets} from '../lib/map-studio-model.js';
 import {optimizeAtlas} from './studio-runtime-pack.mjs';
 
 export async function compileMapRuntime(root) {
@@ -10,7 +10,7 @@ export async function compileMapRuntime(root) {
   const groups=new Map();
   // Include drafts too; their runtime is ready on activation. Original editor
   // assets remain untouched, and unrecognized/new frames fall back safely.
-  for(const m of doc.maps)for(const a of [m.terrain,m.icon,...m.objects.map(o=>o.asset)].filter(Boolean)) {
+  for(const m of doc.maps)for(const a of mapAssets(m)) {
     if(!a.asset.startsWith('map-studio/'))continue;
     if(!groups.has(a.asset))groups.set(a.asset,[]);
     groups.get(a.asset).push(...a.frames);

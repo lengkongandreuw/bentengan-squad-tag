@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {orderArenaSelection} from '../modules/ui/map-selection-assets.ts';
+import {getProgressionArenaId} from '../lib/player-profile/arena-identity.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -681,6 +683,7 @@ void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, pr
   const copyExports={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/player-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:copyExports});
   const projected={structuredClone,
+    orderArenaSelection,getProgressionArenaId,
     FIELD_CONFIGS:JSON.parse(JSON.stringify(nativeFields)),
     studioMaps:[fixtureMap],studioBuiltinStates:{},
     arenaRulesFor,prepareArenaMap,arenaCopy:copyExports.arenaCopy,playerArenaCopy:copyExports.playerArenaCopy,kanalColliderObjects:(await import('../modules/world/map-arena-rules.ts')).kanalColliderObjects,

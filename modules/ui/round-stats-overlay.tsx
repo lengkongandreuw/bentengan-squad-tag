@@ -18,6 +18,7 @@ import { formatTime } from './format.ts';
 import { teamName } from '../world/team-tables.ts';
 import { CharacterPreview } from './character-preview.tsx';
 import { t } from '../../lib/language';
+import type { ReactNode } from 'react';
 
 // Round recap / match leaderboard / match-over dialog over the HUD.
 // Pure presentation: all state comes from the snapshot board and every
@@ -31,6 +32,7 @@ export const RoundStatsOverlay = ({
   onBackToCharacterSelect,
   onBackToFieldSelect,
   onQuit,
+  children,
 }: {
   statsBoard: StatsBoard;
   leaderboardOpen: boolean;
@@ -40,11 +42,12 @@ export const RoundStatsOverlay = ({
   onBackToCharacterSelect: () => void;
   onBackToFieldSelect: () => void;
   onQuit: () => void;
+  children?: ReactNode;
 }) => (
   <dialog
     className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
-    open={statsBoard.visible}
-    aria-modal={statsBoard.visible}
+    open={statsBoard.visible || leaderboardOpen}
+    aria-modal={true}
     aria-labelledby="round-stats-title"
   >
     <div className="round-stats-panel">
@@ -142,6 +145,7 @@ export const RoundStatsOverlay = ({
           </span>
         </aside>
       )}
+      {statsBoard.final && children}
       <footer className="round-stats-actions">
         {statsBoard.final ? (
           <>

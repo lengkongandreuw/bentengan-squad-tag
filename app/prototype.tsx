@@ -93,7 +93,10 @@ import { createRouteScheduler } from '../lib/route-scheduler';
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
 import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
-import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject } from '../lib/map-studio.ts';
+import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject, drawStructureVisual } from '../lib/map-studio.ts';
+import {resolveStructureVisual} from '../lib/map-studio-model.js';
+import {getProgressionArenaId} from '../lib/player-profile/arena-identity.ts';
+import {orderArenaSelection} from '../modules/ui/map-selection-assets.ts';
 import { collisionRects } from '../lib/map-studio-model.js';
 import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../modules/world/map-arena-rules.ts';
 import {createMapQueries,objectBounds,visibleBounds} from '../modules/world/map-runtime-index.ts';
@@ -347,16 +350,17 @@ for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
 }
 FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
   id: map.id, name: map.name, kicker: playerArenaCopy(map.id,map.description,map.replaces), difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
-  aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined, ground: 'kampungGround', width: map.width, height: map.height,
+  aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.baseRadius ?? (map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined), ground: 'kampungGround', width: map.width, height: map.height,
   bases: map.bases, prisons: Object.fromEntries(Object.entries(map.prisons).map(([team,p])=>[team,{
     ...(map.replaces ? nativeFieldConfigs[map.replaces].prisons[team as Team] : arenaRulesFor(map)==='kanal2' ? nativeFieldConfigs.kanal2.prisons[team as Team] : {}),...p,
   }])) as FieldConfig['prisons'], paths: [], obstacles: [], decorations: [], animated: [],
   ...(arenaRulesFor(map)==='kanal2' ? {designWidth:nativeFieldConfigs.kanal2.designWidth,designHeight:nativeFieldConfigs.kanal2.designHeight,
     objectScale:map.replaces ? nativeFieldConfigs[map.replaces].objectScale : nativeFieldConfigs.kanal2.objectScale,
-    baseRadius:map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : nativeFieldConfigs.kanal2.baseRadius} : {}),
+    baseRadius:map.baseRadius ?? (map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : nativeFieldConfigs.kanal2.baseRadius)} : {}),
   structuresInBackground: !!(map.replaces && nativeFieldConfigs[map.replaces].structuresInBackground &&
     map.terrain?.asset === `field/${nativeFieldConfigs[map.replaces].background}`),
 })));
+const SELECTION_FIELDS = orderArenaSelection(FIELD_CONFIGS, getProgressionArenaId);
 const FIELD_BY_ID = Object.fromEntries(
   FIELD_CONFIGS.map((field) => [field.id, field]),
 ) as Record<FieldId, FieldConfig>;
@@ -421,7 +425,7 @@ export function BentenganPrototype() {
   const postRoundActionRef = useRef<'next-round' | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
   const [selectedId, setSelectedIdState] = useState<CharacterId>('raja');
-  const [selectedFieldId, setSelectedFieldIdState] = useState<FieldId>(FIELD_CONFIGS[0].id);
+  const [selectedFieldId, setSelectedFieldIdState] = useState<FieldId>(SELECTION_FIELDS[0].id);
   const [contentGateError, setContentGateError] = useState('');
   const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
   const [mode, setMode] = useState<'menu' | 'playing'>('menu');
@@ -455,7 +459,7 @@ export function BentenganPrototype() {
   const [matchProgressionResult, setMatchProgressionResult] = useState<ProgressionResult | null>(null);
   const [unlockNoticeDismissed, setUnlockNoticeDismissed] = useState(false);
   playerProfileRef.current = playerProfile; // oxlint-disable-line react/react-compiler -- ponytail: state-to-ref mirror for match setup closures; effect would add a stale frame
-  const fieldIds = useMemo(() => FIELD_CONFIGS.map(field => field.id), []);
+  const fieldIds = useMemo(() => SELECTION_FIELDS.map(field => field.id), []);
   const selectionGate = useCallback(() => validatePlayableContent(loadPlayerProfile(), selectedId, selectedFieldId,
     selectedFaction ? FIXED_ROSTERS[selectedFaction] : [], fieldIds), [selectedId, selectedFieldId, selectedFaction, fieldIds]);
   const setSelectedId = (id: CharacterId) => {
@@ -2504,7 +2508,11 @@ export function BentenganPrototype() {
       });
       (['blue', 'red'] as Team[]).forEach((team) => {
         const base = bases[team];
-        if (
+        const customBase = studioMap?.bases[team].visual;
+        const baseVisual = resolveStructureVisual(base, customBase);
+        if (customBase) {
+          if (baseVisual) drawStructureVisual(ctx, baseVisual, performance.now());
+        } else if (
           !field.structuresInBackground &&
           !field.basesInBackground &&
           isNearby(
@@ -2525,7 +2533,11 @@ export function BentenganPrototype() {
             0.96,
           );
         const prison = field.prisons[team];
-        if (
+        const customFloor = studioMap?.prisons[team].floorVisual;
+        const floorVisual = resolveStructureVisual(prison, customFloor);
+        if (customFloor) {
+          if (floorVisual) drawStructureVisual(ctx, floorVisual, performance.now());
+        } else if (
           !field.structuresInBackground &&
           isNearby(prison.x, prison.y, prison.w, prison.h)
         )
@@ -2633,9 +2645,15 @@ export function BentenganPrototype() {
       ctx.restore();
     };
     const drawPrisonOverlays = (_now: number) => {
-      if (field.structuresInBackground) return;
       (['blue', 'red'] as Team[]).forEach((team) => {
         const prison = field.prisons[team];
+        const customOverlay = studioMap?.prisons[team].overlayVisual;
+        const overlayVisual = resolveStructureVisual(prison, customOverlay);
+        if (customOverlay) {
+          if (overlayVisual) drawStructureVisual(ctx, overlayVisual, _now);
+          return;
+        }
+        if (field.structuresInBackground) return;
         drawFieldAsset(
           ctx,
           prison.overlayAsset ?? 'prisonOverlay',
@@ -3812,7 +3830,7 @@ const spriteFrame = (
     setMissionOpen(false);
     setSelectedFaction(null);
     setSelectedIdState('raja');
-    setSelectedFieldIdState('kampung');
+    setSelectedFieldIdState(SELECTION_FIELDS[0].id);
     setContentGateError('');
     setCameraMode('follow');
     setRun((v) => v + 1);
@@ -4125,7 +4143,7 @@ const spriteFrame = (
           <FieldSelectScreen
             faction={selectedFaction}
             selectedFieldId={selectedFieldId}
-            fields={FIELD_CONFIGS}
+            fields={SELECTION_FIELDS}
             squad={squad}
             arenaStates={arenaSelectionStates}
             resolveAsset={uiAsset}
@@ -4219,17 +4237,6 @@ const spriteFrame = (
           />
           <MatchEventFeed events={snapshot.matchEvents} frames={MATCH_EVENT_FRAME} />
           <RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET} />
-          {statsBoard.final && matchProgressionResult && (
-            <MatchProgressionSummary result={matchProgressionResult} />
-          )}
-          {playerProfile && statsBoard.final && (
-            <UnlockNotificationPanel
-              result={matchProgressionResult}
-              arenas={FIELD_CONFIGS}
-              dismissed={unlockNoticeDismissed}
-              onDismiss={() => setUnlockNoticeDismissed(true)}
-            />
-          )}
           {showStatsBoard && (
             <RoundStatsOverlay
               statsBoard={statsBoard}
@@ -4240,7 +4247,12 @@ const spriteFrame = (
               onBackToCharacterSelect={backToCharacterSelect}
               onBackToFieldSelect={backToFieldSelect}
               onQuit={quit}
-            />
+            >
+              {matchProgressionResult && <MatchProgressionSummary result={matchProgressionResult} />}
+              {playerProfile && <UnlockNotificationPanel result={matchProgressionResult}
+                arenas={FIELD_CONFIGS} dismissed={unlockNoticeDismissed}
+                onDismiss={() => setUnlockNoticeDismissed(true)} />}
+            </RoundStatsOverlay>
           )}
           <ArenaIntel
             baseGrace={snapshot.baseGrace}

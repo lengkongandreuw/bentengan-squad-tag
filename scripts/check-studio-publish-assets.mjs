@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { validateSpriteDocument } from '../lib/sprite-studio-model.js';
-import { validateDocument } from '../lib/map-studio-model.js';
+import { validateDocument, mapAssets } from '../lib/map-studio-model.js';
 
 // Read-only deployment preflight; never recompiles or changes Studio drafts.
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -18,7 +18,7 @@ for (const clips of Object.values(sprites.characters)) for (const clip of Object
     throw new Error(`Conflicting asset dimensions: ${clip.asset}`);
   assets.set(clip.asset, clip);
 }
-for (const map of maps.maps) for (const asset of [map.terrain, map.icon, ...map.objects.map(o => o.asset)]) {
+for (const map of maps.maps) for (const asset of mapAssets(map)) {
   if (asset) assets.set(asset.asset, asset);
 }
 let bytes = 0;
