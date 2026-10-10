@@ -48,7 +48,6 @@ export const PlayerRadarChart = memo(function PlayerRadarChart({
     <svg
       className="player-radar-chart"
       viewBox="0 0 275 265"
-      role="img"
       aria-label={t(hasMatchData
         ? `Gaya main: Serang ${Math.round(attack)}, Bantu ${Math.round(support)}, Bertahan ${Math.round(survival)}`
         : 'Selesaikan satu pertandingan untuk melihat gaya mainmu.')}

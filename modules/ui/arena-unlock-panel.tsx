@@ -7,6 +7,7 @@ export function ArenaUnlockPanel({ profile, catalog, selectedId }: {
   profile: LocalPlayerProfile; catalog: readonly { id: string; name: string }[]; selectedId: string;
 }) {
   const [inspectId, setInspectId] = useState(selectedId);
+  // oxlint-disable-next-line react/react-compiler -- ponytail: inspect override syncs when parent selection changes; user edits stay local
   useEffect(() => setInspectId(selectedId), [selectedId]);
   const progress = getArenaSelectionProgress(profile, inspectId, catalog);
   return <details className="arena-unlock-panel" open>

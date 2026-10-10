@@ -61,7 +61,7 @@ export function PlayerProfilePanel({
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <section className="player-profile-overlay" role="dialog" aria-modal="true" aria-labelledby="player-profile-title">
+    <dialog className="player-profile-overlay" open aria-modal="true" aria-labelledby="player-profile-title">
       <div className="player-profile-panel profile-poster">
         <header className="profile-poster-header">
           <div>
@@ -129,9 +129,9 @@ export function PlayerProfilePanel({
         <span className="profile-corner-stripes" aria-hidden="true" />
         <b className="profile-local-badge">{t("PROFIL")}<br />{t("LOKAL")}</b>
         {t(isCharacterPickerOpen && (
-          <section
+          <dialog
             className="profile-character-picker"
-            role="dialog"
+            open
             aria-modal="true"
             aria-labelledby="profile-character-picker-title"
           >
@@ -169,10 +169,10 @@ export function PlayerProfilePanel({
                 }))}
               </div>
             </div>
-          </section>
+          </dialog>
         ))}
       </div>
-    </section>,
+    </dialog>,
     document.body,
   );
 }

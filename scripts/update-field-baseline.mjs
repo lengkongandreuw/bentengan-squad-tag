@@ -3,7 +3,11 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
-const hash = async file => createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
+const hash = async file => {
+  const bytes = await readFile(path.join(root, file));
+  return createHash('sha256').update(file === 'public/field/manifest.json'
+    ? bytes.toString('utf8').replaceAll('\r\n', '\n') : bytes).digest('hex');
+};
 const pngFiles = async (directory, prefix = '') => {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
@@ -12,7 +16,7 @@ const pngFiles = async (directory, prefix = '') => {
     if (entry.isDirectory()) files.push(...await pngFiles(path.join(directory, entry.name), relative));
     else if (entry.name.endsWith('.png')) files.push(relative);
   }
-  return files.sort();
+  return files.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 };
 const sourceNames = (await readdir(path.join(root, 'field-sources'))).filter(name => name.endsWith('.png')).sort();
 const mapSourceNames = await pngFiles(path.join(root, 'Assets', 'map'));

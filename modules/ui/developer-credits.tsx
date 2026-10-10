@@ -53,7 +53,8 @@ export function DeveloperCredits({onClose}:{onClose:()=>void}) {
         <button onClick={()=>setPaused(value=>!value)} disabled={ended} aria-pressed={paused}>{t(paused?'▶ LANJUT':'Ⅱ JEDA')}</button>
         <button onClick={restart}>{t("↺ ULANGI")}</button>
       </header>
-      <div ref={viewport} className={`credits-window ${reduced?'reduced-motion':''}`} tabIndex={0} aria-label={t("Daftar kredit pengembang")} onWheel={()=>setPaused(true)} onTouchStart={()=>setPaused(true)} onKeyDown={event=>{
+      {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- ponytail: scrollable credits region needs focus + pause-on-interact */}
+      <section ref={viewport} className={`credits-window ${reduced?'reduced-motion':''}`} tabIndex={0} aria-label={t("Daftar kredit pengembang")} onWheel={()=>setPaused(true)} onTouchStart={()=>setPaused(true)} onKeyDown={event=>{
         if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End'].includes(event.key))setPaused(true);
       }}>
         <div className="credits-spacer" aria-hidden="true" />
@@ -63,7 +64,7 @@ export function DeveloperCredits({onClose}:{onClose:()=>void}) {
           <h3 className="credits-ending">{t("Benteng Squad Tag")}</h3>
         </div>
         <div className="credits-spacer credits-tail" aria-hidden="true" />
-      </div>
+      </section>
     </div>
   </dialog>;
 }

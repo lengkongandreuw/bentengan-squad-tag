@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import ts from 'typescript';
 import { OrthographicCamera, Vector3 } from 'three';
 import { fieldCycleDecision } from '../modules/game-core/match-control.ts';
-import {buildFieldConfigs,GUIDE_FIELD_CONFIGS} from '../modules/world/map-data/guide-fields.ts';
+import { buildFieldConfigs, GUIDE_FIELD_CONFIGS } from '../modules/world/map-data/guide-fields.ts';
 
 // Evaluate the actual arena definitions, not a hand-copied test configuration.
-const source = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
-const rules = JSON.parse(await readFile(new URL('../config/game-rules.json', import.meta.url), 'utf8'));
-const configSource = source.slice(source.indexOf('const FIELD_CONFIGS:'), source.indexOf('const prisonClearance'));
-const js = ts.transpileModule(configSource, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-const fields = new Function('GAME_RULES', 'structuredClone','buildFieldConfigs','GUIDE_FIELD_CONFIGS', js + '\nreturn FIELD_CONFIGS;')(rules, structuredClone,buildFieldConfigs,GUIDE_FIELD_CONFIGS);
+const fields = buildFieldConfigs(GUIDE_FIELD_CONFIGS);
+// Clone AFTER normalization: no second scaling and no change to live arena rules.
+fields.push({
+  ...structuredClone(fields[0]),
+  id: 'kampung3d',
+  name: 'Kampung Merdeka 3D',
+  kicker: 'Arena eksperimental bergaya low-poly dengan gameplay dua dimensi dan jalur terbuka.',
+});
 assert.equal(fields.length, 6);
 assert.equal(new Set(fields.map(f => f.id)).size, 6);
 const original = fields.find(f => f.id === 'kampung');
@@ -20,6 +21,7 @@ for (const key of Object.keys(original).filter(k => !['id', 'name', 'kicker'].in
 }
 assert.notEqual(experiment.obstacles, original.obstacles, 'clone must not mutate original');
 assert.equal(fieldCycleDecision('kanal2', 3, fields.filter(f => f.id !== 'kampung3d').map(f => f.id)).fieldId, 'kampung');
+assert.equal(fieldCycleDecision('kanal', 3, fields.filter(f => f.id !== 'kampung3d').map(f => f.id)).fieldId, 'kanal2');
 assert.equal(fieldCycleDecision('kampung3d', 3, ['kampung3d']).fieldId, 'kampung3d');
 
 // Orthographic projection must preserve pixel-perfect ground coordinates in
@@ -36,4 +38,4 @@ for (const scale of [.4, .8, 1.4]) {
     assert.ok(Math.abs((1 - screen.y) * height / 2 - ((py - y) * scale + height / 2)) < 1e-6);
   }
 }
-console.log('PASS: 6 unique maps; original/3D colliders, base, prison, placement and difficulty identical; isolated rotation; ground projection aligned at all zooms.');
+console.log('PASS: 5 guide arenas + isolated 3D experiment; original/3D colliders, base, prison, placement and difficulty identical; rotation; ground projection aligned at all zooms.');

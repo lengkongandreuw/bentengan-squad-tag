@@ -195,7 +195,7 @@ void test('module15 runtime wiring uses one writer, stable match identity and un
   assert.doesNotMatch(code, /recordCompletedMatch/);
   assert.match(code, /const matchId = mode === 'playing' \? network\?`\$\{network\.read\(\)\.roomCode\}:match`:createMatchId\(\) : null/);
   assert.ok(code.includes('matchId && !network'), 'online MVP cannot award solo progression');
-  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession\]/);
+  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate\]/);
   const lineup = await readFile(new URL('../modules/world/team-tables.ts', import.meta.url),'utf8');
   assert.doesNotMatch(lineup, /getPlayable|isCharacterUnlocked|playerProfile/);
   assert.match(lineup, /roster\.slice\(0, GAME_RULES.matchSize\)/);
@@ -342,7 +342,7 @@ void test('module09 new profile does not migrate; zero/active legacy retain iden
   assert.equal(getLevelFromXP(result.progression.xp), 7);
   assert.ok(result.progression.unlockedCharacters.includes('lui'));
   assert.deepEqual(result.progression.unlockedArenaIds, ['kampung']); // Cannot infer per-arena wins.
-  const { progression, ...oldFields } = result;
+  const { progression: _progression, ...oldFields } = result;
   assert.deepEqual(oldFields, active);
   assert.deepEqual(parsePlayerProfile(result), result);
 });
@@ -729,7 +729,7 @@ void test('legacy parser remains read-only; storage now migrates once under modu
   };
   try {
     const migrated = storage.loadPlayerProfile();
-    const { progression, ...preserved } = migrated;
+    const { progression: _progression, ...preserved } = migrated;
     assert.deepEqual(preserved, legacy);
     assert.equal(writes, 1);
     assert.deepEqual(storage.loadPlayerProfile(), migrated);

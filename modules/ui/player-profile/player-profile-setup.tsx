@@ -2,7 +2,8 @@
 import { t } from '../../../lib/language';
 
 
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import type * as React from 'react';
 import { createPortal } from 'react-dom';
 import {
   createPlayerProfile,
@@ -18,7 +19,7 @@ export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validationError = usernameError(username);
     if (validationError) {
@@ -36,7 +37,7 @@ export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <section className="player-profile-overlay" role="dialog" aria-modal="true" aria-labelledby="player-profile-setup-title">
+    <dialog className="player-profile-overlay" open aria-modal="true" aria-labelledby="player-profile-setup-title">
       <form className="player-profile-panel player-profile-setup" onSubmit={submit}>
         <span>{t("PROFIL PEMAIN")}</span>
         <h2 id="player-profile-setup-title">{t("Mau dipanggil siapa?")}</h2>
@@ -54,7 +55,7 @@ export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
         {t(error && <p className="player-profile-error" id="profile-setup-error">{t(error)}</p>)}
         <button className="player-profile-save" type="submit">{t("SIMPAN NAMA")}</button>
       </form>
-    </section>,
+    </dialog>,
     document.body,
   );
 }

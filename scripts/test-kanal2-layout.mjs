@@ -18,7 +18,7 @@ assert.match(source, /guideObstacle\('kanalNusaPlanterOval', 802, 245, 82, 20, 8
 assert.match(source, /guideObstacle\('kanalNusaPlanterOval', MAP4_2_GUIDE_WIDTH - 802 - 82, 245, 82, 20, 82, 51\)/);
 assert.match(source, /decorations: kanalGuide\.decorations\.map\(kanal2Item\)/);
 
-const oldWidth = 1699;
+const _oldWidth = 1699;
 const newWidth = 2059;
 const insert = 360;
 const leftAnchor = 750;

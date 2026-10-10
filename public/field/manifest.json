@@ -624,6 +624,11 @@
       }
     }
   },
+  "kanalObjects": {
+    "file": "kanal-object-atlas.webp",
+    "width": 1024,
+    "height": 1408
+  },
   "animated": {
     "file": "animated.webp",
     "width": 1024,
@@ -986,10 +991,5 @@
         "height": 224
       }
     }
-  },
-  "kanalObjects": {
-    "file": "kanal-object-atlas.webp",
-    "width": 1024,
-    "height": 1408
   }
 }
