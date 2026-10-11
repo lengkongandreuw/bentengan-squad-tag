@@ -9,7 +9,7 @@ export function MatchTokenSummary({ result }: { result: ProgressionResult }) {
     <h3>{t(currency)}{t(" PERTANDINGAN")}</h3>
     {t(result.applied ? <>
       {t(Object.entries(result.tokenBreakdown).map(([key, value]) => <p key={key}>
-        <span>{t({ match: 'Selesai bermain', victory: 'Menang', tag: 'Tag', rescue: 'Rescue' }[key])}</span>
+        <span>{t({ match: 'Selesai bermain', victory: 'Menang', tag: 'Tag', rescue: 'Rescue' }[key])}{key === 'match' && result.roundsPlayed ? t(` · ${result.roundsPlayed} ronde`) : ''}</span>
         <b>{t("+")}{t(value)} {t(currency)}</b>
       </p>))}
       <strong>{t("+")}{t(result.tokenEarned)} {t(currency)}{t(" TOTAL")}</strong>

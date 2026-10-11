@@ -16,12 +16,12 @@ for (const file of files) {
   const disk = JSON.parse(await readFile(`config/characters/${file}`, 'utf8'));
   assert.deepEqual(CHARACTER_BY_ID[disk.id], disk, `${disk.id} matches disk`);
 }
-// Spot values (frozen balance, Q2).
-assert.equal(CHARACTER_BY_ID.kaka.speed, 238);
+// Spot values (rebalance 2026-10-11: chase stats compressed, default lineups at parity).
+assert.equal(CHARACTER_BY_ID.kaka.speed, 226);
 assert.equal(CHARACTER_BY_ID.raja.baseChargeTime, 0.55);
-assert.equal(CHARACTER_BY_ID.maria.tagCooldownMs, 360);
-assert.equal(CHARACTER_BY_ID.kumis.tagRange, 36);
-assert.equal(CHARACTER_BY_ID.buto.tagRange, 34);
+assert.equal(CHARACTER_BY_ID.maria.tagCooldownMs, 420);
+assert.equal(CHARACTER_BY_ID.kumis.tagRange, 33);
+assert.equal(CHARACTER_BY_ID.buto.tagRange, 32);
 // Orientation flags preserve the old branch winners.
 assert.equal(characterMirrorsWest('raja'), true);
 assert.equal(characterMirrorsWest('jago'), true);

@@ -12,7 +12,7 @@ export function MatchProgressionSummary({ result }: { result: ProgressionResult 
   return <section className="match-progression-summary" aria-label={t("Hadiah pertandingan")}>
     <div><h3>{t("XP PERTANDINGAN")}</h3>
       {t(Object.entries(xpBreakdown).map(([key, value]) => <p key={key}>
-        <span>{t({ match: 'Selesai bermain', victory: 'Menang', tag: 'Tag', rescue: 'Rescue' }[key])}</span>
+        <span>{t({ match: 'Selesai bermain', victory: 'Menang', tag: 'Tag', rescue: 'Rescue' }[key])}{key === 'match' && result.roundsPlayed ? t(` · ${result.roundsPlayed} ronde`) : ''}</span>
         <b>{t("+")}{t(value)}{t(" XP")}</b>
       </p>))}
       <strong>{t("+")}{t(result.xpEarned)}{t(" XP TOTAL")}</strong>

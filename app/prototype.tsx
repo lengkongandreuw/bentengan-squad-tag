@@ -1722,6 +1722,8 @@ export function BentenganPrototype() {
           const stats = pendingProfileStatsRef.current;
           if (matchId && !network) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
             won: outcome.team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
+            // Rewards scale with rounds actually played (5 rounds / 7-round tournament).
+            ...(scoredMatch ? { roundsPlayed: progress.rounds.length } : {}),
             timesCaptured: stats.masukPenjara }));
         } catch (error) {
           setContentGateError(error instanceof Error ? error.message : 'Reward gagal disimpan.');

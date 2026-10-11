@@ -36,6 +36,8 @@ export type ProgressionResult = {
   currentLevel: number;
   newlyUnlockedCharacters: CharacterId[];
   newlyUnlockedArenaIds: string[];
+  /** Rounds that scaled this result's rewards (undefined = best-of-3 baseline). */
+  roundsPlayed?: number;
 };
 
 function safeCount(value: number): number {
@@ -63,7 +65,7 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
     xpBreakdown: { match: 0, victory: 0, tag: 0, rescue: 0 },
     levelProgress: getCurrentLevelProgress(previousXP), nextCharacter: getNextCharacterGoal(profile),
     previousXP, currentXP: previousXP, previousLevel, currentLevel: previousLevel,
-    newlyUnlockedCharacters: [], newlyUnlockedArenaIds: [],
+    newlyUnlockedCharacters: [], newlyUnlockedArenaIds: [], roundsPlayed: summary.roundsPlayed,
   };
   if (!summary.completed) return unchanged;
   if (progression.processedMatchIds.includes(summary.matchId))
@@ -106,5 +108,6 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
     previousXP, currentXP, previousLevel, currentLevel: getLevelFromXP(currentXP),
     newlyUnlockedCharacters: characters.newlyUnlockedCharacters,
     newlyUnlockedArenaIds: arenas.newlyUnlockedArenaIds,
+    roundsPlayed: summary.roundsPlayed,
   };
 }

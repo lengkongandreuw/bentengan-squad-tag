@@ -1,3 +1,4 @@
+import { scaleRoundReward } from './round-rewards.ts';
 import { progressionRules } from './progression-rules.ts';
 import type { MatchResult } from './types';
 
@@ -6,6 +7,8 @@ export type MatchXPSummary = {
   result: MatchResult;
   tags: number;
   rescues: number;
+  /** Rounds actually played; scales completion/win rewards and action caps (see round-rewards). */
+  roundsPlayed?: number;
 };
 
 export type CurrentLevelProgress = {
@@ -72,9 +75,10 @@ export function calculateMatchXPBreakdown(summary: MatchXPSummary): MatchXPBreak
   // Abandoned/incomplete matches award nothing, including action rewards.
   if (!summary.completed) return { match: 0, victory: 0, tag: 0, rescue: 0 };
   const { xpRewards: rewards, xpCaps: caps } = progressionRules;
-  return { match: rewards.completeMatch, victory: summary.result === 'win' ? rewards.win : 0,
-    tag: Math.min(tags * rewards.tag, caps.tagPerMatch),
-    rescue: Math.min(rescues * rewards.rescue, caps.rescuePerMatch) };
+  const scale = (value: number) => scaleRoundReward(value, summary.roundsPlayed);
+  return { match: scale(rewards.completeMatch), victory: summary.result === 'win' ? scale(rewards.win) : 0,
+    tag: Math.min(tags * rewards.tag, scale(caps.tagPerMatch)),
+    rescue: Math.min(rescues * rewards.rescue, scale(caps.rescuePerMatch)) };
 }
 
 export function calculateMatchXP(summary: MatchXPSummary): number {

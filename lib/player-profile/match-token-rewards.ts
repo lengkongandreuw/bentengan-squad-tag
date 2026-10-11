@@ -1,4 +1,5 @@
 import { economyRules } from './economy-rules.ts';
+import { scaleRoundReward } from './round-rewards.ts';
 import type { MatchXPSummary } from './xp-engine';
 
 export type MatchTokenBreakdown = { match: number; victory: number; tag: number; rescue: number };
@@ -12,7 +13,8 @@ export function calculateMatchTokenBreakdown(summary: MatchXPSummary): MatchToke
   // BigInt protects the multiplication even for safe but extremely large counts.
   const capped = (count: number, unit: number, cap: number) =>
     Number(BigInt(count) * BigInt(unit) < BigInt(cap) ? BigInt(count) * BigInt(unit) : BigInt(cap));
-  return { match: rewards.completeMatch, victory: summary.result === 'win' ? rewards.win : 0,
-    tag: capped(summary.tags,rewards.tag,rewards.tagPerMatchCap),
-    rescue: capped(summary.rescues,rewards.rescue,rewards.rescuePerMatchCap) };
+  const scale = (value: number) => scaleRoundReward(value, summary.roundsPlayed);
+  return { match: scale(rewards.completeMatch), victory: summary.result === 'win' ? scale(rewards.win) : 0,
+    tag: capped(summary.tags,rewards.tag,scale(rewards.tagPerMatchCap)),
+    rescue: capped(summary.rescues,rewards.rescue,scale(rewards.rescuePerMatchCap)) };
 }
