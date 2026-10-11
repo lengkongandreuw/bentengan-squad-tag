@@ -204,6 +204,8 @@ export type BaseRules = {
   chargeTime: number;
   reentryMs: number;
   tieHash: (id: string) => number;
+  /** Team fort progress (resolveTeamFort) replaces the per-player 1.5 s capture. */
+  teamFort?: boolean;
 };
 export function resolveObjective(
   players: RuntimeActor[],
@@ -263,7 +265,8 @@ export function resolveBase(
       }
     }
   } else if (p.state === 'IN_BASE' && p.baseCharge >= rules.chargeTime) exitCandidates.push(p);
-  events.push(...resolveObjective(players, p, dt, rules));
+  if (rules.teamFort) p.fortCharge = 0;
+  else events.push(...resolveObjective(players, p, dt, rules));
   if (p.boost < rules.boost && p.boostReadyAt > 0 && now >= p.boostReadyAt) {
     p.boost = rules.boost;
     p.boostReadyAt = 0;
@@ -281,10 +284,52 @@ export function resolveBase(
   }
   return events;
 }
+export type TeamFortRules = {
+  bases: Record<LegacyTeam, Point>;
+  radius: number;
+  kanal2: boolean;
+  /** Full capture time for 1, 2 and 3+ attackers. */
+  captureSecondsByAttackers: readonly number[];
+  decayPerSecond: number;
+  /** Round-start lock: progress cannot grow. */
+  locked: boolean;
+  /** Extra seconds needed against `defender` (Benteng Kokoh perk). */
+  bonusSeconds: (defender: LegacyTeam) => number;
+};
+const fortContender = (p: RuntimeActor, fort: Point, rules: Pick<TeamFortRules, 'radius' | 'kanal2'>) =>
+  p.state === 'ACTIVE' && !flightBusy(p) && !(rules.kanal2 && p.waterEnteredAt) && distance(p, fort) < rules.radius;
+/**
+ * Team-based fort capture. progress[team] (0–1) is the attacking team's progress on the
+ * enemy fort. It grows with ACTIVE attackers inside the radius and decays while defended
+ * or empty, so fights at the fort pull it back and forth instead of resetting it.
+ */
+export function resolveTeamFort(
+  players: RuntimeActor[],
+  progress: Record<LegacyTeam, number>,
+  dt: number,
+  rules: TeamFortRules,
+): { events: InteractionEvent[]; attackers: Record<LegacyTeam, number> } {
+  const events: InteractionEvent[] = [];
+  const attackers: Record<LegacyTeam, number> = { blue: 0, red: 0 };
+  for (const team of ['blue', 'red'] as const) {
+    const defender = other(team), fort = rules.bases[defender];
+    const count = players.filter((p) => p.team === team && fortContender(p, fort, rules)).length;
+    const defended = players.some((q) => q.team === defender && fortContender(q, fort, rules));
+    attackers[team] = count;
+    if (count && !defended && !rules.locked) {
+      const table = rules.captureSecondsByAttackers;
+      const seconds = table[Math.min(count, table.length) - 1] + rules.bonusSeconds(defender);
+      progress[team] = Math.min(1, progress[team] + dt / seconds);
+      if (progress[team] >= 1) events.push({ type: 'objective', team, reason: 'BENTENG DIREBUT' });
+    } else if (!count || defended) progress[team] = Math.max(0, progress[team] - rules.decayPerSecond * dt);
+  }
+  return { events, attackers };
+}
 export function resolveAllHeld(
   players: RuntimeActor[],
   totalCapture: Record<LegacyTeam, number>,
   dt: number,
+  holdSeconds = 2,
 ): InteractionEvent[] {
   const events: InteractionEvent[] = [];
   for (const team of ['blue', 'red'] as const) {
@@ -292,7 +337,7 @@ export function resolveAllHeld(
       .filter((p) => p.team === other(team))
       .every((p) => p.state === 'PRISONER' && p.prisonOwner === team);
     totalCapture[team] = held ? totalCapture[team] + dt : 0;
-    if (totalCapture[team] >= 2) events.push({ type: 'objective', team, reason: 'SEMUA LAWAN DITANGKAP' });
+    if (totalCapture[team] >= holdSeconds) events.push({ type: 'objective', team, reason: 'SEMUA LAWAN DITANGKAP' });
   }
   return events;
 }

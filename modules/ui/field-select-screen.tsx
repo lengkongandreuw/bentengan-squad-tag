@@ -8,10 +8,12 @@ import { CharacterPreview } from './character-preview.tsx';
 import { mapSelectionFiles, mapSelectionTheme, type ArenaSelectionState } from './map-selection-assets';
 
 export const FieldSelectScreen = ({ faction, selectedFieldId, fields, squad,
-  arenaStates, resolveAsset, onSelect, onStep, onStart }: {
+  arenaStates, resolveAsset, onSelect, onStep, onStart, formats, matchFormat, onMatchFormat }: {
   faction?: Faction | null; selectedFieldId: FieldId; fields: FieldConfig[]; squad: CharacterId[];
   arenaStates: ArenaSelectionState[]; resolveAsset: (file: string) => string;
   onSelect: (id: FieldId) => void; onStep: (direction: -1 | 1) => void; onStart: () => void;
+  /** Match format choice (5 rounds / 7-round tournament); omitted hides the toggle. */
+  formats?: { id: string; label: string }[]; matchFormat?: string; onMatchFormat?: (id: string) => void;
 }) => {
   const list = useRef<HTMLDivElement>(null);
   const selected = fields.find(field => field.id === selectedFieldId) ?? fields[0];
@@ -74,6 +76,16 @@ export const FieldSelectScreen = ({ faction, selectedFieldId, fields, squad,
           <figcaption>{t(index === 0 ? 'KAMU' : CHARACTER_BY_ID[id].name)}</figcaption>
         </figure>)}
       </div>
+      {formats && onMatchFormat && (
+        <div className="map-format-toggle" aria-label={t('Format match')}>
+          {formats.map(format => (
+            <button key={format.id} type="button" aria-pressed={matchFormat === format.id}
+              className={matchFormat === format.id ? 'active' : ''} onClick={() => onMatchFormat(format.id)}>
+              {t(format.label)}
+            </button>
+          ))}
+        </div>
+      )}
       <button type="button" className="map-start-match" aria-label={t('Mulai Match')}
         disabled={!unlocked} aria-disabled={!unlocked} onClick={() => { if (unlocked) onStart(); }}>
         <img src={art('start')} alt="" aria-hidden="true" />

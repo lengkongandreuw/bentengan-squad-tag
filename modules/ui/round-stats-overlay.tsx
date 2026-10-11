@@ -12,7 +12,8 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import type { StatsBoard } from '../game-core/snapshot-types';
+import type { MatchFormatView, StatsBoard } from '../game-core/snapshot-types';
+import { RoundHistoryTable } from './perk-draft-panel.tsx';
 import type { Team } from '../world/map-data/field-types';
 import { formatTime } from './format.ts';
 import { teamName } from '../world/team-tables.ts';
@@ -33,6 +34,9 @@ export const RoundStatsOverlay = ({
   onBackToFieldSelect,
   onQuit,
   children,
+  match,
+  draft,
+  nextRoundLocked = false,
 }: {
   statsBoard: StatsBoard;
   leaderboardOpen: boolean;
@@ -43,6 +47,12 @@ export const RoundStatsOverlay = ({
   onBackToFieldSelect: () => void;
   onQuit: () => void;
   children?: ReactNode;
+  /** Round-scored format view; absent or legacy keeps the best-of-3 scoreline. */
+  match?: MatchFormatView;
+  /** Between-round perk draft, shown on round recaps. */
+  draft?: ReactNode;
+  /** Blocks "next round" while the player's perk pick is pending. */
+  nextRoundLocked?: boolean;
 }) => (
   <dialog
     className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
@@ -102,13 +112,16 @@ export const RoundStatsOverlay = ({
       </header>
       <div className="round-scoreline" aria-label={t("Skor match")}>
         <span>
-          {t("TIM MERAH ")}<b>{t(statsBoard.score.blue)}</b>
+          {t("TIM MERAH ")}<b>{t(match?.scored ? match.points.blue : statsBoard.score.blue)}</b>
         </span>
-        <i>{t("BEST OF 3")}</i>
+        <i>{t(match?.scored
+          ? `${match.label.toUpperCase()} · POIN${match.locked ? ' · MATCH TERKUNCI' : ''}`
+          : "BEST OF 3")}</i>
         <span>
-          <b>{t(statsBoard.score.red)}</b>{t(" HIJAU")}
+          <b>{t(match?.scored ? match.points.red : statsBoard.score.red)}</b>{t(" HIJAU")}
         </span>
       </div>
+      {statsBoard.visible && !statsBoard.final && draft}
       <div className="round-stats-grid">
         {(['blue', 'red'] as Team[]).map((team) => (
           <article key={team} className={`round-team-card ${team}`}>
@@ -145,6 +158,7 @@ export const RoundStatsOverlay = ({
           </span>
         </aside>
       )}
+      {statsBoard.final && match?.scored && match.rounds.length > 0 && <RoundHistoryTable match={match} />}
       {statsBoard.final && children}
       <footer className="round-stats-actions">
         {statsBoard.final ? (
@@ -164,7 +178,7 @@ export const RoundStatsOverlay = ({
           </>
         ) : statsBoard.visible ? (
           <>
-            <button className="primary" onClick={onRequestNextRound}>
+            <button className="primary" onClick={onRequestNextRound} disabled={nextRoundLocked}>
               <Play size={16} fill="currentColor" />{t(" RONDE BERIKUTNYA")}
             </button>
             <button className="danger" onClick={onQuit}>

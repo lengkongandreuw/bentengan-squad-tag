@@ -29,9 +29,15 @@ export const RulesOverlay = ({ onClose }: { onClose: () => void }) => (
         <li>
           <b>{t('Sambung aksi tim.')}</b>{t(' Tag atau rescue dari rekan berbeda dalam 6,5 detik memberi boost tim dan Squad Surge.')}</li>
         <li>
-          <b>{t('Ambil 2 ronde untuk menang.')}</b>{t(' Menang ronde dengan menahan semua lawan selama 2 detik, atau mengisi bar perebutan benteng lawan selama 1,5 detik.')}</li>
+          <b>{t('5 ronde, poin tertinggi menang.')}</b>{t(' Rebut benteng +3, tahan semua lawan 4 detik +2, menang waktu atau sudden death +1. Ronde final bernilai ×2. Match berhenti lebih awal kalau selisih poin sudah tak terkejar. Pilih Turnamen untuk 7 ronde.')}</li>
         <li>
-          <b>{t('Waktu normal 4 menit.')}</b>{t(' Seri? Lanjut sudden death: tag atau rebut benteng berikutnya menang. Arena berganti setelah 3 kemenangan pertandingan.')}</li>
+          <b>{t('Rebut benteng butuh kerja tim.')}</b>{t(' Benteng terkunci 45 detik pertama tiap ronde. Setelah itu, 1 penyerang butuh 5 detik, 2 penyerang 3,5 detik, 3 atau lebih 2,5 detik. Penjaga aktif di benteng menurunkan progres.')}</li>
+        <li>
+          <b>{t('Ronde 3 menit.')}</b>{t(' Seri? Lanjut sudden death: tag atau rebut benteng berikutnya menang. Poin akhir seri ditentukan ronde menang terbanyak, lalu tangkapan unik, lalu Ronde Emas 90 detik.')}</li>
+        <li>
+          <b>{t('Draft perk antar ronde.')}</b>{t(' Tim yang kalah memilih 1 dari 3 perk; tim pemenang mendapat 1 perk sisa secara acak. Perk berlaku sampai match selesai, maksimal 3 per tim.')}</li>
+        <li>
+          <b>{t('Multiplayer:')}</b>{t(' untuk sementara tetap aturan lama: ambil 2 ronde untuk menang, ronde 4 menit, rebut benteng setelah 1,5 detik tanpa penjaga, atau tahan semua lawan 2 detik.')}</li>
         <li>
           <b>{t('Map Kanal:')}</b>{t(' seberangi sungai lewat jembatan atau parkour. Jatuh ke air mengembalikan pemain ke benteng.')}</li>
         <li>

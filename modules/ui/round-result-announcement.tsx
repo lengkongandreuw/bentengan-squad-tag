@@ -8,9 +8,12 @@ import { t } from '../../lib/language';
 export const RoundResultAnnouncementCard = ({
   result,
   assets,
+  detail,
 }: {
   result: RoundResultAnnouncement;
   assets: Record<Team, string>;
+  /** Scored formats: how the round was won and its points, e.g. "BENTENG DIREBUT +3". */
+  detail?: string;
 }) => {
   if (!result.visible || !result.winner) return null;
   return (
@@ -24,6 +27,7 @@ export const RoundResultAnnouncementCard = ({
         <strong>{t(teamName(result.winner).toUpperCase())}</strong>{t(' ')}
         {t(result.final ? 'MENANG MATCH!' : 'MENANG RONDE!')}
       </p>
+      {detail && <small className="round-result-detail">{t(detail)}</small>}
     </section>
   );
 };

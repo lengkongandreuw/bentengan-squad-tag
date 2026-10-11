@@ -15,6 +15,8 @@ export type BuildStatsBoardInput = {
   phaseUntil: number;
   matchStartedAt: number;
   fieldName: string;
+  /** Format label shown on the recap; defaults to the legacy best-of-3. */
+  format?: string;
   score: Record<Team, number>;
   players: Array<{
     id: string;
@@ -64,7 +66,7 @@ export const buildStatsBoard = (
         : 0,
     duration: Math.max(0, (now - input.matchStartedAt) / 1000),
     mapName: input.fieldName,
-    format: 'Best of 3',
+    format: input.format ?? 'Best of 3',
     mvpId: mvp?.player.id ?? '',
     mvpName: mvp?.player.name ?? '',
     score: { ...input.score },

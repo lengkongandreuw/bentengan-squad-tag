@@ -47,6 +47,36 @@ export type StatsBoard = {
   >;
 };
 
+/** Presentation view of the round-scored format (FEATURE_MATCH_FORMAT_5_RONDE). */
+export type MatchFormatView = {
+  scored: boolean;
+  label: string;
+  totalRounds: number;
+  final: boolean;
+  golden: boolean;
+  locked: boolean;
+  points: Record<Team, number>;
+  perks: Record<Team, string[]>;
+  rounds: Array<{ round: number; winner: Team; reason: string; points: number; durationSec: number; final: boolean; golden: boolean }>;
+  /** Points awarded for the round that just ended (result card). */
+  lastPoints: number;
+  fortLockRemaining: number;
+  draft: null | {
+    loser: Team;
+    winner: Team;
+    offer: string[];
+    humanPicks: boolean;
+    remaining: number;
+    resolved: boolean;
+    loserPick: string | null;
+    winnerPick: string | null;
+  };
+};
+export const initialMatchFormatView: MatchFormatView = {
+  scored: false, label: 'Best of 3', totalRounds: 3, final: false, golden: false, locked: false,
+  points: { blue: 0, red: 0 }, perks: { blue: [], red: [] }, rounds: [], lastPoints: 0, fortLockRemaining: 0, draft: null,
+};
+
 export type Snapshot = {
   blue: number;
   red: number;
@@ -90,6 +120,7 @@ export type Snapshot = {
   rescueRequestCooldown: number;
   roundResult: RoundResultAnnouncement;
   statsBoard: StatsBoard;
+  match: MatchFormatView;
 };
 
 export const initialSnapshot: Snapshot = {
@@ -150,4 +181,5 @@ export const initialSnapshot: Snapshot = {
     score: { blue: 0, red: 0 },
     teams: { blue: [], red: [] },
   },
+  match: initialMatchFormatView,
 };

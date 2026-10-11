@@ -13,6 +13,7 @@
     "test:multiplayer-gameplay-browser": "node scripts/test-multiplayer-gameplay-browser.mjs",
     "test:multiplayer-slice-browser": "node scripts/test-multiplayer-slice-browser.mjs",
     "test:game-core": "node --experimental-strip-types --test scripts/test-game-core.mjs",
+    "test:match-format": "node --experimental-strip-types --test scripts/test-match-format.mjs",
     "test:progression": "node scripts/test-progression-data-model.mjs",
     "admin:maps": "node --experimental-strip-types scripts/map-studio/server.mjs",
     "test:map-studio": "node --experimental-strip-types --test scripts/map-studio/test.mjs",

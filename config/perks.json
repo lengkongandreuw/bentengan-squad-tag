@@ -1,0 +1,11 @@
+{
+  "perks": [
+    { "id": "fort_guard", "name": "Benteng Kokoh", "description": "Musuh butuh +1,5 detik untuk merebut benteng tim ini.", "value": 1.5, "icon": "🛡", "botPriority": 1 },
+    { "id": "swift_feet", "name": "Kaki Angin", "description": "Kecepatan dasar +6%.", "value": 0.06, "icon": "💨", "botPriority": 3 },
+    { "id": "long_reach", "name": "Tangan Panjang", "description": "Jangkauan rescue +25%.", "value": 0.25, "icon": "🤝", "botPriority": 2 },
+    { "id": "deep_breath", "name": "Napas Panjang", "description": "Boost maksimal +15%.", "value": 0.15, "icon": "🫁", "botPriority": 4 },
+    { "id": "quick_gate", "name": "Gerbang Cepat", "description": "Waktu siap di benteng −20%.", "value": 0.2, "icon": "🚪", "botPriority": 5 },
+    { "id": "rescue_shield", "name": "Perisai Bebas", "description": "Perisai setelah dibebaskan +0,7 detik.", "value": 700, "icon": "✨", "botPriority": 6 },
+    { "id": "double_refill", "name": "Refill Ganda", "description": "Refill di separuh map sendiri muncul 30% lebih sering.", "value": 0.3, "icon": "⚡", "botPriority": 7 }
+  ]
+}

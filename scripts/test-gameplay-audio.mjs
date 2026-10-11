@@ -111,13 +111,13 @@ void test('countdown loading is optional and one-shot; result guard and player-o
   const f = await ready({ suspended: true });
   assert.equal(f.audio.play('countdown'), true); assert.equal(f.audio.play('countdown'), false);
   const game = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
-  assert.match(game, /const outcome = endRound\(players, score, phase, team, reason, resultNow\);\s+if \(!outcome\) return;/);
+  assert.match(game, /const outcome = scoredMatch \? scored\?\.outcome \?\? null : endRound\(players, score, phase, team, reason, resultNow\);\s+if \(!outcome\) return;/);
   assert.match(game, /presentGameEvents\(\[\{type:outcome.type,team:outcome.team,reason:outcome.reason\}\]/);
   const core = await readFile(new URL('../modules/game-core/match-control.ts', import.meta.url), 'utf8');
   assert.match(core, /if\s*\(\s*phase\s*!==\s*'PLAYING'\s*\)\s*return null/);
   assert.match(game, /else if \(winner.controlled\) gameplayAudio.playerTag\(now\)/);
   assert.match(game, /if \(!countdownSoundPlayed && now < phaseUntil\) countdownSoundPlayed = gameplayAudio.playCountdown/);
-  assert.match(game, /gameplayAudio.play\(team === players\[0\].team \? 'victory' : 'defeat'\)/);
+  assert.match(game, /gameplayAudio.play\(outcome.team === players\[0\].team \? 'victory' : 'defeat'\)/);
   assert.doesNotMatch(game, /playAudioCue\(\s+team === players\[0\].team \? 'victory.mp3'/);
   f.audio.close();
 });

@@ -204,14 +204,18 @@ export const stepBots = (
 };
 // Moved verbatim from lib/game-core/bot-ai.ts (R10).
 
-export type BotObjective = 'return' | 'exit' | 'rescue' | 'refill' | 'evade' | 'tag' | 'fort' | 'idle';
+export type BotObjective = 'return' | 'exit' | 'rescue' | 'guard' | 'refill' | 'evade' | 'tag' | 'fort' | 'center' | 'idle';
 export type BotPlan = { vector: Point; objective: BotObjective; targetId?: string };
 export type BotWorld = {
   players: RuntimeActor[]; bases: Record<LegacyTeam, Point>; width: number; height: number;
   refills: RefillState[]; request: { requesterId: string; assignedRescuerId?: string } | null; kanal2: boolean; localTeam: LegacyTeam;
   profile: { rescueCutoff: number; threatRadius: number; playerBias: number; prediction: number; steerDistance: number };
   boostThreshold: number; navigate: (p: RuntimeActor, desired: Point, now: number, probe: number, bias: number) => Point;
+  /** Fort duty (5-round format): one guard per team, at most `maxFortAttackers` bots rushing the enemy fort. */
+  duty?: BotDuty;
 };
+export type BotDuty = { baseRadius: number; maxFortAttackers: number; rotateMs: number; guards?: Partial<Record<LegacyTeam, string>> };
+export const GUARD_PATROL_RADIUS = 1.4, GUARD_ALERT_RADIUS = 2;
 export type BotIntent = { frame: PlayerInputFrame; objective: BotObjective; targetId?: string; blocked: boolean };
 const botDistance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 /** Existing strategy order and math. No actor mutation, routing redesign or random calls. */
@@ -221,6 +225,7 @@ export function planBot(p: RuntimeActor, now: number, w: BotWorld): BotPlan {
   if (p.state === 'IN_BASE') return toward({ x: w.width / 2, y: w.height / 2 + Math.sin(now / 920 + p.aiSeed) * 230 }, 'exit');
   const requester = w.request ? w.players.find((q) => q.id === w.request?.requesterId) : undefined;
   if (requester?.state === 'PRISONER' && w.request?.assignedRescuerId === p.id) return toward(requester, 'rescue', requester.entityId);
+  if (w.duty?.guards?.[p.team] === p.id) return planGuard(p, now, w, w.duty);
   const held = w.players.filter((q) => q.team === p.team && q.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex);
   if (held.length && (p.aiSeed % 3 < w.profile.rescueCutoff || held.length >= 3)) return toward(held[0], 'rescue', held[0].entityId);
   if (p.boost < 34) {
@@ -238,19 +243,60 @@ export function planBot(p: RuntimeActor, now: number, w: BotWorld): BotPlan {
   const enemy = w.bases[p.team === 'blue' ? 'red' : 'blue'];
   return { vector: { x: enemy.x - p.x, y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150 }, objective: 'fort' };
 }
+/**
+ * Guard duty: patrol inside baseRadius×1.4 of the own fort. An enemy within baseRadius×2
+ * is chased only when the guard outranks it (higher exitOrder); otherwise the guard steps
+ * into the fort to refresh its exit order (the existing IN_BASE behaviour).
+ */
+function planGuard(p: RuntimeActor, now: number, w: BotWorld, duty: BotDuty): BotPlan {
+  const fort = w.bases[p.team];
+  const intruder = w.players
+    .filter((q) => q.team !== p.team && q.state === 'ACTIVE' && botDistance(q, fort) < duty.baseRadius * GUARD_ALERT_RADIUS)
+    .sort((a, b) => botDistance(a, fort) - botDistance(b, fort))[0];
+  if (intruder) {
+    if (p.exitOrder > intruder.exitOrder)
+      return { vector: { x: intruder.x + intruder.vx * w.profile.prediction - p.x, y: intruder.y + intruder.vy * w.profile.prediction - p.y }, objective: 'guard', targetId: intruder.entityId };
+    return { vector: { x: fort.x - p.x, y: fort.y - p.y }, objective: 'guard' };
+  }
+  const angle = now / 2600 + p.aiSeed;
+  const ring = duty.baseRadius * 1.2;
+  return { vector: { x: fort.x + Math.cos(angle) * ring - p.x, y: fort.y + Math.sin(angle) * ring - p.y }, objective: 'guard' };
+}
+/** Picks/rotates one guard per team: the ACTIVE non-human bot nearest its fort, never the assigned rescuer. */
+export function assignGuards(w: BotWorld, now: number, current: Partial<Record<LegacyTeam, { id: string; since: number }>>, rotateMs: number) {
+  for (const team of ['blue', 'red'] as const) {
+    const held = current[team];
+    const guard = held && w.players.find((p) => p.id === held.id);
+    const valid = guard && guard.controller === 'bot' && (guard.state === 'ACTIVE' || guard.state === 'IN_BASE') && now - held.since < rotateMs;
+    if (valid) continue;
+    const fort = w.bases[team];
+    const next = w.players
+      .filter((p) => p.team === team && p.controller === 'bot' && p.state === 'ACTIVE' && p.id !== w.request?.assignedRescuerId && p.id !== held?.id)
+      .sort((a, b) => botDistance(a, fort) - botDistance(b, fort))[0];
+    if (next) current[team] = { id: next.id, since: now };
+    else if (!guard || guard.state === 'PRISONER' || guard.state === 'RETURNING') delete current[team];
+  }
+  return Object.fromEntries(Object.entries(current).map(([team, g]) => [team, g!.id])) as Partial<Record<LegacyTeam, string>>;
+}
 export function createBotAuthority() {
   const sequences = new Map<string, number>();
+  const guards: Partial<Record<LegacyTeam, { id: string; since: number }>> = {};
   return {
+    reset() { delete guards.blue; delete guards.red; },
     /** Sequential consumption preserves legacy AI observing earlier actors' movement. */
     run(authority: 'host' | 'client', w: BotWorld, now: number, consume: (p: RuntimeActor, intent: BotIntent) => void) {
       if (authority !== 'host') return;
+      if (w.duty) w = { ...w, duty: { ...w.duty, guards: assignGuards(w, now, guards, w.duty.rotateMs) } };
+      const fortAttackers: Record<LegacyTeam, number> = { blue: 0, red: 0 };
       for (const p of w.players) {
         if (p.controller !== 'bot') continue;
         const sequence = (sequences.get(p.entityId) ?? 0) + 1;
         if (!Number.isSafeInteger(sequence)) throw Error('Bot input sequence overflow');
         sequences.set(p.entityId, sequence);
         const blocked = p.state === 'PRISONER' || !!(w.kanal2 && p.waterEnteredAt);
-        const plan = blocked ? { vector: { x: 0, y: 0 }, objective: 'idle' as const } : planBot(p, now, w);
+        let plan: BotPlan = blocked ? { vector: { x: 0, y: 0 }, objective: 'idle' as const } : planBot(p, now, w);
+        if (w.duty && plan.objective === 'fort' && ++fortAttackers[p.team] > w.duty.maxFortAttackers)
+          plan = { vector: { x: w.width / 2 - p.x, y: w.height / 2 + Math.sin(now / 1300 + p.aiSeed) * 180 - p.y }, objective: 'center' };
         const v = blocked ? plan.vector : w.navigate(p, plan.vector, now, p.team !== w.localTeam ? w.profile.steerDistance : 78, Math.sin(p.aiSeed + now / 1700));
         const sprint = !blocked && p.state === 'ACTIVE' && p.boost > 10 && Math.hypot(v.x, v.y) > 145 && Math.sin(now / 950 + p.aiSeed) > w.boostThreshold;
         consume(p, {

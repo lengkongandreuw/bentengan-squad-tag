@@ -215,6 +215,7 @@ const input=load('lib/game-core/input.ts'),tick=load('lib/game-core/tick.ts');
 const movement=load('modules/gameplay/movement.ts'),interactions=load('modules/gameplay/tag-combat.ts');
 const ultimate=load('modules/gameplay/ultimate.ts'),matchRules=load('modules/game-core/match-control.ts');
 const bots=load('modules/gameplay/ai-movement.ts');
+const matchFormat=load('modules/game-core/match-format.ts');
 const gameEvents=load('lib/game-core/events.ts');
 const renderState=load('lib/game-core/render-state.ts');
 const snapshots=load('lib/game-core/snapshot.ts');
@@ -429,7 +430,7 @@ void test('08 actual runtime result adapter persists rewards and announces victo
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   const start=source.indexOf('const winRound = (team: Team, reason: string) =>');
   const end=source.indexOf('const fortOccupant =',start);
-  const initialize=vm.runInThisContext(ts.transpileModule(`(function(endRound,presentGameEvents,network=null){
+  const initialize=vm.runInThisContext(ts.transpileModule(`(function(matchFormat,endRound,presentGameEvents,network=null){
     const players=[{team:'blue',flight:null}],score={blue:0,red:0},performance={now:()=>1000},clientOnly=false,
       publishNetworkFacts=()=>{},createMatchResult=()=>({}),readCanonicalState=()=>({}),humanIdentities=[],disconnectedPeers=new Set(),resultHandoff=()=>({result:null});
     let phase='PLAYING',roundWinner,roundEndReason,matchEvents=[],resultWinner,resultAnnouncementUntil=0,
@@ -439,10 +440,13 @@ void test('08 actual runtime result adapter persists rewards and announces victo
       recordMatchProgression=result=>{saved.push(result);return result;},setMatchProgressionResult=()=>{},setContentGateError=()=>{},
       gameplayAudio={resetTagStreak:()=>{},play:sound=>sounds.push(sound)},teamName=team=>team,
       beep=()=>{},burst=()=>{},worldWidth=1000,worldHeight=800,TEAM_COLOR={blue:'red',red:'green'},log=text=>presented.push(text);
+    // Legacy best-of-3 context (multiplayer path): the scored 5-round helpers stay inert.
+    const scoredMatch=false,formatId='legacy-bo3',progress=matchFormat.createMatchProgress('legacy-bo3'),completeRound=matchFormat.completeRound,
+      scoredRoundEnd=()=>null,uniqueCaptures=()=>({blue:0,red:0}),devRoundLog=[],devBuild=false,roundStartedAt=0,round=1;
     ${source.slice(start,end)}
     return {winRound,next:()=>{phase='PLAYING';},read:()=>({phase,score,saved,sounds,presented,completed:completedMatchesRef.current})};
   })`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText);
-  const run=initialize(matchRules.endRound,gameEvents.presentGameEvents);
+  const run=initialize(matchFormat,matchRules.endRound,gameEvents.presentGameEvents);
   run.winRound('blue','BENTENG DIREBUT');run.winRound('blue','duplicate');
   assert.equal(run.read().saved.length,0);assert.equal(run.read().score.blue,1);assert.equal(run.read().presented.length,1);
   run.next();run.winRound('blue','SUDDEN DEATH TAG');run.winRound('blue','duplicate');
@@ -450,7 +454,7 @@ void test('08 actual runtime result adapter persists rewards and announces victo
   assert.equal(result.saved.length,1);assert.equal(result.completed,1);assert.equal(result.presented.length,2);
   assert.equal(result.sounds.filter(s=>s==='victory').length,1);
   assert.deepEqual(result.saved[0],{matchId:'actual-test',arenaId:'kampung',completed:true,won:true,tags:2,rescues:1,timesCaptured:3});
-  const packets=[],online=initialize(matchRules.endRound,gameEvents.presentGameEvents,{publishResult:p=>packets.push(p)});
+  const packets=[],online=initialize(matchFormat,matchRules.endRound,gameEvents.presentGameEvents,{publishResult:p=>packets.push(p)});
   online.winRound('blue','first');online.next();online.winRound('blue','second');
   assert.equal(online.read().saved.length,0);assert.equal(online.read().completed,0,'multiplayer never writes solo progression or rotation');
   assert.equal(packets.length,1,'online emits one authoritative result, handoff tested independently');
@@ -525,6 +529,7 @@ void test('03 actual runtime factory assigns all ten actors and reuses IDs on ro
   const characters=Object.fromEntries(['raja','kaka','bebe','ciici','jago'].map(id=>[id,{name:id,boost:100}]));
   const setup=`const bases={blue:{x:100,y:100},red:{x:900,y:100}},GAME_RULES={spawnOffsets:Array.from({length:5},(_,i)=>({x:i,y:i}))};
     const CHARACTER_BY_ID=characters,selectedFaction='red',TEAM_FOR_FACTION={red:'blue',green:'red'},network=null;
+    const teamPerks={blue:[],red:[]},devAutobot=false,effectiveStats=id=>CHARACTER_BY_ID[id]; // no perks → base stats
     let selectedId='raja';const lineupFor=(faction,id)=>[id??'kaka','bebe','ciici','jago','raja'];\n`;
   const init=vm.runInThisContext(`(function(createEntityRegistry,characters){${setup}${factory}})`);
   const runtime=init(entities.createEntityRegistry,characters),first=runtime.makePlayers();

@@ -8343,3 +8343,43 @@ body
   font-weight: 900;
   cursor: pointer;
 }
+
+/* ── Match format 5 ronde: points HUD, fort lock, perk draft, round history ── */
+.playing-shell .stage-hud.scored time small { color: #f5cf45; font-weight: 800; }
+.playing-shell .stage-hud.final-round time { color: #f5cf45; text-shadow: 0 0 14px rgba(245, 207, 69, 0.6); }
+.playing-shell .stage-hud time small.hud-fort-lock { margin-top: 1px; color: #fff3d0; letter-spacing: 0.04em; }
+.stage-hud .hud-perks { display: inline-flex; gap: 2px; margin-top: 2px; }
+.stage-hud .hud-perks i { font-style: normal; font-size: 12px; line-height: 1; padding: 2px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); }
+.round-result-announcement .round-result-detail {
+  display: block; margin-top: 4px; font: 800 clamp(13px, 1.6vw, 20px) var(--font-heading);
+  letter-spacing: 0.08em; color: #fff3d0; text-shadow: 0 2px 0 #000;
+}
+.perk-draft { margin: 0 22px 12px; padding: 12px 14px; border: 1px solid #f5cf45; border-radius: 10px; background: rgba(245, 207, 69, 0.07); }
+.perk-draft header span { font: 800 10px var(--font-heading); letter-spacing: 0.12em; color: #f5cf45; }
+.perk-draft header h3 { margin: 2px 0 4px; font: 800 17px var(--font-heading); }
+.perk-draft header p { margin: 0 0 8px; font-size: 12px; color: #c6cec7; }
+.perk-draft-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.perk-option {
+  display: grid; gap: 3px; justify-items: start; text-align: left; padding: 10px; min-height: 44px;
+  color: #eef4ec; background: #111a14; border: 2px solid #2f4236; border-radius: 8px; cursor: pointer;
+}
+.perk-option i { font-style: normal; font-size: 22px; }
+.perk-option b { font: 800 14px var(--font-heading); letter-spacing: 0.04em; }
+.perk-option small { font-size: 11px; color: #b9c3bb; }
+.perk-option:hover:not(:disabled), .perk-option:focus-visible { border-color: #f5cf45; }
+.perk-option:disabled { cursor: default; opacity: 0.7; }
+.perk-draft-result { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.perk-draft-result li { padding: 5px 10px; border-radius: 999px; background: #111a14; border: 1px solid #2f4236; font-size: 13px; }
+.perk-draft-result li.mine { border-color: #f5cf45; }
+.perk-draft-result i { font-style: normal; margin-right: 5px; }
+.round-history { width: calc(100% - 44px); margin: 0 22px 12px; border-collapse: collapse; font-size: 12px; }
+.round-history caption { text-align: left; padding: 6px 0; font: 800 11px var(--font-heading); letter-spacing: 0.1em; color: #f5cf45; }
+.round-history th, .round-history td { padding: 5px 8px; text-align: left; border-bottom: 1px solid #26342b; }
+.round-history th { color: #9faba2; font-weight: 800; }
+.round-history tr.blue td:nth-child(2) { color: #ffaaa3; }
+.round-history tr.red td:nth-child(2) { color: #aef4bf; }
+.round-stats-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 700px) {
+  .perk-draft-options { grid-template-columns: 1fr; }
+  .round-history { font-size: 11px; }
+}

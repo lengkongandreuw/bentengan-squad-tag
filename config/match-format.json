@@ -1,0 +1,25 @@
+{
+  "defaultFormat": "standard",
+  "formats": {
+    "standard": { "label": "5 Ronde", "rounds": 5 },
+    "tournament": { "label": "Turnamen · 7 Ronde", "rounds": 7 }
+  },
+  "roundSeconds": 180,
+  "finalRoundMultiplier": 2,
+  "points": {
+    "BENTENG DIREBUT": 3,
+    "SEMUA LAWAN DITANGKAP": 2,
+    "WAKTU HABIS": 1,
+    "TANGKAPAN UNIK": 1,
+    "SUDDEN DEATH TAG": 1
+  },
+  "fort": {
+    "captureSecondsByAttackers": [5.0, 3.5, 2.5],
+    "decayPerSecond": 0.25,
+    "lockSeconds": 45
+  },
+  "fullCaptureHoldSeconds": 4,
+  "goldenRound": { "seconds": 90 },
+  "perkDraft": { "offerCount": 3, "maxPerTeam": 3, "maxSeconds": 12 },
+  "multiplayerFormat": "legacy-bo3"
+}

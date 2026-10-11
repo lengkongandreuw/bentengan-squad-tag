@@ -26,6 +26,7 @@ import {
 
 import { CharacterWorkshop } from '../modules/ui/character-workshop/character-workshop.tsx';
 import { MatchEventFeed } from '../modules/ui/match-event-feed.tsx';
+import { PerkDraftPanel } from '../modules/ui/perk-draft-panel.tsx';
 import { RoundStatsOverlay } from '../modules/ui/round-stats-overlay.tsx';
 import { MissionPanel } from '../modules/ui/mission-panel.tsx';
 import { MatchProgressionSummary } from '../modules/ui/match-progression-summary.tsx';
@@ -95,7 +96,9 @@ import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../l
 import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../modules/gameplay/ultimate.ts';
 import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, parkourPassesObstacle, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
-import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
+import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, resolveTeamFort, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
+import { completeRound, createMatchProgress, fortLockSeconds, fullCaptureHoldSeconds, isFinalRound, isScoredFormat, loadMatchFormat, MATCH_FORMAT_CONFIG, matchFormatLabel, saveMatchFormat, scoredFormatIds, roundSecondsFor, type MatchFormatId, type ScoredFormatId } from '../modules/game-core/match-format.ts';
+import { botPickPerk, createPerkDraft, PERK_BY_ID, effectiveStats, emptyTeamPerks, fortCaptureBonusSeconds, refillSpawnWeight, resolvePerkDraft, type PerkDraft, type PerkId } from '../modules/gameplay/perks.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
 
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
@@ -215,6 +218,7 @@ const PlayerProfilePanel = lazy(async () => ({
 const MultiplayerPanel = lazy(async () => ({default:(await import('../modules/ui/multiplayer-panel')).MultiplayerPanel}));
 
 import {
+  initialMatchFormatView,
   initialSnapshot,
   type Mission,
   type Snapshot,
@@ -433,6 +437,10 @@ export function BentenganPrototype() {
   const pendingProfileStatsRef = useRef<PlayerKdaStats>({ ...EMPTY_KDA });
   const leaderboardOpenRef = useRef(false);
   const postRoundActionRef = useRef<'next-round' | null>(null);
+  const [matchFormat, setMatchFormatState] = useState<ScoredFormatId>(() => loadMatchFormat());
+  const matchFormatRef = useRef<ScoredFormatId>(matchFormat);
+  // Perk picked in the draft panel; consumed by the game loop.
+  const perkChoiceRef = useRef<PerkId | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
   const [selectedId, setSelectedIdState] = useState<CharacterId>('raja');
   const [selectedFieldId, setSelectedFieldIdState] = useState<FieldId>(SELECTION_FIELDS[0].id);
@@ -1020,6 +1028,13 @@ export function BentenganPrototype() {
     const mainContext = canvas.getContext('2d');
     if (!mainContext) return;
     let ctx: CanvasRenderingContext2D = mainContext;
+    // Match format: multiplayer stays legacy best-of-3 until protocol phase 5.
+    // Dev-only ?format=legacy-bo3|standard|tournament override for telemetry baselines.
+    const devFormat = process.env.NODE_ENV !== 'production' ? new URLSearchParams(window.location.search).get('format') : null;
+    const formatId: MatchFormatId = network ? (MATCH_FORMAT_CONFIG.multiplayerFormat as MatchFormatId)
+      : devFormat === 'legacy-bo3' || devFormat === 'standard' || devFormat === 'tournament' ? devFormat : matchFormatRef.current;
+    const scoredMatch = isScoredFormat(formatId);
+    const progress = createMatchProgress(formatId);
     let raf = 0,
       last = performance.now(),
       lastHud = 0,
@@ -1028,9 +1043,24 @@ export function BentenganPrototype() {
       'COUNTDOWN';
     let phaseUntil = performance.now() + 3000,
       matchStartedAt = performance.now(),
-      timer = 240,
+      timer = roundSecondsFor(progress),
       round = 1,
       exitCounter = 0;
+    const teamPerks = emptyTeamPerks();
+    let fortProgress = { blue: 0, red: 0 },
+      roundStartedAt = performance.now(),
+      perkDraft: PerkDraft | null = null;
+    const statsOf = (p: { characterId: CharacterId; team: Team }) => effectiveStats(p.characterId, teamPerks[p.team]);
+    const roundLabel = () => !scoredMatch ? `RONDE ${round}`
+      : progress.golden ? 'RONDE EMAS' : isFinalRound(progress, round) ? 'RONDE FINAL · POIN ×2' : `RONDE ${round}/${progress.totalRounds}`;
+    // Dev-only telemetry (Fase 0): one entry per finished round.
+    const devRoundLog: { round: number; durationSec: number; reason: string; winner: Team; pointsAwarded: number; format: MatchFormatId }[] = [];
+    const devBuild = process.env.NODE_ENV !== 'production';
+    if (devBuild) (window as Window & { __bentenganRoundLog?: typeof devRoundLog }).__bentenganRoundLog = devRoundLog;
+    // Dev-only measurement aid: ?autobot=1 lets the bot planner drive the local player too.
+    const devAutobot = devBuild && !network && new URLSearchParams(window.location.search).get('autobot') === '1';
+    // Dev-only ?perks=0 skips the draft so Fase 1 can be measured without perks.
+    const devNoPerks = devBuild && new URLSearchParams(window.location.search).get('perks') === '0';
     let score = { blue: 0, red: 0 },
       paused = false,
       announcement = mode === 'playing' ? 'BERSIAP!' : '',
@@ -1279,13 +1309,13 @@ export function BentenganPrototype() {
       controlled = false,
     ): Player => {
       const b = bases[team];
-      const character = CHARACTER_BY_ID[characterId];
+      const character = effectiveStats(characterId, teamPerks[team]);
       const offset =
         GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
       const direction = team === 'blue' ? 1 : -1;
       return {
         entityId: entityRegistry.assign(id),
-        controller: controlled ? 'local' : 'bot',
+        controller: controlled && !devAutobot ? 'local' : 'bot',
         id,
         name: character.name.toUpperCase(),
         team,
@@ -1505,6 +1535,7 @@ export function BentenganPrototype() {
         phaseUntil,
         matchStartedAt,
         fieldName: field.name,
+        format: scoredMatch ? MATCH_FORMAT_CONFIG.formats[formatId as ScoredFormatId].label : 'Best of 3',
         score,
         players,
         roundStats,
@@ -1547,7 +1578,12 @@ export function BentenganPrototype() {
         [worldY(524), worldY(712)],
       ] as const;
       for (let tries = 0; tries < 30; tries++) {
-        const x = worldX(236) + Math.random() * (worldWidth - worldX(472)),
+        const minX = worldX(236), spanX = worldWidth - worldX(472);
+        // Refill Ganda: a team's own half is weighted 30% heavier.
+        const blueWeight = refillSpawnWeight(teamPerks.blue), redWeight = refillSpawnWeight(teamPerks.red);
+        const blueLeft = bases.blue.x < worldWidth / 2;
+        const half = blueWeight === redWeight ? -1 : Math.random() < blueWeight / (blueWeight + redWeight) === blueLeft ? 0 : 1;
+        const x = half < 0 ? minX + Math.random() * spanX : minX + (half + Math.random()) * spanX / 2,
           y =
             laneBounds[lane][0] +
             Math.random() * (laneBounds[lane][1] - laneBounds[lane][0]);
@@ -1592,7 +1628,11 @@ export function BentenganPrototype() {
       rescueRequestCooldownUntil = 0;
       players.forEach((player) => ensureStats(matchStats, player));
       seedRefills();
-      timer = 240;
+      timer = roundSecondsFor(progress);
+      fortProgress = { blue: 0, red: 0 };
+      perkDraft = null;
+      perkChoiceRef.current = null;
+      botAuthority.reset();
       exitCounter = 0;
       totalCapture = { blue: 0, red: 0 };
       suddenDeath = false;
@@ -1613,24 +1653,50 @@ export function BentenganPrototype() {
       comboCalloutUntil = 0;
       phase = 'COUNTDOWN';
       phaseUntil = performance.now() + 2800;
-      announcement = `RONDE ${round}`;
-        log(`Ronde ${round} · siapkan tim di benteng!`);
+      announcement = roundLabel();
+        log(`${roundLabel()} · siapkan tim di benteng!`);
     };
+    const uniqueCaptures = () => ({
+      blue: new Set(players.filter((p) => p.team === 'blue').flatMap((p) => p.capturedIds)).size,
+      red: new Set(players.filter((p) => p.team === 'red').flatMap((p) => p.capturedIds)).size,
+    });
+    // 5/7-round scored authority. Legacy best-of-3 (multiplayer) keeps endRound unchanged.
+    const scoredRoundEnd = (team: Team, reason: string, now: number) => {
+      if (phase !== 'PLAYING') return null;
+      for (const actor of players) actor.flight = null;
+      score[team]++;
+      const result = completeRound(progress, { round, winner: team, reason, durationSec: (now - roundStartedAt) / 1000, uniqueCaptures: uniqueCaptures() });
+      if (result.matchOver)
+        return { outcome: { type: 'MATCH_ENDED' as const, team: result.winner!, reason, phase: 'MATCH_OVER' as const, phaseUntil: Infinity }, result };
+      // ROUND_OVER lasts at most perkDraft.maxSeconds (12 s) including the result card.
+      perkDraft = result.goldenNext || devNoPerks ? null : createPerkDraft(teamPerks, team, now);
+      const humanPicks = !!perkDraft?.offer.length && perkDraft.loser === players[0].team && !devAutobot;
+      return { outcome: { type: 'ROUND_ENDED' as const, team, reason, phase: 'ROUND_OVER' as const,
+        phaseUntil: humanPicks ? perkDraft!.deadline : now + 4500 }, result };
+    };
+    // Dev-only QA hook: end the current round instantly (e.g. __bentenganDev.winRound('red','BENTENG DIREBUT')).
+    if (devBuild) (window as Window & { __bentenganDev?: unknown }).__bentenganDev = { winRound: (team: Team, reason: string) => winRound(team, reason) };
     const winRound = (team: Team, reason: string) => {
       const resultNow = performance.now();
-      const outcome = endRound(players, score, phase, team, reason, resultNow);
+      const scored = scoredMatch ? scoredRoundEnd(team, reason, resultNow) : null;
+      const durationSec = (resultNow - roundStartedAt) / 1000;
+      const outcome = scoredMatch ? scored?.outcome ?? null : endRound(players, score, phase, team, reason, resultNow);
       if (!outcome) return;
-      roundWinner = team;
+      const record = scored ? scored.result.record
+        : completeRound(progress, { round, winner: team, reason, durationSec, uniqueCaptures: uniqueCaptures() }).record;
+      devRoundLog.push({ round, durationSec: +durationSec.toFixed(1), reason, winner: team, pointsAwarded: record.points, format: formatId });
+      if (devBuild) console.info('[round]', devRoundLog.at(-1));
+      roundWinner = outcome.team;
       roundEndReason = reason;
       phase = outcome.phase;
       matchEvents = [];
-      resultWinner = team;
+      resultWinner = outcome.team;
       resultAnnouncementUntil = resultNow + 1500;
       if (phase === 'MATCH_OVER') {
         try {
           const stats = pendingProfileStatsRef.current;
           if (matchId && !network) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
-            won: team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
+            won: outcome.team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
             timesCaptured: stats.masukPenjara }));
         } catch (error) {
           setContentGateError(error instanceof Error ? error.message : 'Reward gagal disimpan.');
@@ -1653,13 +1719,14 @@ export function BentenganPrototype() {
       if(event.type!=='ROUND_ENDED'&&event.type!=='MATCH_ENDED')return;
       gameplayAudio.resetTagStreak();
       if (reason === 'BENTENG DIREBUT') gameplayAudio.play('fort-captured', team === players[0].team ? 1 : .55);
-      if(event.type==='MATCH_ENDED')gameplayAudio.play(team === players[0].team ? 'victory' : 'defeat');
+      if(event.type==='MATCH_ENDED')gameplayAudio.play(outcome.team === players[0].team ? 'victory' : 'defeat');
       announcement =
         phase === 'MATCH_OVER'
-          ? `${teamName(team).toUpperCase()} MENANG MATCH${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
-          : `${teamName(team).toUpperCase()} MENANG · ${reason}`;
+          ? `${teamName(outcome.team).toUpperCase()} MENANG MATCH${progress.locked ? ' · MATCH TERKUNCI' : ''}${fieldRotationPending ? ' · FIELD BERIKUTNYA' : ''}`
+          : `${teamName(team).toUpperCase()} MENANG · ${reason}${scoredMatch ? ` +${record.points}` : ''}${progress.golden ? ' · RONDE EMAS!' : ''}`;
       beep(team === 'blue' ? 720 : 320, 0.25);
-      burst(worldWidth / 2, worldHeight / 2, TEAM_COLOR[team], 38);
+      if (phase === 'MATCH_OVER' && progress.locked) setTimeout(() => beep(260, 0.4), 260);
+      burst(worldWidth / 2, worldHeight / 2, TEAM_COLOR[outcome.team], 38);
       log(announcement);
       });
     };
@@ -1769,7 +1836,7 @@ export function BentenganPrototype() {
       obstacleAt,flightObstacleAt,
       parkourSolidAt,
       fortCoreAt:isInsideFortCore,fortOccupied:(team,id)=>!!fortOccupant(team,id),
-      baseChargeTime:p=>CHARACTER_BY_ID[p.characterId].baseChargeTime,
+      baseChargeTime:p=>statsOf(p).baseChargeTime,
       speedAt:(x,y)=>studioQueries?.speedAt(x,y)??1,
     };
     const waterFallEffects = (p: Player) => {
@@ -1816,7 +1883,7 @@ export function BentenganPrototype() {
       if ((isKanalField(field.id) && isWaterAt(x, y)) || hitsObstacle(x, y)) return false;
       if (
         p.state === 'IN_BASE' &&
-        p.baseCharge < CHARACTER_BY_ID[p.characterId].baseChargeTime &&
+        p.baseCharge < statsOf(p).baseChargeTime &&
         distance({ x, y }, bases[p.team]) >= baseRadius
       )
         return false;
@@ -2032,7 +2099,7 @@ export function BentenganPrototype() {
       );
       if (result.outcome === 'duo') {
         teammates.forEach((p) => {
-          const maximum = CHARACTER_BY_ID[p.characterId].boost;
+          const maximum = statsOf(p).boost;
           p.boost = Math.min(maximum, p.boost + maximum * 0.12);
         });
         burst(x, y, '#f5cf45', 20);
@@ -2046,7 +2113,7 @@ export function BentenganPrototype() {
       }
 
       teammates.forEach((p) => {
-        const maximum = CHARACTER_BY_ID[p.characterId].boost;
+        const maximum = statsOf(p).boost;
         p.boost = Math.min(maximum, p.boost + maximum * 0.16);
       });
       burst(x, y, TEAM_COLOR[actor.team], 32);
@@ -2143,7 +2210,7 @@ export function BentenganPrototype() {
       players
         .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(isKanalField(field.id) && p.waterEnteredAt))
         .forEach((rescuer) => {
-          const rescuerStats = CHARACTER_BY_ID[rescuer.characterId];
+          const rescuerStats = statsOf(rescuer);
           const events:GameEvent[]=[];
           const event=resolveRescue(players,rescuer.entityId,now,{
             kanal2:isKanalField(field.id),range:rescuerStats.rescueRange,shieldMs:rescuerStats.rescueShieldMs,
@@ -2171,12 +2238,12 @@ export function BentenganPrototype() {
             !flightBusy(p) &&
             p.state === 'ACTIVE' &&
             !(isKanalField(field.id) && p.waterEnteredAt) &&
-            p.boost < CHARACTER_BY_ID[p.characterId].boost,
+            p.boost < statsOf(p).boost,
         )
         .forEach((p) => {
           const item = refills.find((i) => distance(p, i) < 27);
           if (!item) return;
-          const maxBoost = CHARACTER_BY_ID[p.characterId].boost;
+          const maxBoost = statsOf(p).boost;
           p.boost = Math.min(maxBoost, p.boost + (maxBoost * item.grade) / 100);
           refills = refills.filter((i) => i.id !== item.id);
           const refillColor =
@@ -2194,11 +2261,11 @@ export function BentenganPrototype() {
         });
     };
     const baseCheck = (p:Player,dt:number,now:number,exitCandidates:Player[]) => {
-      const stats=CHARACTER_BY_ID[p.characterId];
+      const stats=statsOf(p);
       const facts:GameEvent[]=[];
       const events=resolveBase(players,p,dt,now,exitCandidates,{
         bases,radius:baseRadius,kanal2:isKanalField(field.id),boost:stats.boost,
-        chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,
+        chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,teamFort:scoredMatch,
       },events=>facts.push(...events));
       presentInteractionEvents(facts,now);
       for(const event of events) {
@@ -2218,12 +2285,27 @@ export function BentenganPrototype() {
       }
       if (paused || mode !== 'playing') { clearMouse(); return; }
       if (phase !== 'PLAYING') clearMouse();
-      const transition = phaseTransition(phase, phaseUntil, now, postRoundActionRef.current === 'next-round');
+      if (phase === 'ROUND_OVER' && perkDraft && !perkDraft.resolved) {
+        const humanPicks = perkDraft.offer.length > 0 && perkDraft.loser === players[0].team && !devAutobot;
+        const choice = humanPicks ? perkChoiceRef.current : null;
+        if (humanPicks ? choice || now >= perkDraft.deadline - 50 : now >= resultAnnouncementUntil) {
+          resolvePerkDraft(perkDraft, teamPerks, humanPicks ? choice : botPickPerk(perkDraft.offer));
+          perkChoiceRef.current = null;
+          if (humanPicks) phaseUntil = Math.min(phaseUntil, now + 1800);
+          for (const [team, perk] of [[perkDraft.loser, perkDraft.loserPick], [perkDraft.winner, perkDraft.winnerPick]] as const)
+            if (perk) log(`${teamName(team)} mendapat perk ${PERK_BY_ID[perk].name}.`);
+        }
+      }
+      const draftOpen = !!perkDraft && !perkDraft.resolved;
+      const transition = phaseTransition(phase, phaseUntil, now, postRoundActionRef.current === 'next-round' && !draftOpen);
       if (transition === 'countdown' || transition === 'start-round') {
         if (!countdownSoundPlayed && now < phaseUntil) countdownSoundPlayed = gameplayAudio.playCountdown((phaseUntil - now) / 1000);
         announcement = `${Math.max(1, Math.ceil((phaseUntil - now) / 1000))}`;
         if (transition === 'start-round') {
           phase = 'PLAYING';
+          roundStartedAt = now;
+          // Final / golden round cue: existing tone, no new audio asset.
+          if (scoredMatch && (progress.golden || isFinalRound(progress, round))) { beep(880, 0.18); setTimeout(() => beep(1180, 0.24), 180); }
           if (round === 1 && score.blue === 0 && score.red === 0)
             matchStartedAt = now;
           announcement = 'MULAI!';
@@ -2395,7 +2477,9 @@ export function BentenganPrototype() {
         const steering=steerFlight(me.flight!,dx,dy,dt,config.turnMultiplier);
         dx=steering.x;dy=steering.y;
       }
-      if (me.state === 'RETURNING') {
+      if (devAutobot && me.state === 'RETURNING') {
+        // Dev autobot: the bot authority already walks the local player home.
+      } else if (me.state === 'RETURNING') {
         const vector = pasar2PrisonEgress?.vector(me) ?? navigateAroundHazards(
           me,
           baseVector(me),
@@ -2407,7 +2491,7 @@ export function BentenganPrototype() {
           me,
           vector.x,
           vector.y,
-          selected.speed * playerComboMultiplier,
+          statsOf(me).speed * playerComboMultiplier,
           dt,
           now,
           input,
@@ -2417,7 +2501,7 @@ export function BentenganPrototype() {
           me,
           dx,
           dy,
-          Math.min(mouseDistance / Math.max(dt, .001), selected.speed *
+          Math.min(mouseDistance / Math.max(dt, .001), statsOf(me).speed *
             (isFlying(me) && config ? config.speedMultiplier : 1) *
             playerComboMultiplier *
             rajaUltimateMultiplier(me) *
@@ -2443,11 +2527,12 @@ export function BentenganPrototype() {
       botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
+        duty:scoredMatch?{baseRadius,maxFortAttackers:2,rotateMs:30000}:undefined,
         navigate:(p,desired,now,probe,bias)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,desired,now,probe,bias),
       },now,(p,intent)=>{
         if(network&&p.flight)return;
         if(intent.blocked){p.vx=0;p.vy=0;return;}
-        const stats=CHARACTER_BY_ID[p.characterId];
+        const stats=statsOf(p);
         if(intent.frame.sprint)drainBoost(p,stats.boostDrain*AI_BOOST_DRAIN_MULTIPLIER,dt,now);
         const comboMultiplier=teamComboSpeedMultiplier(teamCombos[p.team],now);
         move(p,intent.frame.moveX,intent.frame.moveY,
@@ -2484,11 +2569,26 @@ export function BentenganPrototype() {
           log(`${p.name} keluar sebagai urutan #${p.exitOrder}.`);
           beep(p.controlled ? 520 : 380);
         });
+      if (scoredMatch && phase === 'PLAYING') {
+        const fort = resolveTeamFort(players, fortProgress, dt, {
+          bases, radius: baseRadius, kanal2: isKanalField(field.id),
+          captureSecondsByAttackers: MATCH_FORMAT_CONFIG.fort.captureSecondsByAttackers,
+          decayPerSecond: MATCH_FORMAT_CONFIG.fort.decayPerSecond,
+          locked: now - roundStartedAt < fortLockSeconds(progress) * 1000,
+          bonusSeconds: (defender) => fortCaptureBonusSeconds(teamPerks[defender]),
+        });
+        for (const event of fort.events) {
+          if (event.type !== 'objective') continue;
+          const actor = players.find((p) => p.team === event.team && p.state === 'ACTIVE' && distance(p, bases[other(event.team)]) < baseRadius);
+          if (actor) presentInteractionEvents([{ type: 'FORT_CAPTURED', actorId: actor.entityId, team: event.team, reason: 'BENTENG DIREBUT' }], now);
+          winRound(event.team, event.reason);
+        }
+      }
       refillCheck();
       tagCheck(now);
       rescueCheck(now);
       layoutPrisons();
-      for(const event of resolveAllHeld(players,totalCapture,dt)) {
+      for(const event of resolveAllHeld(players,totalCapture,dt,fullCaptureHoldSeconds(progress))) {
         if(event.type==='objective')winRound(event.team,event.reason);
       }
       particles.forEach((p) => {
@@ -2752,6 +2852,28 @@ export function BentenganPrototype() {
         ctx.fillStyle = '#f5cf45';
         ctx.font = '900 9px Arial';
         ctx.fillText(t(`TERKUNCI · ${occupant.name}`), b.x, baseLabelY + 14);
+      }
+      if (scoredMatch) {
+        // Capture ring in the attacker's colour, visible to both teams.
+        const attacker = other(team), value = fortProgress[attacker];
+        if (value > 0) {
+          ctx.strokeStyle = TEAM_COLOR[attacker];
+          ctx.lineWidth = 8;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, baseRadius + 9, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * value);
+          ctx.stroke();
+          ctx.lineCap = 'butt';
+          ctx.fillStyle = TEAM_COLOR[attacker];
+          ctx.font = '900 11px Arial';
+          ctx.fillText(t(`REBUT ${Math.round(value * 100)}%`), b.x, b.y - baseRadius - 18);
+        }
+        const lockLeft = phase === 'PLAYING' ? fortLockSeconds(progress) * 1000 - (performance.now() - roundStartedAt) : 0;
+        if (lockLeft > 0) {
+          ctx.fillStyle = '#fff3d0';
+          ctx.font = '900 12px Arial';
+          ctx.fillText(`🔒 ${Math.ceil(lockLeft / 1000)}`, b.x, b.y - baseRadius - 18);
+        }
       }
     };
     let debugLayer: HTMLCanvasElement | null = null;
@@ -3631,9 +3753,9 @@ const spriteFrame = (
           red: score.red,
           round,
           timer,
-          boost: (me.boost / selected.boost) * 100,
+          boost: (me.boost / statsOf(me).boost) * 100,
           boostCountdown:
-            me.boost >= selected.boost || !me.boostReadyAt
+            me.boost >= statsOf(me).boost || !me.boostReadyAt
               ? 0
               : Math.max(0, Math.ceil((me.boostReadyAt - now) / 1000)),
           order: me.exitOrder,
@@ -3651,7 +3773,7 @@ const spriteFrame = (
               name: p.name,
               characterId: p.characterId,
               state: p.state,
-              boost: (p.boost / CHARACTER_BY_ID[p.characterId].boost) * 100,
+              boost: (p.boost / statsOf(p).boost) * 100,
             })),
           blueHeld: players.filter(
             (p) => p.team === 'red' && p.state === 'PRISONER',
@@ -3720,6 +3842,26 @@ const spriteFrame = (
             final: phase === 'MATCH_OVER',
           },
           statsBoard: cachedStatsBoard,
+          match: scoredMatch ? {
+            scored: true,
+            label: MATCH_FORMAT_CONFIG.formats[formatId as ScoredFormatId].label,
+            totalRounds: progress.totalRounds,
+            final: isFinalRound(progress, round),
+            golden: progress.golden,
+            locked: progress.locked,
+            points: { ...progress.points },
+            perks: { blue: [...teamPerks.blue], red: [...teamPerks.red] },
+            rounds: progress.rounds.map((r) => ({ ...r })),
+            lastPoints: progress.rounds.at(-1)?.points ?? 0,
+            fortLockRemaining: phase === 'PLAYING'
+              ? Math.max(0, Math.ceil((fortLockSeconds(progress) * 1000 - (now - roundStartedAt)) / 1000)) : 0,
+            draft: perkDraft && phase === 'ROUND_OVER' ? {
+              loser: perkDraft.loser, winner: perkDraft.winner, offer: [...perkDraft.offer],
+              humanPicks: perkDraft.offer.length > 0 && perkDraft.loser === me.team && !devAutobot,
+              remaining: Math.max(0, Math.ceil((perkDraft.deadline - now) / 1000)),
+              resolved: perkDraft.resolved, loserPick: perkDraft.loserPick, winnerPick: perkDraft.winnerPick,
+            } : null,
+          } : initialMatchFormatView,
         });
       }
       if(profileRuntime) {
@@ -4222,6 +4364,9 @@ const spriteFrame = (
             onSelect={setSelectedFieldId}
             onStep={cycleArena}
             onStart={start}
+            formats={scoredFormatIds().map((id) => ({ id, label: matchFormatLabel(id) }))}
+            matchFormat={matchFormat}
+            onMatchFormat={(id) => { const next = saveMatchFormat(id); matchFormatRef.current = next; setMatchFormatState(next); }}
           />
         )}
 
@@ -4308,7 +4453,10 @@ const spriteFrame = (
             onToggle={() => setLeaderboardOpen((value) => !value)}
           />
           <MatchEventFeed events={snapshot.matchEvents} frames={MATCH_EVENT_FRAME} />
-          <RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET} />
+          <RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET}
+            detail={snapshot.match.scored ? snapshot.roundResult.final
+              ? `${snapshot.match.points.blue} — ${snapshot.match.points.red}${snapshot.match.locked ? ` · ${t('MATCH TERKUNCI')}` : ''}`
+              : `${t(statsBoard.reason)} +${snapshot.match.lastPoints}${snapshot.match.golden ? ` · ${t('RONDE EMAS!')}` : ''}` : undefined} />
           {showStatsBoard && (
             <RoundStatsOverlay
               statsBoard={statsBoard}
@@ -4319,6 +4467,12 @@ const spriteFrame = (
               onBackToCharacterSelect={backToCharacterSelect}
               onBackToFieldSelect={backToFieldSelect}
               onQuit={quit}
+              match={snapshot.match}
+              nextRoundLocked={!!snapshot.match.draft && snapshot.match.draft.humanPicks && !snapshot.match.draft.resolved}
+              draft={snapshot.match.draft && (
+                <PerkDraftPanel draft={snapshot.match.draft} playerTeam={selectedFaction === 'green' ? 'red' : 'blue'}
+                  onPick={(id) => { perkChoiceRef.current = id; }} />
+              )}
             >
               {matchProgressionResult && <MatchProgressionSummary result={matchProgressionResult} />}
               {playerProfile && <UnlockNotificationPanel result={matchProgressionResult}
