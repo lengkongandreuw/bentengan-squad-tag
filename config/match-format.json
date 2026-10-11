@@ -19,6 +19,8 @@
     "lockSeconds": 45
   },
   "fullCaptureHoldSeconds": 4,
+  "lastStandSeconds": 20,
+  "guardBotsDifficulty": "hard",
   "goldenRound": { "seconds": 90 },
   "perkDraft": { "offerCount": 3, "maxPerTeam": 3, "maxSeconds": 12 },
   "multiplayerFormat": "legacy-bo3"

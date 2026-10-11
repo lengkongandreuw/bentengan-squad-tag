@@ -291,3 +291,19 @@ void test('beatable bots: vision radius, parkour blindness, guard swap gap and r
   assert.equal(seen[1], 300, 'still aiming at the old position inside the reaction window');
   assert.equal(seen[2], 500, 'reacts after the window');
 });
+
+void test('last stand and hard-only guard bots', async () => {
+  const { lastStandTeam, lastStandSeconds, guardBotsFor } = await import('../modules/game-core/match-format.ts');
+  const squad = (team, free, total = 5) => Array.from({ length: total }, (_, i) => ({ team, state: i < free ? 'ACTIVE' : 'PRISONER' }));
+  assert.equal(lastStandTeam([...squad('blue', 1), ...squad('red', 3)]), 'blue');
+  assert.equal(lastStandTeam([...squad('blue', 2), ...squad('red', 1)]), 'red');
+  assert.equal(lastStandTeam([...squad('blue', 2), ...squad('red', 3)]), null);
+  assert.equal(lastStandTeam([...squad('blue', 0), ...squad('red', 3)]), null); // all caught → full-capture rule instead
+  assert.equal(lastStandTeam([...squad('blue', 1, 1), ...squad('red', 1, 1)]), null); // 1v1 rosters never count
+  assert.equal(lastStandSeconds(createMatchProgress('standard')), 20);
+  assert.equal(lastStandSeconds(createMatchProgress('legacy-bo3')), 0);
+  assert.equal(guardBotsFor(createMatchProgress('standard'), 'hard'), true);
+  assert.equal(guardBotsFor(createMatchProgress('standard'), 'easy'), false);
+  assert.equal(guardBotsFor(createMatchProgress('standard'), 'normal'), false);
+  assert.equal(guardBotsFor(createMatchProgress('legacy-bo3'), 'hard'), false);
+});

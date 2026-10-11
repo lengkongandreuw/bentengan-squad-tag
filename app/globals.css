@@ -8347,6 +8347,7 @@ body
 /* ── Match format 5 ronde: points HUD, fort lock, perk draft, round history ── */
 .playing-shell .stage-hud.scored time small { color: #f5cf45; font-weight: 800; }
 .playing-shell .stage-hud.final-round time { color: #f5cf45; text-shadow: 0 0 14px rgba(245, 207, 69, 0.6); }
+.playing-shell .stage-hud time small.hud-last-stand { margin-top: 1px; color: #ff8a80; letter-spacing: 0.04em; }
 .playing-shell .stage-hud time small.hud-fort-lock { margin-top: 1px; color: #fff3d0; letter-spacing: 0.04em; }
 .stage-hud .hud-perks { display: inline-flex; gap: 2px; margin-top: 2px; }
 .stage-hud .hud-perks i { font-style: normal; font-size: 12px; line-height: 1; padding: 2px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); }

@@ -97,7 +97,7 @@ import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimate
 import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, parkourPassesObstacle, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
 import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, resolveTeamFort, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
-import { completeRound, createMatchProgress, fortLockSeconds, fullCaptureHoldSeconds, isFinalRound, isScoredFormat, loadMatchFormat, MATCH_FORMAT_CONFIG, matchFormatLabel, saveMatchFormat, scoredFormatIds, roundSecondsFor, type MatchFormatId, type ScoredFormatId } from '../modules/game-core/match-format.ts';
+import { completeRound, createMatchProgress, fortLockSeconds, fullCaptureHoldSeconds, guardBotsFor, isFinalRound, lastStandSeconds, lastStandTeam, isScoredFormat, loadMatchFormat, MATCH_FORMAT_CONFIG, matchFormatLabel, saveMatchFormat, scoredFormatIds, roundSecondsFor, type MatchFormatId, type ScoredFormatId } from '../modules/game-core/match-format.ts';
 import { botPickPerk, createPerkDraft, PERK_BY_ID, effectiveStats, emptyTeamPerks, fortCaptureBonusSeconds, refillSpawnWeight, resolvePerkDraft, type PerkDraft, type PerkId } from '../modules/gameplay/perks.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
 
@@ -1047,7 +1047,8 @@ export function BentenganPrototype() {
       round = 1,
       exitCounter = 0;
     const teamPerks = emptyTeamPerks();
-    let enemyGuardVacant = false;
+    let enemyGuardVacant = false,
+      lastStand = false;
     let fortProgress = { blue: 0, red: 0 },
       roundStartedAt = performance.now(),
       perkDraft: PerkDraft | null = null;
@@ -1631,6 +1632,7 @@ export function BentenganPrototype() {
       seedRefills();
       timer = roundSecondsFor(progress);
       fortProgress = { blue: 0, red: 0 };
+      lastStand = false;
       perkDraft = null;
       perkChoiceRef.current = null;
       botAuthority.reset();
@@ -2342,6 +2344,17 @@ export function BentenganPrototype() {
       timer = timerResult.timer;
       suddenDeath = timerResult.suddenDeath;
       if (timerResult.winner) winRound(timerResult.winner.team, timerResult.winner.reason);
+      else if (scoredMatch && phase === 'PLAYING' && !suddenDeath && !lastStand) {
+        const loneTeam = lastStandTeam(players);
+        if (loneTeam) {
+          lastStand = true;
+          if (timer > lastStandSeconds(progress)) timer = lastStandSeconds(progress);
+          announcement = `TERAKHIR BERTAHAN · ${Math.ceil(timer)} DETIK`;
+          setTimeout(() => { if (phase === 'PLAYING' && announcement.startsWith('TERAKHIR')) announcement = ''; }, 1600);
+          log(`${teamName(loneTeam)} tinggal satu pemain — waktu dipercepat ke ${Math.ceil(timer)} detik.`);
+          beep(620, 0.2);
+        }
+      }
       else if (!wasSuddenDeath && suddenDeath) {
           announcement = 'SUDDEN DEATH';
           log('Skor seri—tag atau rebut benteng berikutnya menang.');
@@ -2528,7 +2541,8 @@ export function BentenganPrototype() {
       botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
-        duty:scoredMatch?{baseRadius,maxFortAttackers:2,rotateMs:30000,weakness:BOT_WEAKNESS}:undefined,
+        // Original bot AI on easy/normal; fort guards (with their exploitable gaps) only on hard arenas.
+        duty:guardBotsFor(progress,field.difficulty)?{baseRadius,maxFortAttackers:2,rotateMs:30000,weakness:BOT_WEAKNESS}:undefined,
         navigate:(p,desired,now,probe,bias)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,desired,now,probe,bias),
       },now,(p,intent)=>{
         if(network&&p.flight)return;
@@ -3858,6 +3872,7 @@ const spriteFrame = (
             perks: { blue: [...teamPerks.blue], red: [...teamPerks.red] },
             rounds: progress.rounds.map((r) => ({ ...r })),
             lastPoints: progress.rounds.at(-1)?.points ?? 0,
+            lastStand,
             fortLockRemaining: phase === 'PLAYING'
               ? Math.max(0, Math.ceil((fortLockSeconds(progress) * 1000 - (now - roundStartedAt)) / 1000)) : 0,
             draft: perkDraft && phase === 'ROUND_OVER' ? {

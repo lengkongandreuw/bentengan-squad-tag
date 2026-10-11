@@ -145,3 +145,21 @@ export function completeRound(
   if (gap > maxRemainingPoints(progress, result.round)) return finish(leader(progress.points)!, true);
   return { record, matchOver: false, locked: false, goldenNext: false };
 }
+
+/**
+ * Last stand: a team with exactly one free player (every teammate imprisoned).
+ * The runtime cuts the round clock to lastStandSeconds once so a lone survivor
+ * cannot drag the round out; surviving to the end resolves as WAKTU HABIS.
+ */
+export function lastStandTeam(players: readonly { team: LegacyTeam; state: string }[]): LegacyTeam | null {
+  for (const team of ['blue', 'red'] as const) {
+    const squad = players.filter((p) => p.team === team);
+    if (squad.length > 1 && squad.filter((p) => p.state !== 'PRISONER').length === 1) return team;
+  }
+  return null;
+}
+export const lastStandSeconds = (progress: MatchProgress) =>
+  isScoredFormat(progress.formatId) ? MATCH_FORMAT.lastStandSeconds : 0;
+/** Guard-duty bots (and their exploitable gaps) only on this arena difficulty. */
+export const guardBotsFor = (progress: MatchProgress, difficulty: string) =>
+  isScoredFormat(progress.formatId) && difficulty === MATCH_FORMAT.guardBotsDifficulty;

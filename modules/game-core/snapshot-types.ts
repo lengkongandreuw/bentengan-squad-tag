@@ -61,6 +61,8 @@ export type MatchFormatView = {
   /** Points awarded for the round that just ended (result card). */
   lastPoints: number;
   fortLockRemaining: number;
+  /** A team is down to its last free player; the round clock was cut. */
+  lastStand: boolean;
   draft: null | {
     loser: Team;
     winner: Team;
@@ -74,7 +76,7 @@ export type MatchFormatView = {
 };
 export const initialMatchFormatView: MatchFormatView = {
   scored: false, label: 'Best of 3', totalRounds: 3, final: false, golden: false, locked: false,
-  points: { blue: 0, red: 0 }, perks: { blue: [], red: [] }, rounds: [], lastPoints: 0, fortLockRemaining: 0, draft: null,
+  points: { blue: 0, red: 0 }, perks: { blue: [], red: [] }, rounds: [], lastPoints: 0, fortLockRemaining: 0, lastStand: false, draft: null,
 };
 
 export type Snapshot = {

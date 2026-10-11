@@ -38,6 +38,7 @@ export const StageHud = ({
     <time>
       {t(snapshot.suddenDeath ? 'SD' : formatTime(snapshot.timer))}
       <small>{t(match.scored ? roundLabel : "WAKTU")}</small>
+      {match.scored && match.lastStand && <small className="hud-last-stand">{t('⏱ TERAKHIR BERTAHAN')}</small>}
       {match.scored && match.fortLockRemaining > 0 && (
         <small className="hud-fort-lock">{t(`🔒 Benteng terkunci ${match.fortLockRemaining} detik`)}</small>
       )}
