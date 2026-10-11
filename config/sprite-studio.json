@@ -9612,10 +9612,10 @@
             "height": 294
           }
         ],
-        "fps": 12,
-        "scale": 1,
-        "x": -1.2366034624896949,
-        "y": 5.935696619950535,
+        "fps": 13,
+        "scale": 1.2,
+        "x": -1.4389427165828894,
+        "y": 5.126249285959875,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": true,
@@ -9916,7 +9916,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": 1.4839241549876339,
         "y": 5.688375927452596,
         "pivotX": 0.5,
@@ -9925,606 +9925,126 @@
         "mirror": false
       },
       "run.west": {
-        "asset": "sprite-studio/jago/d26fe260b7904d489ac19e0bf3d9df8531674c969ef1404e94f67071a73c2935.webp",
-        "width": 4032,
-        "height": 840,
+        "asset": "sprite-studio/jago/b1b24ceac4fc59c05093af154329023d69fc199ead7bbae3cd428a7e8b0bc541.webp",
+        "width": 1312,
+        "height": 198,
         "frames": [
           {
             "x": 0,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 252,
+            "x": 164,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 504,
+            "x": 328,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 756,
+            "x": 492,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1008,
+            "x": 656,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1260,
+            "x": 820,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1512,
+            "x": 984,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1764,
+            "x": 1148,
             "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2016,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2268,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2520,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2772,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3024,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3276,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3528,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3780,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 0,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 252,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 504,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 756,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1008,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1260,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1512,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1764,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2016,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2268,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2520,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2772,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3024,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3276,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3528,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3780,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 0,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 252,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 504,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 756,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1008,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1260,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1512,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1764,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2016,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2268,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2520,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2772,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3024,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3276,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3528,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3780,
-            "y": 560,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           }
         ],
-        "fps": 12,
-        "scale": 1,
-        "x": 1.4839241549876339,
-        "y": 6.183017312448475,
+        "fps": 8,
+        "scale": 1.2,
+        "x": 0.47211672437657537,
+        "y": 10.027866095745107,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": true,
         "mirror": true
       },
       "run.east": {
-        "asset": "sprite-studio/jago/d26fe260b7904d489ac19e0bf3d9df8531674c969ef1404e94f67071a73c2935.webp",
-        "width": 4032,
-        "height": 840,
+        "asset": "sprite-studio/jago/b1b24ceac4fc59c05093af154329023d69fc199ead7bbae3cd428a7e8b0bc541.webp",
+        "width": 1312,
+        "height": 198,
         "frames": [
           {
             "x": 0,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 252,
+            "x": 164,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 504,
+            "x": 328,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 756,
+            "x": 492,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1008,
+            "x": 656,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1260,
+            "x": 820,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1512,
+            "x": 984,
             "y": 0,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           },
           {
-            "x": 1764,
+            "x": 1148,
             "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2016,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2268,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2520,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2772,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3024,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3276,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3528,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3780,
-            "y": 0,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 0,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 252,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 504,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 756,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1008,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1260,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1512,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1764,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2016,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2268,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2520,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2772,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3024,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3276,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3528,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3780,
-            "y": 280,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 0,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 252,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 504,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 756,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1008,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1260,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1512,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 1764,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2016,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2268,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2520,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 2772,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3024,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3276,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3528,
-            "y": 560,
-            "width": 252,
-            "height": 280
-          },
-          {
-            "x": 3780,
-            "y": 560,
-            "width": 252,
-            "height": 280
+            "width": 164,
+            "height": 198
           }
         ],
-        "fps": 12,
-        "scale": 1,
-        "x": 1.4839241549876339,
-        "y": 6.183017312448475,
+        "fps": 8,
+        "scale": 1.2,
+        "x": -0.13495661797555114,
+        "y": 10.432586288985904,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": true,
@@ -10825,7 +10345,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": -3.9571310799670236,
         "y": 6.183017312448475,
         "pivotX": 0.5,
@@ -11128,13 +10648,769 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": -3.9571310799670236,
         "y": 6.183017312448475,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": true,
         "mirror": false
+      },
+      "run": {
+        "asset": "sprite-studio/jago/2eb1c5473c1c337c2e86d788554cff4efc396e2d6f56025657c78ec0a9ced905.webp",
+        "width": 1008,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 126,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 252,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 378,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 504,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 630,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 756,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          }
+        ],
+        "fps": 9,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 3.0354153443241074,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.south": {
+        "asset": "sprite-studio/jago/2eb1c5473c1c337c2e86d788554cff4efc396e2d6f56025657c78ec0a9ced905.webp",
+        "width": 1008,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 126,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 252,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 378,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 504,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 630,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 756,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 126,
+            "height": 197
+          }
+        ],
+        "fps": 9,
+        "scale": 1.2,
+        "x": -0.8094542814997282,
+        "y": 6.070827214893681,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.north": {
+        "asset": "sprite-studio/jago/66675ce4342017d69bc699efa97730698a43cad45a6cf599dca899607bf77368.webp",
+        "width": 968,
+        "height": 201,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 121,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 242,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 363,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 484,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 605,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 726,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          },
+          {
+            "x": 847,
+            "y": 0,
+            "width": 121,
+            "height": 201
+          }
+        ],
+        "fps": 8,
+        "scale": 1.35,
+        "x": -1.011779640574787,
+        "y": 6.8802606538662054,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "tag": {
+        "asset": "sprite-studio/jago/89285857342dc031913b2b0701ed6616ed45828ad352c934f2a4410740e62570.webp",
+        "width": 1344,
+        "height": 206,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 168,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 336,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 504,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 840,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 1008,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 1176,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0,
+        "y": 0,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.south": {
+        "asset": "sprite-studio/jago/89285857342dc031913b2b0701ed6616ed45828ad352c934f2a4410740e62570.webp",
+        "width": 1344,
+        "height": 206,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 168,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 336,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 504,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 840,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 1008,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          },
+          {
+            "x": 1176,
+            "y": 0,
+            "width": 168,
+            "height": 206
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0,
+        "y": 0,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.west": {
+        "asset": "sprite-studio/jago/dda0b3e439219be89557882cd9e8879e7a41ca4d54060f04930a182ccb21c5ba.webp",
+        "width": 1320,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 165,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 330,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 495,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 660,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 825,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 990,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 1155,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          }
+        ],
+        "fps": 16,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 7.284984320861536,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.east": {
+        "asset": "sprite-studio/jago/dda0b3e439219be89557882cd9e8879e7a41ca4d54060f04930a182ccb21c5ba.webp",
+        "width": 1320,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 165,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 330,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 495,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 660,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 825,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 990,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 1155,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          }
+        ],
+        "fps": 16,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 7.284984320861536,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.north": {
+        "asset": "sprite-studio/jago/a11ad7b1483871ad8dd53979ef6763907dbfeeccfca9114489a5bd35d7de41c3.webp",
+        "width": 1000,
+        "height": 218,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 125,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 250,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 375,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 500,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 625,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 750,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          },
+          {
+            "x": 875,
+            "y": 0,
+            "width": 125,
+            "height": 218
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 2.428335054462913,
+        "y": 5.463743451277953,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.southwest": {
+        "asset": "sprite-studio/jago/dda0b3e439219be89557882cd9e8879e7a41ca4d54060f04930a182ccb21c5ba.webp",
+        "width": 1320,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 165,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 330,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 495,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 660,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 825,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 990,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 1155,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          }
+        ],
+        "fps": 16,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 7.284984320861536,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northwest": {
+        "asset": "sprite-studio/jago/dda0b3e439219be89557882cd9e8879e7a41ca4d54060f04930a182ccb21c5ba.webp",
+        "width": 1320,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 165,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 330,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 495,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 660,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 825,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 990,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 1155,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          }
+        ],
+        "fps": 16,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 7.284984320861536,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northeast": {
+        "asset": "sprite-studio/jago/dda0b3e439219be89557882cd9e8879e7a41ca4d54060f04930a182ccb21c5ba.webp",
+        "width": 1320,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 165,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 330,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 495,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 660,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 825,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 990,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 1155,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          }
+        ],
+        "fps": 16,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 7.284984320861536,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.southeast": {
+        "asset": "sprite-studio/jago/dda0b3e439219be89557882cd9e8879e7a41ca4d54060f04930a182ccb21c5ba.webp",
+        "width": 1320,
+        "height": 197,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 165,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 330,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 495,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 660,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 825,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 990,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          },
+          {
+            "x": 1155,
+            "y": 0,
+            "width": 165,
+            "height": 197
+          }
+        ],
+        "fps": 16,
+        "scale": 1.2,
+        "x": 0.20236704412946602,
+        "y": 7.284984320861536,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
       }
     },
     "bebe": {
@@ -26421,6 +26697,1142 @@
         "scale": 1.3,
         "x": 2.4283211594447773,
         "y": 5.059023258037156,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      }
+    },
+    "buto": {
+      "run": {
+        "asset": "sprite-studio/buto/f5ac1b2788c98ae6d2499d7e456d258ae09ebd4f97e650a6e6149dcc31bb3e5d.webp",
+        "width": 1824,
+        "height": 264,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 228,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 456,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 912,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 1140,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 1368,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 1596,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -1.2141744747405245,
+        "y": 8.094445549870333,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.south": {
+        "asset": "sprite-studio/buto/f5ac1b2788c98ae6d2499d7e456d258ae09ebd4f97e650a6e6149dcc31bb3e5d.webp",
+        "width": 1824,
+        "height": 264,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 228,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 456,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 912,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 1140,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 1368,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          },
+          {
+            "x": 1596,
+            "y": 0,
+            "width": 228,
+            "height": 264
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -1.2141744747405245,
+        "y": 8.094445549870333,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.west": {
+        "asset": "sprite-studio/buto/44baedc10a1d7ebd116141a22bfec0264abeb4cc0b1f2d4cdc3b13b9ff928176.webp",
+        "width": 1672,
+        "height": 230,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 209,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 418,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 627,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 836,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1045,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1254,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1463,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141744747405245,
+        "y": 8.094431654852196,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.southwest": {
+        "asset": "sprite-studio/buto/44baedc10a1d7ebd116141a22bfec0264abeb4cc0b1f2d4cdc3b13b9ff928176.webp",
+        "width": 1672,
+        "height": 230,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 209,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 418,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 627,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 836,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1045,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1254,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1463,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141744747405245,
+        "y": 8.094431654852196,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.northwest": {
+        "asset": "sprite-studio/buto/44baedc10a1d7ebd116141a22bfec0264abeb4cc0b1f2d4cdc3b13b9ff928176.webp",
+        "width": 1672,
+        "height": 230,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 209,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 418,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 627,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 836,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1045,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1254,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1463,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141744747405245,
+        "y": 8.094431654852196,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.east": {
+        "asset": "sprite-studio/buto/44baedc10a1d7ebd116141a22bfec0264abeb4cc0b1f2d4cdc3b13b9ff928176.webp",
+        "width": 1672,
+        "height": 230,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 209,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 418,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 627,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 836,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1045,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1254,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1463,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141744747405245,
+        "y": 8.094431654852196,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.northeast": {
+        "asset": "sprite-studio/buto/44baedc10a1d7ebd116141a22bfec0264abeb4cc0b1f2d4cdc3b13b9ff928176.webp",
+        "width": 1672,
+        "height": 230,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 209,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 418,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 627,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 836,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1045,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1254,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1463,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141744747405245,
+        "y": 8.094431654852196,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.southeast": {
+        "asset": "sprite-studio/buto/44baedc10a1d7ebd116141a22bfec0264abeb4cc0b1f2d4cdc3b13b9ff928176.webp",
+        "width": 1672,
+        "height": 230,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 209,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 418,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 627,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 836,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1045,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1254,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          },
+          {
+            "x": 1463,
+            "y": 0,
+            "width": 209,
+            "height": 230
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141744747405245,
+        "y": 8.094431654852196,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.north": {
+        "asset": "sprite-studio/buto/a5cc23e7a2e0340a826963abdb8fb9681389a7c89206179a15e1c00fdf15d152.webp",
+        "width": 1416,
+        "height": 258,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 177,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 354,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 531,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 708,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 885,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 1062,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          },
+          {
+            "x": 1239,
+            "y": 0,
+            "width": 177,
+            "height": 258
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.8094403864815926,
+        "y": 10.320413560203779,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "tag": {
+        "asset": "sprite-studio/buto/5199ad2c4ffe23b80f7b49e403bd11ef439c22c19e74309e60419cb9f44c17a5.webp",
+        "width": 1712,
+        "height": 244,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 214,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 428,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 642,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 856,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 1070,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 1284,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 1498,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -3.2377754409445054,
+        "y": 6.677904031000342,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.south": {
+        "asset": "sprite-studio/buto/5199ad2c4ffe23b80f7b49e403bd11ef439c22c19e74309e60419cb9f44c17a5.webp",
+        "width": 1712,
+        "height": 244,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 214,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 428,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 642,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 856,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 1070,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 1284,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          },
+          {
+            "x": 1498,
+            "y": 0,
+            "width": 214,
+            "height": 244
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -2.4283211594447773,
+        "y": 7.284991268370604,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.west": {
+        "asset": "sprite-studio/buto/2b3273a5c7174ad341fdfdb8b7f45f55d8d1a9a9c48222de1e2a9c722d8cff7c.webp",
+        "width": 1840,
+        "height": 299,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 230,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 460,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 690,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 920,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1150,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1380,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1610,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.20236704412946602,
+        "y": 8.09443512860673,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.southwest": {
+        "asset": "sprite-studio/buto/2b3273a5c7174ad341fdfdb8b7f45f55d8d1a9a9c48222de1e2a9c722d8cff7c.webp",
+        "width": 1840,
+        "height": 299,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 230,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 460,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 690,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 920,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1150,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1380,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1610,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.20236704412946602,
+        "y": 8.09443512860673,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northwest": {
+        "asset": "sprite-studio/buto/2b3273a5c7174ad341fdfdb8b7f45f55d8d1a9a9c48222de1e2a9c722d8cff7c.webp",
+        "width": 1840,
+        "height": 299,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 230,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 460,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 690,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 920,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1150,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1380,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1610,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.20236704412946602,
+        "y": 8.09443512860673,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northeast": {
+        "asset": "sprite-studio/buto/2b3273a5c7174ad341fdfdb8b7f45f55d8d1a9a9c48222de1e2a9c722d8cff7c.webp",
+        "width": 1840,
+        "height": 299,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 230,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 460,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 690,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 920,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1150,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1380,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1610,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.20236704412946602,
+        "y": 8.09443512860673,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.east": {
+        "asset": "sprite-studio/buto/2b3273a5c7174ad341fdfdb8b7f45f55d8d1a9a9c48222de1e2a9c722d8cff7c.webp",
+        "width": 1840,
+        "height": 299,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 230,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 460,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 690,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 920,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1150,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1380,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1610,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.20236704412946602,
+        "y": 8.09443512860673,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.southeast": {
+        "asset": "sprite-studio/buto/2b3273a5c7174ad341fdfdb8b7f45f55d8d1a9a9c48222de1e2a9c722d8cff7c.webp",
+        "width": 1840,
+        "height": 299,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 230,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 460,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 690,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 920,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1150,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1380,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          },
+          {
+            "x": 1610,
+            "y": 0,
+            "width": 230,
+            "height": 299
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -0.20236704412946602,
+        "y": 8.09443512860673,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.north": {
+        "asset": "sprite-studio/buto/4e7c58b34bb9d3c9b358d5833613aba31cd0533cafcc2d10d20bb83ea4f309d4.webp",
+        "width": 1552,
+        "height": 279,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 194,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 388,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 582,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 776,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 970,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 1164,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          },
+          {
+            "x": 1358,
+            "y": 0,
+            "width": 194,
+            "height": 279
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": -1.6188807729631849,
+        "y": 15.986510160593062,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": false,
