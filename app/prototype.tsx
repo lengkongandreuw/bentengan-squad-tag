@@ -76,7 +76,7 @@ import { clickRoute, pointerWorld } from '../modules/gameplay/click-navigation.t
 import type { RuntimeActor, ActorStats as PlayerStats, CanonicalGameState } from '../lib/game-core/types';
 import { createEntityRegistry } from '../lib/game-core/entities.ts';
 import { createLocalInputAdapter, type PlayerInputFrame } from '../lib/game-core/input.ts';
-import { createBotAuthority } from '../modules/gameplay/ai-movement.ts';
+import { BOT_WEAKNESS, createBotAuthority } from '../modules/gameplay/ai-movement.ts';
 import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-core/events.ts';
 import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick.ts';
 import { describeMatch } from '../lib/game-core/state.ts';
@@ -1047,6 +1047,7 @@ export function BentenganPrototype() {
       round = 1,
       exitCounter = 0;
     const teamPerks = emptyTeamPerks();
+    let enemyGuardVacant = false;
     let fortProgress = { blue: 0, red: 0 },
       roundStartedAt = performance.now(),
       perkDraft: PerkDraft | null = null;
@@ -2527,7 +2528,7 @@ export function BentenganPrototype() {
       botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
-        duty:scoredMatch?{baseRadius,maxFortAttackers:2,rotateMs:30000}:undefined,
+        duty:scoredMatch?{baseRadius,maxFortAttackers:2,rotateMs:30000,weakness:BOT_WEAKNESS}:undefined,
         navigate:(p,desired,now,probe,bias)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,desired,now,probe,bias),
       },now,(p,intent)=>{
         if(network&&p.flight)return;
@@ -2570,6 +2571,10 @@ export function BentenganPrototype() {
           beep(p.controlled ? 520 : 380);
         });
       if (scoredMatch && phase === 'PLAYING') {
+        // Tell the player when the enemy guard swaps: the fort is briefly unguarded.
+        const enemyTeam = other(me.team), vacant = botAuthority.guardVacant(enemyTeam, now);
+        if (vacant && !enemyGuardVacant) log(`Penjaga ${teamName(enemyTeam)} berganti — benteng mereka kosong sebentar!`);
+        enemyGuardVacant = vacant;
         const fort = resolveTeamFort(players, fortProgress, dt, {
           bases, radius: baseRadius, kanal2: isKanalField(field.id),
           captureSecondsByAttackers: MATCH_FORMAT_CONFIG.fort.captureSecondsByAttackers,

@@ -11,7 +11,7 @@ import {
   botPickPerk, createPerkDraft, effectiveStats, emptyTeamPerks, fortCaptureBonusSeconds,
   PERK_LIST, refillSpawnWeight, resolvePerkDraft,
 } from '../modules/gameplay/perks.ts';
-import { assignGuards, createBotAuthority, planBot } from '../modules/gameplay/ai-movement.ts';
+import { assignGuards, BOT_WEAKNESS, botSees, createBotAuthority, planBot } from '../modules/gameplay/ai-movement.ts';
 import { CHARACTER_BY_ID } from '../lib/characters.ts';
 
 const none = { blue: 0, red: 0 };
@@ -111,7 +111,7 @@ void test('legacy best-of-3 is unchanged for multiplayer', () => {
 const actor = (id, team, x, y, state = 'ACTIVE', extra = {}) => ({
   id, entityId: `entity-${id}`, team, x, y, vx: 0, vy: 0, state, controller: 'bot', characterId: 'raja', aiSeed: 1,
   exitOrder: 1, boost: 100, fortCharge: 0, baseCharge: 0, exitDeadline: 0, lastExitAt: -1e9, boostReadyAt: 0,
-  capturedIds: [], prisonIndex: 0, waterEnteredAt: 0, flight: null, ...extra,
+  capturedIds: [], prisonIndex: 0, waterEnteredAt: 0, parkourUntil: 0, flight: null, ...extra,
 });
 const bases = { blue: { x: 100, y: 300 }, red: { x: 900, y: 300 } };
 const fortRules = (over = {}) => ({
@@ -248,4 +248,46 @@ void test('bots: one guard per team, guard chases only lower exit orders, at mos
   const legacy = [];
   createBotAuthority().run('host', botWorld(rushers.map((p) => ({ ...p })), undefined), 0, (_p, intent) => legacy.push(intent.objective));
   assert.ok(!legacy.includes('guard') && !legacy.includes('center'));
+});
+
+void test('beatable bots: vision radius, parkour blindness, guard swap gap and reaction delay', () => {
+  const weakness = BOT_WEAKNESS;
+  const bot = actor('b', 'blue', 500, 300, 'ACTIVE', { exitOrder: 5 });
+  const near = actor('n', 'red', 700, 300, 'ACTIVE', { exitOrder: 1 });
+  const far = actor('f', 'red', 1000, 300, 'ACTIVE', { exitOrder: 1 });
+  const vaulting = actor('v', 'red', 600, 300, 'ACTIVE', { exitOrder: 1, parkourUntil: 500 });
+  assert.equal(botSees(bot, near, 0, weakness), true);
+  assert.equal(botSees(bot, far, 0, weakness), false);
+  assert.equal(botSees(bot, vaulting, 0, weakness), false);
+  assert.equal(botSees(bot, vaulting, 600, weakness), true);
+  assert.equal(botSees(bot, far, 0, undefined), true); // legacy / multiplayer: full knowledge
+  const duty = { baseRadius: 60, maxFortAttackers: 2, rotateMs: 30000, weakness };
+  // A target mid-parkour is not chased; once it lands it is.
+  assert.notEqual(planBot(bot, 0, botWorld([bot, vaulting], duty)).targetId, vaulting.entityId);
+  assert.equal(planBot(bot, 600, botWorld([bot, vaulting], duty)).targetId, vaulting.entityId);
+  // Guard swap leaves the fort empty for guardSwapGapMs, then a different bot takes over.
+  const blue = [1, 2, 3].map((n) => actor(`g${n}`, 'blue', 120 + n * 40, 300));
+  const w = botWorld(blue, duty), slots = {};
+  assert.equal(assignGuards(w, 0, slots, 30000, weakness.guardSwapGapMs).blue, 'g1');
+  assert.equal(assignGuards(w, 30001, slots, 30000, weakness.guardSwapGapMs).blue, undefined);
+  assert.equal(assignGuards(w, 33000, slots, 30000, weakness.guardSwapGapMs).blue, undefined);
+  assert.equal(assignGuards(w, 36002, slots, 30000, weakness.guardSwapGapMs).blue, 'g2');
+  const authority = createBotAuthority();
+  authority.run('host', botWorld(blue, duty), 0, () => {});
+  authority.run('host', botWorld(blue, duty), 30001, () => {});
+  assert.equal(authority.guardVacant('blue', 30500), true);
+  // Reaction: the bot keeps running to where the target was when it decided.
+  const chaser = actor('c', 'blue', 400, 300, 'ACTIVE', { exitOrder: 5, aiSeed: 0 });
+  const runner = actor('r', 'red', 600, 300, 'ACTIVE', { exitOrder: 1 });
+  const keeper = actor('k', 'blue', 130, 300, 'ACTIVE', { exitOrder: 2 }); // nearest the fort → becomes the guard
+  const seen = [];
+  const react = createBotAuthority(), world = botWorld([chaser, keeper, runner], { ...duty, maxFortAttackers: 9 });
+  const record = (p, intent) => { if (p.id === 'c') seen.push(intent.frame.targetY); };
+  react.run('host', world, 0, record);
+  runner.y = 500; // juke downwards
+  react.run('host', world, 200, record);
+  react.run('host', world, 500, record);
+  assert.equal(seen[0], 300, JSON.stringify(seen));
+  assert.equal(seen[1], 300, 'still aiming at the old position inside the reaction window');
+  assert.equal(seen[2], 500, 'reacts after the window');
 });

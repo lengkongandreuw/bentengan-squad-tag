@@ -214,11 +214,25 @@ export type BotWorld = {
   /** Fort duty (5-round format): one guard per team, at most `maxFortAttackers` bots rushing the enemy fort. */
   duty?: BotDuty;
 };
-export type BotDuty = { baseRadius: number; maxFortAttackers: number; rotateMs: number; guards?: Partial<Record<LegacyTeam, string>> };
+export type BotDuty = {
+  baseRadius: number; maxFortAttackers: number; rotateMs: number; guards?: Partial<Record<LegacyTeam, string>>;
+  /** Human-like, exploitable limits (single-player 5-round format only). */
+  weakness?: BotWeakness;
+};
+/**
+ * Beatable bots: they re-decide only every reactionMs (and run to where they last saw
+ * you), see opponents only within visionRadius, lose track of anyone mid-parkour, and
+ * leave the fort unguarded for guardSwapGapMs whenever the guard rotates.
+ */
+export type BotWeakness = { reactionMs: readonly [number, number]; visionRadius: number; guardSwapGapMs: number };
+export const BOT_WEAKNESS: BotWeakness = { reactionMs: [300, 450], visionRadius: 420, guardSwapGapMs: 6000 };
 export const GUARD_PATROL_RADIUS = 1.4, GUARD_ALERT_RADIUS = 2;
 export type BotIntent = { frame: PlayerInputFrame; objective: BotObjective; targetId?: string; blocked: boolean };
 const botDistance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 /** Existing strategy order and math. No actor mutation, routing redesign or random calls. */
+/** Opponents mid-parkour or beyond the vision radius are invisible to a weakened bot. */
+export const botSees = (p: Point, q: RuntimeActor, now: number, weakness?: BotWeakness) =>
+  !weakness || (now >= q.parkourUntil && botDistance(p, q) <= weakness.visionRadius);
 export function planBot(p: RuntimeActor, now: number, w: BotWorld): BotPlan {
   const toward = (target: Point, objective: BotObjective, targetId?: string): BotPlan => ({ vector: { x: target.x - p.x, y: target.y - p.y }, objective, ...(targetId ? { targetId } : {}) });
   if (p.state === 'RETURNING') return toward(w.bases[p.team], 'return');
@@ -232,9 +246,10 @@ export function planBot(p: RuntimeActor, now: number, w: BotWorld): BotPlan {
     const item = w.refills.slice().sort((a, b) => botDistance(p, a) - botDistance(p, b))[0];
     if (item && botDistance(p, item) < 360) return toward(item, 'refill');
   }
-  const threat = w.players.filter((q) => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder > p.exitOrder).sort((a, b) => botDistance(p, a) - botDistance(p, b))[0];
+  const sees = (q: RuntimeActor) => botSees(p, q, now, w.duty?.weakness);
+  const threat = w.players.filter((q) => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder > p.exitOrder && sees(q)).sort((a, b) => botDistance(p, a) - botDistance(p, b))[0];
   if (threat && botDistance(p, threat) < w.profile.threatRadius) return { vector: { x: p.x - threat.x, y: p.y - threat.y }, objective: 'evade', targetId: threat.entityId };
-  const target = w.players.filter((q) => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder < p.exitOrder).sort((a, b) => {
+  const target = w.players.filter((q) => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder < p.exitOrder && sees(q)).sort((a, b) => {
     const aBias = a.controlled ? -w.profile.playerBias : 0, bBias = b.controlled ? -w.profile.playerBias : 0;
     return botDistance(p, a) + aBias - botDistance(p, b) - bBias;
   })[0];
@@ -251,7 +266,8 @@ export function planBot(p: RuntimeActor, now: number, w: BotWorld): BotPlan {
 function planGuard(p: RuntimeActor, now: number, w: BotWorld, duty: BotDuty): BotPlan {
   const fort = w.bases[p.team];
   const intruder = w.players
-    .filter((q) => q.team !== p.team && q.state === 'ACTIVE' && botDistance(q, fort) < duty.baseRadius * GUARD_ALERT_RADIUS)
+    .filter((q) => q.team !== p.team && q.state === 'ACTIVE' && botDistance(q, fort) < duty.baseRadius * GUARD_ALERT_RADIUS
+      && (!duty.weakness || now >= q.parkourUntil))
     .sort((a, b) => botDistance(a, fort) - botDistance(b, fort))[0];
   if (intruder) {
     if (p.exitOrder > intruder.exitOrder)
@@ -262,31 +278,42 @@ function planGuard(p: RuntimeActor, now: number, w: BotWorld, duty: BotDuty): Bo
   const ring = duty.baseRadius * 1.2;
   return { vector: { x: fort.x + Math.cos(angle) * ring - p.x, y: fort.y + Math.sin(angle) * ring - p.y }, objective: 'guard' };
 }
-/** Picks/rotates one guard per team: the ACTIVE non-human bot nearest its fort, never the assigned rescuer. */
-export function assignGuards(w: BotWorld, now: number, current: Partial<Record<LegacyTeam, { id: string; since: number }>>, rotateMs: number) {
+export type GuardSlot = { id: string; since: number; previous?: string; vacantUntil?: number };
+/**
+ * Picks/rotates one guard per team: the ACTIVE non-human bot nearest its fort, never the
+ * assigned rescuer. With gapMs > 0 every rotation (or lost guard) leaves the post empty first.
+ */
+export function assignGuards(w: BotWorld, now: number, current: Partial<Record<LegacyTeam, GuardSlot>>, rotateMs: number, gapMs = 0) {
   for (const team of ['blue', 'red'] as const) {
     const held = current[team];
-    const guard = held && w.players.find((p) => p.id === held.id);
-    const valid = guard && guard.controller === 'bot' && (guard.state === 'ACTIVE' || guard.state === 'IN_BASE') && now - held.since < rotateMs;
+    if (held?.vacantUntil !== undefined && now < held.vacantUntil) continue;
+    const guard = held?.id ? w.players.find((p) => p.id === held.id) : undefined;
+    const valid = guard && guard.controller === 'bot' && (guard.state === 'ACTIVE' || guard.state === 'IN_BASE') && now - held!.since < rotateMs;
     if (valid) continue;
-    const fort = w.bases[team];
+    if (gapMs > 0 && held?.id) { current[team] = { id: '', since: now, previous: held.id, vacantUntil: now + gapMs }; continue; }
+    const fort = w.bases[team], skip = held?.id || held?.previous;
     const next = w.players
-      .filter((p) => p.team === team && p.controller === 'bot' && p.state === 'ACTIVE' && p.id !== w.request?.assignedRescuerId && p.id !== held?.id)
+      .filter((p) => p.team === team && p.controller === 'bot' && p.state === 'ACTIVE' && p.id !== w.request?.assignedRescuerId && p.id !== skip)
       .sort((a, b) => botDistance(a, fort) - botDistance(b, fort))[0];
     if (next) current[team] = { id: next.id, since: now };
     else if (!guard || guard.state === 'PRISONER' || guard.state === 'RETURNING') delete current[team];
   }
-  return Object.fromEntries(Object.entries(current).map(([team, g]) => [team, g!.id])) as Partial<Record<LegacyTeam, string>>;
+  return Object.fromEntries(Object.entries(current).filter(([, g]) => g?.id).map(([team, g]) => [team, g!.id])) as Partial<Record<LegacyTeam, string>>;
 }
 export function createBotAuthority() {
   const sequences = new Map<string, number>();
-  const guards: Partial<Record<LegacyTeam, { id: string; since: number }>> = {};
+  const guards: Partial<Record<LegacyTeam, GuardSlot>> = {};
+  // Reaction memory: a committed plan and the absolute point it aims at.
+  const memory = new Map<string, { until: number; plan: BotPlan; aim: Point | null }>();
   return {
-    reset() { delete guards.blue; delete guards.red; },
+    reset() { delete guards.blue; delete guards.red; memory.clear(); },
+    /** True while a team's fort guard is being swapped (post empty). */
+    guardVacant(team: LegacyTeam, now: number) { const g = guards[team]; return !!g && !g.id && g.vacantUntil !== undefined && now < g.vacantUntil; },
     /** Sequential consumption preserves legacy AI observing earlier actors' movement. */
     run(authority: 'host' | 'client', w: BotWorld, now: number, consume: (p: RuntimeActor, intent: BotIntent) => void) {
       if (authority !== 'host') return;
-      if (w.duty) w = { ...w, duty: { ...w.duty, guards: assignGuards(w, now, guards, w.duty.rotateMs) } };
+      if (w.duty) w = { ...w, duty: { ...w.duty, guards: assignGuards(w, now, guards, w.duty.rotateMs, w.duty.weakness?.guardSwapGapMs ?? 0) } };
+      const weakness = w.duty?.weakness;
       const fortAttackers: Record<LegacyTeam, number> = { blue: 0, red: 0 };
       for (const p of w.players) {
         if (p.controller !== 'bot') continue;
@@ -295,6 +322,17 @@ export function createBotAuthority() {
         sequences.set(p.entityId, sequence);
         const blocked = p.state === 'PRISONER' || !!(w.kanal2 && p.waterEnteredAt);
         let plan: BotPlan = blocked ? { vector: { x: 0, y: 0 }, objective: 'idle' as const } : planBot(p, now, w);
+        if (weakness && !blocked && p.state === 'ACTIVE') {
+          // Reaction time: keep the last decision and run to where the target was seen.
+          const held = memory.get(p.id);
+          if (held && now < held.until) {
+            plan = { ...held.plan, vector: held.aim ? { x: held.aim.x - p.x, y: held.aim.y - p.y } : held.plan.vector };
+          } else {
+            const [min, max] = weakness.reactionMs;
+            memory.set(p.id, { until: now + min + Math.abs(Math.sin(p.aiSeed * 12.9898)) * (max - min), plan,
+              aim: plan.objective === 'evade' ? null : { x: p.x + plan.vector.x, y: p.y + plan.vector.y } });
+          }
+        } else memory.delete(p.id);
         if (w.duty && plan.objective === 'fort' && ++fortAttackers[p.team] > w.duty.maxFortAttackers)
           plan = { vector: { x: w.width / 2 - p.x, y: w.height / 2 + Math.sin(now / 1300 + p.aiSeed) * 180 - p.y }, objective: 'center' };
         const v = blocked ? plan.vector : w.navigate(p, plan.vector, now, p.team !== w.localTeam ? w.profile.steerDistance : 78, Math.sin(p.aiSeed + now / 1700));
