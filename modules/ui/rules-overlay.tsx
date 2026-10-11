@@ -31,11 +31,11 @@ export const RulesOverlay = ({ onClose }: { onClose: () => void }) => (
         <li>
           <b>{t('5 ronde, poin tertinggi menang.')}</b>{t(' Rebut benteng +3, tahan semua lawan 4 detik +2, menang waktu atau sudden death +1. Ronde final bernilai ×2. Match berhenti lebih awal kalau selisih poin sudah tak terkejar. Pilih Turnamen untuk 7 ronde.')}</li>
         <li>
-          <b>{t('Rebut benteng butuh kerja tim.')}</b>{t(' Benteng terkunci 45 detik pertama tiap ronde. Setelah itu, 1 penyerang butuh 5 detik, 2 penyerang 3,5 detik, 3 atau lebih 2,5 detik. Penjaga aktif di benteng menurunkan progres. Di arena hard, bot menempatkan penjaga tetap.')}</li>
+          <b>{t('Rebut benteng butuh kerja tim.')}</b>{t(' Benteng terkunci 45 detik pertama tiap ronde. Setelah itu, 1 penyerang butuh 5 detik, 2 penyerang 3,5 detik, 3 atau lebih 2,5 detik. Penjaga aktif di benteng menurunkan progres. Dengan Bot Sulit, tiap tim menempatkan penjaga tetap.')}</li>
         <li>
           <b>{t('Ronde 3 menit.')}</b>{t(' Seri? Lanjut sudden death: tag atau rebut benteng berikutnya menang. Poin akhir seri ditentukan ronde menang terbanyak, lalu tangkapan unik, lalu Ronde Emas 90 detik.')}</li>
         <li>
-          <b>{t('Tinggal satu pemain?')}</b>{t(' Kalau satu tim tinggal 1 pemain bebas, sisa waktu ronde dipercepat menjadi 20 detik. Bertahan sampai habis berarti ronde selesai lewat waktu habis (+1), bukan sapu bersih (+2).')}</li>
+          <b>{t('Tinggal satu pemain?')}</b>{t(' Kalau satu tim tinggal 1 pemain bebas, sisa waktu ronde dipercepat menjadi 20 detik dan pemain itu tidak bisa berlindung di bentengnya. Bertahan sampai habis berarti ronde selesai lewat waktu habis (+1), bukan sapu bersih (+2).')}</li>
         <li>
           <b>{t('Draft perk antar ronde.')}</b>{t(' Tim yang kalah memilih 1 dari 3 perk; tim pemenang mendapat 1 perk sisa secara acak. Perk berlaku sampai match selesai, maksimal 3 per tim.')}</li>
         <li>

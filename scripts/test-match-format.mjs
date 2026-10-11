@@ -11,7 +11,8 @@ import {
   botPickPerk, createPerkDraft, effectiveStats, emptyTeamPerks, fortCaptureBonusSeconds,
   PERK_LIST, refillSpawnWeight, resolvePerkDraft,
 } from '../modules/gameplay/perks.ts';
-import { assignGuards, BOT_WEAKNESS, botSees, createBotAuthority, planBot } from '../modules/gameplay/ai-movement.ts';
+import { assignGuards, botSees, createBotAuthority, planBot, weaknessFor } from '../modules/gameplay/ai-movement.ts';
+import { botSetup, normalizeBotDifficulty } from '../modules/gameplay/bot-difficulty.ts';
 import { CHARACTER_BY_ID } from '../lib/characters.ts';
 
 const none = { blue: 0, red: 0 };
@@ -251,7 +252,7 @@ void test('bots: one guard per team, guard chases only lower exit orders, at mos
 });
 
 void test('beatable bots: vision radius, parkour blindness, guard swap gap and reaction delay', () => {
-  const weakness = BOT_WEAKNESS;
+  const weakness = { reactionMs: [300, 450], visionRadius: 420 };
   const bot = actor('b', 'blue', 500, 300, 'ACTIVE', { exitOrder: 5 });
   const near = actor('n', 'red', 700, 300, 'ACTIVE', { exitOrder: 1 });
   const far = actor('f', 'red', 1000, 300, 'ACTIVE', { exitOrder: 1 });
@@ -261,17 +262,17 @@ void test('beatable bots: vision radius, parkour blindness, guard swap gap and r
   assert.equal(botSees(bot, vaulting, 0, weakness), false);
   assert.equal(botSees(bot, vaulting, 600, weakness), true);
   assert.equal(botSees(bot, far, 0, undefined), true); // legacy / multiplayer: full knowledge
-  const duty = { baseRadius: 60, maxFortAttackers: 2, rotateMs: 30000, weakness };
+  const duty = { baseRadius: 60, maxFortAttackers: 2, rotateMs: 30000, guardSwapGapMs: 6000 };
   // A target mid-parkour is not chased; once it lands it is.
-  assert.notEqual(planBot(bot, 0, botWorld([bot, vaulting], duty)).targetId, vaulting.entityId);
-  assert.equal(planBot(bot, 600, botWorld([bot, vaulting], duty)).targetId, vaulting.entityId);
+  assert.notEqual(planBot(bot, 0, { ...botWorld([bot, vaulting], duty), weakness }).targetId, vaulting.entityId);
+  assert.equal(planBot(bot, 600, { ...botWorld([bot, vaulting], duty), weakness }).targetId, vaulting.entityId);
   // Guard swap leaves the fort empty for guardSwapGapMs, then a different bot takes over.
   const blue = [1, 2, 3].map((n) => actor(`g${n}`, 'blue', 120 + n * 40, 300));
   const w = botWorld(blue, duty), slots = {};
-  assert.equal(assignGuards(w, 0, slots, 30000, weakness.guardSwapGapMs).blue, 'g1');
-  assert.equal(assignGuards(w, 30001, slots, 30000, weakness.guardSwapGapMs).blue, undefined);
-  assert.equal(assignGuards(w, 33000, slots, 30000, weakness.guardSwapGapMs).blue, undefined);
-  assert.equal(assignGuards(w, 36002, slots, 30000, weakness.guardSwapGapMs).blue, 'g2');
+  assert.equal(assignGuards(w, 0, slots, 30000, 6000).blue, 'g1');
+  assert.equal(assignGuards(w, 30001, slots, 30000, 6000).blue, undefined);
+  assert.equal(assignGuards(w, 33000, slots, 30000, 6000).blue, undefined);
+  assert.equal(assignGuards(w, 36002, slots, 30000, 6000).blue, 'g2');
   const authority = createBotAuthority();
   authority.run('host', botWorld(blue, duty), 0, () => {});
   authority.run('host', botWorld(blue, duty), 30001, () => {});
@@ -281,7 +282,7 @@ void test('beatable bots: vision radius, parkour blindness, guard swap gap and r
   const runner = actor('r', 'red', 600, 300, 'ACTIVE', { exitOrder: 1 });
   const keeper = actor('k', 'blue', 130, 300, 'ACTIVE', { exitOrder: 2 }); // nearest the fort → becomes the guard
   const seen = [];
-  const react = createBotAuthority(), world = botWorld([chaser, keeper, runner], { ...duty, maxFortAttackers: 9 });
+  const react = createBotAuthority(), world = { ...botWorld([chaser, keeper, runner], { ...duty, maxFortAttackers: 9 }), weakness };
   const record = (p, intent) => { if (p.id === 'c') seen.push(intent.frame.targetY); };
   react.run('host', world, 0, record);
   runner.y = 500; // juke downwards
@@ -293,7 +294,7 @@ void test('beatable bots: vision radius, parkour blindness, guard swap gap and r
 });
 
 void test('last stand and hard-only guard bots', async () => {
-  const { lastStandTeam, lastStandSeconds, guardBotsFor } = await import('../modules/game-core/match-format.ts');
+  const { lastStandTeam, lastStandSeconds } = await import('../modules/game-core/match-format.ts');
   const squad = (team, free, total = 5) => Array.from({ length: total }, (_, i) => ({ team, state: i < free ? 'ACTIVE' : 'PRISONER' }));
   assert.equal(lastStandTeam([...squad('blue', 1), ...squad('red', 3)]), 'blue');
   assert.equal(lastStandTeam([...squad('blue', 2), ...squad('red', 1)]), 'red');
@@ -302,8 +303,28 @@ void test('last stand and hard-only guard bots', async () => {
   assert.equal(lastStandTeam([...squad('blue', 1, 1), ...squad('red', 1, 1)]), null); // 1v1 rosters never count
   assert.equal(lastStandSeconds(createMatchProgress('standard')), 20);
   assert.equal(lastStandSeconds(createMatchProgress('legacy-bo3')), 0);
-  assert.equal(guardBotsFor(createMatchProgress('standard'), 'hard'), true);
-  assert.equal(guardBotsFor(createMatchProgress('standard'), 'easy'), false);
-  assert.equal(guardBotsFor(createMatchProgress('standard'), 'normal'), false);
-  assert.equal(guardBotsFor(createMatchProgress('legacy-bo3'), 'hard'), false);
+});
+
+void test('bot difficulty: Mudah weakens enemies only, Normal is the original AI, Sulit adds guards', () => {
+  assert.equal(normalizeBotDifficulty('x'), 'normal');
+  const easy = botSetup('easy'), normal = botSetup('normal'), hard = botSetup('hard');
+  assert.ok(easy.weakness?.enemiesOnly && !easy.guardDuty);
+  assert.deepEqual(normal, {});
+  assert.ok(hard.guardDuty && !hard.weakness);
+  const w = { weakness: easy.weakness, localTeam: 'blue' };
+  assert.equal(weaknessFor({ team: 'red' }, w), easy.weakness);
+  assert.equal(weaknessFor({ team: 'blue' }, w), undefined, 'teammates stay sharp');
+});
+
+void test('last stand: the survivor cannot camp in its own fort', () => {
+  const base = { bases, radius: 60, kanal2: false, boost: 100, chargeTime: 0.5, reentryMs: 1500, tieHash: () => 0, teamFort: true };
+  const camper = actor('z', 'blue', 100, 300, 'IN_BASE', { baseCharge: 0.5 });
+  const exits = [];
+  resolveBase([camper], camper, 0.1, 10000, exits, { ...base, noRefuge: true });
+  assert.deepEqual(exits.map((p) => p.id), ['z'], 'pushed out of the fort');
+  const walker = actor('y', 'blue', 100, 300, 'ACTIVE');
+  resolveBase([walker], walker, 0.1, 10000, [], { ...base, noRefuge: true });
+  assert.equal(walker.state, 'ACTIVE', 'stays taggable inside its own fort');
+  resolveBase([walker], walker, 0.1, 10000, [], base);
+  assert.equal(walker.state, 'IN_BASE', 'normal shelter outside a last stand');
 });

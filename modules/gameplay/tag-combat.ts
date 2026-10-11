@@ -206,6 +206,8 @@ export type BaseRules = {
   tieHash: (id: string) => number;
   /** Team fort progress (resolveTeamFort) replaces the per-player 1.5 s capture. */
   teamFort?: boolean;
+  /** Last stand: the actor cannot shelter in its own fort (pushed out, stays taggable). */
+  noRefuge?: boolean;
 };
 export function resolveObjective(
   players: RuntimeActor[],
@@ -237,7 +239,9 @@ export function resolveBase(
   const previousFortCharge = p.fortCharge;
   const inside = distance(p, rules.bases[p.team]) < rules.radius;
   const contested = !!fortOccupant(players, rules.bases, rules.radius, p.team, rules.kanal2);
-  if (inside) {
+  if (inside && rules.noRefuge) {
+    if (p.state === 'IN_BASE' || p.state === 'RETURNING') exitCandidates.push(p);
+  } else if (inside) {
     if (contested) {
       if (p.state === 'IN_BASE' || p.state === 'RETURNING') exitCandidates.push(p);
     } else if (p.state === 'ACTIVE' && now - p.lastExitAt < rules.reentryMs) p.fortCharge = 0;

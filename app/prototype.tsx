@@ -76,7 +76,8 @@ import { clickRoute, pointerWorld } from '../modules/gameplay/click-navigation.t
 import type { RuntimeActor, ActorStats as PlayerStats, CanonicalGameState } from '../lib/game-core/types';
 import { createEntityRegistry } from '../lib/game-core/entities.ts';
 import { createLocalInputAdapter, type PlayerInputFrame } from '../lib/game-core/input.ts';
-import { BOT_WEAKNESS, createBotAuthority } from '../modules/gameplay/ai-movement.ts';
+import { createBotAuthority } from '../modules/gameplay/ai-movement.ts';
+import { BOT_DIFFICULTIES, botSetup, loadBotDifficulty, saveBotDifficulty, type BotDifficulty } from '../modules/gameplay/bot-difficulty.ts';
 import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-core/events.ts';
 import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick.ts';
 import { describeMatch } from '../lib/game-core/state.ts';
@@ -97,7 +98,7 @@ import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimate
 import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, parkourPassesObstacle, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
 import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, resolveTeamFort, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
-import { completeRound, createMatchProgress, fortLockSeconds, fullCaptureHoldSeconds, guardBotsFor, isFinalRound, lastStandSeconds, lastStandTeam, isScoredFormat, loadMatchFormat, MATCH_FORMAT_CONFIG, matchFormatLabel, saveMatchFormat, scoredFormatIds, roundSecondsFor, type MatchFormatId, type ScoredFormatId } from '../modules/game-core/match-format.ts';
+import { completeRound, createMatchProgress, fortLockSeconds, fullCaptureHoldSeconds, isFinalRound, lastStandSeconds, lastStandTeam, isScoredFormat, loadMatchFormat, MATCH_FORMAT_CONFIG, matchFormatLabel, saveMatchFormat, scoredFormatIds, roundSecondsFor, type MatchFormatId, type ScoredFormatId } from '../modules/game-core/match-format.ts';
 import { botPickPerk, createPerkDraft, PERK_BY_ID, effectiveStats, emptyTeamPerks, fortCaptureBonusSeconds, refillSpawnWeight, resolvePerkDraft, type PerkDraft, type PerkId } from '../modules/gameplay/perks.ts';
 import { createRouteScheduler } from '../lib/route-scheduler';
 
@@ -439,6 +440,8 @@ export function BentenganPrototype() {
   const postRoundActionRef = useRef<'next-round' | null>(null);
   const [matchFormat, setMatchFormatState] = useState<ScoredFormatId>(() => loadMatchFormat());
   const matchFormatRef = useRef<ScoredFormatId>(matchFormat);
+  const [botDifficulty, setBotDifficultyState] = useState<BotDifficulty>(() => loadBotDifficulty());
+  const botDifficultyRef = useRef<BotDifficulty>(botDifficulty);
   // Perk picked in the draft panel; consumed by the game loop.
   const perkChoiceRef = useRef<PerkId | null>(null);
   const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
@@ -1150,7 +1153,11 @@ export function BentenganPrototype() {
           : visualObstacles;
     const fieldObjectScale = field.objectScale ?? 1;
     const { fortWidth, fortHeight, fortAnchorY } = fortGeometry(fieldObjectScale);
-    const aiProfile = DIFFICULTY_PROFILES[field.difficulty];
+    // Single-player follows the player's bot difficulty; multiplayer keeps the arena's own.
+    const arenaProfile = DIFFICULTY_PROFILES[field.difficulty];
+    const chosenDifficulty = scoredMatch ? botDifficultyRef.current : field.difficulty;
+    const aiProfile = scoredMatch ? DIFFICULTY_PROFILES[chosenDifficulty] : arenaProfile;
+    const bots = scoredMatch ? botSetup(botDifficultyRef.current) : {};
     const fieldObjectAtlas = getFieldImage('objects.webp');
     const kanalObjectAtlas = isKanalField(field.id)
       ? getFieldImage('kanal-object-atlas.webp')
@@ -2269,6 +2276,7 @@ export function BentenganPrototype() {
       const events=resolveBase(players,p,dt,now,exitCandidates,{
         bases,radius:baseRadius,kanal2:isKanalField(field.id),boost:stats.boost,
         chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,teamFort:scoredMatch,
+        noRefuge:scoredMatch&&lastStandTeam(players)===p.team,
       },events=>facts.push(...events));
       presentInteractionEvents(facts,now);
       for(const event of events) {
@@ -2541,8 +2549,9 @@ export function BentenganPrototype() {
       botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
-        // Original bot AI on easy/normal; fort guards (with their exploitable gaps) only on hard arenas.
-        duty:guardBotsFor(progress,field.difficulty)?{baseRadius,maxFortAttackers:2,rotateMs:30000,weakness:BOT_WEAKNESS}:undefined,
+        // Bot Mudah: enemy-only reaction/vision limits. Bot Sulit: fort guards (6 s gap on rotation).
+        weakness:bots.weakness,
+        duty:bots.guardDuty?{baseRadius,maxFortAttackers:2,rotateMs:30000,guardSwapGapMs:bots.guardDuty.guardSwapGapMs}:undefined,
         navigate:(p,desired,now,probe,bias)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,desired,now,probe,bias),
       },now,(p,intent)=>{
         if(network&&p.flight)return;
@@ -4387,6 +4396,9 @@ const spriteFrame = (
             formats={scoredFormatIds().map((id) => ({ id, label: matchFormatLabel(id) }))}
             matchFormat={matchFormat}
             onMatchFormat={(id) => { const next = saveMatchFormat(id); matchFormatRef.current = next; setMatchFormatState(next); }}
+            difficulties={[...BOT_DIFFICULTIES]}
+            botDifficulty={botDifficulty}
+            onBotDifficulty={(id) => { const next = saveBotDifficulty(id); botDifficultyRef.current = next; setBotDifficultyState(next); }}
           />
         )}
 

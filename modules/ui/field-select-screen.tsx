@@ -8,12 +8,15 @@ import { CharacterPreview } from './character-preview.tsx';
 import { mapSelectionFiles, mapSelectionTheme, type ArenaSelectionState } from './map-selection-assets';
 
 export const FieldSelectScreen = ({ faction, selectedFieldId, fields, squad,
-  arenaStates, resolveAsset, onSelect, onStep, onStart, formats, matchFormat, onMatchFormat }: {
+  arenaStates, resolveAsset, onSelect, onStep, onStart, formats, matchFormat, onMatchFormat,
+  difficulties, botDifficulty, onBotDifficulty }: {
   faction?: Faction | null; selectedFieldId: FieldId; fields: FieldConfig[]; squad: CharacterId[];
   arenaStates: ArenaSelectionState[]; resolveAsset: (file: string) => string;
   onSelect: (id: FieldId) => void; onStep: (direction: -1 | 1) => void; onStart: () => void;
   /** Match format choice (5 rounds / 7-round tournament); omitted hides the toggle. */
   formats?: { id: string; label: string }[]; matchFormat?: string; onMatchFormat?: (id: string) => void;
+  /** Bot difficulty choice (single-player). */
+  difficulties?: { id: string; label: string }[]; botDifficulty?: string; onBotDifficulty?: (id: string) => void;
 }) => {
   const list = useRef<HTMLDivElement>(null);
   const selected = fields.find(field => field.id === selectedFieldId) ?? fields[0];
@@ -84,6 +87,16 @@ export const FieldSelectScreen = ({ faction, selectedFieldId, fields, squad,
               {t(format.label)}
             </button>
           ))}
+          {difficulties && onBotDifficulty && (
+            <div className="map-difficulty-toggle" aria-label={t('Tingkat kesulitan bot')}>
+              {difficulties.map(level => (
+                <button key={level.id} type="button" aria-pressed={botDifficulty === level.id}
+                  className={botDifficulty === level.id ? 'active' : ''} onClick={() => onBotDifficulty(level.id)}>
+                  {t(level.label)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
       <button type="button" className="map-start-match" aria-label={t('Mulai Match')}

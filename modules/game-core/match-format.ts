@@ -160,6 +160,3 @@ export function lastStandTeam(players: readonly { team: LegacyTeam; state: strin
 }
 export const lastStandSeconds = (progress: MatchProgress) =>
   isScoredFormat(progress.formatId) ? MATCH_FORMAT.lastStandSeconds : 0;
-/** Guard-duty bots (and their exploitable gaps) only on this arena difficulty. */
-export const guardBotsFor = (progress: MatchProgress, difficulty: string) =>
-  isScoredFormat(progress.formatId) && difficulty === MATCH_FORMAT.guardBotsDifficulty;
