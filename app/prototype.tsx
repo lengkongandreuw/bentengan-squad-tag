@@ -2299,7 +2299,9 @@ export function BentenganPrototype() {
       if (phase === 'ROUND_OVER' && perkDraft && !perkDraft.resolved) {
         const humanPicks = perkDraft.offer.length > 0 && perkDraft.loser === players[0].team && !devAutobot;
         const choice = humanPicks ? perkChoiceRef.current : null;
-        if (humanPicks ? choice || now >= perkDraft.deadline - 50 : now >= resultAnnouncementUntil) {
+        const skipRequested = postRoundActionRef.current === 'next-round';
+        // Skipping the recap never waits on the draft: an unpicked offer takes the first perk.
+        if (humanPicks ? choice || skipRequested || now >= perkDraft.deadline - 50 : skipRequested || now >= resultAnnouncementUntil) {
           resolvePerkDraft(perkDraft, teamPerks, humanPicks ? choice : botPickPerk(perkDraft.offer));
           perkChoiceRef.current = null;
           if (humanPicks) phaseUntil = Math.min(phaseUntil, now + 1800);
@@ -4280,6 +4282,20 @@ const spriteFrame = (
     postRoundActionRef.current = 'next-round';
     setLeaderboardOpen(false);
   };
+  const roundRecapOpen = mode === 'playing' && !snapshot.statsBoard.final && !snapshot.roundResult.final &&
+    (snapshot.statsBoard.visible || snapshot.roundResult.visible);
+  useEffect(() => {
+    if (!roundRecapOpen) return;
+    // Enter = "next round" (same as the button) whenever a round recap or result card shows.
+    const skip = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' || event.repeat) return;
+      event.preventDefault();
+      setLeaderboardOpen(false);
+      if (networkSession?.read().role !== 'client') postRoundActionRef.current = 'next-round';
+    };
+    window.addEventListener('keydown', skip);
+    return () => window.removeEventListener('keydown', skip);
+  }, [roundRecapOpen, networkSession]);
   if (assetsLoading) return (
     <AssetLoadingScreen
       selectionLoading={selectionLoading}
@@ -4500,7 +4516,8 @@ const spriteFrame = (
               onBackToFieldSelect={backToFieldSelect}
               onQuit={quit}
               match={snapshot.match}
-              nextRoundLocked={!!snapshot.match.draft && snapshot.match.draft.humanPicks && !snapshot.match.draft.resolved}
+              nextRoundNote={snapshot.match.draft && snapshot.match.draft.humanPicks && !snapshot.match.draft.resolved
+                ? 'Belum pilih perk? Lanjut = perk pertama.' : 'Tekan Enter untuk lanjut.'}
               draft={snapshot.match.draft && (
                 <PerkDraftPanel draft={snapshot.match.draft} playerTeam={selectedFaction === 'green' ? 'red' : 'blue'}
                   onPick={(id) => { perkChoiceRef.current = id; }} />

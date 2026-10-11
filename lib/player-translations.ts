@@ -66,4 +66,5 @@ export const playerTranslations: Record<string,string> = {
   'Penjaga ${0} berganti — benteng mereka kosong sebentar!':'${0} is swapping guards — their fort is briefly unguarded!',
   'TERAKHIR BERTAHAN · ${0} DETIK':'LAST STAND · ${0} SECONDS','⏱ TERAKHIR BERTAHAN':'⏱ LAST STAND','${0} tinggal satu pemain — waktu dipercepat ke ${1} detik.':'${0} is down to one player — the clock jumps to ${1} seconds.','Tinggal satu pemain?':'Down to one player?',' Kalau satu tim tinggal 1 pemain bebas, sisa waktu ronde dipercepat menjadi 20 detik dan pemain itu tidak bisa berlindung di bentengnya. Bertahan sampai habis berarti ronde selesai lewat waktu habis (+1), bukan sapu bersih (+2).':' When a team has only 1 free player left, the round clock drops to 20 seconds and that player cannot shelter in their fort. Surviving to the end ends the round on time (+1) instead of a full capture (+2).',
   'Bot Mudah':'Easy bots','Bot Normal':'Normal bots','Bot Sulit':'Hard bots','Tingkat kesulitan bot':'Bot difficulty',
+  'Belum pilih perk? Lanjut = perk pertama.':'No perk picked? Continuing takes the first one.','Tekan Enter untuk lanjut.':'Press Enter to continue.',
 };

@@ -36,7 +36,7 @@ export const RoundStatsOverlay = ({
   children,
   match,
   draft,
-  nextRoundLocked = false,
+  nextRoundNote,
 }: {
   statsBoard: StatsBoard;
   leaderboardOpen: boolean;
@@ -51,8 +51,8 @@ export const RoundStatsOverlay = ({
   match?: MatchFormatView;
   /** Between-round perk draft, shown on round recaps. */
   draft?: ReactNode;
-  /** Blocks "next round" while the player's perk pick is pending. */
-  nextRoundLocked?: boolean;
+  /** Hint next to "next round" (Enter shortcut, or what skipping does to a pending perk pick). */
+  nextRoundNote?: string;
 }) => (
   <dialog
     className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
@@ -178,7 +178,8 @@ export const RoundStatsOverlay = ({
           </>
         ) : statsBoard.visible ? (
           <>
-            <button className="primary" onClick={onRequestNextRound} disabled={nextRoundLocked}>
+            {nextRoundNote && <small className="round-next-note">{t(nextRoundNote)}</small>}
+            <button className="primary" onClick={onRequestNextRound}>
               <Play size={16} fill="currentColor" />{t(" RONDE BERIKUTNYA")}
             </button>
             <button className="danger" onClick={onQuit}>

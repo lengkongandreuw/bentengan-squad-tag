@@ -8393,3 +8393,4 @@ body
   padding-top: 10px;
   background: linear-gradient(180deg, rgba(10, 23, 16, 0) 0, rgba(10, 23, 16, 0.96) 12px, #0a1710 100%);
 }
+.round-stats-actions .round-next-note { align-self: center; margin-right: auto; color: #c6cec7; font-size: 11px; font-weight: 700; }
