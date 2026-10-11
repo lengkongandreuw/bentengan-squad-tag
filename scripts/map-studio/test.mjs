@@ -27,7 +27,7 @@ import {
   resolveStructureVisual,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
-import {mapVersions} from './map-versions.mjs';
+import {mapVersions, editableMapVersion} from './map-versions.mjs';
 import { validateCatalog } from './catalog.mjs';
 import { startMapStudio } from './server.mjs';
 import { waitForPagesDeployment } from './deployment.mjs';
@@ -45,6 +45,14 @@ void test('P2 map versions distinguish active originals, inactive drafts and act
   assert.ok(native.active&&native.readOnly);assert.equal(native.map.name,'Native Taman');assert.equal(native.map.objects.length,0);
   assert.ok(!edit.active&&!edit.readOnly);assert.equal(edit.map.name,'Saved draft');assert.match(edit.label,/Draft nonaktif/);
   assert.equal(JSON.stringify(document),before);
+  const refreshed=editableMapVersion(native,document.maps);
+  assert.ok(refreshed.refreshed);
+  assert.equal(refreshed.map.id,draft.id);
+  assert.equal(refreshed.map.name,'Native Taman');
+  assert.equal(refreshed.map.objects.length,0);
+  assert.equal(refreshed.map.enabled,false);
+  assert.equal(JSON.stringify(document),before,'preparing newest draft must not overwrite saved draft');
+  assert.equal(editableMapVersion({...edit,readOnly:true},document.maps).map.name,'Saved draft');
   draft.enabled=true;entries=mapVersions(document,builtins,[original]);
   assert.ok(!entries.find(e=>e.kind==='native').active);
   assert.ok(entries.find(e=>e.value==='live:'+draft.id).readOnly);
@@ -389,6 +397,14 @@ void test('Kampung template and library use normalized valid assets', async () =
   assert.equal(t.builtins.find(b => b.id === 'taman').structuresInBackground,false);
   assert.ok(taman.objects.some(o=>o.asset?.asset==='field/taman/objects.webp'));
   assert.ok(t.builtinTemplates.find(m=>m.replaces==='pasar').objects.some(o=>o.asset?.asset==='field/pasar2/objects.webp'));
+  for (const id of ['taman','pasar']) {
+    const native=t.builtins.find(b=>b.id===id);
+    for (const prison of Object.values(native.prisons)) for (const slot of ['floorAsset','overlayAsset']) {
+      const clip=t.library.find(a=>a.arena===id&&a.name===prison[slot])?.clip;
+      assert.ok(clip,`${id} ${prison[slot]} available in latest atlas`);
+      assert.equal(clip.asset,`field/${id==='taman'?'taman':'pasar2'}/objects.webp`);
+    }
+  }
   assert.ok(t.builtinTemplates.find((m) => m.replaces === 'kanal2').waterMask);
 });
 
@@ -399,6 +415,15 @@ void test('HTTP harness exposes built-in catalog and browser guard from running 
     assert.equal(response.status, 200);
     const catalog = validateCatalog(await response.json());
     assert.equal(catalog.builtinTemplates.length, 5);
+    const assets=new Set(catalog.library.map(a=>a.clip.asset));
+    for(const m of catalog.builtinTemplates)for(const a of mapAssets(m))assets.add(a.asset);
+    for(const asset of assets){
+      const preview=await fetch(`${origin}/${asset}`);
+      assert.equal(preview.status,200,`preview asset served: ${asset}`);
+      assert.match(preview.headers.get('content-type'),/^image\//);
+      assert.deepEqual(Buffer.from(await preview.arrayBuffer()),await readFile(path.join(root,'public',asset)));
+    }
+    assert.equal((await fetch(`${origin}/field/taman/not-allowed.webp`)).status,404);
     const guard = await fetch(origin + '/catalog.mjs');
     assert.equal(guard.status, 200);
     assert.match(guard.headers.get('content-type'), /javascript/);

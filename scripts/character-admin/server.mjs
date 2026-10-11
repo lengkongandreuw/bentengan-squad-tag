@@ -10,8 +10,34 @@ import { validatePreviewDocument } from '../../lib/selection-preview-model.js';
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, '../..');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-const mime = { '.gif': 'image/gif', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
+const mime = { '.gif': 'image/gif', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg' };
 const maxBytes = 20 * 1024 * 1024;
+
+// Require consecutive MPEG Layer III frames, not merely an extension or ID3 tag.
+export function inspectVoice(bytes) {
+  if (!bytes.length || bytes.length > 10 * 1024 * 1024) throw new Error('Suara maksimal 10 MB.');
+  let start = 0;
+  if (bytes.subarray(0, 3).toString() === 'ID3') {
+    if (bytes.length < 10 || [...bytes.subarray(6, 10)].some(n => n > 127)) throw new Error('Header MP3 rusak.');
+    start = 10 + bytes.subarray(6, 10).reduce((size, n) => size * 128 + n, 0) + ((bytes[5] & 16) ? 10 : 0);
+  }
+  const frameSize = offset => {
+    if (offset + 4 > bytes.length) return 0;
+    const header = bytes.readUInt32BE(offset);
+    const version = (header >>> 19) & 3, layer = (header >>> 17) & 3;
+    const rateIndex = (header >>> 10) & 3, bitrateIndex = (header >>> 12) & 15;
+    if ((header >>> 21) !== 2047 || version === 1 || layer !== 1 || rateIndex === 3 || bitrateIndex === 0 || bitrateIndex === 15) return 0;
+    const bitrate = (version === 3 ? [0,32,40,48,56,64,80,96,112,128,160,192,224,256,320] : [0,8,16,24,32,40,48,56,64,80,96,112,128,144,160])[bitrateIndex];
+    const rate = [44100,48000,32000][rateIndex] / (version === 3 ? 1 : version === 2 ? 2 : 4);
+    const size = Math.floor((version === 3 ? 144000 : 72000) * bitrate / rate) + ((header >>> 9) & 1);
+    return offset + size <= bytes.length ? size : 0;
+  };
+  for (let offset = start; offset < Math.min(bytes.length, start + 4096); offset++) {
+    const size = frameSize(offset);
+    if (size && frameSize(offset + size)) return 'mp3';
+  }
+  throw new Error('Gunakan file MP3 yang valid, bukan gambar atau file yang diganti ekstensi.');
+}
 
 export async function inspectImage(bytes, kind) {
   if (!['animated', 'static'].includes(kind) || bytes.length > maxBytes || !bytes.length) throw new Error('Upload maksimal 20 MB.');
@@ -52,7 +78,7 @@ export async function startAdmin(port = 4318, projectRoot = root) {
     const raw = await readFile(configFile);
     return { document: validatePreviewDocument(JSON.parse(raw), ids), revision: hash(raw) };
   };
-  const owned = name => name === 'config/selection-previews.json' || /^public\/selection-previews\/[a-z]+\/[a-f0-9]{64}\.(gif|png|webp|jpg)$/.test(name);
+  const owned = name => name === 'config/selection-previews.json' || /^public\/selection-previews\/[a-z]+\/[a-f0-9]{64}\.(gif|png|webp|jpg|mp3)$/.test(name);
   const git = args => command('git', ['-c', `safe.directory=${root.replaceAll('\\', '/')}`, ...args]);
   async function publish() {
     try {
@@ -65,7 +91,9 @@ export async function startAdmin(port = 4318, projectRoot = root) {
         throw new Error('Ada perubahan di luar preview. Simpan/commit perubahan tersebut secara terpisah dahulu; panel tidak akan memasukkannya.');
       const current = await readConfig();
       const assets = new Set();
-      for (const entry of Object.values(current.document.characters)) for (const kind of ['animated', 'static'])
+      for (const entry of Object.values(current.document.characters)) for (const layer of entry.voiceLayers)
+        if (layer.file) { await stat(path.join(root, 'public', layer.file)); assets.add(`public/${layer.file}`); }
+      for (const entry of Object.values(current.document.characters)) for (const kind of ['animated', 'static', 'voice'])
         if (entry[kind]) { await stat(path.join(root, 'public', entry[kind])); assets.add(`public/${entry[kind]}`); }
       if (current.document.branding?.logo) {
         await stat(path.join(root, 'public', current.document.branding.logo));
@@ -88,7 +116,7 @@ export async function startAdmin(port = 4318, projectRoot = root) {
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('X-Frame-Options', 'DENY');
     response.setHeader('Referrer-Policy', 'no-referrer');
-    response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+    response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' blob:; media-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     const json = (code, value) => { response.writeHead(code, { 'Content-Type': 'application/json' }); response.end(JSON.stringify(value)); };
     try {
       if (request.headers.host !== new URL(origin).host ||
@@ -96,7 +124,7 @@ export async function startAdmin(port = 4318, projectRoot = root) {
         request.headers['sec-fetch-site'] === 'cross-site') return json(403, { error: 'Akses hanya dari panel lokal yang sama.' });
       const url = new URL(request.url, origin);
       if (request.method === 'GET') {
-        if (url.pathname === '/api/state') return json(200, { ...await readConfig(), roster, token, job });
+        if (url.pathname === '/api/state') return json(200, { ...await readConfig(), roster, token, job, capabilities: { voiceUploads: 1, voiceLayers: 1 } });
         if (url.pathname === '/api/job') return json(200, job);
         const files = { '/': 'index.html', '/editor.js': 'editor.js', '/editor.css': 'editor.css' };
         if (files[url.pathname]) {
@@ -106,7 +134,7 @@ export async function startAdmin(port = 4318, projectRoot = root) {
         if (url.pathname === '/model.js') { response.setHeader('Content-Type', 'text/javascript'); return response.end(await readFile(path.join(root, 'lib/selection-preview-model.js'))); }
         // Explicit image routes only; never serve repository files or credentials.
         const candidate = decodeURIComponent(url.pathname).slice(1);
-        if (/^(selection-previews\/[a-z]+\/[a-f0-9]{64}\.(gif|png|webp|jpg)|ui-v2\/portraits\/[a-z]+\.webp|brand\/benteng-tag-logo\.webp|favicon-bst\.png)$/.test(candidate)) {
+        if (/^(selection-previews\/[a-z]+\/[a-f0-9]{64}\.(gif|png|webp|jpg|mp3)|ui-v2\/audio\/characters\/[a-z]+\.mp3|ui-v2\/portraits\/[a-z]+\.webp|brand\/benteng-tag-logo\.webp|favicon-bst\.png)$/.test(candidate)) {
           const target = await realpath(path.join(root, 'public', candidate));
           const publicDir = await realpath(path.join(root, 'public'));
           if (!target.startsWith(publicDir + path.sep)) return json(403, { error: 'Path tidak valid.' });
@@ -123,14 +151,14 @@ export async function startAdmin(port = 4318, projectRoot = root) {
       try {
         if (request.headers['content-type'] !== 'application/json') throw new Error('Gunakan JSON.');
         let size = 0; const chunks = [];
-        for await (const chunk of request) { size += chunk.length; if (size > maxBytes * 3) throw new Error('Upload terlalu besar.'); chunks.push(chunk); }
+        for await (const chunk of request) { size += chunk.length; if (size > maxBytes * 6) throw new Error('Upload terlalu besar.'); chunks.push(chunk); }
         const data = JSON.parse(Buffer.concat(chunks).toString());
         const current = await readConfig();
         if (data.revision !== current.revision) return json(409, { error: 'Konfigurasi berubah di sesi lain. Muat ulang sebelum menyimpan.' });
         if (url.pathname === '/api/publish') { void publish(); json(202, { status: 'running' }); return; }
         const logoRequest = url.pathname === '/api/logo';
         if (!logoRequest && !ids.includes(data.id)) throw new Error('Karakter tidak valid.');
-        const document = logoRequest ? structuredClone(current.document) : validatePreviewDocument({ ...current.document, characters: { ...current.document.characters, [data.id]: data.entry } }, ids);
+        const document = logoRequest ? structuredClone(current.document) : validatePreviewDocument({ ...current.document, characters: { ...current.document.characters, [data.id]: { ...current.document.characters[data.id], ...data.entry } } }, ids);
         const assets = [];
         if (logoRequest) {
           if (data.upload === null) document.branding = { logo: null };
@@ -143,16 +171,32 @@ export async function startAdmin(port = 4318, projectRoot = root) {
             assets.push({ relative, bytes }); document.branding = { logo: relative };
           }
         }
-        for (const kind of logoRequest ? [] : ['animated', 'static']) {
+        for (const kind of logoRequest ? [] : ['animated', 'static', 'voice']) {
           const encoded = data.uploads?.[kind];
           if (!encoded) continue;
           if (typeof encoded !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error('Upload rusak.');
           const bytes = Buffer.from(encoded, 'base64');
-          const extension = await inspectImage(bytes, kind);
+          const extension = kind === 'voice' ? inspectVoice(bytes) : await inspectImage(bytes, kind);
           const relative = `selection-previews/${data.id}/${hash(bytes)}.${extension}`;
           assets.push({ relative, bytes }); document.characters[data.id][kind] = relative;
         }
-        for (const entry of Object.values(document.characters)) for (const kind of ['animated', 'static'])
+        if (!logoRequest) {
+          const layers = document.characters[data.id].voiceLayers;
+          const layerUploads = data.uploads?.voiceLayers ?? [];
+          if (!Array.isArray(layerUploads) || layerUploads.length > layers.length) throw new Error('Upload layer tidak valid.');
+          for (let index = 0; index < layers.length; index++) {
+            const encoded = layerUploads[index];
+            if (!encoded) continue;
+            if (typeof encoded !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error('Upload layer rusak.');
+            const bytes = Buffer.from(encoded, 'base64'); inspectVoice(bytes);
+            const relative = `selection-previews/${data.id}/${hash(bytes)}.mp3`;
+            assets.push({ relative, bytes }); layers[index].file = relative;
+          }
+          if (layers.some(layer => !layer.file)) throw new Error('Pilih MP3 untuk setiap layer atau hapus layer kosong.');
+        }
+        for (const entry of Object.values(document.characters)) for (const layer of entry.voiceLayers)
+          if (layer.file && !assets.some(asset => asset.relative === layer.file)) await stat(path.join(root, 'public', layer.file));
+        for (const entry of Object.values(document.characters)) for (const kind of ['animated', 'static', 'voice'])
           if (entry[kind] && !assets.some(asset => asset.relative === entry[kind])) await stat(path.join(root, 'public', entry[kind]));
         if (document.branding?.logo && !assets.some(asset => asset.relative === document.branding.logo)) await stat(path.join(root, 'public', document.branding.logo));
         for (const asset of assets) {

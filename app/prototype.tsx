@@ -120,7 +120,8 @@ import { GameplayAudio } from '../modules/audio/gameplay-audio.ts';
 import { createMatchAudio } from '../modules/audio/audio-port.ts';
 import { closeToneAudio } from '../modules/audio/audio-tone.ts';
 import { playAudioCue as playAudioCueAt } from '../modules/audio/audio-cue.ts';
-import { characterVoiceAsset } from '../modules/audio/character-voice.ts';
+import { characterVoiceAsset, characterVoiceLayerAssets, stopVoiceLayerPlayback } from '../modules/audio/character-voice.ts';
+import { selectionPreviewEntry } from '../lib/selection-preview-assets.ts';
 
 
 
@@ -432,6 +433,7 @@ export function BentenganPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
   const characterVoiceRef = useRef<HTMLAudioElement | null>(null); // === CHARACTER SELECTION VOICE ===
+  const characterVoiceLayersRef = useRef<Array<{ audio: HTMLAudioElement; volume: number }>>([]);
   const characterVoiceIdRef = useRef<CharacterId | null>(null);
   const cameraModeRef = useRef<CameraMode>('follow');
   const completedMatchesRef = useRef(0);
@@ -735,6 +737,8 @@ export function BentenganPrototype() {
 
   // === CHARACTER SELECTION VOICE: loop selama karakter masih disorot ===
   const stopCharacterVoice = () => {
+    stopVoiceLayerPlayback(characterVoiceLayersRef.current);
+    characterVoiceLayersRef.current = [];
     const voice = characterVoiceRef.current;
     if (voice) {
       voice.pause();
@@ -758,7 +762,7 @@ export function BentenganPrototype() {
     // Saat sorotan pindah, voice lama harus langsung berhenti.
     stopCharacterVoice();
 
-    const src = characterVoiceAsset(id, uiAudioAsset);
+    const src = characterVoiceAsset(id, uiAudioAsset, selectionPreviewEntry(id).voice, publicAsset);
     if (!src) return;
 
     const voice = new Audio(src);
@@ -767,6 +771,12 @@ export function BentenganPrototype() {
     voice.volume = 0.85 * audioLevels().sfx;
     characterVoiceRef.current = voice;
     characterVoiceIdRef.current = id;
+    for (const layer of characterVoiceLayerAssets(selectionPreviewEntry(id).voiceLayers, publicAsset)) {
+      const audio = new Audio(layer.src);
+      audio.loop = layer.loop; audio.volume = layer.volume * audioLevels().sfx;
+      characterVoiceLayersRef.current.push({ audio, volume: layer.volume });
+      void audio.play().catch(error => console.warn(`[character voice layer] ${id}`, error));
+    }
 
     void voice.play().catch((error) => {
       // Jika browser menolak autoplay pada hover pertama, click/focus berikutnya
@@ -806,6 +816,7 @@ export function BentenganPrototype() {
   // Voice karakter mengikuti volume SFX dan berhenti ketika Character Selection ditinggalkan.
   useEffect(() => {
     const updateVoiceVolume = () => {
+      for (const layer of characterVoiceLayersRef.current) layer.audio.volume = layer.volume * audioLevels().sfx;
       if (characterVoiceRef.current) {
         characterVoiceRef.current.volume = 0.85 * audioLevels().sfx;
       }
@@ -813,6 +824,8 @@ export function BentenganPrototype() {
     window.addEventListener(AUDIO_SETTINGS_EVENT, updateVoiceVolume);
     return () => {
       window.removeEventListener(AUDIO_SETTINGS_EVENT, updateVoiceVolume);
+      stopVoiceLayerPlayback(characterVoiceLayersRef.current);
+      characterVoiceLayersRef.current = [];
       const voice = characterVoiceRef.current;
       if (voice) {
         voice.pause();
@@ -826,6 +839,8 @@ export function BentenganPrototype() {
 
   useEffect(() => {
     if (mode === 'menu' && menuStep === 'character' && view === 'game') return;
+    stopVoiceLayerPlayback(characterVoiceLayersRef.current);
+    characterVoiceLayersRef.current = [];
     const voice = characterVoiceRef.current;
     if (voice) {
       voice.pause();

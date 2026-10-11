@@ -24217,6 +24217,2215 @@
         "loop": true,
         "mirror": false
       }
+    },
+    "robot": {
+      "run": {
+        "asset": "sprite-studio/robot/d8352263022c7fd4dc719ab47ec4218e45cd7206ce0e1dda62be4c84d9462b34.webp",
+        "width": 1440,
+        "height": 220,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 180,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 360,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 540,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 720,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 900,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 1080,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 1260,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -0.607101132388398,
+        "y": 4.856656213907691,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.south": {
+        "asset": "sprite-studio/robot/d8352263022c7fd4dc719ab47ec4218e45cd7206ce0e1dda62be4c84d9462b34.webp",
+        "width": 1440,
+        "height": 220,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 180,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 360,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 540,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 720,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 900,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 1080,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 1260,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -0.607101132388398,
+        "y": 4.856656213907691,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.east": {
+        "asset": "sprite-studio/robot/e2ffec535c18dcd8778f08459532b9d81ecefbf974d7f3d38631b7bbcccc3d87.webp",
+        "width": 1792,
+        "height": 224,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 224,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 448,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 896,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1120,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1344,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1568,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.40470629822266047,
+        "y": 6.070830688648215,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.northeast": {
+        "asset": "sprite-studio/robot/e2ffec535c18dcd8778f08459532b9d81ecefbf974d7f3d38631b7bbcccc3d87.webp",
+        "width": 1792,
+        "height": 224,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 224,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 448,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 896,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1120,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1344,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1568,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.40470629822266047,
+        "y": 6.070830688648215,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.southeast": {
+        "asset": "sprite-studio/robot/e2ffec535c18dcd8778f08459532b9d81ecefbf974d7f3d38631b7bbcccc3d87.webp",
+        "width": 1792,
+        "height": 224,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 224,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 448,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 896,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1120,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1344,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1568,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.40470629822266047,
+        "y": 6.070830688648215,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.west": {
+        "asset": "sprite-studio/robot/e2ffec535c18dcd8778f08459532b9d81ecefbf974d7f3d38631b7bbcccc3d87.webp",
+        "width": 1792,
+        "height": 224,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 224,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 448,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 896,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1120,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1344,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1568,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.40470629822266047,
+        "y": 6.070830688648215,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.southwest": {
+        "asset": "sprite-studio/robot/e2ffec535c18dcd8778f08459532b9d81ecefbf974d7f3d38631b7bbcccc3d87.webp",
+        "width": 1792,
+        "height": 224,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 224,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 448,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 672,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 896,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1120,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1344,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          },
+          {
+            "x": 1568,
+            "y": 0,
+            "width": 224,
+            "height": 224
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.40470629822266047,
+        "y": 6.070830688648215,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.north": {
+        "asset": "sprite-studio/robot/9524ed004cd05ef83eace47d7a22dcd991f8b14db48447b14e8297ffb2f86e31.webp",
+        "width": 1264,
+        "height": 219,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 158,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 316,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 474,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 632,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 790,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 948,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          },
+          {
+            "x": 1106,
+            "y": 0,
+            "width": 158,
+            "height": 219
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -0.20236704412946602,
+        "y": 6.070830688648215,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "tag": {
+        "asset": "sprite-studio/robot/9879004a32c5df7b996f4693c2695d1b4a9d13fe90a7f722c149c0588ebc3102.webp",
+        "width": 960,
+        "height": 195,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 120,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 240,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 360,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 480,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 600,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 720,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 840,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": -2.8330552477037094,
+        "y": 5.868463644518749,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.south": {
+        "asset": "sprite-studio/robot/9879004a32c5df7b996f4693c2695d1b4a9d13fe90a7f722c149c0588ebc3102.webp",
+        "width": 960,
+        "height": 195,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 120,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 240,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 360,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 480,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 600,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 720,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          },
+          {
+            "x": 840,
+            "y": 0,
+            "width": 120,
+            "height": 195
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": -2.8330552477037094,
+        "y": 5.868463644518749,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.east": {
+        "asset": "sprite-studio/robot/19c7e52fd2232348103596e895b245bc404081a332300a95b8b70f8d420d774c.webp",
+        "width": 1368,
+        "height": 199,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 171,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 513,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 855,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1026,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1197,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 8.499172690620195,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.southeast": {
+        "asset": "sprite-studio/robot/19c7e52fd2232348103596e895b245bc404081a332300a95b8b70f8d420d774c.webp",
+        "width": 1368,
+        "height": 199,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 171,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 513,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 855,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1026,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1197,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 8.499172690620195,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northeast": {
+        "asset": "sprite-studio/robot/19c7e52fd2232348103596e895b245bc404081a332300a95b8b70f8d420d774c.webp",
+        "width": 1368,
+        "height": 199,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 171,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 513,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 855,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1026,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1197,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 8.499172690620195,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.north": {
+        "asset": "sprite-studio/robot/b0683f3ea4225ff46683b48dba7efabe44b7a5e78646802141432af462771669.webp",
+        "width": 912,
+        "height": 208,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 114,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 228,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 456,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 570,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          },
+          {
+            "x": 798,
+            "y": 0,
+            "width": 114,
+            "height": 208
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 0.4047201932407962,
+        "y": 15.784141379586329,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.west": {
+        "asset": "sprite-studio/robot/19c7e52fd2232348103596e895b245bc404081a332300a95b8b70f8d420d774c.webp",
+        "width": 1368,
+        "height": 199,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 171,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 513,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 855,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1026,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1197,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 8.499172690620195,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.northwest": {
+        "asset": "sprite-studio/robot/19c7e52fd2232348103596e895b245bc404081a332300a95b8b70f8d420d774c.webp",
+        "width": 1368,
+        "height": 199,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 171,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 513,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 855,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1026,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1197,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 8.499172690620195,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.southwest": {
+        "asset": "sprite-studio/robot/19c7e52fd2232348103596e895b245bc404081a332300a95b8b70f8d420d774c.webp",
+        "width": 1368,
+        "height": 199,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 171,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 342,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 513,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 684,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 855,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1026,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          },
+          {
+            "x": 1197,
+            "y": 0,
+            "width": 171,
+            "height": 199
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 8.499172690620195,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      }
+    },
+    "boke": {
+      "run": {
+        "asset": "sprite-studio/boke/57e2e250a8d0a52ffb9bca2746a7cc7a6f133c0052f9f264a524a3aa24a057e9.webp",
+        "width": 984,
+        "height": 173,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 123,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 246,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 369,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 492,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 615,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 738,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 861,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.6070733423521265,
+        "y": 5.666103547898351,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.south": {
+        "asset": "sprite-studio/boke/57e2e250a8d0a52ffb9bca2746a7cc7a6f133c0052f9f264a524a3aa24a057e9.webp",
+        "width": 984,
+        "height": 173,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 123,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 246,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 369,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 492,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 615,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 738,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          },
+          {
+            "x": 861,
+            "y": 0,
+            "width": 123,
+            "height": 173
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.6070733423521265,
+        "y": 5.666103547898351,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.west": {
+        "asset": "sprite-studio/boke/a5142b712824a22294edbec1c936666bacd9f9b1bcb974298907052ea7d94e45.webp",
+        "width": 1160,
+        "height": 191,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 145,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 290,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 435,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 580,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 725,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 870,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 1015,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          }
+        ],
+        "fps": 12,
+        "scale": 1.35,
+        "x": -2.2259819053515835,
+        "y": 10.11804825295158,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.southwest": {
+        "asset": "sprite-studio/boke/a5142b712824a22294edbec1c936666bacd9f9b1bcb974298907052ea7d94e45.webp",
+        "width": 1160,
+        "height": 191,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 145,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 290,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 435,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 580,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 725,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 870,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 1015,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          }
+        ],
+        "fps": 12,
+        "scale": 1.35,
+        "x": -2.2259819053515835,
+        "y": 10.11804825295158,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.northwest": {
+        "asset": "sprite-studio/boke/a5142b712824a22294edbec1c936666bacd9f9b1bcb974298907052ea7d94e45.webp",
+        "width": 1160,
+        "height": 191,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 145,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 290,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 435,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 580,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 725,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 870,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 1015,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          }
+        ],
+        "fps": 12,
+        "scale": 1.35,
+        "x": -2.2259819053515835,
+        "y": 10.11804825295158,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "run.east": {
+        "asset": "sprite-studio/boke/a5142b712824a22294edbec1c936666bacd9f9b1bcb974298907052ea7d94e45.webp",
+        "width": 1160,
+        "height": 191,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 145,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 290,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 435,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 580,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 725,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 870,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 1015,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          }
+        ],
+        "fps": 12,
+        "scale": 1.35,
+        "x": -2.2259819053515835,
+        "y": 10.11804825295158,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.southeast": {
+        "asset": "sprite-studio/boke/a5142b712824a22294edbec1c936666bacd9f9b1bcb974298907052ea7d94e45.webp",
+        "width": 1160,
+        "height": 191,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 145,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 290,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 435,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 580,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 725,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 870,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 1015,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          }
+        ],
+        "fps": 12,
+        "scale": 1.35,
+        "x": -2.2259819053515835,
+        "y": 10.11804825295158,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.northeast": {
+        "asset": "sprite-studio/boke/a5142b712824a22294edbec1c936666bacd9f9b1bcb974298907052ea7d94e45.webp",
+        "width": 1160,
+        "height": 191,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 145,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 290,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 435,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 580,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 725,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 870,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          },
+          {
+            "x": 1015,
+            "y": 0,
+            "width": 145,
+            "height": 191
+          }
+        ],
+        "fps": 12,
+        "scale": 1.35,
+        "x": -2.2259819053515835,
+        "y": 10.11804825295158,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": true
+      },
+      "run.north": {
+        "asset": "sprite-studio/boke/d66e159ed15979ce4956f6fc97977f17700c455e70222786e66a0106c229c5b7.webp",
+        "width": 1032,
+        "height": 175,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 129,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 258,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 387,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 516,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 645,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 774,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          },
+          {
+            "x": 903,
+            "y": 0,
+            "width": 129,
+            "height": 175
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": -0.20236704412946593,
+        "y": 9.510966226213117,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "tag": {
+        "asset": "sprite-studio/boke/069af4eaf656bcb3b5ecb6439e5a7ba35123f3e5550c35f2e52a73d65e3c5bbd.webp",
+        "width": 1008,
+        "height": 160,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 126,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 252,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 378,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 504,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 630,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 756,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.4165137288337188,
+        "y": 16.795943599565586,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.south": {
+        "asset": "sprite-studio/boke/069af4eaf656bcb3b5ecb6439e5a7ba35123f3e5550c35f2e52a73d65e3c5bbd.webp",
+        "width": 1008,
+        "height": 160,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 126,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 252,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 378,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 504,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 630,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 756,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 126,
+            "height": 160
+          }
+        ],
+        "fps": 12,
+        "scale": 1.3,
+        "x": 1.2141466847042528,
+        "y": 14.165255395991343,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.west": {
+        "asset": "sprite-studio/boke/bbd58cfbb65b5f44348f1ac0372d27162291980532d810c7f568d9589df22e30.webp",
+        "width": 1176,
+        "height": 150,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 147,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 294,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 441,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 588,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 735,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 1029,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 11.73692034152843,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northwest": {
+        "asset": "sprite-studio/boke/bbd58cfbb65b5f44348f1ac0372d27162291980532d810c7f568d9589df22e30.webp",
+        "width": 1176,
+        "height": 150,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 147,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 294,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 441,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 588,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 735,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 1029,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 11.73692034152843,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.southwest": {
+        "asset": "sprite-studio/boke/bbd58cfbb65b5f44348f1ac0372d27162291980532d810c7f568d9589df22e30.webp",
+        "width": 1176,
+        "height": 150,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 147,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 294,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 441,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 588,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 735,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 1029,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 11.73692034152843,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "tag.northeast": {
+        "asset": "sprite-studio/boke/bbd58cfbb65b5f44348f1ac0372d27162291980532d810c7f568d9589df22e30.webp",
+        "width": 1176,
+        "height": 150,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 147,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 294,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 441,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 588,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 735,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 1029,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 11.73692034152843,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.east": {
+        "asset": "sprite-studio/boke/bbd58cfbb65b5f44348f1ac0372d27162291980532d810c7f568d9589df22e30.webp",
+        "width": 1176,
+        "height": 150,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 147,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 294,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 441,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 588,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 735,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 1029,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 11.73692034152843,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.southeast": {
+        "asset": "sprite-studio/boke/bbd58cfbb65b5f44348f1ac0372d27162291980532d810c7f568d9589df22e30.webp",
+        "width": 1176,
+        "height": 150,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 147,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 294,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 441,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 588,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 735,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 882,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          },
+          {
+            "x": 1029,
+            "y": 0,
+            "width": 147,
+            "height": 150
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 0.607101132388398,
+        "y": 11.73692034152843,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": true
+      },
+      "tag.north": {
+        "asset": "sprite-studio/boke/fcdc94e7adae2e6bbb61871d85cbb43a3fb5ffc96990ed99f90ec73e85b8a5d0.webp",
+        "width": 1400,
+        "height": 220,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 175,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 350,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 525,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 700,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 875,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 1050,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          },
+          {
+            "x": 1225,
+            "y": 0,
+            "width": 175,
+            "height": 220
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": 2.023614861222117,
+        "y": 9.308599182083652,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      }
     }
   }
 }

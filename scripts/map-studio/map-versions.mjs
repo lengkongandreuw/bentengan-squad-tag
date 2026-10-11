@@ -1,5 +1,16 @@
 // Local runtime selection rules, not a claim about an older published build.
 export const mapActive = m => !!m?.enabled && !m.archived && !m.deleted;
+// Editing a native preview must start from that preview, never an obsolete
+// replacement draft. Reuse its save slot; saving still backs up the old draft.
+export function editableMapVersion(selected, savedMaps) {
+  const saved = savedMaps.find(m => m.id === selected.map.id || selected.map.replaces && m.replaces === selected.map.replaces);
+  if (selected.kind !== 'native' && saved) return { map: structuredClone(saved), refreshed: false };
+  const draft = structuredClone(selected.map);
+  if (saved) draft.id = saved.id;
+  draft.enabled = false;
+  delete draft.archived; delete draft.deleted;
+  return { map: draft, refreshed: !!saved };
+}
 export function mapVersions(document, builtins, templates, showHidden = false) {
   const entries=[];
   for(const b of builtins){

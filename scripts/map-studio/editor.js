@@ -1,5 +1,5 @@
 import { validateCatalog } from '/catalog.mjs';
-import {mapVersions} from '/map-versions.mjs';
+import {mapVersions, editableMapVersion} from '/map-versions.mjs';
 import {
   closestEdge,
   polygonBounds,
@@ -146,7 +146,9 @@ function structureFallback(kind, team, slot) {
   const name = base ? (team === 'blue' ? 'fortRed' : 'fortGreen') :
     native?.prisons?.[team]?.[slot === 'floorVisual' ? 'floorAsset' : 'overlayAsset'] ??
     (slot === 'floorVisual' ? 'prisonFloor' : 'prisonOverlay');
-  return {asset: library.find(a => a.name === name)?.clip ?? null,
+  const clip = library.find(a => a.name === name && a.arena === native?.id)?.clip ??
+    library.find(a => a.name === name && !a.arena)?.clip ?? null;
+  return {asset: clip,
     w: base ? Math.round(168 * scale) : p.w,
     h: base ? Math.round(188 * scale) : p.h,
     offsetX: base ? -Math.round(168 * scale) / 2 : 0,
@@ -424,7 +426,7 @@ function applyViewMode() {
   $('resetMap').disabled=inspectOnly||!map.replaces;
   $('editVersion').hidden=!inspectOnly;
   const saved=state.document.maps.find(m=>m.id===map.id || map.replaces&&m.replaces===map.replaces);
-  $('editVersion').textContent=saved?'Buka versi editor tersimpan':'Buat draft dari versi ini';
+  $('editVersion').textContent=choiceValue.startsWith('builtin:')?'Edit map bawaan terbaru':saved?'Buka versi editor tersimpan':'Buat draft dari versi ini';
 }
 function add(asset, name = 'Area baru') {
   if (testing || inspectOnly) return;
@@ -1266,11 +1268,15 @@ $('maps').onchange = () => {
 };
 $('editVersion').onclick = () => {
   if(!inspectOnly)return;
-  const saved=state.document.maps.find(m=>m.id===map.id || map.replaces&&m.replaces===map.replaces);
-  if(saved){open(saved,{value:saved.id});return;}
-  const draft=structuredClone(map);draft.enabled=false;
-  open(draft,{value:draft.id});
-  notice('Draft baru di memori. Versi aktif tetap utuh; Simpan bila sudah siap.');
+  const selectedVersion=mapVersions(state.document,builtins,builtinTemplates,true).find(v=>v.value===choiceValue);
+  if(!selectedVersion?.map)return;
+  const plan=editableMapVersion(selectedVersion,state.document.maps);
+  if(plan.refreshed && !confirm('Mulai edit dari map bawaan terbaru? Draft editor lama tetap tersimpan di disk sampai Anda menekan Simpan; saat itu versi lama dicadangkan otomatis. Batal untuk tetap mempertahankan preview ini.'))return;
+  open(plan.map,{value:plan.map.id});
+  if(!inspectOnly && map.id===plan.map.id && selectedVersion.kind==='native') {
+    dirty=true;publishSummary();mapChoices();
+    notice('Draft berasal dari map bawaan terbaru. Belum disimpan/diaktifkan. Versi lama masih aman di disk; aktifkan dan Simpan hanya jika sudah siap.');
+  }
 };
 $('showArchived').onchange = mapChoices;
 async function manageMap(action) {
@@ -1664,7 +1670,7 @@ function renderLibrary() {
       };
     if (i.complete) paint();
     else i.addEventListener('load', paint, { once: true });
-    b.append(thumb, document.createTextNode(item.name));
+    b.append(thumb, document.createTextNode(item.arena ? `${item.name} · ${item.arena === 'taman' ? 'Taman terbaru' : 'Pasar terbaru'}` : item.name));
     b.onclick = () => {
       if (loading || testing || inspectOnly) return;
       if(replacement){const target=replacement;replaceStructure(target,item.clip);replacement=null;renderReplacement();}
@@ -1672,7 +1678,7 @@ function renderLibrary() {
     };
     b.draggable = true;
     b.ondragstart = (e) =>
-      e.dataTransfer.setData('application/map-studio-asset', item.name);
+      e.dataTransfer.setData('application/map-studio-asset', `${item.arena ?? ''}:${item.name}`);
     $('library').append(b);
   }
 }
@@ -1682,7 +1688,7 @@ canvas.ondrop = (e) => {
   e.preventDefault();
   if (testing || loading || inspectOnly) return;
   const i = library.find(
-    (i) => i.name === e.dataTransfer.getData('application/map-studio-asset'),
+    (i) => `${i.arena ?? ''}:${i.name}` === e.dataTransfer.getData('application/map-studio-asset'),
   );
   if (!i) return;
   add(i.clip, i.name);
@@ -1696,6 +1702,7 @@ document.querySelector('main').inert = true;
 for (const b of document.querySelectorAll('nav button')) b.disabled = true;
 void safe(async () => {
   state = await api('/api/state');
+  if (state.capabilities?.mapAssetBundles !== 1) throw new Error('Backend Map Studio belum mendukung gambar map terbaru. Simpan/ekspor draft di tab lama sebelum restart npm run admin:maps, atau gunakan panel terbaru yang diberikan.');
   const t = validateCatalog(await api('/api/templates'));
   template = t.template;
   builtinTemplates = t.builtinTemplates;

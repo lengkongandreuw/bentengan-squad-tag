@@ -223,9 +223,10 @@ export async function templates(root) {
       background: f.background,
       prisons: f.prisons,
     })),
-    library: Object.keys(atlas.assets).map((id) => ({
+    library: [...Object.keys(atlas.assets).map((id) => ({
       name: id,
       clip: asset(id),
-    })),
+    })), ...[['taman', TAMAN_ATLAS], ['pasar', PASAR2_ATLAS]].flatMap(([arena, bundle]) =>
+      Object.keys(bundle.assets).map(id => ({ name: id, arena, clip: asset(id, arena) })))],
   };
 }

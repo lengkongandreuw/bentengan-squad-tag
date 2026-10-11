@@ -309,7 +309,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
       res.setHeader('Cache-Control', 'no-store');
       if (req.method === 'GET') {
         if (url.pathname === '/api/state')
-          return json(200, { ...(await read()), token, job, capabilities: {structureVisuals: 1} });
+          return json(200, { ...(await read()), token, job, capabilities: {structureVisuals: 1, mapAssetBundles: 1} });
         if (url.pathname === '/api/templates')
           return json(200, await catalog());
         if (url.pathname === '/api/job') return json(200, job);
@@ -328,6 +328,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
         else if (
           /^\/map-studio\/[a-f0-9]{64}\.webp$/.test(url.pathname) ||
           /^\/ui-v2\/fields\/(kampung|pasar|taman|kanal|kanal2)\.webp$/.test(url.pathname) ||
+          /^\/field\/(taman|pasar2)\/(ground|objects)\.webp$/.test(url.pathname) ||
           /^\/field\/(objects|grounds|animated|kampung-map|pasar-map|taman-map|kanal-map|kanal2-ground|kanal-object-atlas)\.webp$/.test(
             url.pathname,
           )

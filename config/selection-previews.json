@@ -4,6 +4,15 @@
     "raja": {
       "animated": "selection-previews/raja/71aa5d79f16bbdcf234a7c8fbce099439778fd85936486b393af7d2752bf5acd.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/raja/a6f748e6d6ac86b9fdd8b777873123bf426582ba4a21e761b5db723cb7a95a86.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.7,
       "x": 2.3,
       "y": 13.4
@@ -11,6 +20,15 @@
     "robot": {
       "animated": "selection-previews/robot/1b2c77824813e6738ec32b9e17680dd3e6eb511b376d830cca5917e004b3b9f3.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/robot/b4fb45afaf8fd92eb6be73d4ec75d02ddffe081b7c34043ec90328c98cecc567.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.7,
       "x": -1.2,
       "y": 17.2
@@ -18,13 +36,24 @@
     "jago": {
       "animated": "selection-previews/jago/ec1f5a182ac34a77efb5bb1859e834aae016b95075b70848b0dea99c906e99c7.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [],
       "scale": 1.96,
       "x": -0.8,
       "y": 23
     },
     "ciici": {
-      "animated": "selection-previews/ciici/9078ee00f078b0da47e2785ad0d201d9c84664b3458d35c2638535b11696ebfa.gif",
+      "animated": "selection-previews/ciici/497f68d7a26c847f57ce25561ccb506ee81c3fd60deca859ecc4dda1db32529c.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/ciici/dbc92ee06ba1c43e0510363c9f1ec768321eb9ee15a54ff7a59252ee582b77b4.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.72,
       "x": 0.9,
       "y": 11.8
@@ -32,6 +61,8 @@
     "bebe": {
       "animated": "selection-previews/bebe/aefe7d183652174f6af3f25400a8b3f0d99e89509f8b83508a1172516edca7c7.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [],
       "scale": 1.61,
       "x": -0.7,
       "y": 11.4
@@ -39,6 +70,15 @@
     "tui": {
       "animated": "selection-previews/tui/1d4012f84b3b8f257352952f71d7421440f08c12187a63b36ccd5ea3d2e1204e.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/tui/ea972d4a1464055335466f23954481c4523cea10f789d9059b9bc7b4bb7a5a36.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.63,
       "x": 1.1,
       "y": 13.5
@@ -46,6 +86,15 @@
     "kumis": {
       "animated": "selection-previews/kumis/fde7e7092111ecaaca7d48a00375277539f98f5d7a7877492cb9f9625a70205a.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/kumis/ba5fa83046a3cdb46e3f1b62a87d045cf562fbee8c6fe61579ce37f3b9adfd45.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.85,
       "x": 3.3,
       "y": 16.2
@@ -53,6 +102,15 @@
     "lala": {
       "animated": "selection-previews/lala/76386965f38b969c744ffdc5a4df97422341d8836693be658ea1a3cd6dbb61e6.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/lala/9976a3cd23f6e09df71ddf2fe22184b0053db0389dba3e7264ae0f29c09168d8.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.77,
       "x": -0.5,
       "y": 11
@@ -60,6 +118,15 @@
     "kaka": {
       "animated": "selection-previews/kaka/23a443d81960581c09e1b3ed736f3ed3ac906ea3fa2936aefea65ae26106272e.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/kaka/e3d2bac0939fa9c22189d3106228bd40d1fe651f71bb195fa506db52c5c4376c.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.72,
       "x": 1.5,
       "y": 13.6
@@ -67,6 +134,8 @@
     "buto": {
       "animated": "selection-previews/buto/fa2b3619cb6eb3ab76299f0143441fa4fa899ea3582931f3fcb08c87b72f2ec2.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [],
       "scale": 1.7,
       "x": 1.4,
       "y": 15.9
@@ -74,6 +143,15 @@
     "maria": {
       "animated": "selection-previews/maria/c0aa575399aa09e01b8d9d3133a69d699bf62262959438c09a5c72301f65a32e.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/maria/65d2629262c8a5daed1947d2c6695f11e0022f163ce5e2245c03b53309af5d5e.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.92,
       "x": 2.2,
       "y": 17
@@ -81,6 +159,8 @@
     "boke": {
       "animated": "selection-previews/boke/59edd66e264ba4d334024ae6784f373f0d0dcc87b378706020cad396db1f32aa.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [],
       "scale": 1.92,
       "x": 1,
       "y": 20.1
@@ -88,6 +168,15 @@
     "kodo": {
       "animated": "selection-previews/kodo/c95e76746dd2d65790ebeb2458565489aa601e6181f49c4d148cdd9764928709.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/kodo/b4618b8c25fa8f02aa3f83f587346e402562be8f120f4cc3fb993d668c857cf5.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 2,
       "x": 8.8,
       "y": 26.1
@@ -95,6 +184,15 @@
     "lui": {
       "animated": "selection-previews/lui/711b599405d63257e3f1258c912485caa11bdab12179326a4bb73dbf44efc164.gif",
       "static": null,
+      "voice": null,
+      "voiceLayers": [
+        {
+          "file": "selection-previews/lui/bd79b535f8c2862215aac11f221b74c68bdf890251d670fc81b01d96b1ac3c46.mp3",
+          "volume": 0.35,
+          "loop": true,
+          "enabled": true
+        }
+      ],
       "scale": 1.61,
       "x": 0.1,
       "y": 11.1
