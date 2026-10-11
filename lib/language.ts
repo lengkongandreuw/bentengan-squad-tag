@@ -3,14 +3,15 @@ import {useSyncExternalStore} from 'react';
 import {playerTranslations} from './player-translations';
 
 export type Language = 'en' | 'id';
+export const DEFAULT_LANGUAGE:Language = 'en';
 export const LANGUAGE_STORAGE_KEY = 'benteng.language.v1';
 const EVENT = 'benteng-language-change';
-let language:Language = 'en';
+let language:Language = DEFAULT_LANGUAGE;
 let initialized = false;
 export function getLanguage():Language {
   if(!initialized && typeof window !== 'undefined') {
     initialized = true;
-    try {language = localStorage.getItem(LANGUAGE_STORAGE_KEY)==='id'?'id':'en';} catch { /* Session preference still works. */ }
+    try {language = localStorage.getItem(LANGUAGE_STORAGE_KEY)==='id'?'id':DEFAULT_LANGUAGE;} catch { /* Session preference still works. */ }
     if(typeof document!=='undefined' && document.documentElement)document.documentElement.lang = language;
   }
   return language;
@@ -31,7 +32,7 @@ function subscribe(callback:()=>void) {
   window.addEventListener('storage',storage);
   return ()=>{window.removeEventListener(EVENT,callback);window.removeEventListener('storage',storage);};
 }
-export function useLanguage(){return useSyncExternalStore(subscribe,getLanguage,()=> 'en' as Language);}
+export function useLanguage(){return useSyncExternalStore(subscribe,getLanguage,()=> DEFAULT_LANGUAGE);}
 
 const escape = (text:string)=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const templates = Object.entries(playerTranslations).filter(([key])=>key.includes('${')).sort(([a],[b])=>b.replace(/\$\{\d+\}/g,'').length-a.replace(/\$\{\d+\}/g,'').length).map(([key,value])=> {

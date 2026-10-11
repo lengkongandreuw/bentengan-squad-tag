@@ -8,7 +8,7 @@ export function LanguageSettings(){
   return <fieldset className="language-settings">
     <legend>{language==='en'?'LANGUAGE':'BAHASA'}</legend>
     <select aria-label={language==='en'?'Game language':'Bahasa game'} value={language} onChange={event=>setSaved(setLanguage(event.target.value as Language))}>
-      <option value="en" lang="en">English</option>
+      <option value="en" lang="en">{language==='en'?'English (default)':'English (utama)'}</option>
       <option value="id" lang="id">Indonesia</option>
     </select>
     <small>{language==='en'?'Applies right away. Character, arena and ability names stay original.':'Langsung berlaku. Nama karakter, arena, dan kemampuan tetap asli.'}</small>

@@ -13,6 +13,14 @@ void test('templates preserve names, numbers, currency and punctuation; user con
   const {api}=fixture();assert.equal(api.t('TITAH HALILINTAR · rekan di lapangan bergerak +43% selama 5.5 detik.'),'TITAH HALILINTAR · teammates on the field move +43% faster for 5.5 seconds.');assert.equal(api.t('Saldo 120 DOI'),'Balance: 120 DOI');assert.equal(api.t(' LEVEL BERIKUTNYA · '),' NEXT LEVEL · ');assert.equal(api.t('Nama pemain minimal 3 karakter.'),'Use at least 3 characters for your name.');for(const name of ['Raja','Ciici','Tim Merah','Pasar Senggol','TITAH HALILINTAR','DOI','My custom arena'])assert.equal(api.t(name),name);const node={props:{children:'anything'}};assert.equal(api.t(node),node);assert.equal(api.t(45),45);
 });
 void test('blocked storage keeps session language working and corrupt preferences safely default to English',()=>{const {api}=fixture('broken',true);assert.equal(api.getLanguage(),'en');assert.equal(api.setLanguage('id'),false);assert.equal(api.getLanguage(),'id');assert.equal(api.t('SIMPAN'),'SIMPAN');});
+void test('English is the explicit primary language and latest mission/map copy translates without changing names or saved Indonesian',()=>{
+  const {api}=fixture();assert.equal(api.DEFAULT_LANGUAGE,'en');
+  assert.equal(api.t('Tekan Space untuk ledakan lari'),'Press Space for a burst of speed');
+  assert.equal(api.t(' detik. Pulih 20 detik atau ambil refill.'),' seconds. Recharge in 20 seconds or grab a refill.');
+  assert.equal(api.t('Pasar lapang · neutral-cool · Versi editor; sebagian grafik menyatu di terrain.'),'Open market · room to move');
+  assert.equal(api.t('Taman Kota 2'),'Taman Kota 2');
+  assert.equal(fixture('id').api.getLanguage(),'id');
+});
 void test('all character flavor/passive descriptions and stock arena copy have English translations',()=>{
   const {dictionary}=fixture();for(const file of ['lib/characters.ts','lib/player-copy.ts']){const ast=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true);function visit(n){if(ts.isPropertyAssignment(n)&&ts.isStringLiteral(n.initializer)&&(file.endsWith('player-copy.ts')||['copy','passiveCopy'].includes(n.name.getText(ast))))assert(dictionary[n.initializer.text],n.initializer.text);ts.forEachChild(n,visit);}visit(ast);}
 });

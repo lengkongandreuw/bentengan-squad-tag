@@ -1,6 +1,15 @@
 // Proper names (Tim Merah, Tim Hijau, arenas and named abilities) stay Indonesian.
 // ${n} is a runtime placeholder; never translate IDs, asset paths or game rules.
 export const playerTranslations: Record<string,string> = {
+  'Tekan Space untuk ledakan lari':'Press Space for a burst of speed',
+  'detik. Pulih 20 detik atau ambil refill.':'seconds. Recharge in 20 seconds or grab a refill.',
+  'Pasar lapang · neutral-cool':'Open market · room to move',
+  'Pasar lapang · neutral-cool · Versi editor; sebagian grafik menyatu di terrain.':'Open market · room to move',
+  'Taman simetris · parkour teknis · Versi editor; sebagian grafik menyatu di terrain.':'Symmetrical park · precision parkour',
+  'Kanal cincin · jembatan dan parkour · Versi editor; sebagian grafik menyatu di terrain.':'Canal loop · bridges and parkour',
+  'Kanal panjang · ruang tengah 2× · Versi editor; sebagian grafik menyatu di terrain.':'Long canal · a wider middle lane',
+  'Lapangan terbuka · ramah pemula · Versi editor; sebagian grafik menyatu di terrain.':'Open field · a great place to start',
+  'Latar dan footprint Kampung. Beberapa dekorasi menyatu di latar; upload terrain bersih untuk memisahkannya.':'A familiar neighbourhood arena. Find your route, back your squad, and take their fort.',
   'MULAI MATCH':'LET’S PLAY',
   'Mulai Match':'LET’S PLAY',
   'Pilih arena':'Choose your arena',
