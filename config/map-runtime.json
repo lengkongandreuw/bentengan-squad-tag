@@ -1527,6 +1527,23 @@
           "top": 10
         }
       }
+    },
+    "map-studio/155e5d3ac2f862f56f3c162873359c650c96258cf43ca97da9ad31ef8bfaccc6.webp": {
+      "asset": "map-runtime/90caac12932d26dde141f9ebba949bc708d3802a9ae42a19bb4acce59d0f9d65.webp",
+      "width": 1244,
+      "height": 1240,
+      "sourceWidth": 1262,
+      "sourceHeight": 1262,
+      "frames": {
+        "0,0,1262,1262": {
+          "x": 2,
+          "y": 2,
+          "width": 1240,
+          "height": 1236,
+          "left": 2,
+          "top": 24
+        }
+      }
     }
   }
 }

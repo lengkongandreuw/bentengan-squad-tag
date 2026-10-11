@@ -8806,7 +8806,7 @@
       "description": "Pasar lapang · neutral-cool · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 2100,
       "height": 1050,
-      "enabled": false,
+      "enabled": true,
       "terrain": {
         "asset": "field/pasar2/ground.webp",
         "width": 2100,
@@ -8822,15 +8822,15 @@
         "fps": 12
       },
       "icon": {
-        "asset": "map-studio/537d3de1c91642dfe6c3e3934485621bc43244ea933bae286cf47cafe1656d96.webp",
-        "width": 640,
-        "height": 360,
+        "asset": "ui-v2/fields/pasar.webp",
+        "width": 420,
+        "height": 560,
         "frames": [
           {
             "x": 0,
             "y": 0,
-            "width": 640,
-            "height": 360
+            "width": 420,
+            "height": 560
           }
         ],
         "fps": 12
@@ -16805,47 +16805,6 @@
           "visible": true,
           "locked": false,
           "mirror": false
-        },
-        {
-          "id": "obj-c26b964de3064e438639f0b24f63b9f8",
-          "name": "Collider poligon",
-          "asset": null,
-          "x": 739,
-          "y": 516,
-          "w": 613,
-          "h": 60,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0.0028988380167529553,
-              "y": 0.08823410614750787
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0.011594356928660721,
-              "y": 0.9411765893852492
-            },
-            {
-              "x": 0,
-              "y": 0.08823410614750787
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
         }
       ],
       "bases": {
@@ -16866,7 +16825,7 @@
           "h": 185,
           "floorVisual": {
             "asset": {
-              "asset": "map-studio/4d4b010ba940f73d623c878245d04b1f7c0187b02ba3e393a9914e34e5ad8ede.webp",
+              "asset": "map-studio/88f929d96b2c70012204870c37655187c8228b96c1efed0ba9162744bf44c579.webp",
               "width": 1262,
               "height": 1262,
               "frames": [
@@ -16918,6 +16877,30 @@
           "y": 170,
           "w": 270,
           "h": 185,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/a9a9bb7892c9a525509b0132716722848bbe23ca0fd2114bf2e06a5252a690b9.webp",
+              "width": 1262,
+              "height": 1262,
+              "frames": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "width": 1262,
+                  "height": 1262
+                }
+              ],
+              "fps": 12
+            },
+            "w": 270,
+            "h": 185,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 0.96,
+            "mirror": false,
+            "visible": true
+          },
           "overlayVisual": {
             "asset": {
               "asset": "field/pasar2/objects.webp",
@@ -22213,7 +22196,7 @@
       "description": "Kanal cincin · jembatan dan parkour · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 1954,
       "height": 1065,
-      "enabled": false,
+      "enabled": true,
       "terrain": {
         "asset": "field/kanal-map.webp",
         "width": 1699,
@@ -23916,6 +23899,30 @@
           "y": 615,
           "w": 176,
           "h": 152,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/155e5d3ac2f862f56f3c162873359c650c96258cf43ca97da9ad31ef8bfaccc6.webp",
+              "width": 1262,
+              "height": 1262,
+              "frames": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "width": 1262,
+                  "height": 1262
+                }
+              ],
+              "fps": 12
+            },
+            "w": 176,
+            "h": 152,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 0.96,
+            "mirror": false,
+            "visible": true
+          },
           "overlayVisual": {
             "asset": {
               "asset": "field/objects.webp",
@@ -23946,6 +23953,30 @@
           "y": 280,
           "w": 173,
           "h": 150,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/155e5d3ac2f862f56f3c162873359c650c96258cf43ca97da9ad31ef8bfaccc6.webp",
+              "width": 1262,
+              "height": 1262,
+              "frames": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "width": 1262,
+                  "height": 1262
+                }
+              ],
+              "fps": 12
+            },
+            "w": 173,
+            "h": 150,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 0.96,
+            "mirror": true,
+            "visible": true
+          },
           "overlayVisual": {
             "asset": {
               "asset": "field/objects.webp",
