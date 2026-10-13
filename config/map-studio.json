@@ -30829,15 +30829,15 @@
             ],
             "fps": 12
           },
-          "x": 570.5486617636891,
-          "y": 567.1327001521017,
-          "w": 240.66664632161462,
-          "h": 126.00008138020837,
+          "x": 570,
+          "y": 567,
+          "w": 240,
+          "h": 126,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "bridge",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -30880,14 +30880,14 @@
             "fps": 12
           },
           "x": 2095,
-          "y": 570.8888888888888,
+          "y": 573.3581000434026,
           "w": 212.22219679090722,
           "h": 125.77782864040796,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "bridge",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -30935,9 +30935,9 @@
           "h": 188.6665734185117,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "bridge",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -30985,9 +30985,9 @@
           "h": 118.88889736599393,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "bridge",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -31035,9 +31035,9 @@
           "h": 118.88899485270184,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "bridge",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -31085,9 +31085,9 @@
           "h": 118,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "bridge",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -31129,6 +31129,30 @@
           "y": 344,
           "w": 165,
           "h": 143,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/4d4b010ba940f73d623c878245d04b1f7c0187b02ba3e393a9914e34e5ad8ede.webp",
+              "width": 1262,
+              "height": 1262,
+              "frames": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "width": 1262,
+                  "height": 1262
+                }
+              ],
+              "fps": 12
+            },
+            "w": 165,
+            "h": 143,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 0.96,
+            "mirror": false,
+            "visible": true
+          },
           "overlayVisual": {
             "asset": {
               "asset": "field/objects.webp",
@@ -31159,6 +31183,30 @@
           "y": 344,
           "w": 165,
           "h": 143,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/155e5d3ac2f862f56f3c162873359c650c96258cf43ca97da9ad31ef8bfaccc6.webp",
+              "width": 1262,
+              "height": 1262,
+              "frames": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "width": 1262,
+                  "height": 1262
+                }
+              ],
+              "fps": 12
+            },
+            "w": 165,
+            "h": 143,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 0.96,
+            "mirror": true,
+            "visible": true
+          },
           "overlayVisual": {
             "asset": {
               "asset": "field/objects.webp",
