@@ -18,6 +18,8 @@ import type { Team } from '../world/map-data/field-types';
 import { formatTime } from './format.ts';
 import { teamName } from '../world/team-tables.ts';
 import { CharacterPreview } from './character-preview.tsx';
+import { AfterMatchResults } from './after-match-results.tsx';
+import type { ProgressionResult } from '../../lib/player-profile/match-progression';
 import { t } from '../../lib/language';
 import type { ReactNode } from 'react';
 
@@ -37,6 +39,11 @@ export const RoundStatsOverlay = ({
   match,
   draft,
   nextRoundNote,
+  onNextToRewards,
+  result,
+  arenas,
+  unlockDismissed,
+  onDismiss,
 }: {
   statsBoard: StatsBoard;
   leaderboardOpen: boolean;
@@ -53,7 +60,44 @@ export const RoundStatsOverlay = ({
   draft?: ReactNode;
   /** Hint next to "next round" (Enter shortcut, or what skipping does to a pending perk pick). */
   nextRoundNote?: string;
-}) => (
+  /** Explicit integration point for the future Rewards screen. When absent,
+   * the final After Match view falls back to its local rewards placeholder
+   * stage. Never wired to the round-advance callback. */
+  onNextToRewards?: () => void;
+  /** Completed-match progression result for the Rewards stage; null when
+   * unavailable. Read-only: the Rewards UI never recalculates or persists. */
+  result?: ProgressionResult | null;
+  arenas?: readonly { id: string; name: string }[];
+  unlockDismissed?: boolean;
+  onDismiss?: () => void;
+}) => {
+  // Final match results use the dedicated After Match presentation. Round
+  // recaps and the manual leaderboard keep the legacy markup below.
+  if (statsBoard.final && statsBoard.visible) {
+    return (
+      <dialog
+        className="round-stats-overlay final"
+        open={statsBoard.visible || leaderboardOpen}
+        aria-modal={true}
+        aria-labelledby="round-stats-title"
+      >
+        <AfterMatchResults
+          statsBoard={statsBoard}
+          match={match}
+          result={result ?? null}
+          arenas={arenas ?? []}
+          unlockDismissed={unlockDismissed ?? false}
+          onDismiss={onDismiss ?? (() => {})}
+          onQuit={onQuit}
+          onRematch={onRematch}
+          onBackToCharacterSelect={onBackToCharacterSelect}
+          onBackToFieldSelect={onBackToFieldSelect}
+          onNextToRewards={onNextToRewards}
+        />
+      </dialog>
+    );
+  }
+  return (
   <dialog
     className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
     open={statsBoard.visible || leaderboardOpen}
@@ -194,4 +238,5 @@ export const RoundStatsOverlay = ({
       </footer>
     </div>
   </dialog>
-);
+  );
+};

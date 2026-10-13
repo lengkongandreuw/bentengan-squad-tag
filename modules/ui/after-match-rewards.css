@@ -1,0 +1,721 @@
+/* Match Rewards stage (Phase 2). Scoped under `.after-match-rewards-*`.
+ * Same street-art language as the Statistics stage: flat cream panels, thick
+ * black borders, hard offset shadows, condensed display type. No gradients,
+ * glass, neon, or rounded SaaS cards. */
+
+/* Shared second-stage canvas: same outer contract as Statistics
+ * (max ~1360px, ~96vw, centered), so both stages align. The body fills ~97%
+ * of the container (~1320px at 1920x1080). */
+.after-match.after-match-rewards {
+  --amr-ink: var(--am-ink);
+  --amr-panel: var(--am-panel);
+  --amr-strip: #0a140d;
+  --amr-lime: var(--am-lime);
+  --amr-green: var(--am-green);
+  --amr-deep-green: #1e7a2e;
+  --amr-red: var(--am-red);
+  --amr-orange: var(--am-orange);
+  --amr-amber: #b25a00;
+  --amr-paper: var(--am-paper);
+  --amr-plate-xp: #e2f4a8;
+  --amr-plate-doi: #fbd9a8;
+  --amr-muted: var(--am-muted);
+  --amr-muted-ink: #6b7263;
+  width: min(1360px, 96vw);
+}
+
+.after-match-rewards-body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  width: 97%;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.after-match-rewards-left {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.after-match-rewards-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  padding-top: 14px;
+}
+
+/* ---- Cream reward cards ---- */
+.after-match-rewards-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 22px 18px 16px;
+  color: #141207;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+  box-shadow: 7px 7px 0 #000;
+}
+
+.after-match-rewards-sticker {
+  position: absolute;
+  top: -15px;
+  left: 12px;
+  padding: 3px 12px;
+  color: #0b0e05;
+  background: var(--amr-lime);
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  white-space: nowrap;
+}
+
+.after-match-rewards-card.doi .after-match-rewards-sticker {
+  background: var(--amr-orange);
+  transform: rotate(2deg);
+}
+
+.after-match-rewards-total-label {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.after-match-rewards-total {
+  margin: 4px 0 12px;
+  padding: 12px 16px;
+  background: var(--amr-plate-xp);
+  border: 2px solid #000;
+}
+
+.after-match-rewards-card.doi .after-match-rewards-total {
+  background: var(--amr-plate-doi);
+}
+
+.after-match-rewards-total b {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 2.6vw, 46px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.after-match-rewards-card h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.after-match-rewards-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.after-match-rewards-card li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.28);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.after-match-rewards-card li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.after-match-rewards-card li b {
+  flex: none;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.after-match-rewards-card.xp li b {
+  color: var(--amr-deep-green);
+}
+
+.after-match-rewards-card.doi li b {
+  color: var(--amr-amber);
+}
+
+.after-match-rewards-card li.zero {
+  color: var(--amr-muted-ink);
+}
+
+.after-match-rewards-card li.zero b {
+  color: var(--amr-muted-ink);
+}
+
+.after-match-rewards-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border: 2px solid #000;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.after-match-rewards-balance span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.after-match-rewards-balance svg {
+  width: 16px;
+  height: 16px;
+}
+
+.after-match-rewards-balance b {
+  flex: none;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.after-match-rewards-unavailable {
+  grid-column: 1 / -1;
+  padding: 26px 22px;
+  color: #141207;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+  box-shadow: 7px 7px 0 #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.after-match-rewards-unavailable p {
+  margin: 0;
+}
+
+/* ---- Level progression strip ---- */
+.after-match-rewards-level {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 250px;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 20px;
+  background: var(--amr-strip);
+  border: 3px solid #000;
+  border-bottom: 6px solid var(--amr-lime);
+  box-shadow: 7px 7px 0 #000;
+}
+
+.after-match-rewards-badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  flex: none;
+  color: #0b0e05;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+}
+
+.after-match-rewards-badge span {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  padding: 2px 10px;
+  color: #0b0e05;
+  background: var(--amr-lime);
+  border: 2px solid #000;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  transform: translateX(-50%) rotate(-3deg);
+  white-space: nowrap;
+}
+
+.after-match-rewards-badge b {
+  font-family: var(--font-display);
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.after-match-rewards-progress {
+  min-width: 0;
+}
+
+.after-match-rewards-levelup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 3px 10px;
+  color: #0b0e05;
+  background: var(--amr-lime);
+  border: 2px solid #000;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.after-match-rewards-levelup svg {
+  width: 16px;
+  height: 16px;
+}
+
+.after-match-rewards-xp-line {
+  margin: 0 0 8px;
+  color: var(--amr-paper);
+  font-family: var(--font-display);
+  font-size: clamp(20px, 1.5vw, 26px);
+  letter-spacing: 0.03em;
+}
+
+.after-match-rewards-bar {
+  width: 100%;
+  height: 28px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #030604;
+  border: 3px solid #000;
+  outline: 1px solid #2a3a2f;
+}
+
+.after-match-rewards-bar::-webkit-progress-bar {
+  background: #030604;
+}
+
+.after-match-rewards-bar::-webkit-progress-value {
+  background: var(--amr-lime);
+  border-right: 2px solid var(--amr-green);
+}
+
+.after-match-rewards-bar::-moz-progress-bar {
+  background: var(--amr-lime);
+  border-right: 2px solid var(--amr-green);
+}
+
+.after-match-rewards-progress small {
+  display: block;
+  margin-top: 6px;
+  color: var(--amr-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.after-match-rewards-next {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 12px;
+  color: #141207;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0 #000;
+}
+
+.after-match-rewards-next-portrait {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  background: #0b100d;
+  border: 2px solid #000;
+}
+
+.after-match-rewards-next-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.after-match-rewards-next small {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.after-match-rewards-next b {
+  display: block;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.after-match-rewards-next p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.after-match-rewards-next-empty small {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.after-match-rewards-next-empty b {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+/* ---- Right unlock panel ---- */
+.after-match-rewards-unlocks {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  align-self: start;
+  min-height: 480px;
+  padding: 16px 16px 14px;
+  background: var(--amr-panel);
+  border: 3px solid var(--amr-lime);
+  box-shadow: 8px 8px 0 #000;
+}
+
+.after-match-rewards-unlocks-head {
+  margin-bottom: 14px;
+  padding: 10px 14px 12px;
+  text-align: center;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0 #000;
+  line-height: 1;
+}
+
+.after-match-rewards-unlocks-head b {
+  display: block;
+  color: #0b0e05;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2vw, 36px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.after-match-rewards-unlocks-head strong {
+  display: block;
+  color: var(--amr-amber);
+  font-family: var(--font-display);
+  font-size: clamp(22px, 1.7vw, 30px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.after-match-rewards-unlock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 2px;
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--amr-lime) var(--amr-ink);
+}
+
+.after-match-rewards-unlock-list > li {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  padding: 12px;
+  color: #141207;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0 #000;
+}
+
+.after-match-rewards-unlock-art {
+  position: relative;
+  flex: none;
+  width: 112px;
+  min-height: 112px;
+  overflow: hidden;
+  background: #0b100d;
+  border: 2px solid #000;
+}
+
+.after-match-rewards-unlock-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Character portraits are tall transparent full-body assets: contain keeps
+ * antenna, side details and boots visible. Arena artwork keeps cover. */
+.after-match-rewards-unlock-art:not(.arena) img {
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.after-match-rewards-unlock-art > b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--amr-lime);
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 400;
+}
+
+.after-match-rewards-unlock-list > li > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.after-match-rewards-unlock-list em {
+  align-self: flex-start;
+  padding: 2px 8px;
+  color: var(--amr-paper);
+  background: #000;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.after-match-rewards-unlock-list b {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 1.7vw, 29px);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.after-match-rewards-unlock-list i {
+  align-self: flex-start;
+  padding: 2px 10px;
+  color: #0b0e05;
+  background: var(--amr-lime);
+  border: 2px solid #000;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.after-match-rewards-unlock-empty {
+  justify-content: center;
+  padding: 22px 14px;
+  color: var(--amr-paper);
+  background: transparent;
+  border: 2px dashed #3a4a3f;
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+}
+
+.after-match-rewards-unlocks > p {
+  margin: auto 0 10px;
+  color: var(--amr-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.after-match-rewards-unlocks > button {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 22px;
+  color: var(--amr-lime);
+  background: transparent;
+  border: 2px solid var(--amr-lime);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.after-match-rewards-unlocks > button:hover,
+.after-match-rewards-unlocks > button:focus-visible {
+  color: #0b0e05;
+  background: var(--amr-lime);
+}
+
+.after-match-rewards-unlocks > button:focus-visible {
+  outline: 3px solid var(--amr-paper);
+  outline-offset: 2px;
+}
+
+.after-match-rewards-unlocks > button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ---- Rewards footer (Statistics width/centering convention) ---- */
+.after-match-actions.after-match-rewards-footer {
+  width: min(1230px, 100%);
+}
+
+.after-match-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 18px;
+  color: #0b0e05;
+  background: var(--amr-paper);
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0 #000;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.after-match-secondary:hover,
+.after-match-secondary:focus-visible {
+  background: #fff;
+}
+
+.after-match-secondary:focus-visible,
+.after-match-rematch:focus-visible {
+  outline: 3px solid var(--amr-paper);
+  outline-offset: 2px;
+}
+
+.after-match-rematch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 0 30px;
+  color: #0b0e05;
+  background: var(--amr-lime);
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.after-match-rematch:hover {
+  background: #d8fb55;
+}
+
+.after-match-rematch:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 #000;
+}
+
+/* ---- Responsive ---- */
+/* Mid band (tablet / small landscape): keep the 60/40 body, but stack the
+ * cream cards vertically (each would drop below ~320px side by side) and
+ * let the footer wrap. The unlock panel stays independently usable. */
+@media (max-width: 1100px) {
+  .after-match-rewards-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .after-match-rewards-level {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .after-match-rewards-next {
+    grid-column: 1 / -1;
+  }
+
+  .after-match-actions.after-match-rewards-footer {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+}
+
+/* Compact (portrait / narrow): stack all major regions, permit vertical
+ * scroll inside the dialog instead of clipping. */
+@media (max-width: 860px) {
+  .after-match-rewards-body {
+    grid-template-columns: 1fr;
+  }
+
+  .after-match-rewards-level {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .after-match-rewards-next {
+    width: 100%;
+  }
+
+  .after-match-rewards-unlock-list {
+    max-height: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .after-match-rewards-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .after-match-rewards-level {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+}
+
+@media (max-height: 860px) {
+  .after-match-rewards-card li {
+    padding: 8px 0;
+  }
+
+  .after-match-rewards-bar {
+    height: 24px;
+  }
+
+  .after-match-rewards-unlock-art {
+    width: 88px;
+    min-height: 88px;
+  }
+
+  .after-match-rewards-unlock-empty {
+    padding: 14px;
+  }
+
+  .after-match-rewards-unlock-list {
+    max-height: 252px;
+  }
+
+  .after-match-rewards-level {
+    padding: 10px 14px;
+  }
+
+  .after-match-rewards-badge {
+    width: 96px;
+    height: 96px;
+  }
+}
