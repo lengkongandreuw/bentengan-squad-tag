@@ -1,5 +1,63 @@
 import {DIRECTIONS,SLOTS,FLIGHT_ACTIONS,isFlightSlot,actionsForCharacter,slotAllowed,slotLoop,validateClip,frameAt,spritePlacement} from '/model.js';
 const $=id=>document.getElementById(id),names={run:'Lari',tag:'Tag / menangkap',parkour:'Lompat / parkour',idle:'Idle',prisoner:'Idle tertangkap',ready:'Bersiap awal',ultimate:'Ultimate (opsional)',victory:'Menang',defeat:'Kalah',south:'Depan / bawah ↓',north:'Belakang / atas ↑',west:'Kiri ←',east:'Kanan →',northwest:'Kiri atas ↖',northeast:'Kanan atas ↗',southwest:'Kiri bawah ↙',southeast:'Kanan bawah ↘'};
+// Reuse the existing inputs and IDs: only the editing workspace changes.
+const workspace=$('preview').closest('section');workspace.classList.add('sprite-workspace');workspace.dataset.view='preview';
+document.querySelector('main > aside').classList.add('sprite-browser');
+document.querySelector('main').classList.add('sprite-layout');
+const inspector=document.createElement('aside');inspector.className='sprite-inspector';inspector.setAttribute('aria-label','Pengaturan sprite');
+inspector.append($('advanced'));document.querySelector('main').append(inspector);$('advanced').open=true;
+const viewTools=document.createElement('div');viewTools.className='view-tools';
+viewTools.innerHTML='<div class="view-tabs" role="tablist" aria-label="Canvas editor"><button id="previewTab" role="tab" aria-selected="true" aria-controls="animationPanel">Preview animasi</button><button id="sourceTab" role="tab" aria-selected="false" aria-controls="sourceEditor" disabled>Upload & crop</button></div><div class="guide-tools"><label><input id="gridVisible" type="checkbox" checked> Grid</label><label><input id="rulersVisible" type="checkbox" checked> Ruler</label><label>Grid px <select id="gridSize"><option>8</option><option selected>16</option><option>32</option><option>64</option></select></label><label><input id="snapGrid" type="checkbox"> Snap</label></div><small>Crop: pixel sumber · Preview: pixel gameplay, (0,0) di titik kaki · Space: play/pause · ←/→: frame · Shift + panah: geser sprite</small>';
+workspace.insertBefore(viewTools,$('sourceEditor'));
+const animationPanel=document.createElement('div');animationPanel.id='animationPanel';animationPanel.setAttribute('role','tabpanel');
+const previewElement=$('preview'),playbackBar=previewElement.nextElementSibling,playbackHint=playbackBar.nextElementSibling;
+previewElement.before(animationPanel);animationPanel.append(previewElement,playbackBar,playbackHint);
+previewElement.tabIndex=0;previewElement.setAttribute('aria-label','Canvas preview. Space play/pause; panah untuk frame; Shift dan panah untuk offset sprite.');
+previewElement.height=506;
+// Keep frequent playback controls outside the advanced inspector.
+animationPanel.append(document.querySelector('.playback'));
+const cropFrame=document.createElement('div');cropFrame.className='crop-ruler-frame';$('cropStage').before(cropFrame);cropFrame.append($('cropStage'));
+const cropRulers=document.createElement('canvas');cropRulers.id='cropRulers';cropRulers.setAttribute('aria-hidden','true');cropFrame.append(cropRulers);
+const cropGrid=document.createElement('canvas');cropGrid.id='cropGrid';cropGrid.setAttribute('aria-hidden','true');$('cropStage').append(cropGrid);
+function setWorkspaceView(view){
+  if(view==='source'&&!sourceWidth)return;
+  workspace.dataset.view=view;$('previewTab').setAttribute('aria-selected',String(view==='preview'));$('sourceTab').setAttribute('aria-selected',String(view==='source'));
+  if(view==='source')requestAnimationFrame(renderCrop);
+}
+$('previewTab').onclick=()=>setWorkspaceView('preview');$('sourceTab').onclick=()=>setWorkspaceView('source');
+for(const tab of [$('previewTab'),$('sourceTab')])tab.onkeydown=e=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+  e.preventDefault();const next=e.key==='Home'?$('previewTab'):e.key==='End'?$('sourceTab'):tab===$('previewTab')?$('sourceTab'):$('previewTab');
+  if(!next.disabled){next.focus();next.click();}
+};
+const guideStep=()=>Number($('gridSize').value);
+const snapCoordinate=value=>$('snapGrid').checked?Math.round(value/guideStep())*guideStep():value;
+function drawGuides(target,width,height,originX,originY,scale){
+  const rulers=$('rulersVisible').checked,edge=rulers?24:0,step=guideStep()*scale;
+  target.save();
+  if($('gridVisible').checked){
+    target.beginPath();target.rect(edge,edge,width-edge,height-edge);target.clip();target.strokeStyle='#a4d9b22b';target.lineWidth=1;
+    target.beginPath();for(let x=originX%step;x<width;x+=step){target.moveTo(x,edge);target.lineTo(x,height);}for(let y=originY%step;y<height;y+=step){target.moveTo(edge,y);target.lineTo(width,y);}target.stroke();
+  }
+  target.restore();
+  if(!rulers)return;
+  target.save();target.fillStyle='#0e1915f2';target.fillRect(0,0,width,24);target.fillRect(0,0,24,height);target.fillStyle='#d4e8d6';target.strokeStyle='#74957c';target.font='10px system-ui';
+  const units=guideStep()*Math.max(1,Math.ceil(52/step)),ticks=units*scale;
+  for(let x=originX-Math.ceil(originX/ticks)*ticks;x<width;x+=ticks){if(x<24)continue;target.beginPath();target.moveTo(x,18);target.lineTo(x,24);target.stroke();target.fillText(String(Math.round((x-originX)/scale)),x+3,12);}
+  for(let y=originY-Math.ceil(originY/ticks)*ticks;y<height;y+=ticks){if(y<24)continue;target.beginPath();target.moveTo(18,y);target.lineTo(24,y);target.stroke();target.save();target.translate(11,y+3);target.rotate(-Math.PI/2);target.fillText(String(Math.round((y-originY)/scale)),0,0);target.restore();}
+  target.restore();
+}
+function renderCropGuides(factor){
+  const width=$('cropStage').clientWidth,height=$('cropStage').clientHeight;
+  const edge=$('rulersVisible').checked?24:0;cropFrame.style.padding=`${edge}px 0 0 ${edge}px`;
+  cropGrid.width=Math.round(width);cropGrid.height=Math.round(height);cropGrid.style.width=`${width}px`;cropGrid.style.height=`${height}px`;
+  const target=cropGrid.getContext('2d');target.clearRect(0,0,width,height);
+  if($('gridVisible').checked){const step=guideStep()*factor;target.strokeStyle='#dbfbe74d';target.beginPath();for(let x=0;x<width;x+=step){target.moveTo(x,0);target.lineTo(x,height);}for(let y=0;y<height;y+=step){target.moveTo(0,y);target.lineTo(width,y);}target.stroke();}
+  cropRulers.width=Math.round(width+edge);cropRulers.height=Math.round(height+edge);cropRulers.style.width=`${width+edge}px`;cropRulers.style.height=`${height+edge}px`;
+  // Rulers only; the image-space grid is drawn underneath the crop handles.
+  if(edge){const target=cropRulers.getContext('2d');target.clearRect(0,0,width+edge,height+edge);target.save();target.beginPath();target.moveTo(0,0);target.lineTo(width+edge,0);target.lineTo(width+edge,edge);target.lineTo(edge,edge);target.lineTo(edge,height+edge);target.lineTo(0,height+edge);target.closePath();target.clip();drawGuides(target,width+edge,height+edge,edge,edge,factor);target.restore();}
+}
+for(const key of ['gridVisible','rulersVisible','gridSize','snapGrid'])$(key).onchange=()=>renderCrop();
 let state,clip=null,image=null,legacy=null,dirty=false,playing=true,frame=0,start=performance.now(),uploaded=[],selection='',requestId=0,drag=null;
 const numeric=['fps','scale','x','y','pivotX','pivotY'];
 const drafts={};
@@ -23,12 +81,13 @@ function refreshBatch(){
 }
 let sourceUrls=[],sourceTicket=0,sourceWidth=0,sourceHeight=0,crop=null,cropDrag=null,pendingUpload=false;
 // oxlint-disable-next-line typescript/unbound-method -- URL.revokeObjectURL is static, no this-binding
-function clearSource(){sourceTicket++;sourceUrls.forEach(URL.revokeObjectURL);sourceUrls=[];sourceWidth=sourceHeight=0;crop=null;pendingUpload=false;$('sourceEditor').hidden=true;$('sourceImage').removeAttribute('src');for(const k of ['cropLeft','cropTop'])$(k).value=0;for(const k of ['cropWidth','cropHeight'])$(k).value='';}
+function clearSource(){sourceTicket++;sourceUrls.forEach(URL.revokeObjectURL);sourceUrls=[];sourceWidth=sourceHeight=0;crop=null;pendingUpload=false;$('sourceEditor').hidden=true;$('sourceTab').disabled=true;setWorkspaceView('preview');$('sourceImage').removeAttribute('src');for(const k of ['cropLeft','cropTop'])$(k).value=0;for(const k of ['cropWidth','cropHeight'])$(k).value='';}
 function sourceBounds(){const sheet=uploaded.length===1&&uploaded[0]?.type==='image/png';const columns=sheet?Math.max(1,+$('columns').value||1):1,rows=sheet?Math.max(1,+$('rows').value||1):1;return {width:Math.max(1,Math.floor(sourceWidth/columns)),height:Math.max(1,Math.floor(sourceHeight/rows)),columns,rows};}
 function renderCrop(){
-  if(!sourceWidth)return;
+  if(!sourceWidth||workspace.dataset.view!=='source')return;
   const b=sourceBounds(),stage=$('cropStage');
-  stage.style.setProperty('--crop-fit',`${500*b.width/b.height}px`);
+  const available=Math.max(120,workspace.getBoundingClientRect().bottom-cropFrame.getBoundingClientRect().top-70);
+  stage.style.setProperty('--crop-fit',`${available*b.width/b.height}px`);
   const factor=stage.clientWidth/b.width;
   stage.style.height=`${b.height*factor}px`;
   const cell=Math.max(0,Math.min(b.columns*b.rows-1,+$('sourceCell').value||0));
@@ -38,10 +97,11 @@ function renderCrop(){
   const r=crop??{left:0,top:0,width:b.width,height:b.height};
   Object.assign($('cropBox').style,{left:`${r.left*factor}px`,top:`${r.top*factor}px`,width:`${r.width*factor}px`,height:`${r.height*factor}px`});
   $('cropInfo').textContent=`Frame ${b.width} × ${b.height} px · potongan ${r.width} × ${r.height} px · (${r.left}, ${r.top})`;
+  renderCropGuides(factor);
   if(state)refreshBatch();
 }
 function setCrop(r){const b=sourceBounds();const left=Math.max(0,Math.min(b.width-1,Math.round(r.left))),top=Math.max(0,Math.min(b.height-1,Math.round(r.top)));crop={left,top,width:Math.max(1,Math.min(b.width-left,Math.round(r.width))),height:Math.max(1,Math.min(b.height-top,Math.round(r.height)))};for(const [key,input] of Object.entries({left:'cropLeft',top:'cropTop',width:'cropWidth',height:'cropHeight'}))$(input).value=crop[key];pendingUpload=true;$('save').disabled=true;renderCrop();}
-async function showSource(){const ticket=++sourceTicket;const index=+$('sourceFile').value||0;sourceWidth=sourceHeight=0;$('sourceImage').src=sourceUrls[index];const loaded=await loadImage(sourceUrls[index]);if(ticket!==sourceTicket)return;sourceWidth=loaded.naturalWidth;sourceHeight=loaded.naturalHeight;if(crop)setCrop(crop);renderCrop();}
+async function showSource(){const ticket=++sourceTicket;const index=+$('sourceFile').value||0;sourceWidth=sourceHeight=0;$('sourceImage').src=sourceUrls[index];const loaded=await loadImage(sourceUrls[index]);if(ticket!==sourceTicket)return;sourceWidth=loaded.naturalWidth;sourceHeight=loaded.naturalHeight;$('sourceTab').disabled=false;setWorkspaceView('source');if(crop)setCrop(crop);renderCrop();}
 const slot=()=>$('direction').value==='default'?$('action').value:`${$('action').value}.${$('direction').value}`;
 const id=()=>$('character').value;
 const message=s=>{$('status').textContent=s;};
@@ -132,9 +192,10 @@ for(const k of ['columns','rows'])$(k).oninput=()=>{crop=null;$('cropWidth').val
 for(const k of ['cropLeft','cropTop','cropWidth','cropHeight'])$(k).oninput=()=>{if(sourceWidth){const b=sourceBounds();setCrop({left:+$('cropLeft').value,top:+$('cropTop').value,width:+$('cropWidth').value||b.width,height:+$('cropHeight').value||b.height});}};
 $('resetCrop').onclick=()=>{crop=null;$('cropWidth').value=$('cropHeight').value='';$('cropLeft').value=$('cropTop').value=0;pendingUpload=true;$('save').disabled=true;renderCrop();};
 $('cropBox').onpointerdown=e=>{if(!sourceWidth||processing)return;e.preventDefault();$('cropBox').setPointerCapture(e.pointerId);const b=sourceBounds();cropDrag={x:e.clientX,y:e.clientY,resize:e.target.closest('#cropHandle')!==null,rect:{...(crop??{left:0,top:0,width:b.width,height:b.height})},factor:b.width/$('cropStage').clientWidth};};
-$('cropBox').onpointermove=e=>{if(!cropDrag)return;const d=cropDrag,dx=(e.clientX-d.x)*d.factor,dy=(e.clientY-d.y)*d.factor,b=sourceBounds();setCrop(d.resize?{...d.rect,width:d.rect.width+dx,height:d.rect.height+dy}:{...d.rect,left:Math.max(0,Math.min(b.width-d.rect.width,d.rect.left+dx)),top:Math.max(0,Math.min(b.height-d.rect.height,d.rect.top+dy))});};
+$('cropBox').onpointermove=e=>{if(!cropDrag)return;const d=cropDrag,dx=(e.clientX-d.x)*d.factor,dy=(e.clientY-d.y)*d.factor,b=sourceBounds();setCrop(d.resize?{...d.rect,width:snapCoordinate(d.rect.width+dx),height:snapCoordinate(d.rect.height+dy)}:{...d.rect,left:Math.max(0,Math.min(b.width-d.rect.width,snapCoordinate(d.rect.left+dx))),top:Math.max(0,Math.min(b.height-d.rect.height,snapCoordinate(d.rect.top+dy)))});};
 $('cropBox').onpointerup=$('cropBox').onpointercancel=$('cropBox').onlostpointercapture=()=>{cropDrag=null;};
 new ResizeObserver(renderCrop).observe($('cropStage'));
+new ResizeObserver(renderCrop).observe(workspace);
 $('compile').onclick=safe(async()=>{
   if(!uploaded.length)throw new Error('Pilih file dahulu.');
   if(!uploadValid)throw new Error('File belum lolos pemeriksaan. Pilih PNG/GIF/WebP yang valid dan tunggu status File diterima.');
@@ -148,7 +209,7 @@ $('compile').onclick=safe(async()=>{
   const result=await api('compile',{id:id(),slot:slot(),files,options});const previous=clip;
   clip=result.clip;if(previous)for(const k of [...numeric,'loop','mirror'])clip[k]=previous[k];
   if(isFlightSlot(slot()))clip.loop=slotLoop(slot());
-  image=await loadImage('/'+clip.asset);pendingUpload=false;frame=0;start=performance.now();settings();mark();fileNotice(`Siap digunakan: ${clip.frames.length} frame. Klik Terapkan movement ini saja, atau centang draft untuk update pilihan.`);message('Pemrosesan berhasil. Movement lain tidak wajib diganti.');
+  image=await loadImage('/'+clip.asset);pendingUpload=false;frame=0;start=performance.now();settings();mark();setWorkspaceView('preview');fileNotice(`Siap digunakan: ${clip.frames.length} frame. Klik Terapkan movement ini saja, atau centang draft untuk update pilihan.`);message('Pemrosesan berhasil. Movement lain tidak wajib diganti.');
   } finally {processingState(false);settings();}
 });
 $('copy').onclick=safe(async()=>{const s=$('copySource').value,source=drafts[id()]?.[s]?.clip??state.document.characters[id()]?.[s];if(!source)throw new Error('Belum ada animasi custom untuk disalin.');clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';clip=structuredClone(source);image=await loadImage('/'+clip.asset);settings();mark();message('Animasi disalin sebagai draft. Atur mirror bila perlu, kemudian tandai sudah sesuai.');});
@@ -166,13 +227,14 @@ $('restart').onclick=()=>{frame=0;start=performance.now();};
 const step=n=>{playing=false;$('play').textContent='Play';const c=clip??legacy;if(c)frame=(frame+n+c.frames.length)%c.frames.length;};
 $('previous').onclick=()=>step(-1);$('next').onclick=()=>step(1);$('frame').oninput=()=>{playing=false;$('play').textContent='Play';frame=+$('frame').value;};
 const canvas=$('preview'),ctx=canvas.getContext('2d'),ground=new Image();ground.src='/field/kampung-map.webp';
-canvas.onpointerdown=e=>{if(!clip||processing)return;canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,ox:clip.x,oy:clip.y};};
-canvas.onpointermove=e=>{if(!drag||!clip)return;const r=canvas.getBoundingClientRect(),factor=canvas.width/r.width/(+$('zoom').value);clip.x=Math.max(-150,Math.min(150,drag.ox+(e.clientX-drag.x)*factor));clip.y=Math.max(-150,Math.min(150,drag.oy+(e.clientY-drag.y)*factor));settings();mark();};
+canvas.onpointerdown=e=>{if(!clip||processing)return;const rect=canvas.getBoundingClientRect();if($('rulersVisible').checked&&((e.clientX-rect.left)*canvas.width/rect.width<24||(e.clientY-rect.top)*canvas.height/rect.height<24))return;canvas.focus();canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,ox:clip.x,oy:clip.y};};
+canvas.onpointermove=e=>{if(!drag||!clip)return;const r=canvas.getBoundingClientRect(),factor=canvas.width/r.width/(+$('zoom').value);clip.x=Math.max(-150,Math.min(150,snapCoordinate(drag.ox+(e.clientX-drag.x)*factor)));clip.y=Math.max(-150,Math.min(150,snapCoordinate(drag.oy+(e.clientY-drag.y)*factor)));settings();mark();};
 canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=()=>{drag=null;};
 function draw(now){
   ctx.fillStyle='#1c261f';ctx.fillRect(0,0,canvas.width,canvas.height);
-  if($('arena').checked&&ground.complete&&ground.naturalWidth)ctx.drawImage(ground,0,0,900,440);else for(let y=0;y<440;y+=24)for(let x=0;x<900;x+=24){ctx.fillStyle=(x/24+y/24)%2?'#222f26':'#18231c';ctx.fillRect(x,y,24,24);}
-  const c=clip??legacy,zoom=+$('zoom').value,baseX=450,baseY=360;
+  if($('arena').checked&&ground.complete&&ground.naturalWidth)ctx.drawImage(ground,0,0,canvas.width,canvas.height);else for(let y=0;y<canvas.height;y+=24)for(let x=0;x<canvas.width;x+=24){ctx.fillStyle=(x/24+y/24)%2?'#222f26':'#18231c';ctx.fillRect(x,y,24,24);}
+  const c=clip??legacy,zoom=+$('zoom').value,baseX=canvas.width/2,baseY=Math.round(canvas.height*.82);
+  drawGuides(ctx,canvas.width,canvas.height,baseX,baseY,zoom);
   ctx.strokeStyle='#b9ed77';ctx.beginPath();ctx.moveTo(0,baseY);ctx.lineTo(900,baseY);ctx.stroke();
   if(c&&image?.complete){
     if(playing) {const mode=isFlightSlot(slot())?{...c,loop:slotLoop(slot())}:c;const f=frameAt(mode,now-start);frame=c.frames.indexOf(f);}
@@ -184,5 +246,14 @@ function draw(now){
     $('frame').value=frame;$('frameLabel').textContent=`${frame+1}/${c.frames.length}`;
   }requestAnimationFrame(draw);
 }
+canvas.onkeydown=e=>{
+  if(processing||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.code==='Space'){e.preventDefault();$('play').click();return;}
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
+  e.preventDefault();
+  if(!e.shiftKey){if(e.key==='ArrowLeft'||e.key==='ArrowRight')step(e.key==='ArrowLeft'?-1:1);return;}
+  if(!clip)return;const key=e.key==='ArrowLeft'||e.key==='ArrowRight'?'x':'y',delta=e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:1;
+  clip[key]=Math.max(-150,Math.min(150,clip[key]+delta*($('snapGrid').checked?guideStep():1)));settings();mark();
+};
 window.onbeforeunload=e=>{if(dirty||pendingUpload||Object.values(drafts).some(d=>Object.keys(d).length)){e.preventDefault();}};
 try{state=await api('state');options($('character'),state.roster.map(r=>r.id),id=>state.roster.find(r=>r.id===id).name);options($('direction'),['default',...DIRECTIONS],d=>names[d]);const params=new URLSearchParams(location.search),character=params.get('character'),requested=params.get('slot');if(state.roster.some(c=>c.id===character))$('character').value=character;refreshActions();if(slotAllowed(id(),requested)){$('action').value=requested.split('.')[0];$('direction').value=requested.split('.')[1]??'default';}await loadSlot();requestAnimationFrame(draw);}catch(e){message(e.message);fileNotice(e.message,true);}
