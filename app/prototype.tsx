@@ -29,8 +29,6 @@ import { MatchEventFeed } from '../modules/ui/match-event-feed.tsx';
 import { PerkDraftPanel } from '../modules/ui/perk-draft-panel.tsx';
 import { RoundStatsOverlay } from '../modules/ui/round-stats-overlay.tsx';
 import { MissionPanel } from '../modules/ui/mission-panel.tsx';
-import { MatchProgressionSummary } from '../modules/ui/match-progression-summary.tsx';
-import { UnlockNotificationPanel } from '../modules/ui/unlock-notification-panel.tsx';
 import { mapSelectionFiles } from '../modules/ui/map-selection-assets.ts';
 import { RoundResultAnnouncementCard } from '../modules/ui/round-result-announcement.tsx';
 import { SplashScreen } from '../modules/ui/splash-screen.tsx';
@@ -4711,18 +4709,17 @@ const spriteFrame = (
               onBackToFieldSelect={backToFieldSelect}
               onQuit={quit}
               match={snapshot.match}
+              result={matchProgressionResult}
+              arenas={FIELD_CONFIGS}
+              unlockDismissed={unlockNoticeDismissed}
+              onDismiss={() => setUnlockNoticeDismissed(true)}
               nextRoundNote={snapshot.match.draft && snapshot.match.draft.humanPicks && !snapshot.match.draft.resolved
                 ? 'Belum pilih perk? Lanjut = perk pertama.' : 'Tekan Enter untuk lanjut.'}
               draft={snapshot.match.draft && (
                 <PerkDraftPanel draft={snapshot.match.draft} playerTeam={selectedFaction === 'green' ? 'red' : 'blue'}
                   onPick={(id) => { perkChoiceRef.current = id; }} />
               )}
-            >
-              {matchProgressionResult && <MatchProgressionSummary result={matchProgressionResult} />}
-              {playerProfile && <UnlockNotificationPanel result={matchProgressionResult}
-                arenas={FIELD_CONFIGS} dismissed={unlockNoticeDismissed}
-                onDismiss={() => setUnlockNoticeDismissed(true)} />}
-            </RoundStatsOverlay>
+            />
           )}
           <ArenaIntel
             baseGrace={snapshot.baseGrace}
