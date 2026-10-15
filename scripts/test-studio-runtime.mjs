@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import sharp from 'sharp';
 import ts from 'typescript';
 import vm from 'node:vm';
-import {frameKey,trimFrame,optimizeAtlas} from './studio-runtime-pack.mjs';
+import {frameKey,trimFrame,optimizeAtlas,packRects} from './studio-runtime-pack.mjs';
 import * as model from '../lib/sprite-studio-model.js';
 
 const exports={};
@@ -12,6 +12,22 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/studio-runtime-resour
   compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}
 }).outputText,{exports});
 const {runtimeResource}=exports;
+
+void test('tight-width packing preserves padding, bounds and never overlaps frames',()=>{
+  const items=Array.from({length:32},(_,i)=>({width:300+i%3,height:340-i%7}));
+  const packed=packRects(items);
+  assert.ok(packed);
+  assert.ok(packed.width<=4096&&packed.height<=4096);
+  for(let i=0;i<items.length;i++){
+    const a={...packed.placements[i],...items[i]};
+    assert.ok(a.x>=2&&a.y>=2&&a.x+a.width+2<=packed.width&&a.y+a.height+2<=packed.height);
+    for(let j=0;j<i;j++){
+      const b={...packed.placements[j],...items[j]};
+      assert.ok(a.x>=b.x+b.width+4||b.x>=a.x+a.width+4||a.y>=b.y+b.height+4||b.y>=a.y+a.height+4);
+    }
+  }
+  assert.equal(packRects([{width:4096,height:1}]),null);
+});
 
 function verifyFrame(source,sw,output,ow,frame,packed) {
   for(let y=0;y<frame.height;y++)for(let x=0;x<frame.width;x++) {
@@ -90,6 +106,19 @@ void test('actual resolver uses packed images while preserving logical frames an
   }
   moduleExports.retainStudioImages(['bebe']);
   assert.ok(moduleExports.studioImages('bebe').every(image=>image.src));
+  for(const id of ['ciici','kaka']){
+    moduleExports.retainStudioImages([]);
+    const filtered=moduleExports.studioImages(id,false);
+    const needed=new Set(Object.entries(settings.characters[id]).filter(([slot])=>!slot.startsWith('ultimate')).map(([,c])=>runtimeResource(runtime,c).asset));
+    assert.equal(filtered.length,needed.size);
+    assert.ok(filtered.every(image=>needed.has(image.src)));
+    const complete=moduleExports.studioImages(id);
+    assert.ok(complete.length>filtered.length,'eligible/network ultimate atlases remain available');
+    moduleExports.retainStudioImages([id],[]);
+    assert.equal(moduleExports.studioImageBudget().atlases,needed.size);
+  }
+  moduleExports.retainStudioImages([]);
+  assert.equal(moduleExports.studioImageBudget().atlases,0);
 });
 
 void test('all generated atlases preserve every visible source pixel in every logical frame',async()=>{

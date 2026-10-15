@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';import {readFile,mkdir} from 'node:fs/promises';
+import {startEngine} from './server.mjs';
+const {chromium}=await import(process.env.BENTENG_PLAYWRIGHT_MODULE??'file:///C:/Users/lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');
+const configFiles=['config/map-studio.json','config/sprite-studio.json','config/selection-previews.json'];
+const before=await Promise.all(configFiles.map(file=>readFile(file))),engine=await startEngine(0);
+const browser=await chromium.launch({headless:true,executablePath:process.env.BENTENG_CHROME_PATH??'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+try{
+ const page=await browser.newPage({viewport:{width:1600,height:900}}),errors=[],writes=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.method()==='POST')writes.push(r.url());});
+ await page.goto(engine.origin);await page.getByRole('button',{name:'Buka Map Studio',exact:true}).waitFor();
+ await mkdir('outputs/engine',{recursive:true});await page.screenshot({path:'outputs/engine/home.png'});
+ await page.getByRole('button',{name:'Buka Sprite Studio',exact:true}).click();
+ const sprite=page.frameLocator('iframe[title="Sprite Studio"]');
+ await sprite.locator('#frameLabel').filter({hasText:'/'}).waitFor();
+ await sprite.locator('#character').selectOption('buto');await sprite.locator('#x').fill('12');
+ await page.getByRole('button',{name:'Map Studio',exact:true}).click();
+ const maps=page.frameLocator('iframe[title="Map Studio"]');await maps.locator('#maps option').first().waitFor({state:'attached'});
+ await maps.locator('#maps').selectOption('studio-edit-kampung');await maps.locator('#mapName').fill('Engine QA draft');
+ await page.getByRole('button',{name:'Sprite Studio',exact:true}).click();assert.equal(await sprite.locator('#x').inputValue(),'12');
+ await page.getByRole('button',{name:'Karakter & Suara',exact:true}).click();
+ const characters=page.frameLocator('iframe[title="Karakter & Suara"]');await characters.locator('#character option').first().waitFor({state:'attached'});
+ await characters.locator('#scaleNumber').fill('1.25');
+ await characters.locator('#voicePreview').evaluate(audio=>audio.play());
+ await page.getByRole('button',{name:'Map Studio',exact:true}).click();
+ assert.equal(await maps.locator('#mapName').inputValue(),'Engine QA draft');
+ assert.equal(await characters.locator('#voicePreview').evaluate(audio=>audio.paused),true);
+ await page.getByRole('button',{name:'Karakter & Suara',exact:true}).click();assert.equal(await characters.locator('#scaleNumber').inputValue(),'1.25');
+ assert.equal(await page.locator('iframe').count(),3);
+ await page.getByRole('button',{name:'Perbesar workspace',exact:true}).click();assert.equal(await page.locator('nav').isVisible(),false);
+ await page.getByRole('button',{name:'Kembali ke navigasi',exact:true}).click();assert.equal(await page.locator('nav').isVisible(),true);
+ await page.screenshot({path:'outputs/engine/character-workspace.png'});
+ await page.getByRole('button',{name:'⌂ Beranda',exact:true}).click();assert.equal(await page.locator('#home').isVisible(),true);
+ assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
+ for(let i=0;i<configFiles.length;i++)assert.deepEqual(await readFile(configFiles[i]),before[i]);
+ console.log('PASS embedded maps/sprites/characters, draft preservation across switches/home, hidden audio stop, focus mode; no project writes/errors.');
+}finally{await browser.close();await engine.close();}

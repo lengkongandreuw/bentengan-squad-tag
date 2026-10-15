@@ -1,0 +1,26 @@
+.tutorial-coach { position: absolute; z-index: 30; top: 100px; left: 16px; width: min(330px, calc(100% - 32px)); padding: 14px; border: 2px solid #d8ff4a; border-radius: 8px; background: #112018ed; color: #f5f5e9; pointer-events: none; }
+.tutorial-coach output { display: block; margin: 8px 0; font-weight: 800; line-height: 1.4; }
+.tutorial-save-error { position: absolute; z-index:31; top:330px; left:16px; max-width:330px; background:#481c1c; color:white; padding:12px; }
+.tutorial-coach small,.tutorial-coach b { color: #d8ff4a; }
+.tutorial-coach-help { border-width: 3px; }
+.tutorial-coach-help output { text-decoration: underline; text-underline-offset: 3px; }
+.tutorial-coach-help b { animation: tutorial-feedback-pulse 1s infinite alternate; }
+@keyframes tutorial-feedback-pulse { to { color: #fff; } }
+.tutorial-coach button:active { background: #405536; }
+.tutorial-coach button { cursor: pointer; touch-action: manipulation; }
+.tutorial-coach div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tutorial-coach .tutorial-copy { display: block; margin-top: 0; }
+.tutorial-coach button { pointer-events: auto; min-height: 44px; padding: 6px 10px; background: #263729; color: white; border: 1px solid #d8ff4a; border-radius: 4px; font-weight: 800; }
+.tutorial-coach button:focus-visible { outline: 3px solid #db92ff; }
+.tutorial-success { display: block; animation: tutorial-feedback 1.2s forwards; }
+@keyframes tutorial-feedback { 0%,70% {opacity:1} 100% {opacity:0} }
+.tutorial-highlight-sprint .action-dock .ready-action,.tutorial-highlight-sprint .touch-boost,
+.tutorial-highlight-parkour .action-dock .parkour-ready,.tutorial-highlight-parkour .touch-actions button[aria-label="Parkour"],
+.tutorial-highlight-move .touch-dpad,.tutorial-highlight-rescue .rescue-action,.tutorial-highlight-ultimate .touch-ultimate,.tutorial-highlight-ultimate .action-dock .ultimate-action { outline: 3px solid #d8ff4a; outline-offset: 3px; animation: tutorial-pulse 1s infinite alternate; }
+@keyframes tutorial-pulse { to {outline-color:#fff;outline-offset:6px} }
+@media (max-width:900px) {
+  .tutorial-coach { top: 78px; width: min(280px,calc(100% - 32px)); padding: 10px; font-size: 12px; display: flex; flex-direction: column; max-height: calc(100dvh - 214px); }
+  .tutorial-coach .tutorial-copy { min-height: 0; overflow-y: auto; pointer-events: auto; }
+  .tutorial-coach>small,.tutorial-coach>div:not(.tutorial-copy) { flex-shrink: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .tutorial-success,.tutorial-coach-help b {animation:none} [class*="tutorial-highlight"] * {animation:none!important} }

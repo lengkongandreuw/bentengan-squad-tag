@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { studioFramePolicy } from '../../lib/local-studio-frame.js';
 import { compileSprites } from './compile.mjs';
 import { SLOTS,slotAllowed,slotLoop,isFlightSlot,validateClip,validateSpriteDocument } from '../../lib/sprite-studio-model.js';
 const directory=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(directory,'../..');
@@ -18,7 +19,8 @@ function command(program,args,cwd,timeout=180000) {
     child.on('error',e=>{clearTimeout(timer);reject(e);});child.on('close',code=>{clearTimeout(timer); if(code===0)resolve(output.trim()); else reject(new Error(output||`Proses gagal (${code})`));});
   });
 }
-export async function startSpriteStudio(port=4319,projectRoot=root) {
+export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
+  const framePolicy=studioFramePolicy(options.parentOrigin);
   const configFile=path.join(projectRoot,'config/sprite-studio.json');
   const rules=JSON.parse(await readFile(path.join(projectRoot,'config/game-rules.json'),'utf8'));
   const roster=Object.entries(rules.teams).flatMap(([team,t])=>t.roster.map(id=>({id,team,name:id==='ciici'?'Ciici':id[0].toUpperCase()+id.slice(1)})));
@@ -66,7 +68,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
     } catch(e) {job={status:'error',message:e.message};} finally {busy=false;}
   }
   const server=http.createServer(async(req,res)=>{
-    res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');
+    res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');if(!options.parentOrigin)res.setHeader('X-Frame-Options','DENY');
     const json=(code,data)=>{res.writeHead(code,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
     try {
       if(req.headers.host!==new URL(origin).host||(req.headers.origin&&req.headers.origin!==origin)||req.headers['sec-fetch-site']==='cross-site')return json(403,{error:'Gunakan panel lokal yang sama.'});
@@ -76,7 +78,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root) {
         if(url.pathname==='/api/job')return json(200,job);
         const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css','/comparison':'comparison.html','/comparison.js':'comparison.js'};
         if(editors[url.pathname]||url.pathname==='/model.js') {
-          res.setHeader('Content-Security-Policy',"default-src 'self'; img-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'");
+          res.setHeader('Content-Security-Policy',`default-src 'self'; img-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; ${framePolicy}`);
           const file=url.pathname==='/model.js'?path.join(projectRoot,'lib/sprite-studio-model.js'):path.join(directory,editors[url.pathname]);
           res.setHeader('Content-Type',mime[path.extname(file)]);return res.end(await readFile(file));
         }

@@ -17,8 +17,10 @@ const resource=(clip:Clip)=>{
   return entry;
 };
 const flightClips=new WeakMap<Clip,{loop:Clip;once:Clip}>();
-export function retainStudioImages(ids:readonly CharacterId[]) {
-  const used=new Set(ids.flatMap(id=>Object.values(clips[id]??{}).map(c=>resource(c).asset)));
+export function retainStudioImages(ids:readonly CharacterId[], ultimateIds:readonly CharacterId[]=ids) {
+  const used=new Set(ids.flatMap(id=>Object.entries(clips[id]??{})
+    .filter(([slot])=>ultimateIds.includes(id)||!slot.startsWith('ultimate'))
+    .map(([,c])=>resource(c).asset)));
   for(const [asset,image]of images)if(!used.has(asset)){image.removeAttribute('src');images.delete(asset);}
 }
 export const studioClip = (id:CharacterId,slot:string) => clips[id]?.[slot] ?? null;
@@ -26,12 +28,17 @@ export const studioFlightClip = (id:CharacterId,slot:string,direction='south') =
   const resolved=studioFlightSlot(clips[id],slot,direction);
   return resolved?studioClip(id,resolved):null;
 };
-export function studioImages(id:CharacterId) {
-  return [...new Set(Object.values(clips[id]??{}).map(c=>resource(c).asset))].map(asset=>{
+export function studioImages(id:CharacterId, includeUltimate=true) {
+  return [...new Set(Object.entries(clips[id]??{})
+    .filter(([slot])=>includeUltimate||!slot.startsWith('ultimate'))
+    .map(([,c])=>resource(c).asset))].map(asset=>{
     let image=images.get(asset);
-    if(!image) { image=new Image(); image.src=publicAsset(asset); images.set(asset,image); }
+    if(!image) { image=new Image(); image.decoding='async'; image.src=publicAsset(asset); images.set(asset,image); }
     return image;
   });
+}
+export function studioImageBudget() {
+  return {atlases:images.size, rgbaBytes:[...images.values()].reduce((sum,image)=>sum+image.naturalWidth*image.naturalHeight*4,0)};
 }
 // Restart one-shot clips only on a real visual state transition, per actor.
 export function createStudioResolver() {

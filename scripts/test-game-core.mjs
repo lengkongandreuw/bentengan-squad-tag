@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import {test} from 'node:test';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
+import {TUTORIAL_MATCH} from '../lib/tutorial/match-config.ts';
 
 const nativeRequire=createRequire(import.meta.url),cache=new Map();
 
@@ -310,7 +311,7 @@ void test('10 event boundary stays finite and runtime connects presentation with
 void test('10 actual interaction presenter preserves player/bot audio routing and never mutates match truth',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8'),start=source.indexOf('const presentInteractionEvents ='),end=source.indexOf('const capture =',start);
   const initialize=vm.runInThisContext(ts.transpileModule(`(function(players,presentGameEvents){
-    let localSignSerial=0;const network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
+    let localSignSerial=0;const tutorialIdentity=false,network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
       distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),gameplayAudio={play:(...args)=>sounds.push(args),resetTagStreak:()=>sounds.push(['reset']),playerTag:now=>sounds.push(['playerTag',now])},
       addMatchEvent=event=>feed.push(event),burst=(...args)=>bursts.push(args),log=text=>logs.push(text),beep=()=>{};
     ${source.slice(start,end)}
@@ -430,7 +431,8 @@ void test('08 actual runtime result adapter persists rewards and announces victo
   const source=fs.readFileSync('app/prototype.tsx','utf8');
   const start=source.indexOf('const winRound = (team: Team, reason: string) =>');
   const end=source.indexOf('const fortOccupant =',start);
-  const initialize=vm.runInThisContext(ts.transpileModule(`(function(matchFormat,endRound,presentGameEvents,network=null){
+  const initialize=vm.runInThisContext(ts.transpileModule(`(function(matchFormat,endRound,presentGameEvents,network=null,tutorialIdentity=false){
+    const tutorialSignal=()=>{},TUTORIAL_MATCH=${JSON.stringify(TUTORIAL_MATCH)};
     const players=[{team:'blue',flight:null}],score={blue:0,red:0},performance={now:()=>1000},clientOnly=false,
       publishNetworkFacts=()=>{},createMatchResult=()=>({}),readCanonicalState=()=>({}),humanIdentities=[],disconnectedPeers=new Set(),resultHandoff=()=>({result:null});
     let phase='PLAYING',roundWinner,roundEndReason,matchEvents=[],resultWinner,resultAnnouncementUntil=0,
@@ -458,6 +460,13 @@ void test('08 actual runtime result adapter persists rewards and announces victo
   online.winRound('blue','first');online.next();online.winRound('blue','second');
   assert.equal(online.read().saved.length,0);assert.equal(online.read().completed,0,'multiplayer never writes solo progression or rotation');
   assert.equal(packets.length,1,'online emits one authoritative result, handoff tested independently');
+  const practice=initialize(matchFormat,matchRules.endRound,gameEvents.presentGameEvents,null,true);
+  practice.winRound('blue','SEMUA LAWAN DITANGKAP');
+  assert.equal(practice.read().phase,'PLAYING','tutorial elimination cannot bypass the real fort lesson');assert.equal(practice.read().score.blue,0);
+  practice.winRound('blue','BENTENG DIREBUT');practice.winRound('blue','duplicate');
+  assert.equal(practice.read().phase,'MATCH_OVER');assert.equal(practice.read().score.blue,1);
+  assert.equal(practice.read().saved.length,0,'tutorial cannot call ordinary progression writer');
+  assert.equal(practice.read().completed,0,'tutorial cannot advance ordinary map rotation');
 });
 const rule={kanal2:false,tagRange:()=>28,tagCooldownMs:()=>500,lineOfSight:()=>true};
 const baseRules=w=>({bases:w.bases,radius:w.baseRadius,kanal2:w.kanal2,boost:100,chargeTime:.8,reentryMs:1500,tieHash:id=>id.length});
@@ -526,18 +535,23 @@ void test('03 actual runtime factory assigns all ten actors and reuses IDs on ro
   const factory=ts.transpileModule(source.slice(start,end)+'\nreturn {makePlayers,choose:id=>selectedId=id};',{
     compilerOptions:{target:ts.ScriptTarget.ES2022}
   }).outputText;
-  const characters=Object.fromEntries(['raja','kaka','bebe','ciici','jago'].map(id=>[id,{name:id,boost:100}]));
+  const characters=Object.fromEntries(['raja','kaka','bebe','ciici','jago','robot'].map(id=>[id,{name:id,boost:100}]));
   const setup=`const bases={blue:{x:100,y:100},red:{x:900,y:100}},GAME_RULES={spawnOffsets:Array.from({length:5},(_,i)=>({x:i,y:i}))};
     const CHARACTER_BY_ID=characters,selectedFaction='red',TEAM_FOR_FACTION={red:'blue',green:'red'},network=null;
+    const tutorialIdentity=tutorialEnabled,baseRadius=118,chooseTutorialSpawn=()=>null,TUTORIAL_MATCH={friendly:['raja','robot'],enemy:['ciici','kaka'],spawnOffsets:[{x:92,y:0},{x:92,y:35}]};
     const teamPerks={blue:[],red:[]},devAutobot=false,effectiveStats=id=>CHARACTER_BY_ID[id]; // no perks → base stats
     let selectedId='raja';const lineupFor=(faction,id)=>[id??'kaka','bebe','ciici','jago','raja'];\n`;
-  const init=vm.runInThisContext(`(function(createEntityRegistry,characters){${setup}${factory}})`);
+  const init=vm.runInThisContext(`(function(createEntityRegistry,characters,tutorialEnabled=false){${setup}${factory}})`);
   const runtime=init(entities.createEntityRegistry,characters),first=runtime.makePlayers();
   assert.equal(first.length,10);assert.equal(new Set(first.map(p=>p.entityId)).size,10);
   assert.equal(first.filter(p=>p.controller==='local').length,1);assert.equal(first.filter(p=>p.controller==='bot').length,9);
   runtime.choose('ciici');const next=runtime.makePlayers();
   assert.deepEqual(next.map(p=>p.entityId),first.map(p=>p.entityId));assert.equal(next[0].characterId,'ciici');
   assert.deepEqual(next.map(p=>p.id),first.map(p=>p.id),'legacy tie IDs unchanged');
+  const training=init(entities.createEntityRegistry,characters,true).makePlayers();
+  assert.equal(training.length,4);assert.equal(training.filter(p=>p.controller==='local').length,1);
+  assert.equal(training.filter(p=>p.controller==='bot').length,3);
+  assert.equal(training.filter(p=>p.team==='blue').length,2);assert.equal(training.filter(p=>p.team==='red').length,2);
 });
 void test('04 keyboard aliases/opposing axes and mouse pulses produce monotonic JSON inputs',()=>{
   const adapter=input.createLocalInputAdapter(),keys=['a','d','w','s','arrowleft','arrowright','arrowup','arrowdown',' ','shift','capslock','r'];

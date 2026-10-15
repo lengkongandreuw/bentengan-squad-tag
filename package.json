@@ -6,6 +6,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "admin:engine": "node --experimental-strip-types scripts/benteng-engine/server.mjs",
+    "test:engine": "node --experimental-strip-types --test scripts/benteng-engine/test.mjs",
+    "test:engine-browser": "node --experimental-strip-types scripts/benteng-engine/test-browser.mjs",
     "admin:loading": "node scripts/loading-admin/server.mjs",
     "test:loading-admin": "node --test scripts/loading-admin/test.mjs",
     "test:multiplayer": "node --test scripts/test-multiplayer.mjs",

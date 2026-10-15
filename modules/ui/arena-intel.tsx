@@ -22,7 +22,7 @@ export const ArenaIntel = ({
       {t(baseGrace > 0 ? `KELUAR ${baseGrace}s` : 'BASE AMAN')}
     </span>
     <span className={fortLock === 'Benteng terbuka' ? '' : 'urgent'}>
-      <Lock size={12} /> {t(fortLock.toUpperCase())}
+      <Lock size={12} /> {t(fortLock).toUpperCase()}
     </span>
     <span>
       <BatteryCharging size={12} />{t(" REFILL ")}{pickupCount}

@@ -6,6 +6,16 @@ function fixture(saved=null,blocked=false){
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/language.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports,require:name=>name==='react'?{useSyncExternalStore:(_,snapshot)=>snapshot()}:dictionary.exports,window,document,localStorage,Event:class{constructor(type){this.type=type;}}});
   return {api:exports,data,document,dictionary:dictionary.exports.playerTranslations};
 }
+void test('fort capture timer and occupation labels translate before capitalization',()=>{
+  const {api}=fixture();
+  assert.equal(api.t('Benteng terkunci 39 detik').toUpperCase(),'FORT LOCKED 39S');
+  assert.equal(api.t('Benteng terbuka').toUpperCase(),'FORT OPEN');
+  assert.equal(api.t('Benteng Merah ditempati Raja'),'Tim Merah fort occupied by Raja');
+  assert.equal(api.t('Benteng Hijau ditempati Ciici'),'Tim Hijau fort occupied by Ciici');
+  assert.equal(api.t('Kedua benteng ditempati lawan'),'Both forts occupied by enemies');
+  api.setLanguage('id');
+  assert.equal(api.t('Benteng terkunci 39 detik'),'Benteng terkunci 39 detik');
+});
 void test('English defaults, Indonesian persists, switching updates document language without touching game data',()=>{
   const {api,data,document}=fixture();data.set('benteng-profile','untouched');assert.equal(api.getLanguage(),'en');assert.equal(api.t('CARA MAIN'),'HOW TO PLAY');assert.equal(api.setLanguage('id'),true);assert.equal(api.t('CARA MAIN'),'CARA MAIN');assert.equal(document.documentElement.lang,'id');assert.equal(data.get('benteng-profile'),'untouched');assert.equal(fixture(data.get(api.LANGUAGE_STORAGE_KEY)).api.getLanguage(),'id');api.setLanguage('en');assert.equal(api.t('CARA MAIN'),'HOW TO PLAY');
 });

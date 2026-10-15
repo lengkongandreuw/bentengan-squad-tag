@@ -8,6 +8,9 @@ let layerUploads = [], layerUrls = [];
 function stopVoiceMix() {
   for (const audio of [$('voicePreview'), ...$('voiceLayers').querySelectorAll('audio')]) { audio.pause(); audio.currentTime = 0; }
 }
+window.addEventListener('message',event=>{
+  if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&event.data.active===false)stopVoiceMix();
+});
 function renderLayers() {
   stopVoiceMix(); $('voiceLayers').replaceChildren();
   entry.voiceLayers.forEach((layer, index) => {

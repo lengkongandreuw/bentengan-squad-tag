@@ -165,11 +165,11 @@ export function suddenDeathTagWinner(suddenDeath: boolean, team: LegacyTeam) {
   return suddenDeath ? { team, reason: 'SUDDEN DEATH TAG' } : null;
 }
 /** Best-of-three authority; caller presents and persists the returned result once. */
-export function endRound(players: RuntimeActor[], score: Record<LegacyTeam, number>, phase: MatchPhase, team: LegacyTeam, reason: string, now: number): RoundResult | null {
+export function endRound(players: RuntimeActor[], score: Record<LegacyTeam, number>, phase: MatchPhase, team: LegacyTeam, reason: string, now: number, requiredWins = 2): RoundResult | null {
   if (phase !== 'PLAYING') return null;
   for (const actor of players) actor.flight = null;
   score[team]++;
-  const complete = score[team] >= 2;
+  const complete = score[team] >= requiredWins;
   return { type: complete ? 'MATCH_ENDED' : 'ROUND_ENDED', team, reason, phase: complete ? 'MATCH_OVER' : 'ROUND_OVER', phaseUntil: now + (complete ? Infinity : 4500) };
 }
 export function stepMatchTimer(players: RuntimeActor[], timer: number, suddenDeath: boolean, dt: number) {

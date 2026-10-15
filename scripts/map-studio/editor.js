@@ -1,4 +1,10 @@
 import { validateCatalog } from '/catalog.mjs';
+let engineVisible=true;
+window.addEventListener('message',event=>{
+  if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&typeof event.data.active==='boolean'){
+    engineVisible=event.data.active;if(!engineVisible)keys.clear();
+  }
+});
 import {mapVersions, editableMapVersion} from '/map-versions.mjs';
 import {
   closestEdge,
@@ -749,7 +755,7 @@ function drawGuides() {
 }
 function animate(now) {
   requestAnimationFrame(animate);
-  if (!map || document.hidden) {
+  if (!map || document.hidden || !engineVisible) {
     last = now;
     return;
   }

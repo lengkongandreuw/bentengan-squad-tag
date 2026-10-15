@@ -47,7 +47,7 @@ function safeCount(value: number): number {
 
 // Pure transform. recordMatchProgression is the storage boundary; callers must
 // not additionally call recordCompletedMatch for this same match (double totals).
-export function applyMatchProgression(profile: LocalPlayerProfile, summary: MatchSummary): ProgressionResult {
+export function applyMatchProgression(profile: LocalPlayerProfile, summary: MatchSummary, policy: 'competitive'|'onboarding' = 'competitive'): ProgressionResult {
   if (!summary || typeof summary.matchId !== 'string' || !summary.matchId.trim() ||
       typeof summary.arenaId !== 'string' || !summary.arenaId.trim() || typeof summary.won !== 'boolean')
     throw new Error('Identitas/hasil pertandingan progression tidak valid.');
@@ -71,10 +71,11 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
   if (progression.processedMatchIds.includes(summary.matchId))
     return { ...unchanged, reason: 'duplicate' };
   const currentXP = safeCount(previousXP + earned);
-  const updated = applyArenaMatchStat({
+  if(policy==='onboarding'&&(summary.won||summary.tags||summary.rescues||captured))throw new Error('Onboarding hanya menggunakan reward penyelesaian.');
+  const updatedProfile = {
     ...profile,
-    menang: safeCount(profile.menang + (summary.won ? 1 : 0)),
-    kalah: safeCount(profile.kalah + (summary.won ? 0 : 1)),
+    menang: safeCount(profile.menang + (policy==='competitive'&&summary.won ? 1 : 0)),
+    kalah: safeCount(profile.kalah + (policy==='competitive'&&!summary.won ? 1 : 0)),
     kda: {
       tagMusuh: safeCount(profile.kda.tagMusuh + summary.tags),
       rescueTeam: safeCount(profile.kda.rescueTeam + summary.rescues),
@@ -84,7 +85,8 @@ export function applyMatchProgression(profile: LocalPlayerProfile, summary: Matc
       processedMatchIds: [...new Set([...progression.processedMatchIds, summary.matchId])]
         .slice(-MAX_PROCESSED_MATCH_IDS),
     },
-  }, summary.arenaId, summary.won);
+  };
+  const updated = policy==='competitive'?applyArenaMatchStat(updatedProfile, summary.arenaId, summary.won):updatedProfile;
   const characters = resolveCharacterUnlocks(updated);
   const arenas = resolveArenaUnlocks(characters.profile);
   // Reuse the existing incomplete/processedMatchIds decisions above. Commit

@@ -6,6 +6,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { validatePreviewDocument } from '../../lib/selection-preview-model.js';
+import { studioFramePolicy } from '../../lib/local-studio-frame.js';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, '../..');
@@ -63,7 +64,8 @@ function command(program, args, timeout = 180000) {
   });
 }
 
-export async function startAdmin(port = 4318, projectRoot = root) {
+export async function startAdmin(port = 4318, projectRoot = root, options = {}) {
+  const framePolicy = studioFramePolicy(options.parentOrigin);
   const root = projectRoot;
   const configFile = path.join(root, 'config/selection-previews.json');
   const rules = JSON.parse(await readFile(path.join(root, 'config/game-rules.json'), 'utf8'));
@@ -114,9 +116,9 @@ export async function startAdmin(port = 4318, projectRoot = root) {
   const server = http.createServer(async (request, response) => {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');
-    response.setHeader('X-Frame-Options', 'DENY');
+    if (!options.parentOrigin) response.setHeader('X-Frame-Options', 'DENY');
     response.setHeader('Referrer-Policy', 'no-referrer');
-    response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' blob:; media-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+    response.setHeader('Content-Security-Policy', `default-src 'self'; img-src 'self' blob:; media-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; ${framePolicy}; base-uri 'none'; form-action 'self'`);
     const json = (code, value) => { response.writeHead(code, { 'Content-Type': 'application/json' }); response.end(JSON.stringify(value)); };
     try {
       if (request.headers.host !== new URL(origin).host ||

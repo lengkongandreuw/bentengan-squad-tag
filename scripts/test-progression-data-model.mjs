@@ -23,7 +23,7 @@ async function moduleUrl(file) {
   }).outputText;
   // JSON fixtures are converted to JavaScript data URLs above; strip their
   // import attributes as well, otherwise Node rejects the new MIME type.
-  code=code.replace(/\s+with\s*\{\s*type:\s*['"]json['"]\s*\}/g,'').replaceAll('import.meta','({env:{BASE_URL:"/"}})');
+  code=code.replace(/\s+with\s*\{\s*type:\s*['"]json['"]\s*\}/g,'').replaceAll('import.meta','({env:{BASE_URL:"/"}})').replace(/import ['"][^'"]+\.css['"];?/g,'');
   const imports = [...code.matchAll(/from ['"]([^'"]+)['"]/g)];
   for (const match of imports) {
     const dependency = match[1].startsWith('.')
@@ -37,6 +37,9 @@ async function moduleUrl(file) {
   return url;
 }
 const load = async name => import(await moduleUrl(new URL(`../lib/player-profile/${name}.ts`, import.meta.url)));
+const {applyTutorialReward}=await load('tutorial-reward');
+const {tutorialEducation}=await import(await moduleUrl(new URL('../lib/tutorial/education.ts',import.meta.url)));
+const {TutorialFinish}=await import(await moduleUrl(new URL('../modules/ui/tutorial-finish.tsx',import.meta.url)));
 const { fieldCycleDecision } = await import(await moduleUrl(new URL('../modules/game-core/match-control.ts', import.meta.url)));
 const { getArenaSelectionProgress } = await load('arena-selection-progress');
 const { MatchProgressionSummary } = await import(await moduleUrl(new URL('../modules/ui/match-progression-summary.tsx', import.meta.url)));
@@ -46,6 +49,7 @@ const { createDefaultProgression, parsePlayerProgression } = await load('progres
 const { parsePlayerProfile } = await load('migrations');
 const service = await load('profile-service');
 const storage = await load('storage');
+const tutorial = await load('tutorial');
 const { PLAYER_PROFILE_STORAGE_KEY } = await load('defaults');
 const { progressionRules, parseProgressionRules } = await load('progression-rules');
 const { getLevelFromXP, getCurrentLevelProgress, getXPRequiredForLevel,
@@ -58,6 +62,164 @@ const { getProgressionArenaId } = await load('arena-identity');
 const { applyMatchProgression } = await load('match-progression');
 const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
+
+void test('tutorial fresh detection and legacy history migration never change gameplay/progression/economy',()=>{
+  const fresh=service.createPlayerProfile('TutorialQA');
+  assert.equal(tutorial.shouldOfferTutorial(fresh),true);
+  assert.equal(tutorial.shouldOfferTutorial(null),false);
+  const legacy={...fresh};delete legacy.tutorial;
+  assert.equal(tutorial.migratePlayerTutorial(legacy).profile.tutorial.status,'not_started');
+  for(const alter of [p=>p.menang=1,p=>p.kda.tagMusuh=1,p=>p.progression.xp=1,
+    p=>p.progression.processedMatchIds=['played'],p=>p.progression.arenaStats.kampung={played:1,wins:0},
+    p=>p.progression.unlockedCharacters.push('bebe'),p=>p.progression.unlockedArenaIds.push('pasar')]){
+    const input=structuredClone(legacy);alter(input);const before=structuredClone(input);
+    const migrated=tutorial.migratePlayerTutorial(input);
+    assert.equal(migrated.profile.tutorial.status,'skipped');
+    assert.equal(tutorial.shouldOfferTutorial(migrated.profile),false);
+    const {tutorial:_state,...unchanged}=migrated.profile;
+    assert.deepEqual(unchanged,before);assert.deepEqual(input,before);
+    assert.equal(tutorial.migratePlayerTutorial(migrated.profile).migrated,false);
+  }
+});
+
+void test('tutorial start/step/skip/complete/replay are pure, sticky and never grant currency or XP',()=>{
+  const p=service.createPlayerProfile('TutorialQA'),before=structuredClone(p),at='2026-10-14T01:00:00.000Z';
+  const started=tutorial.startTutorial(p,false,at);
+  assert.equal(started.tutorial.status,'in_progress');assert.equal(tutorial.shouldOfferTutorial(started),false);
+  const step=tutorial.updateTutorialStep(started,'move');assert.equal(step.tutorial.currentStepId,'move');
+  assert.equal(tutorial.startTutorial(step).tutorial.currentStepId,'move','resume preserves step');
+  assert.throws(()=>tutorial.updateTutorialStep(step,'../invalid'));
+  assert.equal(tutorial.skipTutorial(step,at).tutorial.status,'skipped');
+  const completed=tutorial.completeTutorial(step,at);assert.equal(completed.tutorial.status,'completed');
+  assert.equal(tutorial.tutorialFirstRewardEligible(completed),true);
+  for(const terminal of [completed,tutorial.skipTutorial(step,at),{...completed,tutorial:{...completed.tutorial,rewardClaimed:true}}]){
+    const replay=tutorial.startTutorial(terminal,true,at);
+    assert.equal(replay.tutorial.currentStepId,'intro');assert.equal(replay.tutorial.replay,true);
+    assert.equal(replay.tutorial.rewardClaimed,terminal.tutorial.rewardClaimed);
+    assert.equal(tutorial.tutorialFirstRewardEligible(tutorial.completeTutorial(replay,at)),false);
+    assert.deepEqual(replay.progression,p.progression);assert.deepEqual(replay.economy,p.economy);
+    assert.deepEqual(replay.ultimateUpgrades,p.ultimateUpgrades);
+  }
+  assert.deepEqual(p,before);
+  assert.equal(tutorial.completeTutorial(p,at).tutorial.status,'not_started','cannot complete before start');
+});
+
+void test('11 first onboarding reward uses real completion engines, durable identity and no competitive counters',()=>{
+  const p=tutorial.updateTutorialStep(tutorial.startTutorial(service.createPlayerProfile('RewardQA')),'reward'),before=structuredClone(p);
+  const reward=applyTutorialReward(p);
+  assert.equal(reward.applied,true);assert.equal(reward.xpEarned,100);assert.equal(reward.tokenEarned,10);
+  assert.equal(reward.profile.tutorial.rewardClaimed,true);
+  assert.equal(reward.profile.economy.recentTransactions.at(-1).referenceId,`tutorial:v1:${p.id}`);
+  assert.deepEqual(reward.profile.kda,p.kda);assert.equal(reward.profile.menang,0);assert.equal(reward.profile.kalah,0);
+  assert.deepEqual(reward.profile.progression.arenaStats,p.progression.arenaStats);
+  assert.deepEqual(p,before);assert.equal(applyTutorialReward(reward.profile).xpEarned,0);
+  const trimmed={...reward.profile,progression:{...reward.profile.progression,processedMatchIds:[]},economy:{...reward.profile.economy,recentTransactions:[]}};
+  assert.equal(applyTutorialReward(trimmed).xpEarned,0,'durable claim survives bounded history eviction');
+  const replay=tutorial.updateTutorialStep(tutorial.startTutorial(tutorial.completeTutorial(reward.profile),true),'reward');
+  assert.equal(replay.tutorial.status,'completed','lifetime completion survives active replay');assert.equal(replay.tutorial.sessionActive,true);
+  assert.equal(applyTutorialReward(replay).tokenEarned,0);assert.deepEqual(applyTutorialReward(replay).profile.economy,reward.profile.economy);
+});
+void test('11 reward save is atomic; blocked storage retries once and latest profile is preserved',()=>{
+  const data=new Map(),events=[];let blocked=false,writes=0;
+  globalThis.window={localStorage:{getItem:key=>data.get(key)??null,setItem:(key,value)=>{if(blocked)throw Error('blocked');writes++;data.set(key,value);}},dispatchEvent:e=>events.push(e.type)};
+  try{
+    service.createPlayerProfile('RewardQA');service.startPlayerTutorial();service.updatePlayerTutorialStep('reward');
+    const before=data.get(PLAYER_PROFILE_STORAGE_KEY),count=events.length;blocked=true;
+    assert.throws(()=>service.recordPlayerTutorialReward(),/penyimpanan browser gagal/);
+    assert.equal(data.get(PLAYER_PROFILE_STORAGE_KEY),before);assert.equal(events.length,count);
+    blocked=false;const start=writes,applied=service.recordPlayerTutorialReward();assert.equal(writes,start+1,'one atomic reward/claimed write');
+    assert.equal(applied.profile.tutorial.rewardClaimed,true);assert.equal(storage.loadPlayerProfile().progression.xp,100);
+    const again=service.recordPlayerTutorialReward();assert.equal(again.xpEarned,0);assert.equal(writes,start+1,'duplicate does not write');
+    service.completePlayerTutorial();const at=storage.loadPlayerProfile().tutorial.completedAt;
+    service.startPlayerTutorial(true);assert.equal(storage.loadPlayerProfile().tutorial.status,'completed');
+    service.skipPlayerTutorial();assert.equal(storage.loadPlayerProfile().tutorial.completedAt,at);
+    assert.equal(storage.loadPlayerProfile().tutorial.status,'completed');assert.equal(storage.loadPlayerProfile().tutorial.sessionActive,false);
+  }finally{delete globalThis.window;}
+});
+void test('12 education uses shared unlock sources and celebrates only actual thresholds',()=>{
+  const p=tutorial.updateTutorialStep(tutorial.startTutorial(service.createPlayerProfile('UnlockQA')),'reward');
+  const catalog=[{id:'kampung',name:'Kampung Merdeka'},{id:'pasar',name:'Pasar Senggol'}];
+  const fresh=tutorialEducation(p,catalog);assert.equal(fresh.character.characterId,'bebe');assert.equal(fresh.character.requiredXP,200);
+  const reward=applyTutorialReward(p);assert.deepEqual(reward.newlyUnlockedCharacters,[]);assert.equal(tutorialEducation(reward.profile,catalog).character.xpRemaining,100);
+  const near={...p,progression:{...p.progression,xp:150}};const unlocked=applyTutorialReward(near);
+  assert.ok(unlocked.newlyUnlockedCharacters.includes('bebe'));assert.ok(!unlocked.newlyUnlockedArenaIds.includes('pasar'));
+  assert.notEqual(tutorialEducation(unlocked.profile,catalog).character.characterId,'bebe');
+  assert.deepEqual(fresh.arena.checks,getArenaSelectionProgress(p,'pasar',catalog).checks);
+});
+void test('13 interruption, completion, replay, legacy active replay and skip keep lifetime history separate',()=>{
+  const p=tutorial.completeTutorial(tutorial.startTutorial(service.createPlayerProfile('ReplayQA')),'2026-10-15T01:00:00.000Z');
+  const replay=tutorial.updateTutorialStep(tutorial.startTutorial(p,true),'ultimate');
+  const parsed=tutorial.parseTutorialState(replay.tutorial);assert.equal(parsed.status,'completed');assert.equal(parsed.currentStepId,'ultimate');
+  assert.equal(tutorial.completeTutorial(replay).tutorial.completedAt,p.tutorial.completedAt);
+  assert.equal(tutorial.skipTutorial(replay).tutorial.status,'completed');assert.equal(tutorial.shouldOfferTutorial(replay),false);
+  const legacy=tutorial.parseTutorialState({...replay.tutorial,status:'in_progress',sessionActive:undefined});
+  assert.equal(legacy.status,'completed');assert.equal(legacy.sessionActive,true);assert.equal(legacy.replay,true);
+  assert.equal(applyTutorialReward(tutorial.updateTutorialStep(tutorial.startTutorial(p,true),'reward')).applied,false);
+});
+
+void test('14 reward UI renders only actual resolver rewards/unlocks and shared requirements',()=>{
+  const p=tutorial.updateTutorialStep(tutorial.startTutorial(service.createPlayerProfile('FinishQA')),'reward');
+  const catalog=[{id:'kampung',name:'Kampung Merdeka'},{id:'pasar',name:'Pasar Senggol'}];
+  const props={session:{stepId:'reward'},profile:p,result:applyTutorialReward(p),catalog,error:'',onReward(){},onSignal(){},onComplete(){},onLeave(){}};
+  const html=renderToStaticMarkup(createElement(TutorialFinish,props));
+  assert.ok(html.includes('+100 XP'));assert.ok(html.includes('+10 DOI'));assert.ok(!html.includes('UNLOCKED'));
+  assert.ok(html.includes('aria-labelledby="tutorial-finish-title"'));assert.ok(html.includes('Level progress'));
+  const near={...p,progression:{...p.progression,xp:150}},reward=applyTutorialReward(near);
+  const actual=renderToStaticMarkup(createElement(TutorialFinish,{...props,result:reward,profile:reward.profile}));assert.ok(actual.includes('UNLOCKED'));assert.ok(actual.includes('Bebe'));
+  const replay=tutorial.updateTutorialStep(tutorial.startTutorial(tutorial.completeTutorial(reward.profile),true),'reward');
+  const again=renderToStaticMarkup(createElement(TutorialFinish,{...props,profile:replay,result:applyTutorialReward(replay)}));assert.ok(again.includes('+0 XP'));assert.ok(again.includes('+0 DOI'));assert.ok(!again.includes('UNLOCKED'));
+  const character=renderToStaticMarkup(createElement(TutorialFinish,{...props,profile:props.result.profile,session:{stepId:'character_unlock'}}));assert.ok(character.includes('100 / 200 XP'));assert.ok(character.includes('Still locked'));
+  const arena=renderToStaticMarkup(createElement(TutorialFinish,{...props,session:{stepId:'map_unlock'}}));assert.ok(arena.includes('Pasar Senggol'));assert.ok(arena.includes('Wins in Kampung Merdeka'));
+});
+
+void test('tutorial corrupt states repair safely without losing terminal history/reward guard',()=>{
+  const p=service.createPlayerProfile('TutorialQA');
+  for(const raw of [null,[],{status:'broken'},{version:1,status:'in_progress',currentStepId:'bad',startedAt:'not-a-date',rewardClaimed:false}]){
+    assert.equal(tutorial.parseTutorialState(raw),null);
+    assert.equal(tutorial.migratePlayerTutorial(p,raw).profile.tutorial.status,'not_started');
+  }
+  for(const raw of [{status:'completed'}, {status:'skipped'}, {rewardClaimed:true}, {status:'broken',completedAt:p.firstJoin}]){
+    const result=tutorial.migratePlayerTutorial(p,raw).profile;
+    assert.equal(tutorial.shouldOfferTutorial(result),false);
+    assert.equal(result.tutorial.rewardClaimed,raw.rewardClaimed===true);
+    assert.ok(tutorial.parseTutorialState(result.tutorial));
+  }
+  const future={...p,tutorial:{...p.tutorial,version:2}};
+  assert.equal(tutorial.shouldOfferTutorial(future),false);
+  assert.throws(()=>tutorial.startTutorial(future));
+});
+
+void test('tutorial service saves latest profile in the existing key; blocked writes never claim success',()=>{
+  const data=new Map(),events=[];let blocked=false;
+  globalThis.window={localStorage:{getItem:key=>data.get(key)??null,setItem:(key,value)=>{
+    if(blocked)throw Error('blocked');data.set(key,value);
+  }},dispatchEvent:event=>events.push(event.type)};
+  try{
+    service.createPlayerProfile('TutorialQA');
+    service.startPlayerTutorial();service.updatePlayerTutorialStep('move');
+    assert.equal(storage.loadPlayerProfile().tutorial.currentStepId,'move');
+    service.completePlayerTutorial();
+    const before=storage.loadPlayerProfile();service.startPlayerTutorial(true);
+    assert.equal(storage.loadPlayerProfile().tutorial.replay,true);
+    assert.deepEqual(storage.loadPlayerProfile().economy,before.economy);
+    assert.deepEqual([...data.keys()],[PLAYER_PROFILE_STORAGE_KEY]);
+    blocked=true;const saved=data.get(PLAYER_PROFILE_STORAGE_KEY),count=events.length;
+    assert.throws(()=>service.skipPlayerTutorial(),/penyimpanan browser gagal/);
+    assert.equal(data.get(PLAYER_PROFILE_STORAGE_KEY),saved);assert.equal(events.length,count);
+  }finally{delete globalThis.window;}
+});
+
+void test('legacy tutorial repair persists once and blocked migrations retry without losing unrelated fields',()=>{
+  const p=service.createPlayerProfile('TutorialQA');delete p.tutorial;p.menang=1;p.custom='keep';
+  const data=new Map([[PLAYER_PROFILE_STORAGE_KEY,JSON.stringify(p)]]);let blocked=true,writes=0;
+  globalThis.window={localStorage:{getItem:key=>data.get(key)??null,setItem:(key,value)=>{writes++;if(blocked)throw Error('blocked');data.set(key,value);}}};
+  try{
+    const session=storage.loadPlayerProfile();assert.equal(session.tutorial.status,'skipped');assert.equal(session.custom,'keep');
+    assert.equal(JSON.parse(data.get(PLAYER_PROFILE_STORAGE_KEY)).tutorial,undefined);
+    blocked=false;const saved=storage.loadPlayerProfile();assert.equal(writes,2);
+    assert.deepEqual(storage.loadPlayerProfile(),saved);assert.equal(writes,2);
+  }finally{delete globalThis.window;}
+});
 const { getPlayableCharacterIds, getPlayableArenaIds, pickUnlockedCharacter,
   validatePlayableContent, resolvePlayableContent, getCharacterSelectionState } = await load('content-gates');
 
@@ -195,7 +357,7 @@ void test('module15 runtime wiring uses one writer, stable match identity and un
   assert.doesNotMatch(code, /recordCompletedMatch/);
   assert.match(code, /const matchId = mode === 'playing' \? network\?`\$\{network\.read\(\)\.roomCode\}:match`:createMatchId\(\) : null/);
   assert.ok(code.includes('matchId && !network'), 'online MVP cannot award solo progression');
-  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate\]/);
+  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate,tutorialMatch,tutorialSignal\]/);
   const lineup = await readFile(new URL('../modules/world/team-tables.ts', import.meta.url),'utf8');
   assert.doesNotMatch(lineup, /getPlayable|isCharacterUnlocked|playerProfile/);
   assert.match(lineup, /roster\.slice\(0, GAME_RULES.matchSize\)/);

@@ -70,7 +70,7 @@ export const ActionDock = ({
       <b>{t("AUTO")}</b>
       <small>{t("COMBO")}</small>
     </span>
-    <span>
+    <span className="rescue-action">
       <Shield size={19} />
       <b>{t("AUTO")}</b>
       <small>{t("RESCUE")}</small>

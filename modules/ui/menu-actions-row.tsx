@@ -11,6 +11,7 @@ export const MenuActionsRow = ({
   onToggleMusic,
   onOpenRules,
   onAudioOpen,
+  onTutorial,
 }: {
   menuStep: string;
   musicMuted: boolean;
@@ -19,6 +20,7 @@ export const MenuActionsRow = ({
   onToggleMusic: () => void;
   onOpenRules: () => void;
   onAudioOpen: () => void;
+  onTutorial?: () => void;
 }) => (
   <div className={`pregame-actions step-${menuStep}`}>
     {menuStep === 'splash' && (
@@ -49,5 +51,6 @@ export const MenuActionsRow = ({
       trigger={<img src={resolveAsset('controls/settings-button.png')} alt="" />}
     />
     <GraphicsSettings onOpen={onAudioOpen} />
+    {onTutorial&&<button className="tutorial-menu-button" onClick={onTutorial}>{t('TUTORIAL')}</button>}
   </div>
 );

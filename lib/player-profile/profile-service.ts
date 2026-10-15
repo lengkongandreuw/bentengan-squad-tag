@@ -13,6 +13,8 @@ import { createDefaultUltimateUpgrades } from './ultimate-upgrades.ts';
 import { purchaseUltimateUpgrade } from './ultimate-purchase.ts';
 import { applyMatchProgression, type MatchSummary } from './match-progression.ts';
 import { createLocalId } from './match-identity.ts';
+import {createDefaultTutorial,startTutorial,skipTutorial,completeTutorial,updateTutorialStep} from './tutorial.ts';
+import {applyTutorialReward} from './tutorial-reward.ts';
 
 const notifyProfileChanged = () => {
   if (typeof window !== 'undefined')
@@ -54,6 +56,7 @@ export const createPlayerProfile = (usernameInput: string): LocalPlayerProfile =
     progression: createDefaultProgression(),
     economy: createDefaultEconomy(),
     ultimateUpgrades: createDefaultUltimateUpgrades(),
+    tutorial: createDefaultTutorial(),
   });
 };
 
@@ -61,7 +64,22 @@ const updateProfile = (
   change: (profile: LocalPlayerProfile) => LocalPlayerProfile,
 ) => {
   const profile = loadPlayerProfile();
-  return profile ? persist(change(profile)) : null;
+  if(!profile)return null;
+  const next=change(profile);
+  return next===profile?profile:persist(next);
+};
+
+export const startPlayerTutorial = (replay=false) => updateProfile(profile=>startTutorial(profile,replay));
+export const skipPlayerTutorial = () => updateProfile(skipTutorial);
+export const completePlayerTutorial = () => updateProfile(completeTutorial);
+export const updatePlayerTutorialStep = (stepId:string) => updateProfile(profile=>updateTutorialStep(profile,stepId));
+export const recordPlayerTutorialReward = () => {
+  const profile=loadPlayerProfile();
+  if(!profile)throw new Error('Profil pemain tidak tersedia.');
+  if(!profile.tutorial?.sessionActive||profile.tutorial.currentStepId!=='reward')throw new Error('Langkah hadiah tutorial belum siap.');
+  const result=applyTutorialReward(profile);
+  if(result.profile!==profile)persist(result.profile);
+  return result;
 };
 
 export const recordCompletedMatch = (

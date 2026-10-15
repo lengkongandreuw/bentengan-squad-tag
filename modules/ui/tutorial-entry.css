@@ -1,0 +1,23 @@
+.tutorial-entry {
+  position: fixed; inset: 0; margin: auto; height: fit-content;
+  width: min(540px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  overflow-y: auto; padding: clamp(20px, 4vw, 36px); color: #f7f5e9;
+  background: #17221c; border: 2px solid #d8ff4a; border-radius: 12px;
+  box-shadow: 9px 9px 0 #080e0b; font-family: inherit;
+}
+.tutorial-entry::backdrop { background: rgba(0, 0, 0, .82); }
+.tutorial-entry-eyebrow { color: #d8ff4a; font-weight: 800; letter-spacing: .1em; font-size: 12px; }
+.tutorial-entry h2 { margin: 12px 0; font-size: clamp(26px, 5vw, 38px); line-height: 1.1; }
+.tutorial-entry p { line-height: 1.5; }
+.tutorial-entry-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.tutorial-entry button { min-height: 48px; padding: 12px 18px; border: 1px solid #c9d5bf; border-radius: 6px; background: #233228; color: #f7f5e9; font: inherit; font-weight: 800; cursor: pointer; }
+.tutorial-entry button.tutorial-primary { background: #d8ff4a; color: #101810; border-color: #d8ff4a; }
+.tutorial-entry button:focus-visible { outline: 3px solid #f9acff; outline-offset: 4px; }
+.tutorial-entry button:hover { border-color: #f9acff; }
+.tutorial-entry-preview { margin: 20px 0; padding: 16px; background: #0c1711; border-left: 4px solid #d8ff4a; }
+.tutorial-entry-preview b { color: #d8ff4a; }
+.tutorial-entry small { display: block; line-height: 1.5; }
+.tutorial-entry .tutorial-entry-error { color: #ffb6b6; }
+.tutorial-menu-button { min-height: 44px; padding: 8px 14px; border: 1px solid #d8ff4a; border-radius: 6px; background: #17221c; color: #f7f5e9; font: inherit; font-weight: 800; cursor: pointer; }
+.tutorial-menu-button:focus-visible { outline: 3px solid #f9acff; outline-offset: 3px; }
+@media (max-width: 480px) { .tutorial-entry-actions button { width: 100%; } }

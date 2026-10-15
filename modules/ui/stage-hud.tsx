@@ -8,9 +8,11 @@ import { PerkIcons } from './perk-draft-panel.tsx';
 export const StageHud = ({
   snapshot,
   onToggle,
+  teamSize=5,
 }: {
   snapshot: Snapshot;
   onToggle: () => void;
+  teamSize?:number;
 }) => {
   const match = snapshot.match;
   // Scored formats show points; legacy best-of-3 keeps rounds won.
@@ -31,7 +33,7 @@ export const StageHud = ({
     <div className="hud-red">
       <span title={t(match.scored ? 'Poin' : 'Ronde dimenangkan')}>{match.scored ? match.points.blue : snapshot.blue}</span>
       <b>
-        {t("TIM MERAH")}<small>{snapshot.blueHeld}{t("/5 TAHANAN")}</small>
+        {t("TIM MERAH")}<small>{snapshot.blueHeld}{t(`/${teamSize} TAHANAN`)}</small>
         {match.scored && <PerkIcons perks={match.perks.blue} team="blue" />}
       </b>
     </div>
@@ -45,7 +47,7 @@ export const StageHud = ({
     </time>
     <div className="hud-green">
       <b>
-        {t("HIJAU")}<small>{snapshot.redHeld}{t("/5 TAHANAN")}</small>
+        {t("HIJAU")}<small>{snapshot.redHeld}{t(`/${teamSize} TAHANAN`)}</small>
         {match.scored && <PerkIcons perks={match.perks.red} team="red" />}
       </b>
       <span title={t(match.scored ? 'Poin' : 'Ronde dimenangkan')}>{match.scored ? match.points.red : snapshot.red}</span>

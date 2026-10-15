@@ -17,6 +17,7 @@ import {
 import { templates } from './templates.mjs';
 import { prepareArenaMap } from '../../modules/world/map-arena-rules.ts';
 import { waitForPagesDeployment, PAGES_URL } from './deployment.mjs';
+import { studioFramePolicy } from '../../lib/local-studio-frame.js';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   root = path.resolve(here, '../..'),
   hash = (b) => createHash('sha256').update(b).digest('hex');
@@ -71,7 +72,8 @@ function command(program, args, cwd, timeoutMs = 300000) {
     });
   });
 }
-export async function startMapStudio(port = 4320, projectRoot = root) {
+export async function startMapStudio(port = 4320, projectRoot = root, options = {}) {
+  const framePolicy = studioFramePolicy(options.parentOrigin);
   const config = path.join(projectRoot, 'config/map-studio.json'),
     token = randomBytes(32).toString('hex');
   let busy = false,
@@ -302,7 +304,8 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
       res.end(JSON.stringify(data));
     };
     try {
-      if (req.headers.host !== new URL(origin).host)
+      if (req.headers.host !== new URL(origin).host ||
+        (req.headers.origin && req.headers.origin !== origin) || req.headers['sec-fetch-site'] === 'cross-site')
         return json(403, { error: 'Host tidak valid.' });
       const url = new URL(req.url, origin);
       res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -346,7 +349,7 @@ export async function startMapStudio(port = 4320, projectRoot = root) {
         if (local[url.pathname] || url.pathname === '/model.js')
           res.setHeader(
             'Content-Security-Policy',
-            "default-src 'self'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
+            `default-src 'self'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; ${framePolicy}`,
           );
         res.setHeader(
           'Content-Type',

@@ -103,7 +103,20 @@ import { botPickPerk, createPerkDraft, PERK_BY_ID, effectiveStats, emptyTeamPerk
 import { createRouteScheduler } from '../lib/route-scheduler';
 
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
-import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip } from '../lib/sprite-studio.ts';
+import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip, studioImageBudget } from '../lib/sprite-studio.ts';
+import { fortLockRemaining, fortStatusText } from '../modules/game-core/fort-status.ts';
+import {shouldOfferTutorial,startPlayerTutorial} from '../lib/player-profile/index.ts';
+import {TutorialEntry} from '../modules/ui/tutorial-entry.tsx';
+import {TutorialCoach} from '../modules/ui/tutorial-coach.tsx';
+import {createTutorialSession,advanceTutorial,tutorialEventSignal} from '../lib/tutorial/state-machine.ts';
+import {tutorialStep} from '../lib/tutorial/steps.ts';
+import {TUTORIAL_MATCH} from '../lib/tutorial/match-config.ts';
+import {choosePracticeArea,chooseTutorialSpawn,createTutorialDirector,createMovementLessonMonitor,tutorialCaptureEnabled,type TutorialGoal} from '../lib/tutorial/director.ts';
+import {createTutorialRecovery,createUltimateLesson} from '../lib/tutorial/recovery.ts';
+import type {TutorialSignal} from '../lib/tutorial/types.ts';
+import {updatePlayerTutorialStep,skipPlayerTutorial} from '../lib/player-profile/index.ts';
+import {recordPlayerTutorialReward,completePlayerTutorial} from '../lib/player-profile/index.ts';
+import {TutorialFinish} from '../modules/ui/tutorial-finish.tsx';
 import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject, drawStructureVisual } from '../lib/map-studio.ts';
 import {resolveStructureVisual} from '../lib/map-studio-model.js';
@@ -524,6 +537,27 @@ export function BentenganPrototype() {
     }
   }, [playerProfile, selectedFaction, selectedId, selectedFieldId, mode,networkSession]);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [tutorialEntryOpen,setTutorialEntryOpen]=useState(false);
+  const [tutorialEntryError,setTutorialEntryError]=useState('');
+  const [tutorialMatch,setTutorialMatch]=useState(false);
+  const [tutorialSession,setTutorialSession]=useState(createTutorialSession);
+  const tutorialSessionRef=useRef(tutorialSession),tutorialSerial=useRef(0);
+  const [tutorialGoal,setTutorialGoal]=useState<TutorialGoal|null>(null);
+  const tutorialGoalRef=useRef<TutorialGoal|null>(null);
+  const tutorialRetryRef=useRef(false);
+  const [tutorialReward,setTutorialReward]=useState<ProgressionResult|null>(null);
+  const tutorialSignal=useCallback((kind:TutorialSignal['kind'],expectedStep?:TutorialSignal['expectedStep'])=>{
+    const before=tutorialSessionRef.current;
+    if(kind==='ACK'&&before.stepId==='observe_prison'&&!tutorialGoalRef.current?.prisonReady)return;
+    const next=advanceTutorial(before,{kind,expectedStep,serial:++tutorialSerial.current});
+    tutorialSessionRef.current=next;
+    if(next.transitions!==before.transitions){
+      setTutorialSession(next);
+      try{if(!next.finished)updatePlayerTutorialStep(next.stepId);}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}
+    }
+  },[]);
+  const tutorialOffered=mode==='menu'&&shouldOfferTutorial(playerProfile);
+  const tutorialModalOpen=tutorialOffered||tutorialEntryOpen;
   const refreshPlayerProfile = () => {
     const profile = loadPlayerProfile();
     playerProfileRef.current = profile;
@@ -560,6 +594,17 @@ export function BentenganPrototype() {
   const assetsLoading = selectionLoading || gameLoading;
 
   useEffect(() => {
+    // Keep sheets on round/restart transitions, which reuse ready assets.
+    // Release only after leaving gameplay, never during its readiness gate.
+    if (mode === 'playing' || gameLoading) return;
+    retainStudioImages([]);
+    for (const cache of [spriteImages, seriesImages]) {
+      for (const image of cache.values()) image.removeAttribute('src');
+      cache.clear();
+    }
+  }, [mode, gameLoading]);
+
+  useEffect(() => {
     if (!assetsLoading) return;
     let cancelled = false;
     setLoadProgress(0); // oxlint-disable-line react/react-compiler -- ponytail: asset-load progress reset in loader effect
@@ -573,11 +618,15 @@ export function BentenganPrototype() {
       for (const field of FIELD_CONFIGS) urls.push(arenaImage(field.id));
       if (gameLoading) {
         const faction=selectedFaction??'red';
-        const matchCharacters=[...lineupFor(faction,selectedId),...lineupFor(faction==='red'?'green':'red')];
-        retainStudioImages(matchCharacters);
+        const matchCharacters=tutorialMatch?[...TUTORIAL_MATCH.friendly,...TUTORIAL_MATCH.enemy]:[...lineupFor(faction,selectedId),...lineupFor(faction==='red'?'green':'red')];
+        // Solo authority only activates the controlled player's ultimate.
+        // Network authority can activate every actor, so retain all there.
+        // Keep every direction/frame of eligible ultimates ready before play.
+        const ultimateCharacters=networkSession?matchCharacters:[selectedId];
+        retainStudioImages(matchCharacters,ultimateCharacters);
         for (const id of matchCharacters) {
           images.push(getSpriteImage(id));
-          images.push(...studioImages(id));
+          images.push(...studioImages(id,ultimateCharacters.includes(id)));
           if (hasSpriteSeries(id)) images.push(getSeriesImage(id));
           urls.push(characterPreviewIcon(id));
         }
@@ -586,9 +635,9 @@ export function BentenganPrototype() {
         if(isKanalField(selectedFieldId))images.push(getFieldImage('kanal-object-atlas.webp'));
         // Decode only the selected arena. Rotation uses the same readiness gate
         // instead of retaining all custom animated atlases throughout a match.
-        retainMapImages(studioMapById[selectedFieldId] ? [studioMapById[selectedFieldId]] : []);
-        for (const field of [FIELD_BY_ID[selectedFieldId]]) {
-          if (studioMapById[field.id]) images.push(...mapImages(studioMapById[field.id]));
+        retainMapImages(!tutorialMatch&&studioMapById[selectedFieldId] ? [studioMapById[selectedFieldId]] : []);
+        for (const field of [tutorialMatch?nativeFieldConfigs.kampung:FIELD_BY_ID[selectedFieldId]]) {
+          if (!tutorialMatch&&studioMapById[field.id]) images.push(...mapImages(studioMapById[field.id]));
           if (field.background) images.push(getFieldImage(field.background));
           if (field.id === 'pasar') images.push(getFieldImage(PASAR2_ATLAS.file));
           if (field.id === 'taman') images.push(getFieldImage(TAMAN_ATLAS.file));
@@ -681,7 +730,7 @@ export function BentenganPrototype() {
       cancelled = true;
     });
     return () => { cancelled = true; };
-  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, selectedId, loadAttempt, selectionGate]);
+  }, [assetsLoading, gameLoading, selectedFaction, selectedFieldId, selectedId, loadAttempt, selectionGate, networkSession,tutorialMatch]);
   const selected = CHARACTER_BY_ID[selectedId] ?? CHARACTER_BY_ID.raja;
   const availableCharacters = useMemo(
     () => rosterCharacters(selectedFaction),
@@ -1032,6 +1081,8 @@ export function BentenganPrototype() {
     }
     // Identity belongs to this initialized match, not to a render or round.
     const matchId = mode === 'playing' ? network?`${network.read().roomCode}:match`:createMatchId() : null;
+    const tutorialIdentity=tutorialMatch&&mode==='playing'&&!network;
+    const resultIdentity=tutorialIdentity?`tutorial:${matchId}`:matchId;
     // Match-local immutable snapshot: profile refresh never restarts this effect.
     const playerUltimateStats = snapshotUltimateStats(mode==='playing'&&!network ? loadPlayerProfile() ?? playerProfileRef.current ?? null : null,selectedId);
     const ultimateCastMsFor = (player: Player) => {
@@ -1049,7 +1100,7 @@ export function BentenganPrototype() {
     // Match format: multiplayer stays legacy best-of-3 until protocol phase 5.
     // Dev-only ?format=legacy-bo3|standard|tournament override for telemetry baselines.
     const devFormat = process.env.NODE_ENV !== 'production' ? new URLSearchParams(window.location.search).get('format') : null;
-    const formatId: MatchFormatId = network ? (MATCH_FORMAT_CONFIG.multiplayerFormat as MatchFormatId)
+    const formatId: MatchFormatId = tutorialIdentity?TUTORIAL_MATCH.format:network ? (MATCH_FORMAT_CONFIG.multiplayerFormat as MatchFormatId)
       : devFormat === 'legacy-bo3' || devFormat === 'standard' || devFormat === 'tournament' ? devFormat : matchFormatRef.current;
     const scoredMatch = isScoredFormat(formatId);
     const progress = createMatchProgress(formatId);
@@ -1137,8 +1188,8 @@ export function BentenganPrototype() {
     let view = { x: 0, y: 0, width: 1, height: 1, scale: 1 };
     const clearMouse = () => { mouseRoute = []; mouseBoost = false; mouseStuckTime = 0; };
     let bannerTimeout = 0;
-    const field = FIELD_BY_ID[selectedFieldId];
-    const studioSource = runtimeStudioMapById[selectedFieldId];
+    const field = tutorialIdentity?nativeFieldConfigs.kampung:FIELD_BY_ID[selectedFieldId];
+    const studioSource = tutorialIdentity?null:runtimeStudioMapById[selectedFieldId];
     const studioMap = studioSource?.replaces === 'kanal'
       ? withApprovedKanalMask(studioSource,getFieldImage(field.waterMask!),field.waterMaskWidth!,field.waterMaskHeight!) : studioSource;
     const originalKanal = field.id === 'kanal' || studioMap?.replaces === 'kanal';
@@ -1150,7 +1201,7 @@ export function BentenganPrototype() {
     };
     const studioBounds=new Map(studioMap?.objects.map(o=>[o,objectBounds(o)])??[]);
     let visibleWorld={left:0,right:0,top:0,bottom:0};
-    const objectVisible=(o:typeof studioMap.objects[number])=>visibleBounds(studioBounds.get(o)!,visibleWorld);
+    const objectVisible=(o:NonNullable<typeof studioMap>['objects'][number])=>visibleBounds(studioBounds.get(o)!,visibleWorld);
     const development = process.env.NODE_ENV !== 'production';
     if(development)canvas.dataset.ultimateStats=JSON.stringify(playerUltimateStats);
     let debugColliders = development && new URLSearchParams(window.location.search).has('debugColliders');
@@ -1165,7 +1216,7 @@ export function BentenganPrototype() {
         ? visualObstacles.flatMap(item => pasar2ObjectRects(item).map(rect => ({...item,...rect,hidden:true})))
         : field.id === 'taman'
           ? visualObstacles.flatMap(item => tamanObjectRects(item).map(rect => ({...item,...rect,hidden:true})))
-          : visualObstacles;
+          : [...visualObstacles];
     const fieldObjectScale = field.objectScale ?? 1;
     const { fortWidth, fortHeight, fortAnchorY } = fortGeometry(fieldObjectScale);
     // Single-player follows the player's bot difficulty; multiplayer keeps the arena's own.
@@ -1182,6 +1233,12 @@ export function BentenganPrototype() {
     const mapObjectAtlas = mapAtlas ? getFieldImage(mapAtlas.file) : null;
     const fieldSolidMask = field.solidMask ? getFieldImage(field.solidMask) : null;
     const solidMask = createSolidMask(fieldSolidMask, field.solidMaskWidth ?? 1, field.solidMaskHeight ?? 1, worldWidth, worldHeight, PLAYER_COLLISION_RADIUS);
+    const practiceArea=tutorialIdentity?choosePracticeArea(bases.blue,worldWidth,worldHeight,(x,y)=>
+      !solidMask.hits(x,y)&&!studioQueries?.solidAt(x,y,18)&&!studioQueries?.waterAt(x,y)&&
+      !obstacles.some(o=>x>=o.x-18&&x<=o.x+o.w+18&&y>=o.y-18&&y<=o.y+o.h+18)&&
+      !Object.values(bases).some(b=>Math.hypot(x-b.x,y-b.y)<baseRadius+20)):null;
+    if(tutorialIdentity&&!practiceArea){setRendererError('Area latihan yang aman tidak ditemukan. Periksa map Kampung atau keluar tutorial.');return;}
+    if(practiceArea)obstacles.push({...practiceArea.barrier,asset:'parkBarrier',visualW:100,visualH:16,hidden:true});
     const fieldGroundAtlas = getFieldImage('grounds.webp');
     const fieldBackground = field.background
       ? getFieldImage(field.background)
@@ -1335,8 +1392,11 @@ export function BentenganPrototype() {
       const b = bases[team];
       const character = effectiveStats(characterId, teamPerks[team]);
       const offset =
-        GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
+        (tutorialIdentity?TUTORIAL_MATCH.spawnOffsets[slot]:null) ?? GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
       const direction = team === 'blue' ? 1 : -1;
+      const tutorialSpawn=tutorialIdentity?chooseTutorialSpawn(b,baseRadius,slot,(x,y)=>
+        x>34&&x<worldWidth-34&&y>58&&y<worldHeight-32&&!solidMask.hits(x,y)&&!studioQueries?.solidAt(x,y,13)&&
+        !studioQueries?.waterAt(x,y)&&!obstacles.some(o=>x>=o.x-13&&x<=o.x+o.w+13&&y>=o.y-13&&y<=o.y+o.h+13)):null;
       return {
         entityId: entityRegistry.assign(id),
         controller: controlled && !devAutobot ? 'local' : 'bot',
@@ -1345,8 +1405,8 @@ export function BentenganPrototype() {
         team,
         characterId,
         controlled,
-        x: b.x + offset.x * direction,
-        y: b.y + offset.y,
+        x: tutorialSpawn?.x ?? b.x + offset.x * direction,
+        y: tutorialSpawn?.y ?? b.y + offset.y,
         vx: 0,
         vy: 0,
         state: 'IN_BASE',
@@ -1369,8 +1429,8 @@ export function BentenganPrototype() {
         waterFallUntil: 0,
         capturedIds: [],
         actionUntil: 0,
-        lastX: b.x + offset.x * direction,
-        lastY: b.y + offset.y,
+        lastX: tutorialSpawn?.x ?? b.x + offset.x * direction,
+        lastY: tutorialSpawn?.y ?? b.y + offset.y,
         aiSeed: 0.35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
       };
     };
@@ -1393,8 +1453,10 @@ export function BentenganPrototype() {
       const opponentTeam = TEAM_FOR_FACTION[opponentFaction];
       const userRoster = lineupFor(faction, selectedId);
       const opponentRoster = lineupFor(opponentFaction);
+      const friendly=tutorialIdentity?TUTORIAL_MATCH.friendly:userRoster;
+      const opponents=tutorialIdentity?TUTORIAL_MATCH.enemy:opponentRoster;
       return [
-        ...userRoster.map((characterId, slot) =>
+        ...friendly.map((characterId, slot) =>
           makePlayer(
             slot === 0 ? 'you' : `ally${slot + 1}`,
             characterId,
@@ -1403,7 +1465,7 @@ export function BentenganPrototype() {
             slot === 0,
           ),
         ),
-        ...opponentRoster.map((characterId, slot) =>
+        ...opponents.map((characterId, slot) =>
           makePlayer(`enemy${slot + 1}`, characterId, opponentTeam, slot),
         ),
       ];
@@ -1702,10 +1764,13 @@ export function BentenganPrototype() {
     // Dev-only QA hook: end the current round instantly (e.g. __bentenganDev.winRound('red','BENTENG DIREBUT')).
     if (devBuild) (window as Window & { __bentenganDev?: unknown }).__bentenganDev = { winRound: (team: Team, reason: string) => winRound(team, reason) };
     const winRound = (team: Team, reason: string) => {
+      // Training must teach the actual fort objective; tagging the entire
+      // small practice roster is not a substitute for FORT_CAPTURED.
+      if(tutorialIdentity&&reason!=='BENTENG DIREBUT')return;
       const resultNow = performance.now();
       const scored = scoredMatch ? scoredRoundEnd(team, reason, resultNow) : null;
       const durationSec = (resultNow - roundStartedAt) / 1000;
-      const outcome = scoredMatch ? scored?.outcome ?? null : endRound(players, score, phase, team, reason, resultNow);
+      const outcome = scoredMatch ? scored?.outcome ?? null : endRound(players, score, phase, team, reason, resultNow, tutorialIdentity?TUTORIAL_MATCH.requiredWins:2);
       if (!outcome) return;
       const record = scored ? scored.result.record
         : completeRound(progress, { round, winner: team, reason, durationSec, uniqueCaptures: uniqueCaptures() }).record;
@@ -1720,7 +1785,7 @@ export function BentenganPrototype() {
       if (phase === 'MATCH_OVER') {
         try {
           const stats = pendingProfileStatsRef.current;
-          if (matchId && !network) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
+          if (matchId && !network && !tutorialIdentity) setMatchProgressionResult(recordMatchProgression({ matchId, arenaId: field.id, completed: true,
             won: outcome.team === players[0].team, tags: stats.tagMusuh, rescues: stats.rescueTeam,
             // Rewards scale with rounds actually played (5 rounds / 7-round tournament).
             ...(scoredMatch ? { roundsPlayed: progress.rounds.length } : {}),
@@ -1729,7 +1794,7 @@ export function BentenganPrototype() {
           setContentGateError(error instanceof Error ? error.message : 'Reward gagal disimpan.');
         }
         pendingProfileStatsRef.current = { ...EMPTY_KDA };
-        if(!network)completedMatchesRef.current++;
+        if(!network&&!tutorialIdentity)completedMatchesRef.current++;
         fieldRotationPending = completedMatchesRef.current >= 3;
       }
       phaseUntil = outcome.phaseUntil;
@@ -1742,6 +1807,7 @@ export function BentenganPrototype() {
       }
       // Persistence above is not a presentation subscriber; event payload omits
       // internal phaseUntil=Infinity so this boundary remains finite JSON data.
+      if(tutorialIdentity&&outcome.type==='MATCH_ENDED')tutorialSignal('MATCH_ENDED');
       presentGameEvents([{type:outcome.type,team:outcome.team,reason:outcome.reason}],event=>{
       if(event.type!=='ROUND_ENDED'&&event.type!=='MATCH_ENDED')return;
       gameplayAudio.resetTagStreak();
@@ -1978,9 +2044,9 @@ export function BentenganPrototype() {
       probeDistance: number,
       turnBias: number,
     ) => {
-      if (studioMap) {
+      if (studioMap || tutorialIdentity) {
         const target = { x: clamp(p.x + desired.x, 34, worldWidth - 34), y: clamp(p.y + desired.y, 58, worldHeight - 32) };
-        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !hitsObstacle(x,y) && (!isKanalField(field.id)||!isInsideFortCore(x,y)) && !studioQueries!.waterAt(x,y);
+        const passable = (x: number, y: number) => x >= 34 && y >= 58 && x <= worldWidth-34 && y <= worldHeight-32 && !hitsObstacle(x,y) && (!(isKanalField(field.id)||tutorialIdentity)||!isInsideFortCore(x,y)) && !studioQueries?.waterAt(x,y);
         const cached = studioRoutes.get(p.id);
         if (!cached || now > cached.until || distance(target,cached.target)>100) {
           routeScheduler.request(p.id,()=>{
@@ -2025,6 +2091,12 @@ export function BentenganPrototype() {
     };
     const findParkourLanding = (p:Player,direction:{x:number;y:number},nominalDistance:number,now:number) =>
       parkourLanding(movementWorld,p,direction,nominalDistance,now);
+    const tutorialDirector=practiceArea?createTutorialDirector(players[0].entityId,players[1].entityId,players[2].entityId,players[3].entityId,practiceArea,bases,baseRadius):null;
+    let movementLesson=practiceArea?createMovementLessonMonitor(practiceArea):null;
+    const tutorialRecovery=tutorialDirector?createTutorialRecovery():null;
+    const ultimateLesson=createUltimateLesson();
+    const tutorialSpawns=tutorialDirector?structuredClone(players):[];
+    let tutorialActiveMs=0;
     const resetFallenPlayer = (p: Player, now: number) => {
       p.flight = null;
       const base = bases[p.team];
@@ -2161,6 +2233,7 @@ export function BentenganPrototype() {
       lineOfSight:hasLineOfSight,
     };
     const presentInteractionEvents = (events:readonly GameEvent[],now:number) => {
+      if(tutorialIdentity){const signal=tutorialEventSignal(events,players[0].entityId,tutorialDirector?{tagTargetId:tutorialDirector.ids.targetId,friendId:tutorialDirector.ids.friendId}:undefined);if(signal)tutorialSignal(signal);}
       if(network&&!clientOnly)publishNetworkFacts(events);
       if(!clientOnly)for(const event of events)eventSigns.accept(event,`${matchId}:sign:${++localSignSerial}`);
       presentGameEvents(events,event=>{
@@ -2224,6 +2297,7 @@ export function BentenganPrototype() {
       const contacts=tagContacts(players,now,interactionRules);
       const resolved = new Set<string>();
       contacts.forEach(({ attacker, target }) => {
+        if(tutorialDirector&&!tutorialDirector.allowsContact(tutorialSessionRef.current.stepId,attacker,target,tutorialRecovery?.assisted()))return;
         if (resolved.has(attacker.id) || resolved.has(target.id)) return;
         const before = target.state;
         capture(attacker, target, now);
@@ -2237,6 +2311,7 @@ export function BentenganPrototype() {
       players
         .filter((p) => !flightBusy(p) && p.state === 'ACTIVE' && !(isKanalField(field.id) && p.waterEnteredAt))
         .forEach((rescuer) => {
+          if(tutorialDirector&&!tutorialDirector.allowsRescue(tutorialSessionRef.current.stepId,rescuer))return;
           const rescuerStats = statsOf(rescuer);
           const events:GameEvent[]=[];
           const event=resolveRescue(players,rescuer.entityId,now,{
@@ -2292,7 +2367,7 @@ export function BentenganPrototype() {
       const facts:GameEvent[]=[];
       const events=resolveBase(players,p,dt,now,exitCandidates,{
         bases,radius:baseRadius,kanal2:isKanalField(field.id),boost:stats.boost,
-        chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,teamFort:scoredMatch,
+        chargeTime:stats.baseChargeTime,reentryMs:BASE_REENTRY_COOLDOWN_MS,tieHash,teamFort:scoredMatch||(tutorialIdentity&&!tutorialCaptureEnabled(tutorialSessionRef.current.stepId)),
         noRefuge:scoredMatch&&lastStandTeam(players)===p.team,
       },events=>facts.push(...events));
       presentInteractionEvents(facts,now);
@@ -2354,6 +2429,34 @@ export function BentenganPrototype() {
       if (transition === 'finished') {
         return;
       }
+      if(tutorialRecovery&&tutorialDirector&&phase==='PLAYING'){
+        tutorialActiveMs+=dt*1000;
+        const step=tutorialSessionRef.current.stepId;
+        if(tutorialRecovery.enter(step,players)){
+          ultimateLesson.reset();
+          if(step==='ultimate')ultimateMeter=100;
+        }
+        const destinations=new Map(players.flatMap(p=>{
+          const goal=tutorialDirector.destination(step,p,players);
+          return goal?[[p.entityId,goal] as const]:[];
+        }));
+        const reason=tutorialRecovery.tick(dt,players,destinations);
+        if(tutorialRetryRef.current||reason){
+          tutorialRetryRef.current=false;
+          players=tutorialRecovery.restore() as Player[];
+          if(reason==='blocked')for(const p of players){
+            if(p.controller!=='bot'||p.state==='PRISONER')continue;
+            const spawn=tutorialSpawns.find(s=>s.entityId===p.entityId)!;
+            p.x=spawn.x;p.y=spawn.y;p.lastX=p.x;p.lastY=p.y;
+            p.state='IN_BASE';p.baseCharge=0;p.exitOrder=0;p.vx=0;p.vy=0;
+          }
+          clearMouse();routeScheduler.clear();studioRoutes.clear();
+          movementLesson=practiceArea?createMovementLessonMonitor(practiceArea):null;
+          ultimateLesson.reset();ultimateImpactAt=0;ultimateImpactApplied=false;
+          ultimateBuffUntil=0;ultimateShieldUntil=0;
+          if(step==='ultimate')ultimateMeter=100;
+        }
+      }
       if (
         rescueRequest &&
         (now >= rescueRequest.expiresAt ||
@@ -2367,7 +2470,7 @@ export function BentenganPrototype() {
       }
       if(network)for(const p of players)if(p.controller==='remote'&&humanFrames.get(p.entityId)?.rescue)requestRescue(now,p);
       const wasSuddenDeath = suddenDeath;
-      const timerResult = stepMatchTimer(players, timer, suddenDeath, dt);
+      const timerResult = stepMatchTimer(players, timer, suddenDeath, tutorialIdentity&&tutorialSessionRef.current.stepId!=='match_complete'?0:dt);
       timer = timerResult.timer;
       suddenDeath = timerResult.suddenDeath;
       if (timerResult.winner) winRound(timerResult.winner.team, timerResult.winner.reason);
@@ -2435,6 +2538,11 @@ export function BentenganPrototype() {
         speedMultiplier:playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER,
       };
       const ultimateFacts = network?[]:stepUltimate(players,me,ultimateState,dt,now,input.ultimate,ultimateRules);
+      if(tutorialIdentity&&tutorialSessionRef.current.stepId==='ultimate'){
+        if(ultimateLesson.observe(ultimateFacts,me.entityId,tutorialActiveMs))tutorialSignal('ULTIMATE');
+        // Recovery refill is local to this lesson; a rejected input remains retryable.
+        if(!ultimateLesson.active())ultimateState.meter=100;
+      }
       if(input.ultimate)keys.current.delete('capslock');
       ultimateMeter=ultimateState.meter;ultimateImpactAt=ultimateState.impactAt;ultimateImpactApplied=ultimateState.impactApplied;
       ultimateBuffUntil=ultimateState.buffUntil;ultimateShieldUntil=ultimateState.shieldUntil;
@@ -2488,6 +2596,7 @@ export function BentenganPrototype() {
       }
       const sprintPulse = input.sprintPulse && mouseBoost;
       const boostKey = input.keyboardSprint || sprintPulse;
+      let boostActivated=false;
       if (
         boostKey &&
         !flightBusy(me) &&
@@ -2496,7 +2605,7 @@ export function BentenganPrototype() {
         !(isKanalField(field.id) && me.waterEnteredAt) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       )
-        boostBurstUntil = now + GAME_RULES.boostDurationMs;
+        {boostBurstUntil = now + GAME_RULES.boostDurationMs;boostActivated=true;}
       boostLatch = boostKey;
       mouseBoost = false;
       const boosting =
@@ -2510,6 +2619,7 @@ export function BentenganPrototype() {
         drainBoost(me, selected.boostDrain * (playerComboMultiplier > 1 ? 0.8 : 1), dt, now);
         mission.boost = true;
       }
+      const vaultBefore={x:me.x,y:me.y};
       const vault=localParkour.step(me,input.parkour,input.parkourPulse,{x:dx,y:dy},selected.agility,now,findParkourLanding);
       if(vault.performed&&vault.landing){mission.parkour=true;burst(me.x,me.y,vault.landing.crossedWater?'#65e9ff':'#f4df9a',9);beep(460);parkourFeedback='';parkourFeedbackUntil=0;}
       else if(vault.requested){parkourFeedback=parkourReasonText[vault.reason];parkourFeedbackUntil=now+900;}
@@ -2560,12 +2670,20 @@ export function BentenganPrototype() {
         if (mouseStuckTime > .6) clearMouse();
       }
       if(me.flight){me.flight.distance+=distance(me,mouseBefore);if(isFlying(me)&&flightGroundValid(me.x,me.y))me.flight.lastGround={x:me.x,y:me.y};}
+      if(movementLesson){const signal=movementLesson.observe(tutorialSessionRef.current.stepId,me,vault.performed?vaultBefore:mouseBefore,{boosting:!!boosting,activated:boostActivated,parkour:vault.performed});if(signal)tutorialSignal(signal);}
       for(const p of players)if(p.controller==='remote'||network&&p.controller==='bot'&&p.flight)remoteMovement(p,humanFrames.get(p.entityId)??localInput.sample(p.entityId,new Set()),CHARACTER_BY_ID[p.characterId],dt,now,{
         move,landing:findParkourLanding,near:()=>true,
         returnVector:(p,now)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
         combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:isKanalField(field.id),boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
       });
-      botAuthority.run(simulationAuthority,{
+      if(tutorialDirector){
+        for(const p of players.filter(p=>p.controller==='bot')){
+          const goal=tutorialDirector.destination(tutorialSessionRef.current.stepId,p,players);
+          if(!goal||distance(p,goal)<10){p.vx=0;p.vy=0;continue;}
+          const vector=navigateAroundHazards(p,{x:goal.x-p.x,y:goal.y-p.y},now,104,Math.sin(p.aiSeed));
+          move(p,vector.x,vector.y,Math.min(125,statsOf(p).speed),dt,now);
+        }
+      }else botAuthority.run(simulationAuthority,{
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
         // Bot Mudah: enemy-only reaction/vision limits. Bot Sulit: fort guards (6 s gap on rotation).
@@ -2874,7 +2992,7 @@ export function BentenganPrototype() {
         );
       });
     };
-    const drawBase = (team: Team, render:RenderFrame) => {
+    const drawBase = (team: Team, render:RenderFrame, now:number) => {
       const b = bases[team],
         color = TEAM_COLOR[team],
         occupant = render.players.find(p=>p.team!==team&&!flightBusy(p)&&p.state==='ACTIVE'&&
@@ -2898,7 +3016,7 @@ export function BentenganPrototype() {
       if (occupant) {
         ctx.fillStyle = '#f5cf45';
         ctx.font = '900 9px Arial';
-        ctx.fillText(t(`TERKUNCI · ${occupant.name}`), b.x, baseLabelY + 14);
+        ctx.fillText(t(`LAWAN · ${occupant.name}`), b.x, baseLabelY + 14);
       }
       if (scoredMatch) {
         // Capture ring in the attacker's colour, visible to both teams.
@@ -2915,11 +3033,11 @@ export function BentenganPrototype() {
           ctx.font = '900 11px Arial';
           ctx.fillText(t(`REBUT ${Math.round(value * 100)}%`), b.x, b.y - baseRadius - 18);
         }
-        const lockLeft = phase === 'PLAYING' ? fortLockSeconds(progress) * 1000 - (performance.now() - roundStartedAt) : 0;
+        const lockLeft = fortLockRemaining(progress, phase, now, roundStartedAt);
         if (lockLeft > 0) {
           ctx.fillStyle = '#fff3d0';
           ctx.font = '900 12px Arial';
-          ctx.fillText(`🔒 ${Math.ceil(lockLeft / 1000)}`, b.x, b.y - baseRadius - 18);
+          ctx.fillText(`🔒 ${lockLeft}`, b.x, b.y - baseRadius - 18);
         }
       }
     };
@@ -3583,8 +3701,11 @@ const spriteFrame = (
         drawKanalWater(now);
         drawNearbyFieldDetails(me, activeCamera);
       }
-      drawBase('blue',render);
-      drawBase('red',render);
+      drawBase('blue',render,now);
+      drawBase('red',render,now);
+      if(practiceArea){ctx.fillStyle='#ffd93c';ctx.fillRect(practiceArea.barrier.x,practiceArea.barrier.y,practiceArea.barrier.w,practiceArea.barrier.h);ctx.strokeStyle='#18251c';ctx.lineWidth=2;ctx.strokeRect(practiceArea.barrier.x,practiceArea.barrier.y,practiceArea.barrier.w,practiceArea.barrier.h);}
+      const lessonGoal=tutorialGoalRef.current?.point;
+      if(tutorialIdentity&&lessonGoal){const emphasized=tutorialGoalRef.current?.hintLevel===2;ctx.strokeStyle='#e5ff4b';ctx.lineWidth=emphasized?5:3;ctx.beginPath();ctx.arc(lessonGoal.x,lessonGoal.y,emphasized?28:22,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#e5ff4b';ctx.font=`900 ${emphasized?24:14}px Arial`;ctx.fillText('▼',lessonGoal.x,lessonGoal.y-(emphasized?34:26));}
       if (mouseRoute.length) {
         const target = mouseRoute[mouseRoute.length - 1];
         ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
@@ -3765,6 +3886,24 @@ const spriteFrame = (
         const me = players[0],
           blueLock = fortOccupant('blue'),
           redLock = fortOccupant('red');
+        if(tutorialDirector){
+          const goal=tutorialDirector.goal(tutorialSessionRef.current.stepId,players,tutorialRecovery?.assisted());
+          if(tutorialRecovery)Object.assign(goal,{hintLevel:tutorialRecovery.hint().level,recovered:tutorialRecovery.hint().recovered});
+          if(tutorialSessionRef.current.stepId==='ultimate'&&ultimateLesson.active()){
+            goal.en=ultimateLesson.applied()?'Feel the speed boost! Move with your squad.':'Ultimate is charging its impact—watch your squad.';
+            goal.id=ultimateLesson.applied()?'Rasakan dorongan kecepatannya! Bergerak bersama timmu.':'Ultimate sedang menyiapkan efeknya—lihat timmu.';
+          }
+          // Show the next reachable navigation marker, not an off-screen point
+          // behind a building. Reuse the existing queued route/steering system.
+          if(goal.point&&distance(me,goal.point)>70){
+            const vector=navigateAroundHazards(me,{x:goal.point.x-me.x,y:goal.point.y-me.y},now,78,0);
+            const length=Math.hypot(vector.x,vector.y);
+            if(length>1)goal.point={x:me.x+vector.x/length*Math.min(64,length),y:me.y+vector.y/length*Math.min(64,length)};
+          }
+          tutorialGoalRef.current=goal;setTutorialGoal(goal);if(development){canvas.dataset.tutorialGoal=JSON.stringify(goal);canvas.dataset.tutorialDebug=JSON.stringify({step:tutorialSessionRef.current.stepId,lastSuccess:tutorialSessionRef.current.lastSuccess,serial:tutorialSessionRef.current.lastSerial,director:goal.en,rewardClaimed:playerProfileRef.current?.tutorial?.rewardClaimed??false});}
+        }
+        const lockRemaining = fortLockRemaining(progress, phase, now, roundStartedAt);
+        if(profileRuntime)canvas.dataset.spriteBudget=JSON.stringify(studioImageBudget());
         canvas.dataset.playerPosition = `${me.x.toFixed(1)},${me.y.toFixed(1)}`;
         if(development){canvas.dataset.flightStage=me.flight?.stage??'NORMAL';canvas.dataset.flightRemaining=String(me.flight?.remaining??0);}
         canvas.dataset.embeddedPlayers = String(
@@ -3829,11 +3968,7 @@ const spriteFrame = (
             (p) => p.team === 'blue' && p.state === 'PRISONER',
           ).length,
           pickupCount: refills.length,
-          fortLock: blueLock
-            ? `Merah dikunci ${blueLock.name}`
-            : redLock
-              ? `Hijau dikunci ${redLock.name}`
-              : 'Benteng terbuka',
+          fortLock: fortStatusText(lockRemaining, blueLock?.name, redLock?.name),
           baseGrace:
             me.state === 'IN_BASE' && me.exitDeadline
               ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000))
@@ -3901,8 +4036,7 @@ const spriteFrame = (
             rounds: progress.rounds.map((r) => ({ ...r })),
             lastPoints: progress.rounds.at(-1)?.points ?? 0,
             lastStand,
-            fortLockRemaining: phase === 'PLAYING'
-              ? Math.max(0, Math.ceil((fortLockSeconds(progress) * 1000 - (now - roundStartedAt)) / 1000)) : 0,
+            fortLockRemaining: lockRemaining,
             draft: perkDraft && phase === 'ROUND_OVER' ? {
               loser: perkDraft.loser, winner: perkDraft.winner, offer: [...perkDraft.offer],
               humanPicks: perkDraft.offer.length > 0 && perkDraft.loser === me.team && !devAutobot,
@@ -3966,7 +4100,7 @@ const spriteFrame = (
     // Shared detached read adapter for rendering and development inspection.
     const coreHost = window as Window & { __bentengGameCore?: { readState: () => CanonicalGameState; readSnapshot: () => GameSnapshot;readNetwork:()=>ReturnType<MultiplayerSession['metrics']>|null;readArena:()=>{width:number;height:number} } };
     const readCanonicalState = (observedAtMs=performance.now(),validate=true) => {const state=describeMatch({
-      matchId:matchId??'menu-preview',arenaId:field.id,phase,paused,
+      matchId:resultIdentity??'menu-preview',arenaId:field.id,phase,paused,
       tick:simulationClock.tick,simulationTimeMs:simulationClock.simulationTimeMs,
       fixedDeltaMs:simulationClock.fixedDeltaMs,observedAtMs,round,timer,phaseUntil,
       suddenDeath,score,players,refills,nextRefillSpawn,exitCounter,teamCombos,totalCapture,
@@ -4054,7 +4188,7 @@ const spriteFrame = (
       if (isKanalField(field.id)) delete debugHost.__kanalCollision;
       if(coreHost.__bentengGameCore===coreProbe)delete coreHost.__bentengGameCore;
     };
-  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate]);
+  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate,tutorialMatch,tutorialSignal]);
 
   const missionCount = useMemo(
     () => Object.values(snapshot.mission).filter(Boolean).length,
@@ -4069,6 +4203,7 @@ const spriteFrame = (
     const gate = selectionGate();
     if (gate) { setContentGateError(gate); return; }
     setContentGateError('');
+    setTutorialMatch(false);
     stopCharacterVoice();
     setRendererError('');
     playAudioCue('press-play.mp3', 0.64);
@@ -4079,6 +4214,8 @@ const spriteFrame = (
     setGameLoading(true);
   };
   const quit = () => {
+    if(tutorialMatch){try{skipPlayerTutorial();}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');return;}}
+    setTutorialMatch(false);
     networkSession?.close();setNetworkSession(null);setMultiplayerOpen(false);
     stopCharacterVoice();
     keys.current.clear();
@@ -4096,6 +4233,15 @@ const spriteFrame = (
     setContentGateError('');
     setCameraMode('follow');
     setRun((v) => v + 1);
+  };
+  const launchTutorial = () => {
+    const arena=SELECTION_FIELDS.find(field=>getProgressionArenaId(field.id)===TUTORIAL_MATCH.arenaIdentity);
+    if(!arena){setTutorialEntryError('Arena latihan tidak tersedia.');return;}
+    const fresh=createTutorialSession();tutorialSessionRef.current=fresh;tutorialSerial.current=0;tutorialRetryRef.current=false;setTutorialReward(null);setTutorialSession(fresh);tutorialGoalRef.current=null;setTutorialGoal(null);
+    try{updatePlayerTutorialStep(fresh.stepId);}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');return;}
+    keys.current.clear();stopCharacterVoice();setTutorialEntryOpen(false);setTutorialEntryError('');
+    setNetworkSession(null);setTutorialMatch(true);setSelectedFaction('red');setSelectedIdState(TUTORIAL_MATCH.character);
+    setSelectedFieldIdState(arena.id);setSnapshot(initialSnapshot);setMissionOpen(false);setMode('menu');setGameLoading(true);
   };
   const applyPendingFieldRotation = () => {
     if (completedMatchesRef.current < 3) return false;
@@ -4199,6 +4345,7 @@ const spriteFrame = (
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if (!playerProfile) return;
+      if (tutorialModalOpen) return;
       if (profileOpen || multiplayerOpen) return;
       if (creditsOpen) return;
       if (rulesOpen) {
@@ -4260,6 +4407,7 @@ const spriteFrame = (
     menuStep,
     mode,
     rulesOpen,
+    tutorialModalOpen,
     creditsOpen,
     selectedFaction,
     selectedFieldId,
@@ -4291,6 +4439,7 @@ const spriteFrame = (
     };
   };
   const statsBoard = snapshot.statsBoard;
+  const tutorialHandoff=tutorialMatch&&['reward','character_unlock','map_unlock','complete'].includes(tutorialSession.stepId);
   const showStatsBoard =
     mode === 'playing' && (leaderboardOpen || statsBoard.visible);
   const closeLeaderboard = () => setLeaderboardOpen(false);
@@ -4446,7 +4595,19 @@ const spriteFrame = (
           onToggleMusic={toggleBackgroundMusic}
           onOpenRules={() => setRulesOpen(true)}
           onAudioOpen={() => keys.current.clear()}
+          onTutorial={playerProfile?()=>{
+            try {
+              keys.current.clear();stopCharacterVoice();
+              if(!startPlayerTutorial(playerProfile.tutorial?.status!=='in_progress'))throw new Error('Profil pemain tidak tersedia.');
+              launchTutorial();
+            } catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}
+          }:undefined}
         />
+        {tutorialEntryError&&<div className="content-gate-notice" role="alert">{t(tutorialEntryError)}<button onClick={()=>setTutorialEntryError('')} aria-label={t('Tutup')}>×</button></div>}
+        {playerProfile&&<TutorialEntry profile={playerProfile} offer={tutorialOffered} open={tutorialEntryOpen}
+          onStarted={launchTutorial}
+          onClosed={()=>{keys.current.clear();setTutorialEntryOpen(false);}}
+          onSkipped={()=>{keys.current.clear();setTutorialEntryOpen(false);setMenuStep('team');}}/>}
         {creditsOpen && <DeveloperCredits onClose={() => setCreditsOpen(false)} />}
         {rulesOpen && <RulesOverlay onClose={() => setRulesOpen(false)} />}
         {playerProfile === null && <PlayerProfileSetup onCreated={refreshPlayerProfile} />}
@@ -4471,15 +4632,31 @@ const spriteFrame = (
             await Promise.all(images.map(image=>imageReady(image)));
             return createContentIdentity(id,{field,studio:map??null});
           }}
-          onLaunch={session=>{const state=session.read(),local=state.lobby!.participants.find(p=>p.peerId===state.localPeerId)!;
+          onLaunch={session=>{void (async()=>{
+            const state=session.read(),local=state.lobby!.participants.find(p=>p.peerId===state.localPeerId)!;
+            // Include remote selections outside the default bot lineup. Every
+            // human's ultimate must be decoded before network rendering starts.
+            const ids=[...new Set([...lineupFor('red'),...lineupFor('green'),...state.lobby!.participants.map(p=>p.characterId)])];
+            retainStudioImages(ids);
+            await Promise.all(ids.flatMap(id=>[getSpriteImage(id),...studioImages(id),...(hasSpriteSeries(id)?[getSeriesImage(id)]:[])]).map(image=>imageReady(image)));
+            await imageReady(getKakaUltimateImage());
+            if(session.read().phase!=='playing')throw new Error('Room ditutup.');
             keys.current.clear();setSelectedFaction(local.team);setSelectedIdState(local.characterId);setSelectedFieldIdState(session.content.arenaId as FieldId);
-            setNetworkSession(session);setMultiplayerOpen(false);setSnapshot(initialSnapshot);setMode('playing');}}
+            setTutorialMatch(false);setNetworkSession(session);setMultiplayerOpen(false);setSnapshot(initialSnapshot);setMode('playing');
+          })().catch(error=>setContentGateError(error instanceof Error?error.message:'Sprite multiplayer gagal dimuat.'));}}
           onClose={()=>setMultiplayerOpen(false)}/></Suspense>}
       </main>
     );
   }
   return (
-    <main className={`game-shell playing-shell${hudPreferences.contrast ? ' hud-high-contrast' : ''}`}>
+    <main className={`game-shell playing-shell${hudPreferences.contrast ? ' hud-high-contrast' : ''}${tutorialMatch?' tutorial-highlight-'+(tutorialStep(tutorialSession.stepId)?.control??'none'):''}`}>
+      {tutorialHandoff&&playerProfile&&<TutorialFinish session={tutorialSession} profile={playerProfile} result={tutorialReward} error={tutorialEntryError} catalog={SELECTION_FIELDS}
+        onReward={()=>{try{updatePlayerTutorialStep('reward');setTutorialReward(recordPlayerTutorialReward());setTutorialEntryError('');}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Reward belum tersimpan.');}}}
+        onSignal={kind=>tutorialSignal(kind,tutorialSession.stepId)}
+        onComplete={()=>{try{if(!completePlayerTutorial())throw new Error('Profil pemain tidak tersedia.');tutorialSignal('ACK','complete');setTutorialEntryError('');quit();setMenuStep('team');}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}}}
+        onLeave={quit}/>}
+      {tutorialMatch&&!tutorialHandoff&&!snapshot.paused&&!showStatsBoard&&<TutorialCoach session={tutorialSession} goal={tutorialGoal} onAck={()=>tutorialSignal('ACK',tutorialSession.stepId)} onRetry={()=>{tutorialRetryRef.current=true;}} onSkip={quit}/>}
+      {tutorialMatch&&tutorialEntryError&&<p className="tutorial-save-error" role="alert">{t(tutorialEntryError)}</p>}
       <PlayingTopbar
         logoSrc={publicAsset('brand/benteng-tag-logo.webp?v=9')}
         hasProfile={Boolean(playerProfile)}
@@ -4500,10 +4677,10 @@ const spriteFrame = (
         <div className="stage-card">
           <canvas
             ref={canvasRef}
-            aria-label={t(`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`)}
+            aria-label={tutorialMatch?`Tutorial 2v2 · ${FIELD_BY_ID[selectedFieldId].name}`:t(`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`)}
           />
           <OrientationHint />
-          {!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
+          {!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
             tagged={snapshot.mission.tag} rescued={snapshot.mission.rescue}
             captured={snapshot.statsBoard.reason==='BENTENG DIREBUT'&&snapshot.statsBoard.winner===(selectedFaction==='red'?'blue':'red')}
             state={snapshot.state}/>}
@@ -4515,14 +4692,15 @@ const spriteFrame = (
           )}
           <StageHud
             snapshot={snapshot}
+            teamSize={tutorialMatch?2:5}
             onToggle={() => setLeaderboardOpen((value) => !value)}
           />
           <MatchEventFeed events={snapshot.matchEvents} frames={MATCH_EVENT_FRAME} />
-          <RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET}
+          {!tutorialHandoff&&<RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET}
             detail={snapshot.match.scored ? snapshot.roundResult.final
               ? `${snapshot.match.points.blue} — ${snapshot.match.points.red}${snapshot.match.locked ? ` · ${t('MATCH TERKUNCI')}` : ''}`
-              : `${t(statsBoard.reason)} +${snapshot.match.lastPoints}${snapshot.match.golden ? ` · ${t('RONDE EMAS!')}` : ''}` : undefined} />
-          {showStatsBoard && (
+              : `${t(statsBoard.reason)} +${snapshot.match.lastPoints}${snapshot.match.golden ? ` · ${t('RONDE EMAS!')}` : ''}` : undefined} />}
+          {showStatsBoard && !tutorialHandoff && (
             <RoundStatsOverlay
               statsBoard={statsBoard}
               leaderboardOpen={leaderboardOpen}
@@ -4658,7 +4836,7 @@ const spriteFrame = (
                   musicMuted={musicMuted}
                   onResume={() => keys.current.add('p')}
                   onToggleMusic={toggleBackgroundMusic}
-                  onRestart={() => setRun((value) => value + 1)}
+                  onRestart={() => {if(tutorialMatch)launchTutorial();else setRun((value) => value + 1);}}
                   onQuit={quit}
                 />
               )}

@@ -59,6 +59,13 @@ function renderCropGuides(factor){
 }
 for(const key of ['gridVisible','rulersVisible','gridSize','snapGrid'])$(key).onchange=()=>renderCrop();
 let state,clip=null,image=null,legacy=null,dirty=false,playing=true,frame=0,start=performance.now(),uploaded=[],selection='',requestId=0,drag=null;
+let engineVisible=true;
+window.addEventListener('message',event=>{
+  if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&typeof event.data.active==='boolean'){
+    engineVisible=event.data.active;
+    if(engineVisible&&playing&&(clip??legacy))start=performance.now()-frame*1000/(clip??legacy).fps;
+  }
+});
 const numeric=['fps','scale','x','y','pivotX','pivotY'];
 const drafts={};
 names.default='Default · semua arah';
@@ -231,6 +238,7 @@ canvas.onpointerdown=e=>{if(!clip||processing)return;const rect=canvas.getBoundi
 canvas.onpointermove=e=>{if(!drag||!clip)return;const r=canvas.getBoundingClientRect(),factor=canvas.width/r.width/(+$('zoom').value);clip.x=Math.max(-150,Math.min(150,snapCoordinate(drag.ox+(e.clientX-drag.x)*factor)));clip.y=Math.max(-150,Math.min(150,snapCoordinate(drag.oy+(e.clientY-drag.y)*factor)));settings();mark();};
 canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=()=>{drag=null;};
 function draw(now){
+  if(!engineVisible||document.hidden){requestAnimationFrame(draw);return;}
   ctx.fillStyle='#1c261f';ctx.fillRect(0,0,canvas.width,canvas.height);
   if($('arena').checked&&ground.complete&&ground.naturalWidth)ctx.drawImage(ground,0,0,canvas.width,canvas.height);else for(let y=0;y<canvas.height;y+=24)for(let x=0;x<canvas.width;x+=24){ctx.fillStyle=(x/24+y/24)%2?'#222f26':'#18231c';ctx.fillRect(x,y,24,24);}
   const c=clip??legacy,zoom=+$('zoom').value,baseX=canvas.width/2,baseY=Math.round(canvas.height*.82);

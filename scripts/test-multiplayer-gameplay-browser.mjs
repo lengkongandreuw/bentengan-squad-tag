@@ -12,6 +12,8 @@ try{
     page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
     await page.getByLabel("PLAYER NAME",{exact:true}).fill(`NetworkQA${index}`);
     await page.getByRole('button',{name:"SAVE NAME",exact:true}).click();
+    await page.getByRole('button',{name:'SKIP',exact:true}).click();
+    await page.locator('.graffiti-back').click();
     await page.getByRole('button',{name:"MULTIPLAYER · LOBBY",exact:true}).click({timeout:30000});
   }
   const arena=await host.getByLabel("Multiplayer arena",{exact:true}).inputValue();
@@ -23,7 +25,7 @@ try{
   await client.getByRole('button',{name:"JOIN ROOM",exact:true}).click();
   await client.getByText("Lobby connected",{exact:false}).waitFor({timeout:25000});
   await client.getByLabel("Character",{exact:true}).selectOption('kodo'); // reserve outside default 5
-  await host.getByText('HIJAU · KODO · BELUM SIAP',{exact:true}).waitFor();
+  await host.getByText('HIJAU · KODO · NOT READY',{exact:true}).waitFor();
   await client.getByLabel("Ready to play",{exact:false}).check();
   await host.getByRole('button',{name:"START MATCH",exact:true}).click();
   for(const page of [host,client])await page.waitForFunction(()=>window.__bentengGameCore?.readState().phase==='PLAYING',{},{timeout:20000});
@@ -44,7 +46,7 @@ try{
   await host.screenshot({path:'outputs/multiplayer-gameplay-host.png',fullPage:true});
   await client.screenshot({path:'outputs/multiplayer-gameplay-client.png',fullPage:true});
   await client.setViewportSize({width:390,height:844});await client.screenshot({path:'outputs/multiplayer-gameplay-mobile.png',fullPage:true});
-  await host.close();await client.getByRole('alert').filter({hasText:'Host terputus'}).waitFor({timeout:25000});
+  await host.close();await client.getByRole('alert').filter({hasText:/Host (disconnected|terputus)/i}).waitFor({timeout:25000});
   if(errors.length)throw Error(errors.join('; '));
   console.log(JSON.stringify({status:'PASS',realGameRuntime:true,remoteInput:true,hostLocalInput:true,bots:true,clientSnapshots:true,hostDisconnect:true,arena,entities:hs.entities.length,pageErrors:errors}));
 }catch(error){

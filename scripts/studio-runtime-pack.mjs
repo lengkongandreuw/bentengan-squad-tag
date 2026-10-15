@@ -19,7 +19,12 @@ export function trimFrame(data, imageWidth, f) {
 
 export function packRects(items, limit=4096) {
   let best=null;
-  for(const target of [256,512,768,1024,1536,2048,3072,4096].filter(w=>w<=limit)) {
+  // Search tighter widths too: the old fixed buckets left wide empty strips
+  // beside whole rows. Keep every old candidate so packing can never regress.
+  const widest=Math.max(...items.map(item=>item.width+4),1);
+  const targets=new Set([256,512,768,1024,1536,2048,3072,4096,widest]);
+  for(let width=Math.ceil(widest/64)*64;width<=limit;width+=64)targets.add(width);
+  for(const target of [...targets].filter(w=>w<=limit).sort((a,b)=>a-b)) {
     let x=0,y=0,rowHeight=0,width=0;
     const placements=[];
     for(const item of items) {

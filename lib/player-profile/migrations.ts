@@ -4,6 +4,7 @@ import type { LocalPlayerProfile, PlayerKdaStats } from './types';
 import { parsePlayerProgression } from './progression.ts';
 import { parsePlayerEconomy } from './economy.ts';
 import { parseUltimateUpgradeState } from './ultimate-upgrades.ts';
+import {parseTutorialState} from './tutorial.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -47,7 +48,8 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
   const progression = parsePlayerProgression(value.progression);
   const economy = parsePlayerEconomy(value.economy);
   const ultimateUpgrades = parseUltimateUpgradeState(value.ultimateUpgrades);
-  const { progression: _rawProgression, economy: _rawEconomy, ultimateUpgrades: _rawUpgrades, ...existingFields } = value;
+  const tutorial = parseTutorialState(value.tutorial);
+  const { progression: _rawProgression, economy: _rawEconomy, ultimateUpgrades: _rawUpgrades, tutorial: _rawTutorial, ...existingFields } = value;
   return {
     ...existingFields,
     schemaVersion: PLAYER_PROFILE_SCHEMA_VERSION,
@@ -61,5 +63,6 @@ export const parsePlayerProfile = (value: unknown): LocalPlayerProfile | null =>
     ...(progression ? { progression } : {}),
     ...(economy ? { economy } : {}),
     ...(ultimateUpgrades ? { ultimateUpgrades } : {}),
+    ...(tutorial ? {tutorial} : {}),
   };
 };

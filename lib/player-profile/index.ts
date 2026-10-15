@@ -21,3 +21,5 @@ export * from './match-token-rewards.ts';
 export * from './ultimate-upgrades.ts';
 export * from './ultimate-purchase.ts';
 export * from './ultimate-effective-stats.ts';
+export * from './tutorial.ts';
+export * from './tutorial-reward.ts';
