@@ -24550,7 +24550,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": -0.607101132388398,
         "y": 4.856656213907691,
         "pivotX": 0.5,
@@ -24613,7 +24613,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": -0.607101132388398,
         "y": 4.856656213907691,
         "pivotX": 0.5,
@@ -24676,7 +24676,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": 0.40470629822266047,
         "y": 6.070830688648215,
         "pivotX": 0.5,
@@ -24739,7 +24739,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": 0.40470629822266047,
         "y": 6.070830688648215,
         "pivotX": 0.5,
@@ -24802,7 +24802,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": 0.40470629822266047,
         "y": 6.070830688648215,
         "pivotX": 0.5,
@@ -24865,7 +24865,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": 0.40470629822266047,
         "y": 6.070830688648215,
         "pivotX": 0.5,
@@ -24928,7 +24928,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": 0.40470629822266047,
         "y": 6.070830688648215,
         "pivotX": 0.5,
@@ -24991,7 +24991,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1,
+        "scale": 1.2,
         "x": -0.20236704412946602,
         "y": 6.070830688648215,
         "pivotX": 0.5,
@@ -25054,7 +25054,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": -2.8330552477037094,
         "y": 5.868463644518749,
         "pivotX": 0.5,
@@ -25117,7 +25117,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": -2.8330552477037094,
         "y": 5.868463644518749,
         "pivotX": 0.5,
@@ -25180,7 +25180,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": 0.607101132388398,
         "y": 8.499172690620195,
         "pivotX": 0.5,
@@ -25243,9 +25243,9 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
-        "x": 0.607101132388398,
-        "y": 8.499172690620195,
+        "scale": 1.4,
+        "x": 1.6173935014346572,
+        "y": 10.26720601542839,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": false,
@@ -25306,7 +25306,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": 0.607101132388398,
         "y": 8.499172690620195,
         "pivotX": 0.5,
@@ -25369,7 +25369,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.3,
+        "scale": 1.5,
         "x": 0.4047201932407962,
         "y": 15.784141379586329,
         "pivotX": 0.5,
@@ -25432,7 +25432,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": 0.607101132388398,
         "y": 8.499172690620195,
         "pivotX": 0.5,
@@ -25495,7 +25495,7 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": 0.607101132388398,
         "y": 8.499172690620195,
         "pivotX": 0.5,
@@ -25558,13 +25558,286 @@
           }
         ],
         "fps": 12,
-        "scale": 1.2,
+        "scale": 1.4,
         "x": 0.607101132388398,
         "y": 8.499172690620195,
         "pivotX": 0.5,
         "pivotY": 1,
         "loop": false,
         "mirror": true
+      },
+      "run.northwest": {
+        "asset": "sprite-studio/robot/d8352263022c7fd4dc719ab47ec4218e45cd7206ce0e1dda62be4c84d9462b34.webp",
+        "width": 1440,
+        "height": 220,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 180,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 360,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 540,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 720,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 900,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 1080,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          },
+          {
+            "x": 1260,
+            "y": 0,
+            "width": 180,
+            "height": 220
+          }
+        ],
+        "fps": 12,
+        "scale": 1.2,
+        "x": -0.607101132388398,
+        "y": 4.856656213907691,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "parkour": {
+        "asset": "sprite-studio/robot/0ea67facba2b18264710df0a77b97c765173b8cc67b0e33c89ce6a8625c8a0fc.webp",
+        "width": 338,
+        "height": 585,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 585
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0,
+        "y": 0,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": false,
+        "mirror": false
+      },
+      "idle": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.south": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.southwest": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.west": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.northwest": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.north": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.northeast": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.east": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
+      },
+      "idle.southeast": {
+        "asset": "sprite-studio/robot/d78a16ef8d122fab719dae6bf809964564e041b80b69b3c1310a68aa774417e5.webp",
+        "width": 338,
+        "height": 594,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 338,
+            "height": 594
+          }
+        ],
+        "fps": 12,
+        "scale": 1.25,
+        "x": 2.778343037036249,
+        "y": 6.81961657231205,
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "loop": true,
+        "mirror": false
       }
     },
     "boke": {
@@ -29045,6 +29318,575 @@
         "pivotY": 1,
         "loop": false,
         "mirror": false
+      }
+    },
+    "default": {
+      "boost_dust": {
+        "asset": "sprite-studio/default/7f26eb675e7cca916c59dfe8375b4ffcfb236366f2ded68bf83002f49ea4a90a.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -1.2781417400487562,
+        "y": 11.260336887404033,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": false
+      },
+      "boost_dust.south": {
+        "asset": "sprite-studio/default/7f26eb675e7cca916c59dfe8375b4ffcfb236366f2ded68bf83002f49ea4a90a.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -1.2781417400487562,
+        "y": 11.260336887404033,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": false
+      },
+      "boost_dust.east": {
+        "asset": "sprite-studio/default/63de11621b6509f3468a84c1a3dee48a6d2d380f8bf5cf30e2bd8b4796fa683f.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -25.08755881883732,
+        "y": 7.036059952035208,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": false
+      },
+      "boost_dust.southeast": {
+        "asset": "sprite-studio/default/63de11621b6509f3468a84c1a3dee48a6d2d380f8bf5cf30e2bd8b4796fa683f.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -14.334928204431801,
+        "y": 3.963900494809967,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": false
+      },
+      "boost_dust.northeast": {
+        "asset": "sprite-studio/default/63de11621b6509f3468a84c1a3dee48a6d2d380f8bf5cf30e2bd8b4796fa683f.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": -14.334928204431801,
+        "y": 3.963900494809967,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": false
+      },
+      "boost_dust.north": {
+        "asset": "sprite-studio/default/b777036fa5cfbe00be1e4a1875d38cb7d2ba2c314a2a12db9ebf7a022b146d52.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 0.6419529765726608,
+        "y": 5.883995211431389,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": false
+      },
+      "boost_dust.west": {
+        "asset": "sprite-studio/default/63de11621b6509f3468a84c1a3dee48a6d2d380f8bf5cf30e2bd8b4796fa683f.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 11.39460995974807,
+        "y": 7.804129481207637,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": true
+      },
+      "boost_dust.southwest": {
+        "asset": "sprite-studio/default/63de11621b6509f3468a84c1a3dee48a6d2d380f8bf5cf30e2bd8b4796fa683f.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 11.39460995974807,
+        "y": 7.804129481207637,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": true
+      },
+      "boost_dust.northwest": {
+        "asset": "sprite-studio/default/63de11621b6509f3468a84c1a3dee48a6d2d380f8bf5cf30e2bd8b4796fa683f.webp",
+        "width": 832,
+        "height": 104,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 104,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 208,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 312,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 416,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 520,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 624,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          },
+          {
+            "x": 728,
+            "y": 0,
+            "width": 104,
+            "height": 104
+          }
+        ],
+        "fps": 12,
+        "scale": 1,
+        "x": 11.39460995974807,
+        "y": 7.804129481207637,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "loop": true,
+        "mirror": true
       }
     }
   }

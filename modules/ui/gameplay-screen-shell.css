@@ -1,0 +1,137 @@
+/* Shared safe-area contract. Anchors are opt-in, with core overrides below. */
+.gameplay-screen-shell {
+  --hud-safe-top: max(12px, env(safe-area-inset-top, 0px));
+  --hud-safe-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  --hud-safe-left: max(12px, env(safe-area-inset-left, 0px));
+  --hud-safe-right: max(12px, env(safe-area-inset-right, 0px));
+  --hud-fort-width: min(24vw, 300px);
+  --hud-match-width: min(44vw, 560px);
+  --hud-context-width: min(36vw, 360px);
+  --hud-ultimate-width: min(24vw, 260px);
+  --hud-context-bottom: var(--hud-safe-bottom);
+  --hud-controller-height: 156px;
+}
+
+/* Phase10: separated thumb islands; the space between them remains gameplay. */
+@media(max-width:1100px),(pointer:coarse){
+ .playing-shell.hud-core-layout[data-hud-phase="10"]{--hud-controller-height:124px;}
+ .playing-shell.hud-core-layout .mobile-controls{position:static!important;inset:auto!important;width:100%;height:100%;pointer-events:none!important;}
+ .playing-shell.hud-core-layout .touch-dpad{grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:8px;}
+ .playing-shell.hud-core-layout .touch-dpad button{width:52px;height:52px;display:grid;place-items:center;padding:0;}
+ .playing-shell.hud-core-layout .touch-dpad svg{width:28px;height:28px;}
+ .playing-shell.hud-core-layout .touch-actions{grid-template-columns:62px 84px;grid-template-rows:repeat(2,56px);gap:12px;}
+ .playing-shell.hud-core-layout .touch-actions button{width:62px;height:56px;font-size:10px;line-height:1.2;padding:4px;white-space:normal;}
+ .playing-shell.hud-core-layout .touch-actions .touch-boost{width:84px;height:84px;font-size:12px;}
+ .playing-shell.hud-core-layout .mobile-controls button:active:not(:disabled){box-shadow:inset 0 0 0 3px #fff9;background:#3a522a;transform:none;color:#fff;}
+ .playing-shell.hud-core-layout .mobile-controls button:focus-visible{outline:3px solid #fff;outline-offset:3px;}
+ .playing-shell.hud-core-layout[data-hud-phase="10"] .tutorial-coach{max-height:min(170px,calc(100dvh - var(--hud-context-bottom) - 90px));}
+}
+@media(max-width:620px) and (orientation:portrait),(max-height:360px) and (max-width:1100px){
+ .playing-shell.hud-core-layout[data-hud-phase="10"]{--hud-controller-height:112px;}
+ .playing-shell.hud-core-layout .touch-dpad{grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,48px);}
+ .playing-shell.hud-core-layout .touch-dpad button{width:48px;height:48px;}
+ .playing-shell.hud-core-layout .touch-actions{grid-template-columns:52px 72px;grid-template-rows:repeat(2,52px);gap:8px;}
+ .playing-shell.hud-core-layout .touch-actions button{width:52px;height:52px;}
+ .playing-shell.hud-core-layout .touch-actions .touch-boost{width:72px;height:72px;}
+}
+@media(max-width:360px){.playing-shell.hud-core-layout{--hud-safe-left:max(8px,env(safe-area-inset-left,0px));--hud-safe-right:max(8px,env(safe-area-inset-right,0px));}}
+
+/* Phase 04: release the old assistance rail and reserve only interactive islands. */
+.playing-shell.hud-core-layout .stage-card > canvas {
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+}
+.playing-shell.hud-core-layout .game-topbar {
+  position:static!important;inset:auto!important;display:block;width:auto;height:auto;min-height:0;padding:0;background:none;border:0;pointer-events:auto;
+}
+.playing-shell.hud-core-layout .game-topbar button {width:48px;height:48px;min-height:48px;background:#0d1812ed;border:2px solid #cadb8d;border-radius:10px;}
+.playing-shell.hud-core-layout .stage-hud {
+  position:static!important;inset:auto!important;transform:none!important;display:flex;width:100%;min-width:0;height:auto;min-height:64px;padding:4px 8px;gap:4px;clip-path:none;border:1px solid #73866a;border-radius:8px;background:#0d1812ed;
+}
+.playing-shell.hud-core-layout .stage-hud>div {flex:1;min-width:0;width:auto;padding:4px;gap:6px;}
+.playing-shell.hud-core-layout .stage-hud span {font-size:24px;}
+.playing-shell.hud-core-layout .stage-hud b {font-size:calc(11px * var(--hud-scale,1));}
+.playing-shell.hud-core-layout .stage-hud b small {font-size:9px;margin-top:2px;}
+.playing-shell.hud-core-layout .stage-hud time {min-width:74px;font-size:23px;padding:4px;}
+.playing-shell.hud-core-layout .stage-hud time small {font-size:9px;margin:2px 0;letter-spacing:0;}
+.core-fort-status,.core-context-hint {display:block;background:#0d1812ed;color:#f5f5e9;border:1px solid #afcb79;border-radius:8px;padding:10px 12px;font-size:calc(14px * var(--hud-scale,1));line-height:1.35;}
+.hud-core-layout.hud-high-contrast :is(.core-fort-status,.core-context-hint,.stage-hud,.ultimate-meter-hud,.tutorial-coach){background:#050905!important;color:#fff;border-color:#fff;}
+.core-fort-status {min-height:48px;display:flex;flex-direction:column;justify-content:center;}
+.core-fort-status small {color:#ffde7d;}
+.core-context-hint p {margin:5px 0 0;}
+.playing-shell.hud-core-layout .ultimate-meter-hud {
+  display:grid!important;position:static!important;inset:auto!important;transform:none!important;width:100%;min-width:0;padding:12px;background:#0d1812ed;color:#fff;border:2px solid #afcb79;border-radius:10px;grid-template-columns:1fr auto;gap:6px;text-align:left;pointer-events:auto;
+}
+.playing-shell.hud-core-layout .ultimate-meter-hud:disabled {opacity:1;cursor:default;}
+.playing-shell.hud-core-layout .ultimate-meter-hud.ready:not(:disabled) {border-color:#d9fa4a;cursor:pointer;}
+.playing-shell.hud-core-layout .ultimate-meter-hud>span {display:flex;gap:6px;font-size:13px;}
+.playing-shell.hud-core-layout .ultimate-meter-hud>i {grid-column:1/-1;display:block;height:6px;background:#394736;}
+.playing-shell.hud-core-layout .ultimate-meter-hud>i>u {display:block;height:100%;background:#d9fa4a;}
+.playing-shell.hud-core-layout .ultimate-meter-hud>small {grid-column:1/-1;font-size:11px;}
+.playing-shell.hud-core-layout .tutorial-coach {position:static!important;inset:auto!important;transform:none;width:100%;max-width:none;max-height:calc(100dvh - 160px);overflow:auto;pointer-events:auto;}
+.playing-shell.hud-core-layout .prisoner-notice {position:static!important;inset:auto!important;transform:none!important;width:100%;max-width:none;display:flex;flex-wrap:wrap;font-size:14px;}
+.playing-shell.hud-core-layout .prisoner-notice button {min-height:44px;}
+.playing-shell.hud-core-layout .mobile-controls {display:none!important;}
+@media(max-width:1100px),(pointer:coarse){
+  .playing-shell.hud-core-layout{--hud-controller-height:100px;}
+  .playing-shell.hud-core-layout .mobile-controls:not(.context-hidden){display:flex!important;}
+  .playing-shell.hud-core-layout [data-hud-zone=ultimate]{display:none;}
+  .playing-shell.hud-core-layout .core-fort-status{font-size:12px;padding:8px;}
+  .playing-shell.hud-core-layout .stage-hud span{font-size:20px;}
+  .playing-shell.hud-core-layout .stage-hud b{font-size:10px;}
+  .playing-shell.hud-core-layout .stage-hud time{font-size:20px;min-width:60px;}
+  .playing-shell.hud-core-layout .tutorial-coach{max-height:calc(100dvh - 202px);font-size:12px;padding:8px;display:flex;flex-direction:column;}
+  .playing-shell.hud-core-layout .tutorial-coach .tutorial-copy{overflow:auto;min-height:0;}
+  .playing-shell.hud-core-layout .mobile-controls .touch-ultimate:disabled{opacity:1;color:#e3ebda;background:#172118ed;}
+}
+@media(max-width:620px) and (orientation:portrait){
+  .playing-shell.hud-core-layout .tutorial-coach{max-height:calc(100dvh - 270px);}
+}
+.gameplay-hud-zone[data-placement="legacy"] { display: contents; }
+.gameplay-hud-zone[data-placement="anchored"] {
+  position: absolute; z-index: 30; min-width: 0; pointer-events: none;
+}
+.gameplay-hud-zone[data-placement="anchored"] > * { pointer-events: auto; }
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="fort"] {
+  top: var(--hud-safe-top); left: var(--hud-safe-left); width: var(--hud-fort-width);
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="match"] {
+  top: var(--hud-safe-top); left: 50%; transform: translateX(-50%); width: var(--hud-match-width);
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="pause"] {
+  top: var(--hud-safe-top); right: var(--hud-safe-right);
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="context"] {
+  bottom: var(--hud-context-bottom); left: var(--hud-safe-left); width: var(--hud-context-width);
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="ultimate"] {
+  bottom: var(--hud-safe-bottom); right: var(--hud-safe-right); width: var(--hud-ultimate-width);
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="controller"] {
+  left: var(--hud-safe-left); right: var(--hud-safe-right); bottom: var(--hud-safe-bottom);
+  height: var(--hud-controller-height);
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="feedback"] {
+  top: calc(var(--hud-safe-top) + 88px); left: 50%; transform: translateX(-50%);
+  max-width: calc(100% - var(--hud-safe-left) - var(--hud-safe-right));
+}
+.gameplay-hud-zone[data-placement="anchored"][data-hud-zone="dialogs"] { inset: 0; z-index: 100; }
+@media (max-width: 1100px), (pointer: coarse) {
+  .gameplay-screen-shell {
+    --hud-fort-width: min(25vw, 200px);
+    --hud-match-width: min(44vw, 400px);
+    --hud-context-width: min(48vw, 320px);
+    --hud-ultimate-width: min(24vw, 180px);
+    --hud-context-bottom: calc(var(--hud-safe-bottom) + var(--hud-controller-height) + 12px);
+  }
+}
+@media (max-width: 620px) and (orientation: portrait) {
+  .gameplay-screen-shell {
+    --hud-match-width: calc(100% - var(--hud-safe-left) - var(--hud-safe-right));
+    --hud-fort-width: min(62vw, 240px);
+    --hud-context-width: min(64vw, 280px);
+    --hud-ultimate-width: min(27vw, 120px);
+  }
+  .gameplay-hud-zone[data-placement="anchored"][data-hud-zone="match"] { top: calc(var(--hud-safe-top) + 88px); }
+  .gameplay-hud-zone[data-placement="anchored"][data-hud-zone="ultimate"] { bottom: calc(var(--hud-safe-bottom) + var(--hud-controller-height) + 12px); }
+  .gameplay-hud-zone[data-placement="anchored"][data-hud-zone="feedback"] { top: calc(var(--hud-safe-top) + 156px); }
+}

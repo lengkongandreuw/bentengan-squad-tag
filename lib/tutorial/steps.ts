@@ -17,4 +17,6 @@ const rows: [TutorialStepId,string,string,TutorialControl,TutorialSignalKind,Ste
   ['complete','Training complete. Your squad is waiting.','Latihan selesai. Timmu menunggu.',null,'ACK','handoff'],
 ];
 export const TUTORIAL_STEPS:readonly Step[]=rows.map(([id,en,idText,control,signal,recovery],index)=>({id,en,idText,control,signal,recovery,next:rows[index+1]?.[0]??null}));
+// Only playable lessons count in the coach; the combined summary is not five tasks.
+export const TUTORIAL_LESSON_COUNT=TUTORIAL_STEPS.findIndex(step=>step.id==='match_complete');
 export const tutorialStep=(id:string)=>TUTORIAL_STEPS.find(step=>step.id===id)??null;

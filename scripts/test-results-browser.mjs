@@ -12,7 +12,7 @@ try{
     for(const mode of ['final','round','leaderboard']){
       // Fixture-only debug navs overlap on narrow screens. Keyboard activation
       // selects scenarios without changing the production UI being tested.
-      await page.getByRole('button',{name:mode,exact:true}).press('Enter');
+      await page.evaluate(mode=>window.resultsQA.pick(mode),mode);
       const root=mode==='final'?'.after-match':'.round-stats-panel';
       await page.locator(root).waitFor();
       const overlay=await page.locator('.round-stats-overlay').boundingBox(),panel=await page.locator(root).boundingBox();
@@ -30,6 +30,12 @@ try{
         const shellW=await page.locator('.after-match').evaluate(e=>e.getBoundingClientRect().width);
         assert(Math.abs(shellW-Math.min(1360,width*0.96))<3,'shared container contract');
         assert(await page.getByRole('button',{name:'NEXT',exact:true}).isVisible(),'NEXT is the primary action');
+        const nextBox=await page.getByRole('button',{name:'NEXT',exact:true}).boundingBox();
+        assert(nextBox.y>=0&&nextBox.y+nextBox.height<=height,'NEXT stays inside viewport before scrolling');
+        await page.locator('.after-match-panel').evaluate(e=>{e.scrollTop=e.scrollHeight;});
+        const scrolledNext=await page.getByRole('button',{name:'NEXT',exact:true}).boundingBox();
+        assert(Math.abs(scrolledNext.y-nextBox.y)<1,'scrolling roster never moves NEXT');
+        assert(await page.locator('dialog').evaluate(e=>e.matches(':modal')),'results use native modal focus containment');
         await page.screenshot({path:`outputs/results-qa/${width}x${height}-${mode}-results.png`});
         await page.getByRole('button',{name:'NEXT',exact:true}).click();
         assert.equal(await page.locator('.after-match-rewards-card.xp').count(),1,'XP reward card');
@@ -41,16 +47,18 @@ try{
         const bodyRatio=bodyW/contentW;
         assert(bodyRatio>0.96&&bodyRatio<0.98,'rewards body fills 97% of the container content box (excluding padding/scrollbar)');
         assert(await page.getByRole('button',{name:'REMATCH',exact:true}).isVisible(),'REMATCH is the primary footer action');
+        const rematchBox=await page.getByRole('button',{name:'REMATCH',exact:true}).boundingBox();
+        assert(rematchBox.y>=0&&rematchBox.y+rematchBox.height<=height,'REMATCH stays inside viewport');
         assert(await page.locator('.after-match-rewards-footer .after-match-quit').isVisible(),'KELUAR stays available');
         await page.screenshot({path:`outputs/results-qa/${width}x${height}-${mode}-rewards.png`});
         await page.locator('.after-match-rewards-unlocks > button').click();
         assert.equal(await page.locator('.after-match-rewards-unlock-empty').count(),1,'MENGERTI dismisses unlock cards');
         for(const reward of ['plain','max','duplicate','incomplete','none']){
-          await page.getByRole('button',{name:reward,exact:true}).press('Enter');
+          await page.evaluate(reward=>window.resultsQA.pickReward(reward),reward);
           assert.equal(await page.locator('.after-match-rewards-body').count(),1,`${reward}: rewards body present`);
           await page.screenshot({path:`outputs/results-qa/${width}x${height}-${mode}-rewards-${reward}.png`});
         }
-        await page.getByRole('button',{name:'levelup',exact:true}).press('Enter');
+        await page.evaluate(()=>window.resultsQA.pickReward('levelup'));
       }else{
         assert.equal(await page.locator('.round-stats-panel .match-progression-summary').count(),0);
         const actions=page.locator('.round-stats-actions');await actions.scrollIntoViewIfNeeded();assert(await actions.isVisible());

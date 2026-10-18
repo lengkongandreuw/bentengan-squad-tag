@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Actor effect projection QA</title></head><body style="margin:0;background:#07100d"><canvas></canvas><script type="module">
+import {activePlayerEffect,drawPlayerEffects} from '../../modules/ui/player-status-feedback.ts';
+// QA-only actor drawings: not production sprites, authority or cheat endpoints.
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+window.drawProjection=(zoom,scale=1.3)=>{
+ canvas.width=innerWidth;canvas.height=innerHeight;
+ const v={x:500,y:300,width:innerWidth,height:innerHeight,scale:zoom};
+ const p={entityId:'sample',x:510,y:310,state:'ACTIVE',parkourUntil:2000,rescueShieldUntil:0,ultimateShieldUntil:0,fallNoticeUntil:0};
+ const x=(p.x-v.x)*zoom+innerWidth/2,y=(p.y-v.y)*zoom+innerHeight/2;
+ ctx.fillStyle='#172e20';ctx.fillRect(0,0,innerWidth,innerHeight);ctx.fillStyle='#daca9c';ctx.fillRect(x-12,y-65*zoom,24,65*zoom);
+ const e=activePlayerEffect(p,1000),badges=drawPlayerEffects(ctx,[{p,...e,age:0,tagRow:true}],v,false,scale,matchMedia('(prefers-reduced-motion:reduce)').matches);
+ return {badges,ground:{x,y},view:v};
+};window.drawProjection(1);
+</script></body></html>

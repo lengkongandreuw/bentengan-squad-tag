@@ -4,6 +4,7 @@ import { t, getLanguage } from '../../../lib/language';
 
 import { createPortal } from 'react-dom';
 import { useState } from 'react';
+import { useModalDialog } from '../use-modal-dialog';
 import {
   CHARACTERS,
   CHARACTER_BY_ID,
@@ -34,6 +35,8 @@ export function PlayerProfilePanel({
   onClose,
 }: PlayerProfilePanelProps) {
   const [isCharacterPickerOpen, setCharacterPickerOpen] = useState(false);
+  const dialog = useModalDialog(true, onClose);
+  const picker = useModalDialog(isCharacterPickerOpen, () => setCharacterPickerOpen(false));
   const [hasCopiedPlayerId, setHasCopiedPlayerId] = useState(false);
   const [selectionError, setSelectionError] = useState('');
   const metrics = getPlayerProfileMetrics(profile);
@@ -61,7 +64,7 @@ export function PlayerProfilePanel({
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <dialog className="player-profile-overlay" open aria-modal="true" aria-labelledby="player-profile-title">
+    <dialog ref={dialog} className="player-profile-overlay game-modal" aria-modal="true" aria-labelledby="player-profile-title">
       <div className="player-profile-panel profile-poster">
         <header className="profile-poster-header">
           <div>
@@ -130,8 +133,8 @@ export function PlayerProfilePanel({
         <b className="profile-local-badge">{t("PROFIL")}<br />{t("LOKAL")}</b>
         {t(isCharacterPickerOpen && (
           <dialog
-            className="profile-character-picker"
-            open
+            ref={picker}
+            className="profile-character-picker game-modal"
             aria-modal="true"
             aria-labelledby="profile-character-picker-title"
           >

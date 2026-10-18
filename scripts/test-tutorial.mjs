@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {createTutorialSession,advanceTutorial,tutorialEventSignal} from '../lib/tutorial/state-machine.ts';
-import {TUTORIAL_STEPS} from '../lib/tutorial/steps.ts';
+import {createTutorialSession,advanceTutorial,finishTutorialSummary,tutorialEventSignal} from '../lib/tutorial/state-machine.ts';
+import {tutorialMarkerBadge,tutorialMarkerLabel} from '../modules/ui/tutorial-marker.ts';
+import {TUTORIAL_STEPS,TUTORIAL_LESSON_COUNT} from '../lib/tutorial/steps.ts';
 import {TUTORIAL_MATCH,isTutorialMatch} from '../lib/tutorial/match-config.ts';
 import {choosePracticeArea,chooseTutorialSpawn,createTutorialDirector,createMovementLessonMonitor,tutorialCaptureEnabled} from '../lib/tutorial/director.ts';
 import {createParkourController} from '../modules/gameplay/parkour.ts';
@@ -10,6 +11,27 @@ import {resolveTag,resolveRescue} from '../modules/gameplay/tag-combat.ts';
 import {createTutorialRecovery,createUltimateLesson} from '../lib/tutorial/recovery.ts';
 import {stepUltimate} from '../modules/gameplay/ultimate.ts';
 import {endRound} from '../modules/game-core/match-control.ts';
+
+void test('summary acknowledges only handoff states once and never skips a gameplay lesson',()=>{
+  assert.equal(finishTutorialSummary(createTutorialSession(),0).finished,false);
+  const reward={...createTutorialSession(),stepId:'reward',lastSerial:20,transitions:10};
+  const done=finishTutorialSummary(reward,20);
+  assert.equal(done.finished,true);assert.equal(done.stepId,'complete');assert.equal(done.transitions,14);
+  assert.equal(TUTORIAL_LESSON_COUNT,9);
+  assert.equal(finishTutorialSummary(done,done.lastSerial),done);
+  for(const serial of [NaN,Infinity,-1,19,Number.MAX_SAFE_INTEGER])assert.equal(finishTutorialSummary(reward,serial),reward);
+});
+void test('destination badge avoids actors without changing navigation point or actor markers',()=>{
+  const goal={x:500,y:400},actors=[{x:500,y:400},{x:590,y:316}];
+  const badge=tutorialMarkerBadge(goal,actors,1366,768,140);
+  assert.ok(actors.every(a=>Math.abs(badge.x-a.x)>=112||badge.y+14<=a.y-80||badge.y-14>=a.y+52));
+  assert.deepEqual(goal,{x:500,y:400});
+  assert.equal(tutorialMarkerLabel('rescue_friend',false),'RESCUE ROBOT');
+  assert.equal(tutorialMarkerLabel('parkour',true),'JALUR LOMPAT');
+  const coach={x:16,y:78,w:280,h:176};
+  const mobile=tutorialMarkerBadge({x:362,y:193},[{x:418,y:193},{x:324,y:137}],844,390,150,[coach]);
+  assert.ok(mobile.x-75>=coach.x+coach.w||mobile.x+75<=coach.x||mobile.y-14>=coach.y+coach.h||mobile.y+14<=coach.y,'badge is outside the coach');
+});
 
 void test('09 actual ultimate impact waits for visible effect, ignores others and cannot count START alone',()=>{
   const actor={entityId:'human',characterId:'raja',state:'ACTIVE',parkourUntil:0,actionUntil:0,team:'blue'};
@@ -146,6 +168,11 @@ void test('director never mutates actors, limits allowed contacts and prevents p
   assert.equal(director.allowsContact('tag_enemy',actors[0],actors[3]),false);
   assert.equal(director.allowsContact('observe_prison',actors[3],actors[1]),true);
   assert.equal(director.goal('observe_prison',actors).prisonReady,false);
+  const sprint=director.goal('sprint',actors);assert.match(sprint.en,/Sprint.*moving/);assert.match(sprint.id,/Sprint.*bergerak/);
+  for(const step of ['move','sprint','parkour']){
+    const goal=director.goal(step,actors).point,companion=director.destination(step,actors[1],actors);
+    assert.ok(Math.hypot(companion.x-goal.x,companion.y-goal.y)>=100,'Robot stays off the destination marker');
+  }
   actors[1].state='PRISONER';assert.equal(director.goal('observe_prison',actors).prisonReady,true);
   assert.equal(director.allowsRescue('rescue_friend',actors[0]),true);
   assert.equal(director.allowsRescue('rescue_friend',actors[3]),false);

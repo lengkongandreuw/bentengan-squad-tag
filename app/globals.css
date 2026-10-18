@@ -711,21 +711,6 @@ p {
   color: #bbb7ad;
   font-style: normal;
 }
-.control-ribbon {
-  position: absolute;
-  z-index: 3;
-  right: 16px;
-  bottom: 14px;
-  padding: 8px 10px;
-  color: #cbc4b4;
-  background: rgba(14, 20, 15, 0.82);
-  border-radius: 8px;
-  font-size: 9px;
-  word-spacing: 3px;
-}
-.control-ribbon b {
-  color: #fff4d1;
-}
 .mission-panel {
   border-radius: 18px;
   padding: 24px;
@@ -968,9 +953,6 @@ p {
   }
   .preset-row {
     grid-template-columns: 1fr 1fr;
-  }
-  .control-ribbon {
-    display: none;
   }
   .start-panel h1 {
     font-size: 34px;
@@ -3820,52 +3802,6 @@ p {
   padding: 0;
   border: 0;
 }
-.active-objective {
-  position: absolute;
-  z-index: 7;
-  top: 114px;
-  right: 24px;
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  min-width: 238px;
-  padding: 12px 14px;
-  color: #eef3ec;
-  text-align: left;
-  background: rgba(8, 14, 10, 0.91);
-  border: 1px solid #3f5142;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.3);
-}
-.active-objective > svg {
-  padding: 6px;
-  color: var(--acid);
-  border: 1px solid #689332;
-  border-radius: 50%;
-  box-sizing: content-box;
-}
-.active-objective span {
-  display: grid;
-  gap: 3px;
-}
-.active-objective small {
-  font-size: 7px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-}
-.active-objective b {
-  color: var(--acid);
-  font-size: 10px;
-}
-.active-objective i {
-  color: #aab2ab;
-  font: 700 25px Arial;
-}
-.active-objective:hover {
-  border-color: var(--acid);
-}
 .playing-shell .character-hud {
   top: 181px;
   left: 26px;
@@ -3890,113 +3826,6 @@ p {
 .playing-shell .stamina-bar {
   height: 11px;
 }
-.action-dock {
-  position: absolute;
-  z-index: 7;
-  bottom: 12px;
-  left: 50%;
-  display: flex;
-  gap: 5px;
-  padding: 7px 9px;
-  background: rgba(8, 13, 10, 0.92);
-  border: 1px solid #39433b;
-  border-radius: 12px;
-  transform: translateX(-50%);
-  box-shadow: 0 9px 28px rgba(0, 0, 0, 0.4);
-}
-.action-dock > span,
-.action-dock > button {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 52px;
-  padding: 0;
-  color: #79c7ef;
-  background: #121d20;
-  border: 1px solid #34515d;
-  border-radius: 8px;
-}
-.action-dock > span:nth-child(1) {
-  color: #f0bf24;
-  border-color: #685a25;
-}
-.action-dock > span:nth-child(3) {
-  color: #dc74ee;
-  border-color: #633f68;
-}
-.action-dock > span:nth-child(4) {
-  color: #91ec5b;
-  border-color: #45683a;
-}
-.action-dock b {
-  position: absolute;
-  bottom: 2px;
-  left: 4px;
-  padding: 1px 4px;
-  color: #111;
-  background: #ddd;
-  border-radius: 3px;
-  font-size: 7px;
-}
-.action-dock small {
-  position: absolute;
-  right: 2px;
-  bottom: 3px;
-  font-size: 5px;
-  font-weight: 900;
-}
-.action-dock .locked {
-  color: #606762;
-  background: #0b0f0c;
-  border-color: #262c28;
-}
-.action-dock .combo-ready {
-  box-shadow:
-    inset 0 0 18px rgba(220, 116, 238, 0.3),
-    0 0 13px rgba(220, 116, 238, 0.35);
-}
-.action-dock .ultimate-action {
-  overflow: hidden;
-  color: #ff5d62;
-  border-color: #64343a;
-  cursor: not-allowed;
-}
-.action-dock .ultimate-action i {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: #ed2436;
-  box-shadow: 0 0 10px #ed2436;
-}
-.action-dock .ultimate-ready {
-  color: #fff0d0;
-  border-color: #ff3347;
-  cursor: pointer;
-  animation: ultimate-ready-pulse 0.72s ease-in-out infinite alternate;
-  box-shadow:
-    inset 0 0 18px rgba(237, 36, 54, 0.35),
-    0 0 18px rgba(237, 36, 54, 0.55);
-}
-.ultimate-buff-indicator {
-  position: absolute;
-  z-index: 8;
-  bottom: 80px;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
-  color: #ffe9d6;
-  background: rgba(70, 8, 15, 0.88);
-  border: 1px solid #ff3849;
-  border-radius: 7px;
-  font: 900 8px var(--font-heading);
-  letter-spacing: 0.08em;
-  transform: translateX(-50%);
-}
 .ultimate-banner {
   position: absolute;
   z-index: 55;
@@ -4017,26 +3846,6 @@ p {
   color: #fff0e0;
   background: #74131e;
   border-color: #ff4251;
-}
-.action-dock .ultimate-action.kaka-ultimate {
-  color: #6cff98;
-  border-color: #2a7a45;
-}
-.action-dock .ultimate-action.kaka-ultimate i {
-  background: #38ef72;
-  box-shadow: 0 0 10px #38ef72;
-}
-.action-dock .ultimate-action.kaka-ultimate.ultimate-ready {
-  color: #edfff2;
-  border-color: #65ff92;
-  box-shadow:
-    inset 0 0 18px rgba(56, 239, 114, 0.35),
-    0 0 18px rgba(56, 239, 114, 0.55);
-}
-.ultimate-buff-indicator.kaka-shield-indicator {
-  color: #eaffef;
-  background: rgba(6, 58, 25, 0.92);
-  border-color: #52f486;
 }
 .ultimate-banner.kaka-banner img {
   filter: drop-shadow(0 18px 12px #000)
@@ -4070,11 +3879,6 @@ p {
     opacity: 0;
     transform: translateX(18%) scale(0.88);
   }
-}
-.playing-shell .control-ribbon {
-  right: 235px;
-  bottom: 19px;
-  font-size: 7px;
 }
 .playing-shell .pickup-legend {
   display: none;
@@ -4681,12 +4485,6 @@ p {
     top: 75px;
     left: 9px;
   }
-  .active-objective {
-    top: 76px;
-    right: 9px;
-    min-width: 200px;
-    padding: 8px 10px;
-  }
   .playing-shell .character-hud {
     top: 142px;
     left: 9px;
@@ -4694,12 +4492,6 @@ p {
   .playing-shell .team-combo-hud {
     top: 142px;
     right: 9px;
-  }
-  .playing-shell .control-ribbon {
-    display: none;
-  }
-  .action-dock {
-    bottom: 10px;
   }
   .playing-shell .boost-stack {
     width: 190px;
@@ -4754,24 +4546,6 @@ p {
   .playing-shell .status-ribbon em {
     display: none;
   }
-  .active-objective {
-    top: 117px;
-    right: 7px;
-    min-width: 0;
-    width: 42px;
-    height: 42px;
-    padding: 5px;
-    border-radius: 9px;
-  }
-  .active-objective span,
-  .active-objective i {
-    display: none;
-  }
-  .active-objective > svg {
-    width: 17px;
-    height: 17px;
-    padding: 5px;
-  }
   .playing-shell .character-hud {
     top: 166px;
     left: 7px;
@@ -4788,9 +4562,6 @@ p {
     left: 50%;
     width: 170px;
     transform: translateX(-50%);
-  }
-  .action-dock {
-    display: none;
   }
   .camera-map {
     top: 7px !important;
@@ -5134,14 +4905,6 @@ p {
   padding: 3px 2px;
   font-size: 7px;
 }
-.action-dock b {
-  min-width: 17px;
-  text-align: center;
-}
-.action-dock .ultimate-action b {
-  font-size: 6px;
-  letter-spacing: -0.02em;
-}
 .ultimate-meter-hud {
   position: absolute;
   z-index: 8;
@@ -5220,40 +4983,10 @@ p {
 .ultimate-meter-hud.kaka-shield.ready small {
   color: #d6ffe1;
 }
-.playing-shell .control-ribbon {
-  right: 235px;
-  bottom: 17px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 11px;
-  font-size: 8px;
-  word-spacing: 0;
-  transform: none;
-  white-space: nowrap;
-}
-.playing-shell .control-ribbon b {
-  display: inline-grid;
-  place-items: center;
-  min-width: 27px;
-  padding: 3px 5px;
-  color: #111;
-  background: #f3ead4;
-  border: 1px solid #fff;
-  border-radius: 4px;
-  font-size: 7px;
-  box-shadow: 0 2px 0 #847d6e;
-}
-.playing-shell .control-ribbon b:nth-last-child(1) {
-  min-width: 18px;
-}
 @media (max-width: 900px) {
   .match-lineup figure {
     width: 57px;
     height: 70px;
-  }
-  .playing-shell .control-ribbon {
-    display: none;
   }
   .ultimate-meter-hud {
     bottom: 75px;
@@ -5362,11 +5095,6 @@ p {
 .prisoner-notice small {
   font-size: 11px;
 }
-.action-dock.mechanics-inactive {
-  opacity: 0.38;
-  filter: grayscale(1);
-  pointer-events: none;
-}
 .mobile-controls button:disabled {
   opacity: 0.3;
   filter: grayscale(1);
@@ -5392,33 +5120,6 @@ p {
 .computed-status b {
   color: #dfffc7;
 }
-.action-dock b {
-  min-width: 26px;
-  font-size: 6px;
-  letter-spacing: -0.02em;
-}
-.action-dock .ultimate-action b {
-  min-width: 29px;
-}
-.playing-shell .control-ribbon {
-  left: 50%;
-  right: auto;
-  bottom: 82px;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  max-width: min(680px, calc(100vw - 560px));
-  padding: 7px 10px;
-  transform: translateX(-50%);
-  white-space: normal;
-  line-height: 1.35;
-  text-align: center;
-  background: rgba(8, 13, 10, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
-}
 .ultimate-meter-hud {
   bottom: 126px;
 }
@@ -5440,9 +5141,6 @@ p {
 }
 
 @media (max-width: 1180px) {
-  .playing-shell .control-ribbon {
-    display: none;
-  }
   .ultimate-meter-hud {
     bottom: 78px;
   }
@@ -5561,18 +5259,6 @@ p {
   .playing-shell .status-ribbon em {
     display: none;
   }
-  .active-objective {
-    top: 77px;
-    right: 6px;
-    width: 40px;
-    height: 40px;
-    min-width: 0;
-    padding: 4px;
-  }
-  .active-objective span,
-  .active-objective i {
-    display: none;
-  }
   .playing-shell .character-hud,
   .playing-shell .team-combo-hud {
     display: none;
@@ -5590,10 +5276,6 @@ p {
     padding: 5px 8px;
   }
   .ultimate-meter-hud small {
-    display: none;
-  }
-  .action-dock,
-  .playing-shell .control-ribbon {
     display: none;
   }
   .camera-map {
@@ -6473,44 +6155,8 @@ body
 }
 .playing-shell .character-hud,
 .playing-shell .boost-stack,
-.playing-shell .team-combo-hud,
-.playing-shell .action-dock,
-.playing-shell .control-ribbon {
+.playing-shell .team-combo-hud {
   display: none !important;
-}
-.playing-shell .active-objective {
-  top: 114px;
-  right: 24px;
-  display: grid;
-  place-items: center;
-  width: 46px;
-  min-width: 46px;
-  height: 46px;
-  padding: 0;
-  border-radius: 8px;
-}
-.playing-shell .active-objective span,
-.playing-shell .active-objective > i {
-  display: none;
-}
-.playing-shell .active-objective svg {
-  width: 20px;
-  height: 20px;
-}
-.playing-shell .active-objective::after {
-  position: absolute;
-  right: -5px;
-  bottom: -5px;
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  content: attr(data-progress);
-  color: #15190f;
-  background: #d8fa3d;
-  border: 2px solid #111a13;
-  border-radius: 50%;
-  font: 900 9px var(--font-heading);
 }
 .playing-shell .context-hidden {
   display: none !important;
@@ -6651,23 +6297,6 @@ body
     transform: translateX(-50%);
   }
 }
-@media (max-width: 620px) {
-  .playing-shell .active-objective {
-    top: 77px;
-    right: 7px;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-  }
-  .playing-shell .active-objective svg {
-    width: 17px;
-    height: 17px;
-  }
-}
-.playing-shell .action-dock:not(.context-hidden) {
-  display: flex !important;
-  border-radius: 0 0 12px 12px;
-}
 .playing-shell .arena-intel {
   top: auto;
   bottom: 70px;
@@ -6684,9 +6313,6 @@ body
   font-size: 7px;
 }
 @media (max-width: 620px) {
-  .playing-shell .action-dock {
-    display: none !important;
-  }
   .playing-shell .arena-intel {
     top: 52px;
     bottom: auto;
@@ -6699,51 +6325,6 @@ body
     padding: 4px 6px;
     font-size: 6px;
   }
-}
-.playing-shell .arena-intel:not(.dock-status) {
-  display: none;
-}
-.playing-shell .action-dock:not(.context-hidden) {
-  padding: 39px 9px 7px;
-  border-radius: 12px;
-}
-.playing-shell .action-dock .dock-status {
-  position: absolute;
-  top: 7px;
-  right: 9px;
-  left: 9px;
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  transform: none;
-}
-.playing-shell .action-dock .dock-status span {
-  min-width: 0;
-  padding: 4px 7px;
-  font-size: 7px;
-}
-@media (max-width: 620px) {
-  .playing-shell .arena-intel:not(.dock-status) {
-    display: flex;
-  }
-  .playing-shell .action-dock .dock-status {
-    display: none;
-  }
-}
-.playing-shell .active-objective {
-  grid-template-columns: 1fr;
-  gap: 0;
-}
-.playing-shell .active-objective > svg {
-  display: block;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  box-sizing: border-box;
 }
 /* === MERGE RESOLUTION: pertahankan layout touch/mobile dari branch lokal === */
 /* Touch controls must have a complete layout even when landscape width exceeds 620px. */
@@ -6828,10 +6409,6 @@ body
   .playing-shell .mobile-controls {
     display: flex;
     bottom: max(12px, env(safe-area-inset-bottom));
-  }
-  .playing-shell .action-dock:not(.context-hidden),
-  .playing-shell .control-ribbon {
-    display: none !important;
   }
   .playing-shell .boost-stack {
     left: 50%;

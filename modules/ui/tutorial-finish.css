@@ -18,4 +18,8 @@
 .tutorial-finish button:first-child { background:#d8ff4a; color:#112018; }
 .tutorial-finish button:focus-visible { outline:3px solid #db92ff; outline-offset:3px; }
 .tutorial-finish button:active { filter:brightness(.85); }
+.tutorial-finish button:disabled { opacity:.6; cursor:wait; }
+.tutorial-next-unlocks { margin-top:16px; border-top:1px solid #576b50; padding-top:8px; }
+.tutorial-next-unlocks summary { min-height:44px; align-content:center; cursor:pointer; color:#d8ff4a; font-weight:800; }
+.tutorial-next-unlocks summary:focus-visible { outline:3px solid #db92ff; outline-offset:2px; }
 @media(max-width:600px) { .tutorial-finish {padding:16px;} .tutorial-finish li {flex-wrap:wrap;} }

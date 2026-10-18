@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { studioFramePolicy } from '../../lib/local-studio-frame.js';
 import { compileSprites } from './compile.mjs';
-import { SLOTS,slotAllowed,slotLoop,isFlightSlot,validateClip,validateSpriteDocument } from '../../lib/sprite-studio-model.js';
+import { SLOTS,slotAllowed,slotLoop,isFlightSlot,validateClip,validateSpriteDocument,validateBoostDust,BOOST_DUST_LIMITS } from '../../lib/sprite-studio-model.js';
 const directory=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(directory,'../..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.json':'application/json','.mp4':'video/mp4','.jpg':'image/jpeg','.gif':'image/gif','.woff2':'font/woff2','.ogg':'audio/ogg','.mp3':'audio/mpeg','.wav':'audio/wav'};
@@ -24,6 +24,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
   const configFile=path.join(projectRoot,'config/sprite-studio.json');
   const rules=JSON.parse(await readFile(path.join(projectRoot,'config/game-rules.json'),'utf8'));
   const roster=Object.entries(rules.teams).flatMap(([team,t])=>t.roster.map(id=>({id,team,name:id==='ciici'?'Ciici':id[0].toUpperCase()+id.slice(1)})));
+  roster.push({id:'default',team:'all',name:'Global · All characters (Boost dust)'});
   const ids=roster.map(r=>r.id),token=randomBytes(32).toString('hex');
   const definitions=await readFile(path.join(projectRoot,'lib/characters.ts'),'utf8').catch(()=> '');
   for(const character of roster){const match=definitions.match(new RegExp(`id: '${character.id}'[\\s\\S]*?visualScale: ([0-9.]+)`));character.visualScale=match?Number(match[1]):1;}
@@ -84,7 +85,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
         }
         const name=decodeURIComponent(url.pathname).slice(1);
         let base,relative;
-        if(/^(sprite-studio\/[a-z]+\/[a-f0-9]{64}\.webp|characters\/[a-z]+\/(atlas\.webp|animations\.json|series\.webp|series\.json)|field\/kampung-map\.webp|favicon-bst\.png)$/.test(name)){base=path.join(projectRoot,'public');relative=name;}
+        if(/^(sprite-studio\/[a-z]+\/[a-f0-9]{64}\.webp|characters\/[a-z]+\/(atlas\.webp|animations\.json|series\.webp|series\.json)|vfx\/sprint-dust\.webp|field\/kampung-map\.webp|favicon-bst\.png)$/.test(name)){base=path.join(projectRoot,'public');relative=name;}
         else if(name.startsWith('bentengan-squad-tag/')){base=path.join(projectRoot,'dist-pages');relative=name.slice('bentengan-squad-tag/'.length)||'index.html';}
         else return json(404,{error:'Tidak ditemukan.'});
         const resolved=await realpath(path.join(base,relative)),rootDir=await realpath(base);
@@ -104,13 +105,17 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
         if(data.revision!==current.revision)return json(409,{error:'Konfigurasi berubah. Muat ulang sebelum menyimpan.'});
         if(['/api/build','/api/publish'].includes(url.pathname)){job={status:'running',message:'Memulai…'};void runJob(url.pathname==='/api/publish');return json(202,job);}
         if(url.pathname==='/api/inspect') {
+          const boost=data.slot?.split('.')[0]==='boost_dust';
+          if(boost&&(data.files?.length>BOOST_DUST_LIMITS.maxFrames))throw new Error('Boost dust: maksimal 32 frame.');
           if(!Array.isArray(data.files)||!data.files.length||data.files.length>128)throw new Error('File ditolak: pilih 1–128 PNG/GIF/WebP.');
           let size=0,pixels=0;const files=[];
           for(const file of data.files){
             if(typeof file.data!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(file.data))throw new Error('Data file tidak valid.');
             const bytes=Buffer.from(file.data,'base64');size+=bytes.length;if(size>30*1024*1024)throw new Error('File ditolak: maksimal 30 MB.');
+            if(boost&&size>BOOST_DUST_LIMITS.maxInputBytes)throw new Error('Boost dust: upload maksimal 8 MB.');
             let meta;try{meta=await sharp(bytes,{limitInputPixels:32_000_000}).metadata();}catch{throw new Error(`File tidak bisa dibaca: ${String(file.name??'gambar').slice(0,200)}. Gunakan PNG/GIF/WebP yang tidak rusak.`);}
             const height=meta.pageHeight??meta.height,pages=meta.pages??1;
+            if(boost&&pages>BOOST_DUST_LIMITS.maxFrames)throw new Error('Boost dust: GIF maksimal 32 frame; tidak dipotong otomatis.');
             if(!['png','gif','webp'].includes(meta.format))throw new Error('Format ditolak: hanya PNG/GIF/WebP.');
             pixels+=meta.width*height*pages;
             if(meta.width>4096||height>4096||pages>128||pixels>64_000_000)throw new Error('File ditolak: sisi maksimal 4096 px, 128 frame, total 64 juta pixel.');
@@ -121,13 +126,14 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
         }
         if(!ids.includes(data.id)||(url.pathname!=='/api/save-character'&&!slotAllowed(data.id,data.slot)))throw new Error('Karakter/slot tidak valid. Jika memilih ultimate arah baru, simpan draft yang sudah diproses lalu restart server dengan npm run admin:sprites dan buka ulang panel.');
         if(url.pathname==='/api/compile') {
-          const atlas=await compileSprites(data.files,data.options);
+          const boost=data.slot.split('.')[0]==='boost_dust';
+          const atlas=await compileSprites(data.files,data.options,boost?BOOST_DUST_LIMITS:{});
           const asset=`sprite-studio/${data.id}/${atlas.hash}.webp`;
           await mkdir(path.dirname(path.join(projectRoot,'public',asset)),{recursive:true});
           const assetDir=await realpath(path.dirname(path.join(projectRoot,'public',asset))),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!assetDir.startsWith(publicDir+path.sep))throw new Error('Folder aset di luar proyek.');
           await writeFile(path.join(projectRoot,'public',asset),atlas.bytes,{flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});
-          return json(200,{clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:0,y:0,pivotX:.5,pivotY:1,mirror:false,loop:slotLoop(data.slot)}});
+          return json(200,{clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:boost?-32:0,y:boost?5.5:0,pivotX:.5,pivotY:boost ? .5 : 1,mirror:false,loop:slotLoop(data.slot)}});
         }
         const document=structuredClone(current.document);
         const changes=url.pathname==='/api/save-character'?data.clips:{[data.slot]:data.clip};
@@ -137,6 +143,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
           if(!slotAllowed(data.id,slot))throw new Error('Slot animasi tidak valid untuk karakter ini.');
           if(value===null) {if(document.characters[data.id])delete document.characters[data.id][slot];continue;}
           const clip=validateClip(value,data.id);
+          if(slot.split('.')[0]==='boost_dust'){validateBoostDust(clip);clip.loop=true;}
           if(isFlightSlot(slot))clip.loop=slotLoop(slot);
           const target=await realpath(path.join(projectRoot,'public',clip.asset)),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!target.startsWith(publicDir+path.sep))throw new Error('Aset di luar proyek.');

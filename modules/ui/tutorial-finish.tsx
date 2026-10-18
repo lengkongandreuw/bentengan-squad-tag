@@ -3,21 +3,26 @@ import {useLanguage} from '../../lib/language';
 import {CHARACTER_BY_ID} from '../../lib/characters';
 import type {LocalPlayerProfile} from '../../lib/player-profile/types';
 import type {ProgressionResult} from '../../lib/player-profile/match-progression';
-import type {TutorialSession,TutorialSignalKind} from '../../lib/tutorial/types';
 import {tutorialEducation} from '../../lib/tutorial/education';
 import {getProgressionArenaId} from '../../lib/player-profile/arena-identity';
 import {progressionRules} from '../../lib/player-profile/progression-rules';
 import './tutorial-finish.css';
 
-export function TutorialFinish({session,profile,result,error,catalog,onReward,onSignal,onComplete,onLeave}:{
-  session:TutorialSession;profile:LocalPlayerProfile;result:ProgressionResult|null;error:string;
-  catalog:readonly {id:string;name:string}[];onReward:()=>void;onSignal:(kind:TutorialSignalKind)=>void;onComplete:()=>void;onLeave:()=>void;
+export function TutorialFinish({profile,result,error,catalog,onReward,onComplete,onLeave}:{
+  profile:LocalPlayerProfile;result:ProgressionResult|null;error:string;
+  catalog:readonly {id:string;name:string}[];onReward:()=>void;onComplete:(destination:'play'|'menu')=>void;onLeave:()=>void;
 }) {
-  const language=useLanguage(),dialog=useRef<HTMLDialogElement>(null),primary=useRef<HTMLButtonElement>(null);
+  const language=useLanguage(),dialog=useRef<HTMLDialogElement>(null),primary=useRef<HTMLButtonElement>(null),attempted=useRef(false);
   const text=(en:string,id:string)=>language==='id'?id:en;
-  const education=tutorialEducation(profile,catalog),step=session.stepId;
+  const education=tutorialEducation(result?.profile??profile,catalog);
   useEffect(()=>{const node=dialog.current,previous=document.activeElement;node?.showModal();return()=>{node?.close();if(previous instanceof HTMLElement&&previous.isConnected)previous.focus();};},[]);
-  useEffect(()=>{primary.current?.focus();},[step]);
+  useEffect(()=>{
+    // One automatic attempt per summary. Failed storage needs explicit retry,
+    // not an effect loop. The profile service still owns atomic deduplication.
+    if(!attempted.current&&!result){attempted.current=true;onReward();}
+  },[result,onReward]);
+  useEffect(()=>{if(result||error)primary.current?.focus();},[result,error]);
+  const leave=()=>result?onComplete('menu'):onLeave();
   const arenaLabel=(kind:string,id?:string)=>{
     const arenaName=(key:string)=>catalog.find(a=>getProgressionArenaId(a.id)===getProgressionArenaId(key))?.name??key;
     const name=arenaName(id??'');
@@ -25,38 +30,31 @@ export function TutorialFinish({session,profile,result,error,catalog,onReward,on
     const labels:Record<string,string>={level:text('Player level','Level pemain'),totalWins:text('Match wins','Kemenangan match'),tags:text('Opponent tags','Tag lawan'),rescues:text('Teammate rescues','Rescue tim'),arenaPlayed:text(`Matches in ${name}`,`Main di ${name}`),arenaWins:text(`Wins in ${name}`,`Menang di ${name}`),tierWins:text(`Wins in ${tier}`,`Menang di ${tier}`)};
     return labels[kind]??kind;
   };
-  return <dialog ref={dialog} className="tutorial-finish" aria-labelledby="tutorial-finish-title" onCancel={event=>{event.preventDefault();onLeave();}} onKeyDown={event=>event.stopPropagation()}>
+  return <dialog ref={dialog} className="tutorial-finish" aria-labelledby="tutorial-finish-title" onCancel={event=>{event.preventDefault();leave();}} onKeyDown={event=>event.stopPropagation()}>
     <small>BENTENG · {text('TRAINING COMPLETE','LATIHAN SELESAI')}</small>
-    <h2 id="tutorial-finish-title">{text(step==='reward'?'Your first fort. Nice work!':step==='character_unlock'?'Build your squad.':step==='map_unlock'?'Take it to a new arena.':'Your squad is waiting.',step==='reward'?'Benteng pertama. Mantap!':step==='character_unlock'?'Lengkapi timmu.':step==='map_unlock'?'Jajal arena berikutnya.':'Timmu sudah menunggu.')}</h2>
-    {step==='reward'&&<section aria-label={text('Tutorial rewards','Hadiah tutorial')}>
-      <p>{text(profile.tutorial?.replay?'Replay is for practice—your progress stays safe.':'Save your first-training reward. Competitive stats stay untouched.',profile.tutorial?.replay?'Latihan ulang untuk berlatih—progresmu tetap aman.':'Simpan hadiah latihan pertamamu. Statistik kompetitif tetap aman.')}</p>
+    <h2 id="tutorial-finish-title">{text(profile.tutorial?.replay?'Good practice. Ready for a match?':'Your first fort. Nice work!',profile.tutorial?.replay?'Latihan mantap. Siap main?':'Benteng pertama. Mantap!')}</h2>
+    <section aria-label={text('Training summary','Ringkasan latihan')}>
+      <output>{text(result?(result.applied?'Rewards saved.':'Practice complete. No extra rewards.'):error?'Rewards not saved.':'Saving your rewards…',result?(result.applied?'Hadiah tersimpan.':'Latihan selesai. Tidak ada hadiah tambahan.'):error?'Hadiah belum tersimpan.':'Menyimpan hadiah…')}</output>
       {result&&<>
-        <div className="tutorial-reward-values" aria-live="polite"><strong>+{result.xpEarned} XP</strong><strong>+{result.tokenEarned} DOI</strong></div>
-        <p>{text('XP raises your player level. Spend DOI on Ultimate upgrades.','XP menaikkan level pemain. Gunakan DOI untuk upgrade Ultimate.')}</p>
-        <p>{text('LEVEL','LEVEL')} {result.currentLevel} · {result.levelProgress.xpIntoLevel} / {result.levelProgress.xpForNextLevel??'MAX'} XP</p>
+        <div className="tutorial-reward-values"><strong>+{result.xpEarned} XP</strong><strong>+{result.tokenEarned} DOI</strong></div>
+        <p>{text('XP raises your level. Spend DOI on Ultimate upgrades.','XP menaikkan levelmu. Gunakan DOI untuk upgrade Ultimate.')}</p>
+        <p>LEVEL {result.currentLevel} · {result.levelProgress.xpIntoLevel} / {result.levelProgress.xpForNextLevel??'MAX'} XP · {text('DOI balance','Saldo DOI')}: {result.currentTokenBalance}</p>
         <progress aria-label={text('Level progress','Progres level')} value={result.levelProgress.progress} max={1}/>
-        <p>{text('DOI balance','Saldo DOI')}: {result.currentTokenBalance}</p>
         {result.newlyUnlockedCharacters.map(id=><p key={id}>{text('UNLOCKED','TERBUKA')}: {CHARACTER_BY_ID[id].name}</p>)}
         {result.newlyUnlockedArenaIds.map(id=><p key={id}>{text('UNLOCKED','TERBUKA')}: {catalog.find(a=>a.id===id)?.name??id}</p>)}
-        {!result.applied&&<p>{text('No new reward: replay or already saved.','Tidak ada hadiah baru: latihan ulang atau sudah tersimpan.')}</p>}
       </>}
-    </section>}
-    {step==='character_unlock'&&<section>
-      <p>{text('Keep playing to unlock more characters.','Terus main untuk membuka lebih banyak karakter.')}</p>
-      {education.character?<><h3>{CHARACTER_BY_ID[education.character.characterId].name}</h3><p>{text('Reach level','Capai level')} {education.character.minLevel} · {education.character.currentXP} / {education.character.requiredXP} XP</p><progress aria-label={text('Next character progress','Progres karakter berikutnya')} value={education.character.progress} max={1}/><p>{education.character.xpRemaining} XP {text('to go. Still locked until you get there.','lagi. Tetap terkunci sampai syaratnya terpenuhi.')}</p></>:<p>{text('All characters unlocked. Try a new squad!','Semua karakter terbuka. Coba tim baru!')}</p>}
-    </section>}
-    {step==='map_unlock'&&<section>
-      {education.arena?<><h3>{education.arena.name}</h3><p>{text('Your next arena. Meet these goals in regular matches:','Arena berikutnya. Penuhi target ini di match biasa:')}</p><ul>{education.arena.checks.map(check=><li key={`${check.kind}:${check.id??''}`}><span>{check.met?text('Met','Terpenuhi'):text('To do','Belum')} · {arenaLabel(check.kind,check.id)}</span><strong>{check.current} / {check.required}</strong></li>)}</ul></>:<p>{text('All configured arenas unlocked. Pick your next challenge.','Semua arena terkonfigurasi sudah terbuka. Pilih tantanganmu.')}</p>}
-    </section>}
-    {step==='complete'&&<p>{text('Move. Tag. Rescue. Take their Benteng. You’re ready.','Gerak. Tag. Rescue. Rebut benteng lawan. Kamu siap.')}</p>}
-    {error&&<p role="alert">{text(step==='complete'?'Could not save completion. Retry LET’S PLAY without closing this screen.':'Could not save. Your reward has not been confirmed. Retry without closing this screen.',step==='complete'?'Penyelesaian belum tersimpan. Coba LANJUT MAIN lagi tanpa menutup layar ini.':'Belum bisa menyimpan. Hadiah belum dikonfirmasi. Coba lagi tanpa menutup layar ini.')}</p>}
+      <details className="tutorial-next-unlocks">
+        <summary>{text('What can I unlock next?','Apa yang bisa dibuka berikutnya?')}</summary>
+        <h3>{text('Next character','Karakter berikutnya')}</h3>
+        {education.character?<><p>{CHARACTER_BY_ID[education.character.characterId].name} · {text('Reach level','Capai level')} {education.character.minLevel} · {education.character.currentXP} / {education.character.requiredXP} XP</p><p>{education.character.xpRemaining} XP {text('to go. Still locked until you get there.','lagi. Tetap terkunci sampai syaratnya terpenuhi.')}</p></>:<p>{text('All characters unlocked. Try a new squad!','Semua karakter terbuka. Coba tim baru!')}</p>}
+        <h3>{text('Next arena','Arena berikutnya')}</h3>
+        {education.arena?<><p>{education.arena.name} · {text('Meet these goals in regular matches:','Penuhi target ini di match biasa:')}</p><ul>{education.arena.checks.map(check=><li key={`${check.kind}:${check.id??''}`}><span>{check.met?text('Met','Terpenuhi'):text('To do','Belum')} · {arenaLabel(check.kind,check.id)}</span><strong>{check.current} / {check.required}</strong></li>)}</ul></>:<p>{text('All arenas unlocked. Pick your next challenge.','Semua arena terbuka. Pilih tantanganmu.')}</p>}
+      </details>
+      {error&&<p role="alert">{text(result?'Could not save completion. Retry LET’S PLAY without closing this screen.':'Could not save your rewards. Choose RETRY SAVE before leaving.',result?'Penyelesaian belum tersimpan. Coba LANJUT MAIN lagi tanpa menutup layar ini.':'Hadiah belum tersimpan. Pilih COBA SIMPAN LAGI sebelum keluar.')}</p>}
+    </section>
     <div className="tutorial-finish-actions">
-      <button ref={primary} type="button" onClick={()=>{
-        if(step==='reward'){if(!result)onReward();else onSignal('REWARD_SAVED');}
-        else if(step==='character_unlock')onSignal('CHARACTER_EXPLAINED');
-        else if(step==='map_unlock')onSignal('MAP_EXPLAINED');else onComplete();
-      }}>{text(step==='reward'&&!result?'SAVE REWARDS':step==='complete'?'LET’S PLAY':'CONTINUE',step==='reward'&&!result?'SIMPAN HADIAH':step==='complete'?'LANJUT MAIN':'LANJUT')}</button>
-      <button type="button" onClick={onLeave}>{text('BACK TO MENU','KEMBALI KE MENU')}</button>
+      <button ref={primary} type="button" disabled={!result&&!error} onClick={()=>result?onComplete('play'):onReward()}>{text(result?'LET’S PLAY':error?'RETRY SAVE':'SAVING…',result?'LANJUT MAIN':error?'COBA SIMPAN LAGI':'MENYIMPAN…')}</button>
+      <button type="button" onClick={leave}>{text('BACK TO MENU','KEMBALI KE MENU')}</button>
     </div>
   </dialog>;
 }

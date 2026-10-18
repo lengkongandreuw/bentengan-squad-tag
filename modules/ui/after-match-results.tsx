@@ -266,7 +266,7 @@ export const AfterMatchResults = ({
           {t('KELUAR')}
         </button>
         <p className="after-match-helper">{t('Pilih aksi berikutnya untuk lanjut.')}</p>
-        <button type="button" className="after-match-next" onClick={goNext}>
+        <button type="button" data-dialog-primary className="after-match-next" onClick={goNext}>
           {t('NEXT')}
           <ArrowRight size={18} />
         </button>

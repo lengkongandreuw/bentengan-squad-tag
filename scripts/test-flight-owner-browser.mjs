@@ -11,17 +11,18 @@ try{
     // Accelerate only the default recharge constant inside this browser fixture;
     // actor eligibility, input, simulation and presentation remain the real code.
     await page.route('**/app/prototype.tsx*',async route=>{const response=await route.fetch();const body=(await response.text()).replace(/RAJA_ULTIMATE_RECHARGE_SECONDS = 45/g,'RAJA_ULTIMATE_RECHARGE_SECONDS = 1');await route.fulfill({response,body});});
-    await page.goto('http://127.0.0.1:3038/bentengan-squad-tag/');
+    await page.goto(process.env.BENTENG_TEST_URL||'http://127.0.0.1:3046/bentengan-squad-tag/');
     await page.getByLabel('PLAYER NAME',{exact:true}).fill('Flight'+id);await page.getByRole('button',{name:'SAVE NAME',exact:true}).click();
     // Only isolated QA storage is changed; actual user profiles remain untouched.
     await page.evaluate(()=>{const key='bentengan-player-profile-v1',p=JSON.parse(localStorage.getItem(key));p.progression.xp=99999;p.progression.unlockedCharacters.push('bebe','ciici');localStorage.setItem(key,JSON.stringify(p));});
-    await page.reload();await page.locator('.enter-game').click();await page.getByRole('button',{name:id==='bebe'?'Choose Tim Merah':'Choose Tim Hijau',exact:true}).click();
+    await page.getByRole('button',{name:'SKIP',exact:true}).click();await page.reload();await page.locator('.enter-game').click();await page.getByRole('button',{name:id==='bebe'?'Choose Tim Merah':'Choose Tim Hijau',exact:true}).click();
     await page.locator('.carousel-character').filter({has:page.locator(`img[alt="${id==='bebe'?'Bebe':'Ciici'}"]`)}).dispatchEvent('click');
     await page.getByRole('button',{name:new RegExp('^CHOOSE '+id+'$','i')}).click({timeout:90000});
     await page.locator('.map-select-v2').waitFor({timeout:90000});await page.getByRole('button',{name:/^Kampung Merdeka$/i}).click();await page.locator('.map-start-match').click();
     await page.locator('canvas[data-graphics-preset]').waitFor({timeout:90000});
     await page.locator('.ultimate-meter-hud').waitFor({state:'attached'});assert.match(await page.locator('.ultimate-meter-hud').textContent(),id==='bebe'?/JET FLIGHT/:/VAMPIRE FLIGHT/);
-    assert(await page.locator('.action-dock .ultimate-action').isVisible(),'compact action dock ultimate is visible');
+    assert(await page.locator('.ultimate-meter-hud').isVisible(),'single desktop Ultimate action is visible');
+    assert.equal(await page.locator('.action-dock,.control-ribbon').count(),0,'no duplicate legacy controls');
     const exit=id==='bebe'?'d':'a';
     await page.waitForTimeout(4500);await page.keyboard.down(exit);await page.waitForTimeout(2500);await page.keyboard.up(exit);
     await page.waitForFunction(()=>document.querySelector('.ultimate-meter-hud b')?.textContent==='100%',{},{timeout:100000});

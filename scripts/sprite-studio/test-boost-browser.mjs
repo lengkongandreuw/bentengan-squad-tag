@@ -1,0 +1,77 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,writeFile,readFile,copyFile,rm} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import sharp from 'sharp';
+import {startSpriteStudio} from './server.mjs';
+import {boostDustSelection} from '../../lib/sprite-studio-model.js';
+const {chromium}=await import(process.env.BENTENG_PLAYWRIGHT_MODULE??'file:///C:/Users/lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');
+const root=await mkdtemp(path.join(os.tmpdir(),'benteng-boost-qa-'));
+let server,browser;
+try{
+  await mkdir(path.join(root,'config'),{recursive:true});await mkdir(path.join(root,'public/vfx'),{recursive:true});
+  await writeFile(path.join(root,'config/game-rules.json'),JSON.stringify({teams:{red:{roster:['raja']},green:{roster:['ciici']}}}));
+  await writeFile(path.join(root,'config/sprite-studio.json'),JSON.stringify({version:1,characters:{}}));
+  await copyFile('public/vfx/sprint-dust.webp',path.join(root,'public/vfx/sprint-dust.webp'));
+  await mkdir(path.join(root,'lib'),{recursive:true});await copyFile('lib/sprite-studio-model.js',path.join(root,'lib/sprite-studio-model.js'));
+  const started=await startSpriteStudio(0,root);server=started.server;
+  browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+  const page=await browser.newPage({viewport:{width:1366,height:768}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+  await page.goto(started.origin+'/?character=default&slot=boost_dust');
+  await page.waitForFunction(()=>document.querySelector('#frameLabel').textContent.includes('/4'));
+  assert.equal(await page.locator('#action option').count(),1,'global scope only exposes boost dust');
+  assert.equal(await page.locator('#direction option').count(),9);
+  assert.match(await page.locator('#boostDustHelp').innerText(),/32 frame/);
+  await page.selectOption('#boostPreviewDirection','northwest');
+  await mkdir('outputs/boost-dust',{recursive:true});
+  await page.screenshot({path:'outputs/boost-dust/global-builtin.png'});
+  const red=await sharp({create:{width:48,height:48,channels:4,background:'#ff331180'}}).png().toBuffer();
+  const blue=await sharp({create:{width:48,height:48,channels:4,background:'#1166ff80'}}).png().toBuffer();
+  const stacked=await sharp({create:{width:48,height:96,channels:4,background:'#00000000'}}).composite([{input:red,top:0,left:0},{input:blue,top:48,left:0}]).raw().toBuffer();
+  const gif=await sharp(stacked,{raw:{width:48,height:96,channels:4,pageHeight:48}}).gif({delay:[100,100],loop:0}).toBuffer();
+  await page.setInputFiles('#files',{name:'boost.gif',mimeType:'image/gif',buffer:gif});
+  await page.waitForFunction(()=>document.querySelector('#fileStatus').textContent.startsWith('File diterima'));
+  await page.click('#compile');await page.waitForFunction(()=>document.querySelector('#fileStatus').textContent.startsWith('Siap digunakan'));
+  await page.click('#applyCurrent');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('diterapkan'));
+  const load=async()=>JSON.parse(await readFile(path.join(root,'config/sprite-studio.json'),'utf8'));
+  let doc=await load();assert.equal(doc.characters.default.boost_dust.frames.length,2);
+  await page.selectOption('#character','raja');await page.selectOption('#direction','northwest');
+  await page.waitForFunction(()=>document.querySelector('#origin').textContent.includes('Inherited'));
+  assert.equal(await page.locator('#boostPreviewDirection').inputValue(),'northwest');
+  await page.setInputFiles('#files',[{name:'02.png',mimeType:'image/png',buffer:blue},{name:'01.png',mimeType:'image/png',buffer:red}]);
+  await page.waitForFunction(()=>document.querySelector('#fileStatus').textContent.startsWith('File diterima'));
+  await page.click('#compile');await page.waitForFunction(()=>document.querySelector('#fileStatus').textContent.startsWith('Siap digunakan'));
+  await page.click('#applyCurrent');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('diterapkan'));
+  doc=await load();assert.equal(doc.characters.raja['boost_dust.northwest'].frames.length,2);
+  assert.equal(boostDustSelection(doc.characters,'raja','northwest').owner,'raja');
+  assert.equal(boostDustSelection(doc.characters,'raja','east').owner,'default');
+  assert.equal(boostDustSelection(doc.characters,'ciici','northwest').owner,'default');
+  assert.deepEqual(Object.keys(doc.characters.raja),['boost_dust.northwest'],'body sprite not touched');
+  await mkdir('outputs/boost-dust',{recursive:true});
+  await page.screenshot({path:'outputs/boost-dust/editor.png'});
+  await page.click('#remove');await page.click('#saveCharacter');
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('diterapkan'));
+  doc=await load();assert.equal(doc.characters.raja,undefined);assert.ok(doc.characters.default.boost_dust);
+  // Reload keeps saved global data; over-limit upload rejected before compile/save.
+  await page.reload();await page.waitForFunction(()=>document.querySelector('#frameLabel').textContent.includes('/2'));
+  const before=await readFile(path.join(root,'config/sprite-studio.json'),'utf8');
+  await page.setInputFiles('#files',Array.from({length:33},(_,i)=>({name:`${i}.png`,mimeType:'image/png',buffer:red})));
+  await page.waitForFunction(()=>document.querySelector('#fileStatus').textContent.includes('maksimal 32'));
+  assert.equal(await readFile(path.join(root,'config/sprite-studio.json'),'utf8'),before);
+  for(const [width,height]of [[844,390],[375,812]]){
+    await page.setViewportSize({width,height});await page.reload();
+    await page.waitForFunction(()=>document.querySelector('#frameLabel').textContent.includes('/2'));
+    assert(await page.locator('#boostDustHelp').isVisible());
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal page overflow');
+    await page.screenshot({path:`outputs/boost-dust/editor-${width}x${height}.png`});
+  }
+  await page.emulateMedia({reducedMotion:'reduce'});await page.reload();
+  await page.waitForFunction(()=>document.querySelector('#frameLabel').textContent.includes('/2'));
+  assert.equal(await page.locator('#play').textContent(),'Play','reduced-motion does not autoplay preview');
+  assert.deepEqual(errors,[]);
+  console.log('Boost editor PASS: built-in preview, GIF global save, sorted frame series direction override, inheritance, delete, reload, 33-frame rejection. Actual project config untouched.');
+}finally{
+  if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));
+  const resolved=path.resolve(root);if(resolved.startsWith(path.resolve(os.tmpdir())+path.sep)&&path.basename(resolved).startsWith('benteng-boost-qa-'))await rm(resolved,{recursive:true,force:true});
+}

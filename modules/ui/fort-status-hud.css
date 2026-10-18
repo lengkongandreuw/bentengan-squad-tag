@@ -1,0 +1,9 @@
+.fort-status-hud{position:relative;color:#fff;width:100%;pointer-events:none!important;}
+.fort-announcement{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;}
+.fort-card{position:relative;aspect-ratio:810/196;}
+.fort-card img{display:block;width:100%;height:100%;object-fit:contain;}
+.fort-card-label{position:absolute;left:31%;right:7%;top:29%;height:45%;display:flex;align-items:center;justify-content:center;background:linear-gradient(110deg,#11171c,#0b1015);font-family:var(--font-heading),sans-serif;font-style:italic;font-weight:900;font-size:clamp(10px,1.2vw,19px);line-height:1;text-align:center;}
+.fort-card-detail{display:block;width:max-content;max-width:100%;margin:0 8px;padding:3px 6px;background:#08110dee;border-radius:4px;font-size:12px;}
+.fort-attacked .fort-card,.fort-critical .fort-card,.fort-captured .fort-card{animation:fort-enter .22s ease-out;}
+@keyframes fort-enter{from{opacity:.4;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.fort-status-hud .fort-card{animation:none;}}

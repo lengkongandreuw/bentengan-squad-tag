@@ -3,6 +3,7 @@ import { t } from '../../../lib/language';
 
 
 import { useState } from 'react';
+import { useModalDialog } from '../use-modal-dialog';
 import type * as React from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -16,6 +17,7 @@ type PlayerProfileSetupProps = {
 };
 
 export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
+  const dialog = useModalDialog(true);
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
 
@@ -37,7 +39,7 @@ export function PlayerProfileSetup({ onCreated }: PlayerProfileSetupProps) {
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <dialog className="player-profile-overlay" open aria-modal="true" aria-labelledby="player-profile-setup-title">
+    <dialog ref={dialog} className="player-profile-overlay game-modal" aria-modal="true" aria-labelledby="player-profile-setup-title">
       <form className="player-profile-panel player-profile-setup" onSubmit={submit}>
         <span>{t("PROFIL PEMAIN")}</span>
         <h2 id="player-profile-setup-title">{t("Mau dipanggil siapa?")}</h2>

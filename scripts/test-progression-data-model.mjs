@@ -50,6 +50,8 @@ const { parsePlayerProfile } = await load('migrations');
 const service = await load('profile-service');
 const storage = await load('storage');
 const tutorial = await load('tutorial');
+const {CharacterNextGoal}=await import(await moduleUrl(new URL('../modules/ui/character-next-goal.tsx',import.meta.url)));
+const {getNextCharacterGoal}=await load('character-unlocks');
 const { PLAYER_PROFILE_STORAGE_KEY } = await load('defaults');
 const { progressionRules, parseProgressionRules } = await load('progression-rules');
 const { getLevelFromXP, getCurrentLevelProgress, getXPRequiredForLevel,
@@ -61,7 +63,34 @@ const { isArenaUnlocked, getArenaUnlockProgress, resolveArenaUnlocks } = await l
 const { getProgressionArenaId } = await load('arena-identity');
 const { applyMatchProgression } = await load('match-progression');
 const { MAX_PROCESSED_MATCH_IDS, createMatchId } = await load('match-identity');
+void test('unlock strip reads actual next goal/XP, completes all-unlocked and never writes progression',()=>{
+ const p=service.createPlayerProfile('StripQA');p.progression.xp=73;const before=structuredClone(p),goal=getNextCharacterGoal(p);
+ const html=renderToStaticMarkup(createElement(CharacterNextGoal,{profile:p}));
+ assert(html.includes(`Lv.${goal.minLevel}`));assert(html.includes(`${goal.xpRemaining} XP`));assert(html.includes(`scaleX(${goal.progress})`));
+ assert(html.includes(`value="${goal.currentXP}"`));assert(html.includes(`max="${goal.requiredXP}"`));assert.deepEqual(p,before);
+ p.progression.unlockedCharacters=progressionRules.characterUnlockRequirements.map(r=>r.characterId);
+ const completed=renderToStaticMarkup(createElement(CharacterNextGoal,{profile:p}));assert(completed.includes('ALL CHARACTERS UNLOCKED'));assert(completed.includes('scaleX(1)'));assert(!completed.includes('to go'));
+});
 const { migratePlayerProgression, estimateHistoricalXP } = await load('progression-migration');
+
+void test('learning memory shares the profile, survives reload/replay and never touches rewards or match statistics',()=>{
+  const fresh=service.createPlayerProfile('LearningQA'),before=structuredClone(fresh);
+  const learned=tutorial.rememberTutorialMechanics(fresh,['movement','parkour']);
+  assert.deepEqual(fresh,before);
+  assert.deepEqual(learned.tutorial.learned,['movement','parkour']);
+  for(const key of ['progression','economy','kda','menang','kalah'])assert.deepEqual(learned[key],before[key]);
+  const reloaded=tutorial.migratePlayerTutorial(JSON.parse(JSON.stringify(learned)));
+  assert.equal(reloaded.migrated,false,'array normalization does not write on every profile read');
+  assert.deepEqual(tutorial.learnedTutorialMechanics(reloaded.profile),['movement','parkour']);
+  assert.equal(tutorial.rememberTutorialMechanics(learned,['parkour']),learned,'already learned is a no-op');
+  const replay=tutorial.startTutorial(learned,true);assert.deepEqual(replay.tutorial.learned,['movement','parkour']);
+  const completed=tutorial.completeTutorial(replay);assert.deepEqual(tutorial.learnedTutorialMechanics(completed),tutorial.TUTORIAL_MECHANICS);
+  const legacy={...learned,tutorial:{...learned.tutorial}};delete legacy.tutorial.learned;
+  assert.equal(tutorial.migratePlayerTutorial(legacy).migrated,true);
+  assert.equal(tutorial.migratePlayerTutorial(tutorial.migratePlayerTutorial(legacy).profile).migrated,false);
+  const corrupt={...learned,tutorial:{...learned.tutorial,learned:['parkour','unknown','parkour']}};
+  assert.deepEqual(tutorial.migratePlayerTutorial(corrupt).profile.tutorial.learned,['parkour']);
+});
 
 void test('tutorial fresh detection and legacy history migration never change gameplay/progression/economy',()=>{
   const fresh=service.createPlayerProfile('TutorialQA');
@@ -160,7 +189,7 @@ void test('13 interruption, completion, replay, legacy active replay and skip ke
 void test('14 reward UI renders only actual resolver rewards/unlocks and shared requirements',()=>{
   const p=tutorial.updateTutorialStep(tutorial.startTutorial(service.createPlayerProfile('FinishQA')),'reward');
   const catalog=[{id:'kampung',name:'Kampung Merdeka'},{id:'pasar',name:'Pasar Senggol'}];
-  const props={session:{stepId:'reward'},profile:p,result:applyTutorialReward(p),catalog,error:'',onReward(){},onSignal(){},onComplete(){},onLeave(){}};
+  const props={profile:p,result:applyTutorialReward(p),catalog,error:'',onReward(){},onComplete(){},onLeave(){}};
   const html=renderToStaticMarkup(createElement(TutorialFinish,props));
   assert.ok(html.includes('+100 XP'));assert.ok(html.includes('+10 DOI'));assert.ok(!html.includes('UNLOCKED'));
   assert.ok(html.includes('aria-labelledby="tutorial-finish-title"'));assert.ok(html.includes('Level progress'));
@@ -168,8 +197,10 @@ void test('14 reward UI renders only actual resolver rewards/unlocks and shared 
   const actual=renderToStaticMarkup(createElement(TutorialFinish,{...props,result:reward,profile:reward.profile}));assert.ok(actual.includes('UNLOCKED'));assert.ok(actual.includes('Bebe'));
   const replay=tutorial.updateTutorialStep(tutorial.startTutorial(tutorial.completeTutorial(reward.profile),true),'reward');
   const again=renderToStaticMarkup(createElement(TutorialFinish,{...props,profile:replay,result:applyTutorialReward(replay)}));assert.ok(again.includes('+0 XP'));assert.ok(again.includes('+0 DOI'));assert.ok(!again.includes('UNLOCKED'));
-  const character=renderToStaticMarkup(createElement(TutorialFinish,{...props,profile:props.result.profile,session:{stepId:'character_unlock'}}));assert.ok(character.includes('100 / 200 XP'));assert.ok(character.includes('Still locked'));
-  const arena=renderToStaticMarkup(createElement(TutorialFinish,{...props,session:{stepId:'map_unlock'}}));assert.ok(arena.includes('Pasar Senggol'));assert.ok(arena.includes('Wins in Kampung Merdeka'));
+  assert.ok(html.includes('100 / 200 XP'));assert.ok(html.includes('Still locked'));
+  assert.ok(html.includes('Pasar Senggol'));assert.ok(html.includes('Wins in Kampung Merdeka'));
+  assert.ok(html.includes('<details'));assert.ok(html.includes('What can I unlock next?'));assert.ok(html.includes('LET’S PLAY'));assert.ok(!html.includes('CONTINUE'));assert.ok(!html.includes('SAVE REWARDS'));
+  assert.ok(again.includes('Good practice. Ready for a match?'));
 });
 
 void test('tutorial corrupt states repair safely without losing terminal history/reward guard',()=>{

@@ -43,6 +43,18 @@ try{
   const hs=await read(host),cs=await read(client),cr=cs.entities.find(p=>p.entityId===remote.entityId),hr=hs.entities.find(p=>p.entityId===remote.entityId);
   if(Math.hypot(cr.x-hr.x,cr.y-hr.y)>80)throw Error('Client does not follow authoritative host');
   if(!hs.entities.some(p=>p.controller==='bot'&&Math.hypot(p.vx,p.vy)>0))throw Error('Host bots stopped');
+  for(const page of [host,client]){
+    await page.getByRole('button',{name:'Pause',exact:true}).click();
+    await page.getByText('Online play continues while this menu is open. Your movement input is released.',{exact:true}).waitFor();
+    if(!await page.getByRole('button',{name:'Restart',exact:true}).isDisabled())throw Error('Online restart must remain unavailable');
+    const tick=(await read(page)).tick;await page.waitForTimeout(500);
+    if((await read(page)).tick<=tick)throw Error('Local utility menu froze network simulation');
+    await page.getByRole('button',{name:'How to Play',exact:true}).click();
+    if(await page.getByRole('tab').count()!==4)throw Error('Online Help tabs missing');
+    await page.keyboard.press('Escape');await page.keyboard.press('Escape');
+    await page.locator('.pause-overlay').waitFor({state:'detached'});
+    if(await page.locator('.fort-card').count()!==1)throw Error('Exactly one own-fort card required');
+  }
   await host.screenshot({path:'outputs/multiplayer-gameplay-host.png',fullPage:true});
   await client.screenshot({path:'outputs/multiplayer-gameplay-client.png',fullPage:true});
   await client.setViewportSize({width:390,height:844});await client.screenshot({path:'outputs/multiplayer-gameplay-mobile.png',fullPage:true});

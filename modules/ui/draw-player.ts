@@ -18,6 +18,8 @@ import { characterAnimationMapping } from '../../lib/character-animation.js';
 import { seriesFrame } from '../../lib/series-animation.js';
 import { spritePlacement } from '../../lib/sprite-studio-model.js';
 import type { createStudioResolver } from '../../lib/sprite-studio';
+import type {studioBoostDust} from '../../lib/sprite-studio';
+import {drawBoostDust} from './boost-dust.ts';
 import { TEAM_COLOR } from '../world/team-tables.ts';
 import { relationColor } from './relation-color.ts';
 import { roundedOn } from './canvas-shapes.ts';
@@ -58,6 +60,7 @@ export type DrawPlayerWorld = {
   getSprintDustImage: () => HTMLImageElement;
   getKakaUltimateImage: () => HTMLImageElement;
   studioResolve: ReturnType<typeof createStudioResolver>;
+  boostDustResolve?: typeof studioBoostDust;
 };
 
 export type DrawPlayerFacet = {
@@ -312,17 +315,7 @@ export const createDrawPlayer = (world: DrawPlayerWorld) => {
         ctx.restore();
       }
 
-      if (!sinking && sprinting && dust.complete && dust.naturalWidth) {
-        const dustColumn = Math.floor(now / 78) % 4;
-        ctx.save();
-        ctx.globalAlpha = 0.58;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.translate(p.x, p.y + 3);
-        ctx.rotate(sprintEffectRotation(direction));
-        ctx.drawImage(dust, dustColumn * 256, 0, 256, 192, -78, -29, 92, 69);
-        ctx.restore();
-      }
+      if (!sinking && sprinting) drawBoostDust(ctx,p,now,dust,world.boostDustResolve?.(p.characterId,p.vx,p.vy,now)??null,sprintEffectRotation(direction));
       if (inWater) {
         const ripple = 19 + Math.sin(now / 130 + p.aiSeed) * 3;
         ctx.save();

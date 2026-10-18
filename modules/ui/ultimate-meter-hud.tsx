@@ -9,14 +9,16 @@ export const UltimateMeterHud = ({
   hudTitle,
   shieldClass,
   meter,
+  disabled=false,onActivate,
 }: {
   playerName: string;
   icon: UltimateIconId;
   hudTitle: string;
   shieldClass?: string;
   meter: number;
+  disabled?:boolean;onActivate:()=>void;
 }) => (
-  <div
+  <button type="button" disabled={disabled||meter<100} onClick={onActivate}
     className={`ultimate-meter-hud ${shieldClass ?? ''} ${meter >= 100 ? 'ready' : ''}`}
     aria-label={t(`Meter Ultimate ${playerName} ${Math.floor(meter)} persen`)}
   >
@@ -29,7 +31,7 @@ export const UltimateMeterHud = ({
       <u style={{ width: `${meter}%` }} />
     </i>
     <small>
-      {t(meter >= 100 ? 'TEKAN CAPS LOCK' : 'OTOMATIS · TAG +20 · RESCUE +30')}
+      {t(meter >= 100 ? 'TEKAN CAPS LOCK' : 'ULTIMATE')}
     </small>
-  </div>
+  </button>
 );

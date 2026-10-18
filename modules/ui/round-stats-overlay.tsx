@@ -22,6 +22,8 @@ import { AfterMatchResults } from './after-match-results.tsx';
 import type { ProgressionResult } from '../../lib/player-profile/match-progression';
 import { t } from '../../lib/language';
 import type { ReactNode } from 'react';
+import { useModalDialog } from './use-modal-dialog';
+import './desktop-ux.css';
 
 // Round recap / match leaderboard / match-over dialog over the HUD.
 // Pure presentation: all state comes from the snapshot board and every
@@ -71,15 +73,18 @@ export const RoundStatsOverlay = ({
   unlockDismissed?: boolean;
   onDismiss?: () => void;
 }) => {
+  const dialog = useModalDialog(statsBoard.visible || leaderboardOpen, () => {
+    if (!statsBoard.visible) onCloseLeaderboard();
+  });
   // Final match results use the dedicated After Match presentation. Round
   // recaps and the manual leaderboard keep the legacy markup below.
   if (statsBoard.final && statsBoard.visible) {
     return (
       <dialog
-        className="round-stats-overlay final"
-        open={statsBoard.visible || leaderboardOpen}
+        ref={dialog}
+        className="round-stats-overlay final game-modal"
         aria-modal={true}
-        aria-labelledby="round-stats-title"
+        aria-label={t('Hasil pertandingan')}
       >
         <AfterMatchResults
           statsBoard={statsBoard}
@@ -99,8 +104,8 @@ export const RoundStatsOverlay = ({
   }
   return (
   <dialog
-    className={`round-stats-overlay ${statsBoard.final ? 'final' : ''}`}
-    open={statsBoard.visible || leaderboardOpen}
+    ref={dialog}
+    className={`round-stats-overlay game-modal ${statsBoard.final ? 'final' : ''}`}
     aria-modal={true}
     aria-labelledby="round-stats-title"
   >

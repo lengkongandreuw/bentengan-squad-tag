@@ -1,7 +1,6 @@
 import { t } from '../../lib/language';
 import { roleLabel } from '../../lib/player-copy';
 import {
-  CHARACTER_BY_ID,
   ULTIMATE_CHARACTER_IDS,
   type CharacterDefinition,
   type CharacterId,
@@ -13,12 +12,8 @@ import { statPercent } from './format.ts';
 import {UltimateUpgradePanel} from './ultimate-upgrade-panel.tsx';
 import type {LocalPlayerProfile} from '../../lib/player-profile/index.ts';
 import {CharacterLockBadge} from './character-lock-badge.tsx';
-import {getNextCharacterGoal,getCharacterSelectionState} from '../../lib/player-profile/index.ts';
-
-const CharacterNextGoal=({profile}:{profile:LocalPlayerProfile})=>{
-  const goal=getNextCharacterGoal(profile);
-  return <div className="character-next-goal" aria-label={t('Target unlock berikutnya')}>{t(goal?`Target berikutnya: ${CHARACTER_BY_ID[goal.characterId].name} · Lv.${goal.minLevel} · ${goal.xpRemaining} XP lagi`:'Semua karakter telah terbuka')}</div>;
-};
+import {getCharacterSelectionState} from '../../lib/player-profile/index.ts';
+import {CharacterNextGoal} from './character-next-goal';
 
 // Character select screen: roster video, team swap, carousel grid, ability
 // panel, and the select button. Hover/cycle/voice wiring arrives as

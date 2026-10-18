@@ -1,0 +1,65 @@
+/* Shared modal contract: author display rules must not unhide closed dialogs. */
+dialog.game-modal:not([open]) { display: none; }
+dialog.game-modal { max-width: none; max-height: none; margin: 0; box-sizing: border-box; }
+dialog.game-modal::backdrop { background: transparent; }
+dialog.player-profile-overlay.game-modal, dialog.rules-overlay.game-modal { width: 100%; height: 100%; border: 0; }
+dialog.round-stats-overlay.final.game-modal { padding: 8px; }
+dialog.pause-overlay { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; color: #fff; }
+.pause-overlay > div { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.pause-overlay button { min-height: 44px; }
+.pause-overlay .pause-confirm-action { border-color: #ff977a; }
+.game-modal :focus-visible, .playing-shell button:focus-visible { outline: 3px solid #db92ff; outline-offset: 3px; }
+
+/* Keep navigation outside the scrolling results/reward content. */
+.round-stats-overlay.final .after-match {
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  height: calc(100dvh - 40px); max-height: calc(100dvh - 40px);
+  min-height: 0; overflow: hidden; padding-bottom: 8px;
+}
+.round-stats-overlay .after-match > :is(.after-match-panel, .after-match-rewards-body) {
+  min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable;
+}
+.round-stats-overlay .after-match-actions { min-height: 60px; flex-shrink: 0; background: #07120b; padding: 6px; }
+.round-stats-overlay .after-match-actions button { min-height: 44px; }
+
+/* In a short landscape window use real text surfaces instead of squeezing text into artwork. */
+@media (orientation: landscape) {
+  .pregame-shell .framed-character-panel .character-panel-skill p { font-size: 14px; line-height: 1.45; }
+}
+@media (max-height: 620px) and (orientation: landscape) {
+  .pregame-shell .framed-character-panel {
+    top: 72px; right: 2%; bottom: 74px; width: 49%; height: auto; aspect-ratio: auto;
+    display: flex; flex-direction: column; gap: 8px; padding: 12px 16px;
+    background: #f4f2e8; color: #171717; border: 3px solid #101510; overflow-y: auto;
+  }
+  .pregame-shell .framed-character-panel .character-panel-frame { display: none; }
+  .pregame-shell .framed-character-panel :is(.character-panel-identity,.character-panel-skill,.character-panel-stats) {
+    position: static; width: 100%; height: auto; margin: 0; text-align: left; flex-shrink: 0;
+  }
+  .pregame-shell .framed-character-panel .character-panel-name { font-size: 26px; transform: none; }
+  .pregame-shell .framed-character-panel .character-panel-skill small { font-size: 11px; }
+  .pregame-shell .framed-character-panel .character-panel-skill b { font-size: 19px; line-height: 1.1; }
+  .pregame-shell .framed-character-panel .character-panel-skill p { display: block; font-weight: 600; }
+  .pregame-shell .framed-character-panel .character-panel-stats { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, 22px); }
+  .pregame-shell .framed-character-panel .character-panel-stat { display: grid; grid-template-columns: 148px 1fr; gap: 8px; align-items: center; }
+  .pregame-shell .framed-character-panel .character-panel-stat-label { position: static; display: flex; justify-content: space-between; width: auto; height: auto; font-size: 12px; }
+  .pregame-shell .framed-character-panel .character-panel-stat-label b { display: inline; }
+  .pregame-shell .framed-character-panel .character-panel-stat-track { position: static; width: 100%; height: 14px; mask-image: none; -webkit-mask-image: none; background: #333; border: 1px solid #171717; }
+  .pregame-shell .framed-character-panel .character-panel-select { right: 2%; bottom: 16px; height: 48px; min-height: 48px; width: 49%; }
+  .pregame-shell .selection-economy { left: 12px; right: auto; bottom: 12px; max-width: 44%; }
+  .pregame-shell .character-next-goal { display: none; }
+  .playing-shell .tutorial-coach { top: 64px; left: auto; right: 8px; width: 240px; max-height: calc(100dvh - 170px); }
+  .playing-shell[class*="tutorial-highlight-"] .camera-map { display: none; }
+}
+@media (max-width: 620px) and (orientation: portrait) {
+  .playing-shell .tutorial-coach { top: 166px; max-height: calc(100dvh - 350px); }
+  .round-stats-overlay.final .after-match { height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); gap: 8px; }
+  .round-stats-overlay .after-match-actions { gap: 8px; }
+  .round-stats-overlay .after-match-rewards-footer { display: flex; flex-wrap: wrap; }
+  .round-stats-overlay .after-match-rewards-footer button { flex: 1 1 40%; }
+}
+@media (max-height: 500px) {
+  .round-stats-overlay.final .after-match { height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); gap: 8px; }
+  .round-stats-overlay :is(.after-match-banner,.after-match-meta-card) { min-height: 44px; }
+  .round-stats-overlay .after-match-banner { font-size: 24px; }
+}

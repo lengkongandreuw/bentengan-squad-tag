@@ -1,0 +1,16 @@
+.pregame-shell .character-next-goal.unlock-progress-strip{position:absolute;display:block;left:3%;bottom:12px;top:auto;z-index:12;width:min(700px,44vw);max-width:none;padding:0;border:0;background:none;aspect-ratio:1580/302;color:#fff7e5;}
+.unlock-strip-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;}
+.unlock-strip-heading{position:absolute;left:15%;right:12%;top:24%;height:30%;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;background:linear-gradient(110deg,#151a1d,#0c1013);font-size:clamp(12px,1.12vw,19px);line-height:1.2;font-weight:800;text-align:center;}
+.unlock-strip-heading strong{font-weight:900;}.unlock-required-level{color:#d58aff;}
+.unlock-strip-track{position:absolute;left:9.3%;right:10.4%;top:65%;height:12%;overflow:hidden;clip-path:polygon(2% 0,100% 0,98% 100%,0 100%);}
+.unlock-strip-track i{display:block;width:100%;height:100%;transform-origin:left center;background-size:100% 100%;background-color:#8d3bff;}
+.unlock-strip-semantic{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+@media(max-height:620px) and (orientation:landscape){
+ .pregame-shell .character-next-goal.unlock-progress-strip{left:12px;bottom:74px;width:44vw;}
+ .unlock-strip-heading{font-size:clamp(10px,1.4vw,14px);}
+}
+@media(max-width:620px) and (orientation:portrait){
+ .pregame-shell .character-next-goal.unlock-progress-strip{left:12px;bottom:144px;width:calc(100% - 24px);}
+ .unlock-strip-heading{font-size:12px;}
+ .pregame-shell .character-mobile-summary{bottom:calc(19.1vw + 151.4px);}
+}

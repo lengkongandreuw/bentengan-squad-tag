@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {RoundStatsOverlay} from '../../modules/ui/round-stats-overlay';
 import {initialSnapshot} from '../../modules/game-core/snapshot-types';
@@ -47,6 +47,11 @@ function Fixture(){
   const [dismissed,setDismissed]=useState(false);
   const pick=(m:string)=>{setMode(m);setDismissed(false);};
   const pickReward=(r:string)=>{setReward(r);setDismissed(false);};
+  useEffect(()=>{
+    const qa = window as unknown as {resultsQA?: {pick:(mode:string)=>void;pickReward:(reward:string)=>void}};
+    qa.resultsQA={pick,pickReward};
+    return()=>{delete qa.resultsQA;};
+  },[]);
   const board:StatsBoard={...initialSnapshot.statsBoard,visible:mode!=='leaderboard',final:mode==='final',winner:'blue',round:2,mapName:'QA Arena',duration:80,score:{blue:2,red:0},teams:{
     blue:Array.from({length:5},(_,i)=>({id:'blue'+i,name:'Player '+i,characterId:'bebe',controlled:i===0,contribution:50,mvp:i===0,tags:2,prisons:1,rescues:3})),
     red:Array.from({length:5},(_,i)=>({id:'red'+i,name:'Player '+i,characterId:'ciici',contribution:20,mvp:false,tags:1,prisons:2,rescues:1})),

@@ -1,5 +1,16 @@
-import {DIRECTIONS,SLOTS,FLIGHT_ACTIONS,isFlightSlot,actionsForCharacter,slotAllowed,slotLoop,validateClip,frameAt,spritePlacement} from '/model.js';
+import {DIRECTIONS,SLOTS,FLIGHT_ACTIONS,isFlightSlot,actionsForCharacter,slotAllowed,slotLoop,validateClip,frameAt,spritePlacement,boostDustSelection,BUILTIN_BOOST_DUST} from '/model.js';
 const $=id=>document.getElementById(id),names={run:'Lari',tag:'Tag / menangkap',parkour:'Lompat / parkour',idle:'Idle',prisoner:'Idle tertangkap',ready:'Bersiap awal',ultimate:'Ultimate (opsional)',victory:'Menang',defeat:'Kalah',south:'Depan / bawah ↓',north:'Belakang / atas ↑',west:'Kiri ←',east:'Kanan →',northwest:'Kiri atas ↖',northeast:'Kanan atas ↗',southwest:'Kiri bawah ↙',southeast:'Kanan bawah ↘'};
+names.boost_dust='Boost dust · Efek debu sprint';
+const boostShortcut=document.createElement('button');boostShortcut.textContent='Edit boost dust';boostShortcut.id='editBoostDust';
+const boostHelp=document.createElement('details');boostHelp.id='boostDustHelp';boostHelp.hidden=true;
+const boostSummary=document.createElement('summary');boostSummary.textContent='Boost limits: 32 frame · 8 MB';
+const boostDescription=document.createElement('p');boostDescription.textContent='Global = semua karakter. Arah karakter → default karakter → arah global → default global → bawaan. Default dibuat menghadap kanan (→) dan berputar mengikuti lari; override arah memakai orientasi gambar apa adanya. GIF / WebP animasi atau seri PNG/WebP: 1–32 frame, total 8 MB, sisi frame termasuk padding ≤512 px. Hapus override untuk mewarisi lagi. Tidak mengubah sprite tubuh atau kemampuan.';boostHelp.append(boostSummary,boostDescription);
+const headingLabel=document.createElement('label');headingLabel.textContent='Preview running direction';headingLabel.hidden=true;
+const heading=document.createElement('select');heading.id='boostPreviewDirection';headingLabel.append(heading);
+for(const d of DIRECTIONS){const option=document.createElement('option');option.value=d;option.textContent=names[d];heading.append(option);}heading.value='east';
+$('action').parentElement.after(boostShortcut,boostHelp,headingLabel);
+let legacyBoostRotate=false;
+boostShortcut.onclick=()=>{if(processing)return;$('action').value='boost_dust';void safe(loadSlot)();};
 // Reuse the existing inputs and IDs: only the editing workspace changes.
 const workspace=$('preview').closest('section');workspace.classList.add('sprite-workspace');workspace.dataset.view='preview';
 document.querySelector('main > aside').classList.add('sprite-browser');
@@ -59,6 +70,9 @@ function renderCropGuides(factor){
 }
 for(const key of ['gridVisible','rulersVisible','gridSize','snapGrid'])$(key).onchange=()=>renderCrop();
 let state,clip=null,image=null,legacy=null,dirty=false,playing=true,frame=0,start=performance.now(),uploaded=[],selection='',requestId=0,drag=null;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+if(reducedMotion.matches){playing=false;$('play').textContent='Play';}
+reducedMotion.addEventListener('change',event=>{if(event.matches){playing=false;$('play').textContent='Play';}});
 let engineVisible=true;
 window.addEventListener('message',event=>{
   if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&typeof event.data.active==='boolean'){
@@ -118,8 +132,8 @@ function options(select,values,label){select.replaceChildren(...values.map(value
 function refreshSlots(){
   const a=$('action').value,slots=SLOTS.filter(s=>s.split('.')[0]===a);
   $('slots').replaceChildren(...slots.map(s=>{const draft=drafts[id()]?.[s];const b=document.createElement('button');b.className=`slot ${state.document.characters[id()]?.[s]?'custom':''} ${draft?.reviewed?'ready':''} ${s===slot()?'selected':''}`;b.textContent=`${draft?(draft.reviewed?'✓ ':'○ '):''}${names[s.split('.')[1]??'default']}`;b.onclick=safe(async()=>{$('direction').value=s.split('.')[1]??'default';await loadSlot();});return b;}));
-  const custom=Object.keys(state.document.characters[id()]??{});$('summary').textContent=`${state.roster.find(r=>r.id===id()).team==='red'?'Tim Merah':'Tim Hijau'} · ${custom.length} movement / arah custom`;
-  options($('copySource'),[...new Set([...custom,...Object.keys(drafts[id()]??{}).filter(s=>drafts[id()][s].clip)])],slotName);refreshBatch();
+  const custom=Object.keys(state.document.characters[id()]??{});$('summary').textContent=`${id()==='default'?'GLOBAL · Semua karakter':state.roster.find(r=>r.id===id()).team==='red'?'Tim Merah':'Tim Hijau'} · ${custom.length} movement / arah custom`;
+  options($('copySource'),[...new Set([...custom,...Object.keys(drafts[id()]??{}).filter(s=>drafts[id()][s].clip)])].filter(s=>(s.split('.')[0]==='boost_dust')===($('action').value==='boost_dust')),slotName);refreshBatch();
 }
 // JSON carries canonical clip metadata; referenced atlases must already exist in
 // this repository. Import stages drafts and never silently replaces a character.
@@ -132,6 +146,14 @@ $('advanced').append(exportButton,importLabel);
 function settings(){numeric.forEach(k=>{$(k).value=clip?.[k]??'';});$('quickFps').value=clip?.fps??'';$('quickFps').disabled=!clip||processing;['loop','mirror'].forEach(k=>{$(k).checked=clip?.[k]??false;});$('settings').disabled=!clip||processing;$('save').disabled=!clip||pendingUpload||processing;$('frame').max=String((clip??legacy)?.frames.length-1||0);refreshBatch();}
 async function loadImage(src){const i=new Image();i.src=src;try{await i.decode();}catch{throw new Error('Gambar tidak bisa dibaca atau ditampilkan. Periksa file PNG/GIF/WebP, lalu pilih ulang.');}return i;}
 async function legacyClip(character,s){
+  if(s.split('.')[0]==='boost_dust'){
+    const characters=structuredClone(state.document.characters);
+    // A staged deletion previews actual inheritance rather than the deleted clip.
+    if(characters[character])delete characters[character][s];
+    const inherited=boostDustSelection(characters,character,s.split('.')[1]??heading.value);
+    legacyBoostRotate=inherited?.rotate??true;
+    return structuredClone(inherited?.clip??BUILTIN_BOOST_DUST);
+  }
   const manifest=await fetch(`/characters/${character}/animations.json`).then(r=>r.json());
   const [action,direction]=s.split('.');
   const d=direction?.includes('north')?'north':direction?.includes('south')?'south':direction??'south';
@@ -147,18 +169,24 @@ async function loadSlot(){
   selection=next;dirty=false;clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';
   for(const k of ['columns','rows','count'])$(k).value=1;$('order').value='';
   const flight=FLIGHT_ACTIONS.includes($('action').value);
+  const boost=$('action').value==='boost_dust';boostHelp.hidden=!boost;headingLabel.hidden=!boost;
+  boostShortcut.setAttribute('aria-pressed',String(boost));
+  if(boost&&$('direction').value!=='default')heading.value=$('direction').value;
+  heading.disabled=$('direction').value!=='default';
+  for(const k of ['count','rows','columns'])$(k).max=boost?'32':'128';
+  $('remove').textContent=boost?'Hapus override · gunakan warisan':'Kembalikan arah ini ke sprite lama';
   $('direction').disabled=false;uploadValid=false;fileNotice('PNG tunggal, PNG sheet, kumpulan PNG, GIF dan WebP didukung.');refreshSlots();
   $('title').textContent=`${state.roster.find(r=>r.id===id()).name} · ${names[$('action').value]} ${$('direction').disabled?'':names[$('direction').value]}`;
   const draft=drafts[id()]?.[slot()];dirty=Boolean(draft&&!draft.reviewed);
-  clip=structuredClone(draft?draft.clip:state.document.characters[id()]?.[slot()]??state.document.characters[id()]?.[$('action').value]??null);legacy=null;image=null;frame=0;start=performance.now();settings();
+  clip=structuredClone(draft?draft.clip:state.document.characters[id()]?.[slot()]??(boost?null:state.document.characters[id()]?.[$('action').value])??null);legacy=null;image=null;frame=0;start=performance.now();settings();
   if(clip&&flight){clip.loop=slotLoop(slot());settings();}
-  $('loop').disabled=flight;
+  $('loop').disabled=flight||boost;
   const ticket=++requestId;
   try {
     const fallback=clip?null:await legacyClip(id(),slot());
     const source=clip??fallback,loaded=await loadImage('/'+source.asset);
     if(ticket!==requestId)return;legacy=fallback;image=loaded;settings();
-    $('origin').textContent=draft?(draft.reviewed?'Draft · sudah sesuai':'Draft · belum diperiksa'):clip?'Sprite custom tersimpan':'Sprite lama · ilustrasi atlas';
+    $('origin').textContent=draft?(draft.reviewed?'Draft · sudah sesuai':'Draft · belum diperiksa'):clip?'Sprite custom tersimpan':boost?'Inherited / bawaan · upload untuk override':'Sprite lama · ilustrasi atlas';
     const missing=actionsForCharacter(id()).filter(s=>FLIGHT_ACTIONS.includes(s)&&!Object.keys(state.document.characters[id()]??{}).some(key=>key.split('.')[0]===s));
     const outdated=flight&&!state.supportedSlots?.[id()]?.includes(slot());
     message((outdated?'WARNING: Server editor belum mendukung slot ultimate ini. Simpan draft yang sudah diproses, restart npm run admin:sprites, lalu buka ulang panel. ': '')+(clip?'Siap mengedit slot ini.':'Slot ini memakai fallback sementara; preview atlas lama hanya referensi.')+(missing.length?` WARNING: ${missing.map(s=>names[s]).join(', ')} belum diisi. Save movement lain tetap diizinkan.`:''));
@@ -180,6 +208,7 @@ async function job(publish){await api(publish?'publish':'build',{});message('Mem
   const poll=setInterval(async()=>{try{const result=await api('job');message(result.message);if(result.status!=='running'){clearInterval(poll);if(result.url){$('gameLink').href=result.url;$('gameLink').hidden=false;}}}catch(e){clearInterval(poll);message(e.message);}},2000);
 }
 const safe=fn=>async()=>{try{if(processing)throw new Error('Tunggu pemrosesan animasi selesai.');await fn();}catch(e){if(pendingUpload&&!sourceWidth)$('sourceEditor').hidden=true;message(e.message);fileNotice(e.message,true);}};
+heading.onchange=safe(async()=>{if(clip||pendingUpload)return;const ticket=++requestId,fallback=await legacyClip(id(),slot()),loaded=await loadImage('/'+fallback.asset);if(ticket!==requestId)return;legacy=fallback;image=loaded;frame=0;start=performance.now();settings();});
 $('files').onchange=safe(async()=>{
   clearSource();uploadValid=false;uploaded=[...$('files').files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));$('fileNames').textContent=uploaded.map(f=>f.name).join('\n');if(!uploaded.length)return;
   pendingUpload=true;mark();fileNotice('Memeriksa file…');
@@ -189,7 +218,7 @@ $('files').onchange=safe(async()=>{
   processingState(true);try {
   sourceUrls=uploaded.map(f=>URL.createObjectURL(f));options($('sourceFile'),uploaded.map((_,i)=>String(i)),i=>uploaded[+i].name);$('sourceCell').value=0;$('sourceEditor').hidden=false;$('save').disabled=true;
   await showSource();const activeTicket=sourceTicket;
-  const inspection=await api('inspect',{files:await filePayload()});if(activeTicket!==sourceTicket)return;
+  const inspection=await api('inspect',{id:id(),slot:slot(),files:await filePayload()});if(activeTicket!==sourceTicket)return;
   uploadValid=true;fileNotice(`File diterima: ${inspection.files.map(f=>`${f.format.toUpperCase()} ${f.width}×${f.height}, ${f.pages} frame`).join('; ')}. PNG sheet: atur grid di Advanced options. Klik Proses untuk validasi hasil akhir.`);message('File dapat dibaca. Preview belum diterapkan ke game.');
   } finally {processingState(false);settings();}
 });
@@ -215,7 +244,7 @@ $('compile').onclick=safe(async()=>{
   if($('cropWidth').value||$('cropHeight').value)options.crop={left:+$('cropLeft').value,top:+$('cropTop').value,width:+$('cropWidth').value,height:+$('cropHeight').value};
   const result=await api('compile',{id:id(),slot:slot(),files,options});const previous=clip;
   clip=result.clip;if(previous)for(const k of [...numeric,'loop','mirror'])clip[k]=previous[k];
-  if(isFlightSlot(slot()))clip.loop=slotLoop(slot());
+  if(isFlightSlot(slot())||$('action').value==='boost_dust')clip.loop=slotLoop(slot());
   image=await loadImage('/'+clip.asset);pendingUpload=false;frame=0;start=performance.now();settings();mark();setWorkspaceView('preview');fileNotice(`Siap digunakan: ${clip.frames.length} frame. Klik Terapkan movement ini saja, atau centang draft untuk update pilihan.`);message('Pemrosesan berhasil. Movement lain tidak wajib diganti.');
   } finally {processingState(false);settings();}
 });
@@ -241,13 +270,15 @@ function draw(now){
   if(!engineVisible||document.hidden){requestAnimationFrame(draw);return;}
   ctx.fillStyle='#1c261f';ctx.fillRect(0,0,canvas.width,canvas.height);
   if($('arena').checked&&ground.complete&&ground.naturalWidth)ctx.drawImage(ground,0,0,canvas.width,canvas.height);else for(let y=0;y<canvas.height;y+=24)for(let x=0;x<canvas.width;x+=24){ctx.fillStyle=(x/24+y/24)%2?'#222f26':'#18231c';ctx.fillRect(x,y,24,24);}
-  const c=clip??legacy,zoom=+$('zoom').value,baseX=canvas.width/2,baseY=Math.round(canvas.height*.82);
+  const c=clip??legacy,zoom=+$('zoom').value,baseX=canvas.width/2,baseY=Math.round(canvas.height*($('action').value==='boost_dust'?.5:.82));
   drawGuides(ctx,canvas.width,canvas.height,baseX,baseY,zoom);
   ctx.strokeStyle='#b9ed77';ctx.beginPath();ctx.moveTo(0,baseY);ctx.lineTo(900,baseY);ctx.stroke();
   if(c&&image?.complete){
-    if(playing) {const mode=isFlightSlot(slot())?{...c,loop:slotLoop(slot())}:c;const f=frameAt(mode,now-start);frame=c.frames.indexOf(f);}
-    const f=c.frames[frame],p=spritePlacement(c,f,74*(state.roster.find(r=>r.id===id())?.visualScale??1));ctx.save();ctx.translate(baseX,baseY);ctx.scale(zoom,zoom);
+    if(playing) {const mode=isFlightSlot(slot())||$('action').value==='boost_dust'?{...c,loop:slotLoop(slot())}:c;const f=frameAt(mode,now-start);frame=c.frames.indexOf(f);}
+    const boost=$('action').value==='boost_dust';
+    const f=c.frames[frame],p=spritePlacement(c,f,boost?69:74*(state.roster.find(r=>r.id===id())?.visualScale??1));ctx.save();ctx.translate(baseX,baseY);ctx.scale(zoom,zoom);
     ctx.strokeStyle='#69dfff';ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(6,0);ctx.moveTo(0,-6);ctx.lineTo(0,6);ctx.stroke();
+    if(boost&&(clip?!slot().includes('.'):legacyBoostRotate)){const vector={south:[0,1],southwest:[-1,1],west:[-1,0],northwest:[-1,-1],north:[0,-1],northeast:[1,-1],east:[1,0],southeast:[1,1]}[heading.value];ctx.rotate(Math.atan2(vector[1],vector[0]));}
     ctx.translate(c.x,c.y);if(c.mirror)ctx.scale(-1,1);
     ctx.drawImage(image,f.x,f.y,f.width,f.height,-p.width*c.pivotX,-p.height*c.pivotY,p.width,p.height);
     ctx.strokeStyle='#ffffff70';ctx.strokeRect(-p.width*c.pivotX,-p.height*c.pivotY,p.width,p.height);ctx.restore();

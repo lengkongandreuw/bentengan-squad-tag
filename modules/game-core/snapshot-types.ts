@@ -3,6 +3,9 @@ import type { CharacterId } from '../../lib/characters';
 import type { MatchEvent } from './match-types';
 import type { PlayerState } from './match-types';
 import type { PlayerStats } from '../gameplay/bars-score';
+import type {FortStatusView} from '../ui/fort-status-view';
+import type {HintContext} from '../ui/hint-policy';
+import type {TutorialMechanic} from '../../lib/player-profile/tutorial';
 
 export type Mission = {
   refresh: boolean;
@@ -104,6 +107,9 @@ export type Snapshot = {
   redHeld: number;
   pickupCount: number;
   fortLock: string;
+  fortStatus?:FortStatusView;
+  guidance?:Omit<HintContext,'learned'|'state'>;
+  learnedMechanics?:TutorialMechanic[];
   baseGrace: number;
   suddenDeath: boolean;
   fieldWins: number;

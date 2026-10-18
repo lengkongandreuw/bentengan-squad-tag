@@ -38,7 +38,10 @@ export const handleKeyDown = (
   setLeaderboardOpen: (value: boolean) => void,
 ): void => {
   const key = event.key.toLowerCase();
-  if (profileOpen) {
+  if (profileOpen || (typeof document !== 'undefined' && document.querySelector('dialog:modal')) ||
+    (typeof Element !== 'undefined' && event.target instanceof Element &&
+      (event.target.closest('input,textarea,select,[contenteditable="true"]') ||
+        ([' ', 'enter'].includes(key) && event.target.closest('button,summary'))))) {
     keys.clear();
     return;
   }
@@ -105,6 +108,7 @@ export const handlePointerDown = (event: PointerEvent, world: PointerDownWorld):
   )
     return;
   event.preventDefault();
+  world.canvas.focus({ preventScroll: true });
   const shell = world.canvas.closest('.playing-shell');
   const matrix = shell ? new DOMMatrix(getComputedStyle(shell).transform) : new DOMMatrix();
   const target = pointerWorld(

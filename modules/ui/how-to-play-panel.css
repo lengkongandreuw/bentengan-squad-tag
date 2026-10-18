@@ -1,0 +1,11 @@
+.how-to-play-panel{margin:0 0 16px;}
+.help-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;}
+.pause-hub .help-tabs button{padding:8px 3px;margin:0;min-width:0;width:100%;min-height:44px;border:1px solid #9fb67a;background:#1c2a20;color:#f5f5e9;font-weight:800;font-size:clamp(11px,1.5vw,13px);}
+.pause-hub .help-tabs button[aria-selected=true]{background:#d9fa4a;color:#101a0c;}
+.how-to-play-panel [role=tabpanel]{border:1px solid #63795b;border-radius:8px;background:#152019;padding:12px;}
+.help-preview{width:100%;height:auto;max-height:175px;display:block;margin:0 auto 12px;}
+.how-to-play-panel h4{font-size:22px;margin:0 0 8px;line-height:1.2;}
+.how-to-play-panel p{font-size:16px;line-height:1.5;max-width:56ch;}
+.help-interaction{font-size:14px;padding:10px 12px;border-left:3px solid #d9fa4a;background:#0c160f;color:#e3ebda;}
+.pause-controls-reference{margin:16px 0;}.pause-controls-reference>summary{min-height:44px;cursor:pointer;padding:10px 0;}
+@media(max-height:500px){.help-preview{max-height:120px;}.how-to-play-panel h4{font-size:20px;}}

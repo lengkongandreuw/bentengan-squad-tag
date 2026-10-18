@@ -43,10 +43,11 @@ const rulesOverlaySource = await readFile(path.join(root, 'modules/ui/rules-over
 const arenaIntelSource = await readFile(path.join(root, 'modules/ui/arena-intel.tsx'), 'utf8');
 const pauseOverlaySource = await readFile(path.join(root, 'modules/ui/pause-overlay.tsx'), 'utf8');
 const prisonerNoticeSource = await readFile(path.join(root, 'modules/ui/prisoner-notice.tsx'), 'utf8');
-const activeObjectiveSource = await readFile(path.join(root, 'modules/ui/active-objective.tsx'), 'utf8');
+const pauseOverviewSource = await readFile(path.join(root, 'modules/ui/pause-match-overview.tsx'), 'utf8');
 const teamComboHudSource = await readFile(path.join(root, 'modules/ui/team-combo-hud.tsx'), 'utf8');
 const mobileControlsSource = await readFile(path.join(root, 'modules/ui/mobile-controls.tsx'), 'utf8');
-const actionDockSource = await readFile(path.join(root, 'modules/ui/action-dock.tsx'), 'utf8');
+const ultimateHudSource = await readFile(path.join(root, 'modules/ui/ultimate-meter-hud.tsx'), 'utf8');
+const boostDustSource = await readFile(path.join(root, 'modules/ui/boost-dust.ts'), 'utf8');
 const characterSelectSource = await readFile(path.join(root, 'modules/ui/character-select-screen.tsx'), 'utf8');
 const uxPrioritySource = await readFile(path.join(root, 'app/ux-priority.css'), 'utf8');
 const githubViteSource = await readFile(path.join(root, 'vite.github.config.ts'), 'utf8');
@@ -113,7 +114,7 @@ assert(rajaAnimation.runColumns.join(',') === '1,2,3' && rajaAnimation.boostColu
 assert(jagoAnimation.directionRows.east === jagoAnimation.directionRows.west && !jagoAnimation.dedicatedEast && jagoAnimation.parkourByDirection.south.row === 3 && jagoAnimation.parkourByDirection.west.row === 4 && jagoAnimation.parkourByDirection.north.row === 5, 'override Jago memetakan lari sisi bercermin dan parkour tiga arah');
 assert(jagoAnimation.prisoner.row === 3 && jagoAnimation.prisoner.columns[0] === 4 && jagoAnimation.victory.columns[0] === 5 && jagoAnimation.defeat.columns[0] === 6, 'pose penjara, menang, dan kalah Jago memakai slot aksi khusus');
 assert(defaultAnimation === characterAnimations.DEFAULT_ANIMATION_MAPPING, 'karakter tanpa override tetap memakai mapping animasi default');
-assert(playerDrawSource.includes('ctx.rotate(sprintEffectRotation(direction))') && !prototypeSource.includes('if (p.vx > 0)'), 'renderer VFX memakai rotasi arah, bukan flip kanan yang terbalik');
+assert(playerDrawSource.includes('drawBoostDust(') && boostDustSource.includes('ctx.rotate(legacyRotation)') && prototypeSource.includes('sprintEffectRotation(direction)') && !prototypeSource.includes('if (p.vx > 0)'), 'renderer VFX memakai rotasi arah, bukan flip kanan yang terbalik');
 assert(workshopSource.includes('animation === \'boost\'') && workshopSource.includes('BOOST_COLUMNS'), 'workshop mempratinjau boost directional yang sama dengan arena');
 assert(!prototypeSource.includes('CHARACTERS.forEach(character => getSpriteImage') && prototypeSource.includes("image.decoding = 'async'") && prototypeSource.includes("if (mode === 'playing') {"), 'atlas dimuat lazy hanya saat pertandingan dan decode gambar tidak memblokir layar awal');
 assert((frameViewSource.match(/Math\.min\(2, Math\.max\(1, window\.devicePixelRatio/g) ?? []).length >= 1 && workshopSource.includes('Math.min(2, Math.max(1, window.devicePixelRatio'), 'pixel ratio canvas dibatasi 2×');
@@ -199,7 +200,7 @@ assert(prototypeSource.includes('DIFFICULTY_PROFILES[field.difficulty]') && aiVe
 const fieldOrder = ['kampung', 'pasar', 'taman', 'kanal'];
 assert(fieldCycleDecision('kampung', 2, fieldOrder).fieldId === 'kampung' && fieldCycleDecision('kampung', 2, fieldOrder).wins === 2, 'field bertahan sebelum tiga kemenangan pertandingan');
 assert(fieldCycleDecision('kampung', 3, fieldOrder).fieldId === 'pasar' && fieldCycleDecision('taman', 3, fieldOrder).fieldId === 'kanal' && fieldCycleDecision('kanal', 3, fieldOrder).fieldId === 'kampung', 'empat field berpindah dan berputar otomatis tepat setiap tiga kemenangan');
-assert(prototypeSource.includes('const quit = () =>') && prototypeSource.includes('setMode(\'menu\')') && pauseOverlaySource.includes("{t(' Keluar ke menu')}"), 'menu jeda dapat mengembalikan pemain ke menu awal');
+assert(prototypeSource.includes('const quit = () =>') && prototypeSource.includes('setMode(\'menu\')') && pauseOverlaySource.includes("setPending('quit')") && pauseOverlaySource.includes("'Exit to menu','Keluar ke menu'"), 'menu jeda mengembalikan pemain ke menu awal hanya setelah konfirmasi');
 assert(githubViteSource.includes("entryFileNames: 'assets/app-[hash].js'") && githubViteSource.includes("'assets/app.js'") && githubViteSource.includes('github-pages-cache-compatibility') && githubViteSource.includes('index-CcIgRf6v.js'), 'GitHub Pages memakai entry stabil dan alias bundle lama agar cache HTML tidak menghasilkan layar hitam');
 const crossingA = { lastX: 0, lastY: 0, x: 100, y: 0 };
 const crossingB = { lastX: 100, lastY: 0, x: 0, y: 0 };
@@ -218,7 +219,7 @@ assert((prototypeSource.match(/enemySpeed: 1/g) ?? []).length === 3 && (prototyp
 assert(prototypeSource.includes('navigateAroundHazards') && prototypeSource.includes('directionIsTraversable(') && collisionNavSource.includes('export const directionIsTraversable') && collisionNavSource.includes('probe.isBlocked(x, y, now) || probe.isWaterAt(x, y)') && prototypeSource.includes("if (me.state === 'RETURNING')"), 'AI dan pemain yang pulang dari penjara memilih jalur yang menghindari collider serta sungai');
 assert(prototypeSource.includes('parkourLanding(') && collisionNavSource.includes('export const findParkourLanding') && collisionNavSource.includes('maximumDistance = Math.max(nominalDistance, 132)') && collisionNavSource.includes('landing.crossedWater'), 'parkour sungai mencari titik darat aman secara adaptif sebelum memindahkan pemain');
 assert(/\.team-pick-green\s*\{[^}]*inset:\s*50% 0 0 0/.test(globalStyles) && globalStyles.includes('@media (orientation: portrait) and (max-width: 620px)') && uxPrioritySource.includes('.orientation-hint') && prototypeSource.includes('orientation-hint'), 'pemilihan tim ponsel memiliki dua area aktif dan petunjuk orientasi tampil pada layar portrait');
-assert(prototypeSource.includes('playerMechanicsLocked') && prisonerNoticeSource.includes('MENUNGGU DIBEBASKAN') && mobileControlsSource.includes('disabled={playerMechanicsLocked}') && globalStyles.includes('.action-dock.mechanics-inactive'), 'mekanik pemain tahanan dinonaktifkan sambil menampilkan peringatan menunggu pembebasan');
+assert(prototypeSource.includes('playerMechanicsLocked') && prisonerNoticeSource.includes('MENUNGGU DIBEBASKAN') && mobileControlsSource.includes('disabled={playerMechanicsLocked}') && ultimateHudSource.includes('disabled={disabled||meter<100}'), 'mekanik pemain tahanan dinonaktifkan pada kontrol sentuh dan Ultimate sambil menampilkan peringatan pembebasan');
 assert(characterSelectSource.includes('ultimate-roster-badge') && rulesOverlaySource.includes('Ultimate: pilih momenmu.') && missionPanelSource.includes('computed-status') && arenaIntelSource.includes('arena-intel'), 'seleksi karakter menandai pemilik Ultimate dan HUD/rules menjelaskan status terhitung');
 assert(globalStyles.includes('grid-template-columns: 52px 52px 52px') && /\.rules-dialog ol\s*\{[^}]*gap:\s*10px;[^}]*font-size:\s*11px/.test(globalStyles), 'D-pad ponsel dan teks aturan diperbesar agar mudah dibaca');
 let comboState = createTeamComboState();
@@ -276,7 +277,7 @@ const montagePath = path.join(root, 'public/characters.webp');
 const montage = await sharp(montagePath).metadata();
 assert(montage.width === 1920 && montage.height === 900 && (await stat(montagePath)).size <= 350 * 1024, 'montage WebP layar awal berada dalam budget 350 KiB');
 assert(prototypeSource.includes('benteng-tag-logo.webp?v=9') && missionPanelSource.includes('characters.webp?v=8'), 'UI memakai asset WebP ringan, bukan master PNG');
-assert(activeObjectiveSource.includes('active-objective') && actionDockSource.includes('action-dock') && pauseOverlaySource.includes('pause-overlay') && globalStyles.includes('.playing-shell .stage-hud'), 'HUD imersif memiliki tujuan aktif, dock aksi, dan menu jeda responsif');
+assert(pauseOverviewSource.includes('ArenaIntel') && ultimateHudSource.includes('onClick={onActivate}') && pauseOverlaySource.includes('pause-overlay') && prototypeSource.includes('GameplayScreenShell') && !prototypeSource.includes('<ActionDock') && !prototypeSource.includes('<ControlRibbon'), 'HUD bersama memakai Ultimate tunggal, informasi arena di Pause dan tidak merender dock/ribbon lama');
 const sprintDust = await sharp(path.join(root, 'public/vfx/sprint-dust.webp')).metadata();
 assert(sprintDust.width === 1024 && sprintDust.height === 192 && sprintDust.hasAlpha, 'VFX sprint RPG memiliki empat frame transparan');
 

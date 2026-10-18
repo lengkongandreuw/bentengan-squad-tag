@@ -1,7 +1,7 @@
 import settings from '../config/sprite-studio.json';
 import runtime from '../config/sprite-runtime.json';
 import { runtimeResource, runtimeFrameKey, type RuntimeManifest, type PackedFrame } from './studio-runtime-resource.ts';
-import { frameAt, spriteSlot, spriteDirection, studioSlotFallback, studioFlightSlot } from './sprite-studio-model.js';
+import { frameAt, spriteSlot, spriteDirection, studioSlotFallback, studioFlightSlot, boostDustSelection } from './sprite-studio-model.js';
 import { publicAsset, type CharacterId } from './characters.ts';
 type Clip = {asset:string;width:number;height:number;frames:{x:number;y:number;width:number;height:number}[];fps:number;scale:number;x:number;y:number;pivotX:number;pivotY:number;loop:boolean;mirror:boolean};
 const clips = settings.characters as Record<string, Record<string,Clip>>;
@@ -18,8 +18,8 @@ const resource=(clip:Clip)=>{
 };
 const flightClips=new WeakMap<Clip,{loop:Clip;once:Clip}>();
 export function retainStudioImages(ids:readonly CharacterId[], ultimateIds:readonly CharacterId[]=ids) {
-  const used=new Set(ids.flatMap(id=>Object.entries(clips[id]??{})
-    .filter(([slot])=>ultimateIds.includes(id)||!slot.startsWith('ultimate'))
+  const used=new Set((ids.length?[...ids,'default']:[]).flatMap(id=>Object.entries(clips[id]??{})
+    .filter(([slot])=>ultimateIds.includes(id as CharacterId)||!slot.startsWith('ultimate'))
     .map(([,c])=>resource(c).asset)));
   for(const [asset,image]of images)if(!used.has(asset)){image.removeAttribute('src');images.delete(asset);}
 }
@@ -29,13 +29,24 @@ export const studioFlightClip = (id:CharacterId,slot:string,direction='south') =
   return resolved?studioClip(id,resolved):null;
 };
 export function studioImages(id:CharacterId, includeUltimate=true) {
-  return [...new Set(Object.entries(clips[id]??{})
+  return [...new Set([...Object.entries(clips[id]??{}),...Object.entries(clips.default??{})]
     .filter(([slot])=>includeUltimate||!slot.startsWith('ultimate'))
     .map(([,c])=>resource(c).asset))].map(asset=>{
     let image=images.get(asset);
     if(!image) { image=new Image(); image.decoding='async'; image.src=publicAsset(asset); images.set(asset,image); }
     return image;
   });
+}
+const boostSelections=new Map<string,ReturnType<typeof boostDustSelection>>();
+export function studioBoostDust(id:CharacterId,vx:number,vy:number,now:number) {
+  const direction=spriteDirection(vx,vy),key=`${id}/${direction}`;
+  if(!boostSelections.has(key))boostSelections.set(key,boostDustSelection(clips,id,direction));
+  const selected=boostSelections.get(key);
+  if(!selected)return null;
+  const clip=selected.clip as Clip,atlas=resource(clip),image=images.get(atlas.asset);
+  if(!image?.complete||!image.naturalWidth)return null;
+  const frame=clip.frames[Math.max(0,Math.floor(now*clip.fps/1000))%clip.frames.length];
+  return {clip,image,frame,packedFrame:atlas.frameMap.get(frame),rotate:selected.rotate};
 }
 export function studioImageBudget() {
   return {atlases:images.size, rgbaBytes:[...images.values()].reduce((sum,image)=>sum+image.naturalWidth*image.naturalHeight*4,0)};

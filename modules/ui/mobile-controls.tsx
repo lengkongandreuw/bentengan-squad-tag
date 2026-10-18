@@ -1,11 +1,12 @@
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import {ChevronUp,ChevronLeft,ChevronRight,ChevronDown} from 'lucide-react';
 import { t } from '../../lib/language';
 
 export type TouchProps = {
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void;
-  onPointerUp: () => void;
-  onPointerCancel: () => void;
-  onLostPointerCapture: () => void;
+  onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+  onPointerCancel: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+  onLostPointerCapture: (event: ReactPointerEvent<HTMLButtonElement>) => void;
 };
 
 // Touch controls (D-pad + actions). The key-injecting `touch` handlers and
@@ -39,16 +40,16 @@ export const MobileControls = ({
   >
     <div className="touch-dpad">
       <button aria-label={t("Gerak atas")} disabled={playerMechanicsLocked} {...touch('w')}>
-        {t("▲")}
+        <ChevronUp aria-hidden="true"/>
       </button>
       <button aria-label={t("Gerak kiri")} disabled={playerMechanicsLocked} {...touch('a')}>
-        {t("◀")}
+        <ChevronLeft aria-hidden="true"/>
       </button>
       <button aria-label={t("Gerak kanan")} disabled={playerMechanicsLocked} {...touch('d')}>
-        {t("▶")}
+        <ChevronRight aria-hidden="true"/>
       </button>
       <button aria-label={t("Gerak bawah")} disabled={playerMechanicsLocked} {...touch('s')}>
-        {t("▼")}
+        <ChevronDown aria-hidden="true"/>
       </button>
     </div>
     <div className="touch-actions">

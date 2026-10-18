@@ -311,18 +311,18 @@ void test('10 event boundary stays finite and runtime connects presentation with
 void test('10 actual interaction presenter preserves player/bot audio routing and never mutates match truth',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8'),start=source.indexOf('const presentInteractionEvents ='),end=source.indexOf('const capture =',start);
   const initialize=vm.runInThisContext(ts.transpileModule(`(function(players,presentGameEvents){
-    let localSignSerial=0;const tutorialIdentity=false,network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
+    let localSignSerial=0;const learning=[],observeLearningEvents=events=>learning.push(...events),tutorialIdentity=false,network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
       distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),gameplayAudio={play:(...args)=>sounds.push(args),resetTagStreak:()=>sounds.push(['reset']),playerTag:now=>sounds.push(['playerTag',now])},
       addMatchEvent=event=>feed.push(event),burst=(...args)=>bursts.push(args),log=text=>logs.push(text),beep=()=>{};
     ${source.slice(start,end)}
-    return {present:presentInteractionEvents,read:()=>({sounds,feed,bursts,logs})};
+    return {present:presentInteractionEvents,read:()=>({sounds,feed,bursts,logs,learning})};
   })`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText);
   for(const victimLocal of [false,true])for(const attackerLocal of [false,true]){
     const local=actor(),a=actor({entityId:'tagger',controlled:attackerLocal}),b=enemy({controlled:victimLocal}),events=[];
     assert.ok(interactions.resolveTag([a,b],a.entityId,b.entityId,1000,rule,facts=>events.push(...facts)));
     const players=[local,a,b],before=structuredClone(players),run=initialize(players,gameEvents.presentGameEvents);
     run.present(events,1000);assert.deepEqual(players,before);
-    const result=run.read();assert.equal(result.feed.length,1);assert.equal(result.bursts.length,1);assert.equal(result.logs.length,1);
+    const result=run.read();assert.equal(result.feed.length,1);assert.equal(result.bursts.length,1);assert.equal(result.logs.length,1);assert.deepEqual(result.learning,events,'learning observes original accepted facts without altering them');
     assert.deepEqual(result.sounds,victimLocal?[['reset'],['caught']]:attackerLocal?[['playerTag',1000]]:[['tag',.22]]);
   }
   for(const localRescuer of [false,true]){

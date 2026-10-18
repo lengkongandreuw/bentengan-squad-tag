@@ -13,7 +13,7 @@ import { createDefaultUltimateUpgrades } from './ultimate-upgrades.ts';
 import { purchaseUltimateUpgrade } from './ultimate-purchase.ts';
 import { applyMatchProgression, type MatchSummary } from './match-progression.ts';
 import { createLocalId } from './match-identity.ts';
-import {createDefaultTutorial,startTutorial,skipTutorial,completeTutorial,updateTutorialStep} from './tutorial.ts';
+import {createDefaultTutorial,startTutorial,skipTutorial,completeTutorial,updateTutorialStep,rememberTutorialMechanics,type TutorialMechanic} from './tutorial.ts';
 import {applyTutorialReward} from './tutorial-reward.ts';
 
 const notifyProfileChanged = () => {
@@ -73,6 +73,7 @@ export const startPlayerTutorial = (replay=false) => updateProfile(profile=>star
 export const skipPlayerTutorial = () => updateProfile(skipTutorial);
 export const completePlayerTutorial = () => updateProfile(completeTutorial);
 export const updatePlayerTutorialStep = (stepId:string) => updateProfile(profile=>updateTutorialStep(profile,stepId));
+export const recordPlayerLearnedMechanics=(mechanics:readonly TutorialMechanic[])=>updateProfile(profile=>rememberTutorialMechanics(profile,mechanics));
 export const recordPlayerTutorialReward = () => {
   const profile=loadPlayerProfile();
   if(!profile)throw new Error('Profil pemain tidak tersedia.');

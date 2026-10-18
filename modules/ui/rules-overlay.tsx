@@ -1,11 +1,14 @@
 // Game rules dialog (static content). Pure presentation; the owner owns
 // the open state and receives the close action.
 import { t } from '../../lib/language';
+import { useModalDialog } from './use-modal-dialog';
 
-export const RulesOverlay = ({ onClose }: { onClose: () => void }) => (
+export const RulesOverlay = ({ onClose }: { onClose: () => void }) => {
+  const dialog = useModalDialog(true, onClose);
+  return (
   <dialog
-    className="rules-overlay"
-    open
+    ref={dialog}
+    className="rules-overlay game-modal"
     aria-modal="true"
     aria-labelledby="rules-title"
   >
@@ -48,4 +51,4 @@ export const RulesOverlay = ({ onClose }: { onClose: () => void }) => (
       <p>{t('Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.')}</p>
     </div>
   </dialog>
-);
+); };

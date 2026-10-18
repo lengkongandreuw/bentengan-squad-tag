@@ -90,7 +90,8 @@ void test('16 clients ignore forged/stale lobby states and protocol rejects malf
 });
 void test('14–16 transport unused never runs networking in single-player; session does not write gameplay/profile',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8');assert.ok(source.includes('const MultiplayerPanel = lazy'));
-  assert.ok(source.includes('multiplayerOpen&&playerProfile&&<Suspense'));assert.ok(source.includes('if (profileOpen || multiplayerOpen) return'));
+  assert.ok(source.includes('multiplayerOpen&&playerProfile&&<Suspense'));
+  assert.match(source,/if \(profileOpen \|\| multiplayerOpen(?: \|\| document\.querySelector\('dialog:modal'\))?\) return;/);
   for(const file of ['transport.ts','lobby.ts','session.ts'])assert.doesNotMatch(fs.readFileSync(`lib/multiplayer/${file}`,'utf8'),/\b(?:localStorage|recordMatchProgression|resolveTag|moveActor|stepUltimate)\b/);
 });
 void test('UI invite carries host arena, rejects unknown content and preserves the content handshake',()=>{

@@ -64,19 +64,11 @@
 .playing-shell .camera-map { width:260px; }
 .playing-shell .camera-map button { font-size:calc(12px * var(--hud-text-scale))!important;min-height:36px; }
 .playing-shell .camera-map > span { font-size:calc(12px * var(--hud-text-scale)); }
-.playing-shell .dock-status span { font-size:calc(11px * var(--hud-text-scale))!important; }
-.playing-shell .action-dock button { font-size:calc(12px * var(--hud-text-scale));min-height:44px; }
 .playing-shell .stage-hud b { font-size:calc(13px * var(--hud-text-scale)); }
 .playing-shell .stage-hud { min-width:500px;width:min(44vw,650px);z-index:121; }
 .playing-shell .stage-hud > div { flex:1;width:auto;min-width:0;padding:6px 12px; }
 .playing-shell .stage-hud :is(b,span,time,small) { color:#fff; }
 .playing-shell .stage-hud b small,.playing-shell .stage-hud time small { font-size:calc(11px * var(--hud-text-scale)); }
-.playing-shell .action-dock:not(.context-hidden) { width:min(540px,calc(100% - 580px)); }
-.playing-shell .action-dock .dock-status { display:grid;grid-template-columns:repeat(4,minmax(0,1fr)); }
-.playing-shell .action-dock .dock-status span { white-space:normal;overflow-wrap:anywhere;text-align:center;padding:3px;line-height:1.2; }
-.playing-shell .action-dock:not(.context-hidden) { padding-top:48px; }
-.playing-shell .action-dock > :is(span,button) { display:grid;place-items:center;gap:2px;flex:1;width:auto;min-width:56px;height:70px;padding:4px; }
-.playing-shell .action-dock :is(b,small) { position:static;font-size:calc(10px * var(--hud-text-scale));line-height:1.1;text-align:center; }
 .character-mobile-summary { display:none; }
 .hud-settings-dialog { position:fixed;inset:0;margin:auto;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:20px;border:2px solid #c4eb67;border-radius:12px;background:#111e17;color:#fff;font:15px/1.5 Arial; }
 .hud-settings-dialog::backdrop { background:#000c; }
@@ -85,16 +77,9 @@
 .hud-settings-dialog label { display:block;margin:18px 0; }
 .hud-settings-dialog input[type=range] { display:block;width:100%;margin-top:14px;min-height:44px; }
 .hud-settings-dialog button { min-height:44px;padding:8px 14px;border:1px solid #9cae98;border-radius:6px;background:#243d2c;color:#fff; }
-.gameplay-guidance { position:absolute;top:112px;left:18px;z-index:22;width:min(320px,calc(100% - 36px));padding:10px 12px;color:#fff;background:#08100eea;border:1px solid #74816e;border-radius:10px;font:calc(13px * var(--hud-text-scale))/1.4 Arial; }
-.gameplay-guidance header { display:flex;justify-content:space-between;align-items:center;gap:12px; }
-.gameplay-guidance p { margin:6px 0;font:inherit; }
-.gameplay-guidance button { background:#162b20;color:#fff;min-height:32px;padding:4px 8px;border:1px solid #71866e;border-radius:5px;font:inherit;cursor:pointer; }
-.gameplay-guidance nav { display:flex;gap:4px;flex-wrap:wrap; }
-.gameplay-guidance button[aria-current] { background:#d9fa4a;color:#101710; }
-.gameplay-guidance small { display:block;margin-top:6px;font-size:11px; }
 .orientation-hint { display:none; }
 .framed-character-panel .character-panel-stats { gap:0; }
-.hud-high-contrast :is(.stage-hud,.camera-map,.gameplay-guidance,.action-dock,.prisoner-notice) { background:#050b08!important;border:2px solid #fff!important;color:#fff; }
+.hud-high-contrast :is(.stage-hud,.camera-map,.prisoner-notice) { background:#050b08!important;border:2px solid #fff!important;color:#fff; }
 .hud-high-contrast .stage-hud :is(b,span,time,small),.hud-high-contrast .camera-map > span { color:#fff; }
 button:focus-visible { outline:3px solid #ffe477;outline-offset:3px; }
 @media (max-width:1024px) {
@@ -113,12 +98,7 @@ button:focus-visible { outline:3px solid #ffe477;outline-offset:3px; }
   .playing-shell .camera-map { top:64px!important;bottom:auto;left:auto;right:8px!important;width:240px;padding:4px!important; }
   .playing-shell .camera-map > span { display:none; }
   .playing-shell .camera-map button { min-height:36px; }
-  .playing-shell .active-objective { top:110px;right:8px;width:44px;height:44px; }
-  .playing-shell .arena-intel:not(.dock-status) { display:none; }
   .playing-shell .mobile-controls { bottom:max(12px,env(safe-area-inset-bottom)); }
-  .gameplay-guidance { top:64px;left:8px;width:min(320px,calc(100% - 280px));font-size:12px; }
-  .gameplay-guidance.collapsed { width:auto;max-width:calc(100% - 280px);padding:4px; }
-  .gameplay-guidance button { min-height:36px; }
   .playing-shell .prisoner-notice { bottom:120px;max-width:calc(100% - 24px); }
 }
 @media (max-height:620px) and (orientation:landscape) {
@@ -138,7 +118,6 @@ button:focus-visible { outline:3px solid #ffe477;outline-offset:3px; }
   .character-next-goal { bottom:12px;left:12px;max-width:42%;font-size:11px;padding:6px; }
   .map-selection-start { bottom:12px;height:52px;width:280px; }
   .playing-shell .camera-map { width:240px; }
-  .gameplay-guidance { max-width:340px; }
 }
 @media (max-width:620px) and (orientation:portrait) {
   .pregame-shell .graffiti-back { top:8px;left:8px;width:60px;height:60px; }
@@ -170,9 +149,7 @@ button:focus-visible { outline:3px solid #ffe477;outline-offset:3px; }
   .playing-shell .stage-hud { top:56px;left:8px;width:calc(100% - 16px); }
   .playing-shell .top-actions { width:calc(100% - 16px);justify-content:flex-end; }
   .playing-shell .camera-map { top:120px!important;right:8px!important;width:240px; }
-  .playing-shell .active-objective { top:120px;left:8px;right:auto; }
   .orientation-hint { position:absolute;top:168px;left:8px;right:8px;display:block;padding:6px;background:#0b1610ed;color:#fff;font-size:12px;z-index:22;text-align:center; }
-  .gameplay-guidance,.gameplay-guidance.collapsed { top:215px;left:8px;width:calc(100% - 16px);max-width:none;font-size:13px; }
   .playing-shell .mission-panel { top:56px;bottom:120px; }
   .touch-dpad { grid-template-columns:repeat(3,44px);gap:3px; }
   .touch-dpad button { min-width:44px; }
@@ -191,6 +168,6 @@ button:focus-visible { outline:3px solid #ffe477;outline-offset:3px; }
    the localized HTML announcement instead, without altering the source art. */
 html[lang="en"] .round-result-announcement img {display:none;}
 html[lang="en"] .round-result-announcement p {max-width:100%;padding:18px 24px;background:#111812ed;border:3px solid #ffe944;box-shadow:8px 8px 0 #000;transform:rotate(-3deg);}
-.action-dock button.parkour-ready,.touch-actions button.parkour-ready {border-color:#b7ff55;box-shadow:inset 0 0 0 1px #b7ff55;}
+.touch-actions button.parkour-ready {border-color:#b7ff55;box-shadow:inset 0 0 0 1px #b7ff55;}
 .parkour-feedback {position:absolute;z-index:48;bottom:150px;left:50%;transform:translateX(-50%);max-width:70%;padding:4px 10px;background:#101812e8;color:#eaffac;border-radius:5px;font-size:12px;text-align:center;pointer-events:none;}
 @media(max-width:900px){.parkour-feedback{bottom:145px;max-width:65%;font-size:10px;}}

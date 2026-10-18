@@ -12,6 +12,30 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/studio-runtime-resour
   compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}
 }).outputText,{exports});
 const {runtimeResource}=exports;
+void test('boost runtime preloads shared effects, resolves all eight headings and preserves character overrides',()=>{
+  const make=(owner,letter)=>({asset:`sprite-studio/${owner}/${letter.repeat(64)}.webp`,width:40,height:20,frames:[{x:0,y:0,width:20,height:20},{x:20,y:0,width:20,height:20}],fps:10,scale:1,x:-32,y:5.5,pivotX:.5,pivotY:.5,loop:true,mirror:false});
+  const global=make('default','a'),north=make('default','b'),personal=make('raja','c'),east=make('raja','d');
+  const settings={characters:{default:{boost_dust:global,'boost_dust.north':north},raja:{boost_dust:personal,'boost_dust.east':east}}};
+  const runtime={version:1,assets:{}},moduleExports={};
+  const source=fs.readFileSync('lib/sprite-studio.ts','utf8').replace(/^import .*;\r?\n/gm,'');
+  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,
+    {exports:moduleExports,settings,runtime,...exports,...model,publicAsset:a=>a,Image:class{complete=true;naturalWidth=40;naturalHeight=20;removeAttribute(){this.src='';}}});
+  moduleExports.studioImages('raja');moduleExports.studioImages('ciici');
+  const headings=[[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1],[1,0],[1,1]];
+  for(const [vx,vy]of headings){
+    const selected=moduleExports.studioBoostDust('ciici',vx,vy,120);
+    assert.equal(selected.clip,vx===0&&vy===-1?north:global);
+    assert.equal(selected.frame,selected.clip.frames[1]);
+    assert.equal(selected.rotate,selected.clip===global);
+  }
+  assert.equal(moduleExports.studioBoostDust('raja',1,0,120).clip,east);
+  assert.equal(moduleExports.studioBoostDust('raja',0,-1,120).clip,personal);
+  moduleExports.retainStudioImages(['ciici']);
+  assert.ok(moduleExports.studioBoostDust('ciici',0,-1,200),'global assets survive match-roster retention');
+  assert.equal(moduleExports.studioBoostDust('raja',1,0,200),null,'unselected character texture released');
+  moduleExports.retainStudioImages([]);
+  assert.equal(moduleExports.studioImageBudget().atlases,0,'shared dust is released when no actors remain');
+});
 
 void test('tight-width packing preserves padding, bounds and never overlaps frames',()=>{
   const items=Array.from({length:32},(_,i)=>({width:300+i%3,height:340-i%7}));
@@ -109,7 +133,7 @@ void test('actual resolver uses packed images while preserving logical frames an
   for(const id of ['ciici','kaka']){
     moduleExports.retainStudioImages([]);
     const filtered=moduleExports.studioImages(id,false);
-    const needed=new Set(Object.entries(settings.characters[id]).filter(([slot])=>!slot.startsWith('ultimate')).map(([,c])=>runtimeResource(runtime,c).asset));
+    const needed=new Set([...Object.entries(settings.characters[id]),...Object.entries(settings.characters.default??{})].filter(([slot])=>!slot.startsWith('ultimate')).map(([,c])=>runtimeResource(runtime,c).asset));
     assert.equal(filtered.length,needed.size);
     assert.ok(filtered.every(image=>needed.has(image.src)));
     const complete=moduleExports.studioImages(id);

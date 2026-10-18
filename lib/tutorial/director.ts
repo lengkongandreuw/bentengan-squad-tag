@@ -34,7 +34,8 @@ export function createTutorialDirector(humanId:string,friendId:string,targetId:s
       if(!human||!friend||!target)return base;
       if(step==='ultimate')return {...base,point:human.state==='ACTIVE'?null:outside(human),en:'Leave your fort, then unleash Ultimate. Your training meter is ready.',id:'Keluar benteng, lalu aktifkan Ultimate. Meter latihanmu sudah siap.'};
       if(step==='capture_benteng')return {...base,point:bases[human.team==='blue'?'red':'blue'],en:assisted?'Kaka is giving you room. Reach their Benteng and hold your position.':'Take their Benteng! Reach the enemy fort and hold your position.',id:assisted?'Kaka memberi jalan. Capai benteng lawan dan pertahankan posisimu.':'Rebut benteng lawan! Capai bentengnya dan pertahankan posisimu.'};
-      if(step==='move'||step==='sprint')return {...base,point:area.start,en:'Head toward the practice marker.',id:'Bergerak menuju penanda latihan.'};
+      if(step==='move')return {...base,point:area.start,en:'Head toward the practice marker.',id:'Bergerak menuju penanda latihan.'};
+      if(step==='sprint')return {...base,point:area.start,en:'Sprint toward the practice marker. Keep moving as you activate Sprint.',id:'Sprint menuju penanda latihan. Tetap bergerak saat mengaktifkan Sprint.'};
       if(step==='parkour')return {...base,point:distance(human,area.start)>24?area.start:area.end,
         en:distance(human,area.start)>24?'Reach the near side of the yellow barrier.':'Face across the yellow barrier, then Parkour.',
         id:distance(human,area.start)>24?'Capai sisi dekat penghalang kuning.':'Hadap ke seberang penghalang kuning, lalu Parkour.'};
@@ -64,8 +65,13 @@ export function createTutorialDirector(humanId:string,friendId:string,targetId:s
       }
       if(p.entityId===friendId){
         if(step==='observe_prison')return friend.state==='IN_BASE'?outside(friend):{x:area.center.x+65,y:area.center.y+65};
-        // Follow at a distance during controls; never rescue the enemy target.
-        if(['intro_ui','move','sprint','parkour'].includes(step))return {x:human.x-60,y:human.y+65};
+        // Stay beside/behind the learner, not on the route or landing marker.
+        if(['intro_ui','move','sprint','parkour'].includes(step)){
+          const goal=step==='parkour'&&distance(human,area.start)<=24?area.end:area.start;
+          const dx=goal.x-human.x,dy=goal.y-human.y,length=Math.hypot(dx,dy)||1;
+          const forward=Math.hypot(dx,dy)>1?{x:dx/length,y:dy/length}:{x:0,y:1};
+          return {x:human.x-forward.x*65-forward.y*110,y:human.y-forward.y*65+forward.x*110};
+        }
         if(step==='tag_enemy')return {x:area.center.x-75,y:area.center.y+100};
         if(step==='rescue_friend')return friend.state==='PRISONER'?null:inside(friend);
         return inside(friend);

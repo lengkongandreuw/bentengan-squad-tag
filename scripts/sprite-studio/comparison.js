@@ -1,6 +1,8 @@
 import {ACTIONS,FLIGHT_ACTIONS,frameAt,spritePlacement} from '/model.js';
 const $=id=>document.getElementById(id);
 const names={run:'Lari',tag:'Tag',parkour:'Parkour',idle:'Idle',prisoner:'Tertangkap',ready:'Bersiap',ultimate:'Ultimate',victory:'Menang',defeat:'Kalah',south:'Depan',north:'Belakang',east:'Kanan',west:'Kiri',northeast:'Kanan atas',northwest:'Kiri atas',southeast:'Kanan bawah',southwest:'Kiri bawah'};
+names.boost_dust='Boost dust';
+const previewHeight=e=>e.slot.split('.')[0]==='boost_dust'?69:74*e.visualScale;
 Object.assign(names,{ultimate_takeoff:'Ultimate Takeoff',ultimate_fly:'Ultimate Fly',ultimate_land:'Ultimate Landing'});
 let entries=[],cards=[],playing=true,elapsed=0,last=performance.now(),generation=0;
 const imageCache=new Map();
@@ -13,7 +15,7 @@ function render(){
   const zoom=+$('compareZoom').value;
   // One shared camera for all stored clips; filtering cannot silently change their size.
   let left=80,right=80,top=100,bottom=25;
-  for(const e of entries)for(const f of e.clip.frames){const p=spritePlacement(e.clip,f,74*e.visualScale);const x=leftEdge(e.clip,p);left=Math.max(left,-x);right=Math.max(right,x+p.width);top=Math.max(top,-p.y);bottom=Math.max(bottom,p.y+p.height);}
+  for(const e of entries)for(const f of e.clip.frames){const p=spritePlacement(e.clip,f,previewHeight(e));const x=leftEdge(e.clip,p);left=Math.max(left,-x);right=Math.max(right,x+p.width);top=Math.max(top,-p.y);bottom=Math.max(bottom,p.y+p.height);}
   const width=Math.min(1600,Math.max(320,Math.ceil((left+right)*zoom+32))),height=Math.min(1600,Math.max(260,Math.ceil((top+bottom)*zoom+32))),baseX=Math.min(width-16,left*zoom+16),baseY=Math.min(height-16,top*zoom+16);
   $('compareStatus').textContent=entries.length?`${list.length} / ${entries.length} animasi tersimpan · zoom ${zoom}×. Klik Edit untuk menyesuaikan ukuran di editor.`:'Belum ada animasi custom yang diterapkan. Terapkan movement di Sprite Studio, lalu Muat ulang di sini.';
   for(const e of list){
@@ -36,7 +38,7 @@ function animate(now){if(playing&&!document.hidden)elapsed+=Math.max(0,Math.min(
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle='#b8ed7c';ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(0,baseY);ctx.lineTo(canvas.width,baseY);ctx.stroke();
     ctx.strokeStyle='#ffffff65';ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(0,baseY-74*zoom);ctx.lineTo(canvas.width,baseY-74*zoom);ctx.stroke();ctx.setLineDash([]);
-    if(!c.image)continue;const f=frameAt(clip,elapsed),p=spritePlacement(clip,f,74*c.visualScale);
+    if(!c.image)continue;const f=frameAt(clip,elapsed),p=spritePlacement(clip,f,previewHeight(c));
     ctx.save();ctx.translate(baseX,baseY);ctx.scale(zoom,zoom);ctx.translate(clip.x,clip.y);if(clip.mirror)ctx.scale(-1,1);ctx.drawImage(c.image,f.x,f.y,f.width,f.height,-p.width*clip.pivotX,-p.height*clip.pivotY,p.width,p.height);ctx.strokeStyle='#ffffff50';ctx.strokeRect(-p.width*clip.pivotX,-p.height*clip.pivotY,p.width,p.height);ctx.restore();
     const x=leftEdge(clip,p),clipped=baseX+x*zoom<0||baseX+(x+p.width)*zoom>canvas.width||baseY+p.y*zoom<0||baseY+(p.y+p.height)*zoom>canvas.height;
     c.info.textContent=`Ukuran frame dunia: ${p.width.toFixed(1)} × ${p.height.toFixed(1)} · karakter ${c.visualScale}× · slot ${clip.scale}× · ${clip.frames.length} frame / ${clip.fps} FPS${clipped?' · ukuran di luar area, gunakan zoom lebih kecil':''}`;

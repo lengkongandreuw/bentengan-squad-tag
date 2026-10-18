@@ -1,5 +1,6 @@
 'use client';
-import { t, useLanguage } from '../lib/language';
+import '../modules/ui/desktop-ux.css';
+import { t, useLanguage, getLanguage } from '../lib/language';
 import {createParkourController,evaluateParkour,parkourReasonText,parkourCooldownRemaining} from '../modules/gameplay/parkour.ts';
 import {createEventSigns,drawEventSigns,type SignBounds} from '../modules/ui/event-signs.ts';
 import { PASAR2_ATLAS, PASAR2_TERRAIN_RECTS, PASAR2_FORT_RECTS, pasar2ObjectRects, pasar2PrisonRects } from '../lib/pasar2-layout.js';
@@ -41,26 +42,30 @@ import { LoadingPanel } from '../modules/ui/loading-media.tsx';
 import { MenuActionsRow } from '../modules/ui/menu-actions-row.tsx';
 import { BackButton } from '../modules/ui/back-button.tsx';
 import { ProfileTriggerButton } from '../modules/ui/profile-trigger-button.tsx';
-import { ArenaIntel } from '../modules/ui/arena-intel.tsx';
+import {GameplayScreenShell,HudZone} from '../modules/ui/gameplay-screen-shell';
 import { StageHud } from '../modules/ui/stage-hud.tsx';
 import { PlayingTopbar } from '../modules/ui/playing-topbar.tsx';
 import { PauseOverlay } from '../modules/ui/pause-overlay.tsx';
-import { CameraSwitcher } from '../modules/ui/camera-switcher.tsx';
+import {PauseMap} from '../modules/ui/pause-map';
+import {PauseMatchOverview} from '../modules/ui/pause-match-overview';
+import {ContextualHint} from '../modules/ui/contextual-hint';
+import {FortStatusHud} from '../modules/ui/fort-status-hud';
+import {createPlayerStatusFeedback,drawPlayerEffects,teamBuffDeadline,type EffectBadge} from '../modules/ui/player-status-feedback';
+import {resolveFortStatus} from '../modules/ui/fort-status-view';
+import {useLearningMemory} from '../modules/ui/use-learning-memory';
+import {learnedTutorialMechanics,type TutorialMechanic} from '../lib/player-profile/tutorial';
 import { BoostStack } from '../modules/ui/boost-stack.tsx';
 import { UltimateMeterHud } from '../modules/ui/ultimate-meter-hud.tsx';
 import { CharacterHud } from '../modules/ui/character-hud.tsx';
 import { UltimateBanner } from '../modules/ui/ultimate-banner.tsx';
 import { PrisonerNotice } from '../modules/ui/prisoner-notice.tsx';
-import { ActiveObjective } from '../modules/ui/active-objective.tsx';
 import { TeamComboHud } from '../modules/ui/team-combo-hud.tsx';
 import { MobileControls } from '../modules/ui/mobile-controls.tsx';
-import { ActionDock } from '../modules/ui/action-dock.tsx';
+import {createTouchPointerOwner} from '../modules/ui/touch-pointer-owner';
 import { RendererErrorNotice } from '../modules/ui/renderer-error-notice.tsx';
 import { StatusRibbon } from '../modules/ui/status-ribbon.tsx';
 import { ComboCallout } from '../modules/ui/combo-callout.tsx';
 import { OrientationHint } from '../modules/ui/orientation-hint.tsx';
-import { UltimateBuffIndicator } from '../modules/ui/ultimate-buff-indicator.tsx';
-import { ControlRibbon } from '../modules/ui/control-ribbon.tsx';
 import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-preview-assets.ts';
 
 
@@ -68,7 +73,8 @@ import { selectionPreviewUrls, loadSelectionPreview } from '../lib/selection-pre
 
 
 
-import { GameplayGuidance, useHudPreferences } from '../modules/ui/gameplay-guidance.tsx';
+import { useHudPreferences } from '../modules/ui/hud-settings.tsx';
+import {HowToPlayPanel,helpTabForLesson} from '../modules/ui/how-to-play-panel';
 
 import { clickRoute, pointerWorld } from '../modules/gameplay/click-navigation.ts';
 import type { RuntimeActor, ActorStats as PlayerStats, CanonicalGameState } from '../lib/game-core/types';
@@ -101,12 +107,14 @@ import { botPickPerk, createPerkDraft, PERK_BY_ID, effectiveStats, emptyTeamPerk
 import { createRouteScheduler } from '../lib/route-scheduler';
 
 import { autoInitialPixelRatio, AUTO_PIXEL_RATIO, nextAutoPixelRatio, graphicsPreset, graphicsPixelRatio, GRAPHICS_PRESETS, GRAPHICS_SETTINGS_EVENT, type GraphicsPreset } from '../lib/graphics-settings.js';
-import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip, studioImageBudget } from '../lib/sprite-studio.ts';
+import { studioImages, retainStudioImages, createStudioResolver, studioFlightClip, studioImageBudget, studioBoostDust } from '../lib/sprite-studio.ts';
+import { drawBoostDust } from '../modules/ui/boost-dust';
 import { fortLockRemaining, fortStatusText } from '../modules/game-core/fort-status.ts';
 import {shouldOfferTutorial,startPlayerTutorial} from '../lib/player-profile/index.ts';
 import {TutorialEntry} from '../modules/ui/tutorial-entry.tsx';
 import {TutorialCoach} from '../modules/ui/tutorial-coach.tsx';
-import {createTutorialSession,advanceTutorial,tutorialEventSignal} from '../lib/tutorial/state-machine.ts';
+import {createTutorialSession,advanceTutorial,finishTutorialSummary,tutorialEventSignal} from '../lib/tutorial/state-machine.ts';
+import {drawTutorialMarker,tutorialMarkerLabel,type TutorialMarkerRect} from '../modules/ui/tutorial-marker.ts';
 import {tutorialStep} from '../lib/tutorial/steps.ts';
 import {TUTORIAL_MATCH} from '../lib/tutorial/match-config.ts';
 import {choosePracticeArea,chooseTutorialSpawn,createTutorialDirector,createMovementLessonMonitor,tutorialCaptureEnabled,type TutorialGoal} from '../lib/tutorial/director.ts';
@@ -443,6 +451,15 @@ export function BentenganPrototype() {
   hudPreferencesRef.current=hudPreferences; // oxlint-disable-line react/react-compiler -- ponytail: state-to-ref mirror for the canvas rAF loop; effect would add a stale frame
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useRef<Set<string>>(new Set());
+  const touchPointers=useRef<ReturnType<typeof createTouchPointerOwner>|null>(null);
+  useEffect(()=>{
+    const owner=createTouchPointerOwner((key,pressed)=>{
+      if(pressed){if(key==='shift'&&!keys.current.has(key))keys.current.add('parkour-pulse');keys.current.add(key);}
+      else keys.current.delete(key);
+    });
+    touchPointers.current=owner;
+    return()=>{owner.clear();touchPointers.current=null;};
+  },[]);
   const characterVoiceRef = useRef<HTMLAudioElement | null>(null); // === CHARACTER SELECTION VOICE ===
   const characterVoiceLayersRef = useRef<Array<{ audio: HTMLAudioElement; volume: number }>>([]);
   const characterVoiceIdRef = useRef<CharacterId | null>(null);
@@ -468,9 +485,15 @@ export function BentenganPrototype() {
   const [view, setView] = useState<'game' | 'workshop'>('game');
   useEffect(()=>{let active=true;queueMicrotask(()=>{if(active&&parseInvite(window.location.href,FIELD_CONFIGS))setMultiplayerOpen(true);});return()=>{active=false;};},[]);
   const [networkSession,setNetworkSession]=useState<MultiplayerSession|null>(null);
+  const [onlineMenuOpen,setOnlineMenuOpen]=useState(false);
+  const [pausePage,setPausePage]=useState<'home'|'help'>('home');
+  const focusCanvasOnResume=useRef(false);
+  const onlineMenuOpenRef=useRef(false);
+  const setOnlineMenu=(open:boolean)=>{onlineMenuOpenRef.current=open;setOnlineMenuOpen(open);};
   useEffect(()=>{
     if(!networkSession)return;
     const off=networkSession.subscribe(state=>{if(state.phase==='ended'){
+      onlineMenuOpenRef.current=false;setOnlineMenuOpen(false);
       setNetworkSession(null);setMultiplayerOpen(false);setMode('menu');setMenuStep('splash');setContentGateError(state.error||'Room ditutup.');
     }});
     return ()=>{off();networkSession.close();};
@@ -1050,29 +1073,46 @@ export function BentenganPrototype() {
   }, []);
 
   useEffect(() => {
-    const down = (event: KeyboardEvent) =>
+    const down = (event: KeyboardEvent) => {
+      if(mode==='playing'&&event.key.toLowerCase()==='p'&&!document.querySelector('dialog:modal')&&!(event.target instanceof HTMLElement&&event.target.closest('input,textarea,select,[contenteditable="true"]')))setPausePage('home');
+      if(mode==='playing'&&networkSession&&event.key.toLowerCase()==='p'&&!document.querySelector('dialog:modal')&&!(event.target instanceof HTMLElement&&event.target.closest('input,textarea,select,[contenteditable="true"]'))){
+        event.preventDefault();setPausePage('home');keys.current.clear();setOnlineMenu(true);return;
+      }
       handleKeyDown(event, keys.current, mode, profileOpen, setLeaderboardOpen);
+    };
     const up = (event: KeyboardEvent) =>
       handleKeyUp(event, keys.current, setLeaderboardOpen);
-    const releaseAll = () => clearKeys(keys.current);
-    const visibility = () => handleVisibilityChange(keys.current, document.hidden);
+    const releaseAll = () => {touchPointers.current?.clear();clearKeys(keys.current);};
+    const visibility = () => {if(document.hidden)touchPointers.current?.clear();handleVisibilityChange(keys.current, document.hidden);};
+    const releaseTouch=()=>touchPointers.current?.clear();
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', releaseAll);
+    window.addEventListener('resize', releaseTouch);
     document.addEventListener('visibilitychange', visibility);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
       window.removeEventListener('blur', releaseAll);
+      window.removeEventListener('resize', releaseTouch);
       document.removeEventListener('visibilitychange', visibility);
     };
-  }, [mode, profileOpen]);
+  }, [mode, profileOpen,networkSession,touchPointers]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const network=mode==='playing'?networkSession:null;
     const clientOnly=network?.read().role==='client';
+    const learnedFacts=new Set<TutorialMechanic>();
+    let clientLearningPrevious:{boost:number;parkourUntil:number}|null=null;
+    const observeLearningEvents=(events:readonly GameEvent[])=>{for(const event of events){
+      if(!('actorId'in event)||event.actorId!==myEntityId)continue;
+      if(event.type==='PLAYER_TAGGED')learnedFacts.add('tag');
+      if(event.type==='PLAYER_RESCUED')learnedFacts.add('rescue');
+      if(event.type==='FORT_CAPTURED')learnedFacts.add('capture');
+      if(event.type==='ULTIMATE_APPLIED')learnedFacts.add('ultimate');
+    }};
     if (mode === 'playing' && !network) {
       const gate = selectionGate();
       if (gate) { setContentGateError(gate); setMode('menu'); return; } // oxlint-disable-line react/react-compiler -- ponytail: content-gate redirect in match-init effect; one-shot sync
@@ -1080,6 +1120,7 @@ export function BentenganPrototype() {
     // Identity belongs to this initialized match, not to a render or round.
     const matchId = mode === 'playing' ? network?`${network.read().roomCode}:match`:createMatchId() : null;
     const tutorialIdentity=tutorialMatch&&mode==='playing'&&!network;
+    let tutorialMarkerProtected:TutorialMarkerRect[]=[];
     const resultIdentity=tutorialIdentity?`tutorial:${matchId}`:matchId;
     // Match-local immutable snapshot: profile refresh never restarts this effect.
     const playerUltimateStats = snapshotUltimateStats(mode==='playing'&&!network ? loadPlayerProfile() ?? playerProfileRef.current ?? null : null,selectedId);
@@ -1470,6 +1511,7 @@ export function BentenganPrototype() {
     };
     let players = makePlayers();
     const eventSigns=createEventSigns(),signImages=getEventSignImages(),signBounds=new Map<string,SignBounds>();
+    const playerEffects=createPlayerStatusFeedback();let effectBadges:EffectBadge[]=[],localSprintActive=false;
     const signReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
     const localParkour=createParkourController();
     let localSignSerial=0,parkourFeedback='',parkourFeedbackUntil=0;
@@ -2234,7 +2276,8 @@ export function BentenganPrototype() {
       if(tutorialIdentity){const signal=tutorialEventSignal(events,players[0].entityId,tutorialDirector?{tagTargetId:tutorialDirector.ids.targetId,friendId:tutorialDirector.ids.friendId}:undefined);if(signal)tutorialSignal(signal);}
       if(network&&!clientOnly)publishNetworkFacts(events);
       if(!clientOnly)for(const event of events)eventSigns.accept(event,`${matchId}:sign:${++localSignSerial}`);
-      presentGameEvents(events,event=>{
+        observeLearningEvents(events);
+        presentGameEvents(events,event=>{
       if(event.type==='PLAYER_TAGGED'||event.type==='PLAYER_CAPTURED'){
         const winner=players.find(p=>p.entityId===event.actorId),loser=players.find(p=>p.entityId===event.targetId);
         if(!winner||!loser)return;
@@ -2268,6 +2311,7 @@ export function BentenganPrototype() {
       });
     };
     const presentNetworkUltimate = (events:readonly GameEvent[])=>{
+      observeLearningEvents(events);
       for(const event of events){if(event.type!=='ULTIMATE_STARTED'&&event.type!=='ULTIMATE_APPLIED')continue;
         const actor=players.find(p=>p.entityId===event.actorId);if(!actor)continue;
         if(event.type==='ULTIMATE_STARTED'){
@@ -2374,6 +2418,7 @@ export function BentenganPrototype() {
       }
     };
     const update = (dt: number, now: number) => {
+      if(network&&onlineMenuOpenRef.current){keys.current.clear();clearMouse();}
       const input = localInput.sample(players[0].entityId, keys.current, mouseBoost, mouseRoute.at(-1));
       keys.current.delete('parkour-pulse');
       if(network)input.pause=false;
@@ -2536,6 +2581,7 @@ export function BentenganPrototype() {
         speedMultiplier:playerUltimateStats?.speedMultiplier ?? RAJA_ULTIMATE_SPEED_MULTIPLIER,
       };
       const ultimateFacts = network?[]:stepUltimate(players,me,ultimateState,dt,now,input.ultimate,ultimateRules);
+      observeLearningEvents(ultimateFacts);
       if(tutorialIdentity&&tutorialSessionRef.current.stepId==='ultimate'){
         if(ultimateLesson.observe(ultimateFacts,me.entityId,tutorialActiveMs))tutorialSignal('ULTIMATE');
         // Recovery refill is local to this lesson; a rejected input remains retryable.
@@ -2613,6 +2659,7 @@ export function BentenganPrototype() {
         !(isKanalField(field.id) && me.waterEnteredAt) &&
         (dx || dy) &&
         (me.state === 'ACTIVE' || me.state === 'IN_BASE');
+      localSprintActive=!!boosting;
       if (boosting) {
         drainBoost(me, selected.boostDrain * (playerComboMultiplier > 1 ? 0.8 : 1), dt, now);
         mission.boost = true;
@@ -2669,6 +2716,9 @@ export function BentenganPrototype() {
       }
       if(me.flight){me.flight.distance+=distance(me,mouseBefore);if(isFlying(me)&&flightGroundValid(me.x,me.y))me.flight.lastGround={x:me.x,y:me.y};}
       if(movementLesson){const signal=movementLesson.observe(tutorialSessionRef.current.stepId,me,vault.performed?vaultBefore:mouseBefore,{boosting:!!boosting,activated:boostActivated,parkour:vault.performed});if(signal)tutorialSignal(signal);}
+      if(me.state==='ACTIVE'&&Math.hypot(me.vx,me.vy)>8)learnedFacts.add('movement');
+      if(boosting)learnedFacts.add('sprint');
+      if(vault.performed)learnedFacts.add('parkour');
       for(const p of players)if(p.controller==='remote'||network&&p.controller==='bot'&&p.flight)remoteMovement(p,humanFrames.get(p.entityId)??localInput.sample(p.entityId,new Set()),CHARACTER_BY_ID[p.characterId],dt,now,{
         move,landing:findParkourLanding,near:()=>true,
         returnVector:(p,now)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
@@ -3344,17 +3394,7 @@ const spriteFrame = (
         ctx.restore();
       }
 
-      if (!sinking && sprinting && dust.complete && dust.naturalWidth) {
-        const dustColumn = Math.floor(now / 78) % 4;
-        ctx.save();
-        ctx.globalAlpha = 0.58;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.translate(p.x, p.y + 3);
-        ctx.rotate(sprintEffectRotation(direction));
-        ctx.drawImage(dust, dustColumn * 256, 0, 256, 192, -78, -29, 92, 69);
-        ctx.restore();
-      }
+      if (!sinking && sprinting) drawBoostDust(ctx,p,now,dust,studioBoostDust(p.characterId,p.vx,p.vy,now),sprintEffectRotation(direction));
       if (inWater) {
         const ripple = 19 + Math.sin(now / 130 + p.aiSeed) * 3;
         ctx.save();
@@ -3551,8 +3591,8 @@ const spriteFrame = (
       ctx.fillStyle = '#fff';
       ctx.fillText(t(label), p.x, p.y + 35);
       const relation=tagRelationship(me,p,now,isKanalField(field.id));
-      if(relation!=='neutral') {
-        const text=relation==='target'?'+ TAG':relation==='danger'?'! AWAS':'◇ KEBAL';
+      if(relation==='target'||relation==='danger') {
+        const text=relation==='target'?'+ TAG':'! AWAS';
         ctx.save();ctx.font=`900 ${11*hudPreferencesRef.current.scale}px Arial`;
         const width=ctx.measureText(t(text)).width+12;
         ctx.fillStyle='#08100ef2';rounded(p.x-width/2,p.y+42,width,20,4);ctx.fill();
@@ -3561,7 +3601,7 @@ const spriteFrame = (
       if (inWater) {
         ctx.fillStyle = '#b8f8ff';
         ctx.font = '900 7px Arial';
-        ctx.fillText(t('AIR DALAM · PARKOUR'), p.x, p.y + 49);
+        ctx.fillText(t('AIR DALAM · PARKOUR'), p.x, p.y + (relation==='target'||relation==='danger'?76:49));
       }
       if (p.state === 'ACTIVE') {
         ctx.fillStyle = '#141a15';
@@ -3574,29 +3614,6 @@ const spriteFrame = (
         ctx.fillStyle = '#fff';
         ctx.font = '800 9px Arial';
         ctx.fillText(t(String(p.exitOrder)), p.x + 23, p.y - 32 - headOffset + bob);
-      }
-      if (p.state === 'RETURNING') {
-        ctx.fillStyle = now < p.rescueShieldUntil ? '#60e6ff' : '#f5cf45';
-        ctx.font = '800 8px Arial';
-        ctx.fillText(
-          t(now < p.rescueShieldUntil ? 'GHOST' : 'KEMBALI'),
-          p.x,
-          p.y - 55 - headOffset,
-        );
-      }
-      if (now < p.fallNoticeUntil) {
-        const noticeY = p.y - 78 - headOffset + bob;
-        ctx.font = '900 10px Arial';
-        const noticeWidth = ctx.measureText(t('OOOPSS... HATI-HATI')).width + 18;
-        ctx.fillStyle = 'rgba(18,25,20,.94)';
-        rounded(p.x - noticeWidth / 2, noticeY - 15, noticeWidth, 21, 7);
-        ctx.fill();
-        ctx.strokeStyle = '#f5cf45';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fillStyle = '#fff4d1';
-        ctx.textAlign = 'center';
-        ctx.fillText(t('OOOPSS... HATI-HATI'), p.x, noticeY);
       }
       if (p.state === 'IN_BASE' && p.baseCharge < stats.baseChargeTime) {
         ctx.fillStyle = '#9b9d91';
@@ -3702,8 +3719,6 @@ const spriteFrame = (
       drawBase('blue',render,now);
       drawBase('red',render,now);
       if(practiceArea){ctx.fillStyle='#ffd93c';ctx.fillRect(practiceArea.barrier.x,practiceArea.barrier.y,practiceArea.barrier.w,practiceArea.barrier.h);ctx.strokeStyle='#18251c';ctx.lineWidth=2;ctx.strokeRect(practiceArea.barrier.x,practiceArea.barrier.y,practiceArea.barrier.w,practiceArea.barrier.h);}
-      const lessonGoal=tutorialGoalRef.current?.point;
-      if(tutorialIdentity&&lessonGoal){const emphasized=tutorialGoalRef.current?.hintLevel===2;ctx.strokeStyle='#e5ff4b';ctx.lineWidth=emphasized?5:3;ctx.beginPath();ctx.arc(lessonGoal.x,lessonGoal.y,emphasized?28:22,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#e5ff4b';ctx.font=`900 ${emphasized?24:14}px Arial`;ctx.fillText('▼',lessonGoal.x,lessonGoal.y-(emphasized?34:26));}
       if (mouseRoute.length) {
         const target = mouseRoute[mouseRoute.length - 1];
         ctx.strokeStyle = '#caff73'; ctx.lineWidth = 2 / scale;
@@ -3761,7 +3776,22 @@ const spriteFrame = (
       }
       ctx.restore();
       if (mode === 'playing') {
+        playerEffects.retain(players.map(p=>p.entityId));
+        // Snapshot buffUntil belongs to its serialized Raja caster, not the viewer.
+        const buffCasters=network?(clientOnly?players.filter(p=>p.characterId==='raja').slice(0,1).map(p=>({team:p.team,until:ultimateBuffUntil})):players.map(p=>({team:p.team,until:networkUltimates.get(p.entityId)?.buffUntil??0}))):[{team:me.team,until:ultimateBuffUntil}];
+        const effects=phase==='PLAYING'?players.slice().sort((a,b)=>Number(!!b.controlled)-Number(!!a.controlled)).flatMap(p=>{
+          const sprint=p.entityId===me.entityId&&localSprintActive&&p.boost>0&&!(p.action==='ultimate'&&now<p.actionUntil)?boostBurstUntil:0;
+          const effect=playerEffects.read(p,now,sprint,teamBuffDeadline(p,buffCasters));
+          const relation=tagRelationship(me,p,now,isKanalField(field.id));
+          return effect?[{p,...effect,tagRow:relation==='target'||relation==='danger',waterRow:p.state!=='PRISONER'&&now>=p.parkourUntil&&isWaterAt(p.x,p.y)}]:[];
+        }):[];
+        effectBadges=drawPlayerEffects(ctx,effects,view,getLanguage()==='id',hudPreferencesRef.current.scale,signReducedMotion.matches);
         drawEventSigns(ctx,eventSigns.read(),signBounds,view,signImages,signReducedMotion.matches);
+        const lessonGoal=tutorialGoalRef.current?.point;
+        if(tutorialIdentity&&lessonGoal){
+          const project=(p:{x:number;y:number})=>({x:(p.x-camX)*scale+cw/2,y:(p.y-camY)*scale+ch/2});
+          drawTutorialMarker(ctx,project(lessonGoal),players.map(project),cw,ch,tutorialMarkerLabel(tutorialSessionRef.current.stepId,getLanguage()==='id'),tutorialGoalRef.current?.hintLevel===2,tutorialMarkerProtected.map(r=>({x:r.x*cw,y:r.y*ch,w:r.w*cw,h:r.h*ch})));
+        }
         const marker = (
           point: { x: number; y: number },
           label: string,
@@ -3817,6 +3847,7 @@ const spriteFrame = (
       if(!clientOnly&&!paused && phase==='PLAYING') routeScheduler.run();
       else routeScheduler.clear();
       if(clientOnly){
+        if(onlineMenuOpenRef.current){keys.current.clear();clearMouse();}
         networkPump?.tickClientInput(localNow);
         const s=snapshots.read(localNow);
         if(s){
@@ -3844,6 +3875,7 @@ const spriteFrame = (
           announcement=s.phase==='COUNTDOWN'?String(Math.max(1,Math.ceil(((s.phaseUntilMs??s.timeMs)-s.timeMs)/1000))):s.result?.reason??'';
         }else announcement='MENUNGGU SNAPSHOT HOST…';
         for(const event of receivedNetworkEvents.splice(0)){
+          observeLearningEvents([event]);
           if(event.type==='ULTIMATE_STARTED'||event.type==='ULTIMATE_APPLIED')presentNetworkUltimate([event]);
           else if(event.type==='ROUND_ENDED'||event.type==='MATCH_ENDED'){
             gameplayAudio.resetTagStreak();if(event.type==='MATCH_ENDED')gameplayAudio.play(event.team===players[0].team?'victory':'defeat');
@@ -3885,6 +3917,13 @@ const spriteFrame = (
           blueLock = fortOccupant('blue'),
           redLock = fortOccupant('red');
         if(tutorialDirector){
+          // Cache DOM exclusion bounds at the existing 10 Hz HUD cadence, never
+          // force layout reads for each rendered frame. Coordinates are normalized.
+          const canvasBox=canvas.getBoundingClientRect();
+          tutorialMarkerProtected=canvasBox.width&&canvasBox.height?Array.from(canvas.closest('.playing-shell')?.querySelectorAll('.tutorial-coach,.camera-switcher')??[]).map(node=>{
+            const box=node.getBoundingClientRect();
+            return {x:(box.left-canvasBox.left)/canvasBox.width,y:(box.top-canvasBox.top)/canvasBox.height,w:box.width/canvasBox.width,h:box.height/canvasBox.height};
+          }):[];
           const goal=tutorialDirector.goal(tutorialSessionRef.current.stepId,players,tutorialRecovery?.assisted());
           if(tutorialRecovery)Object.assign(goal,{hintLevel:tutorialRecovery.hint().level,recovered:tutorialRecovery.hint().recovered});
           if(tutorialSessionRef.current.stepId==='ultimate'&&ultimateLesson.active()){
@@ -3893,7 +3932,10 @@ const spriteFrame = (
           }
           // Show the next reachable navigation marker, not an off-screen point
           // behind a building. Reuse the existing queued route/steering system.
-          if(goal.point&&distance(me,goal.point)>70){
+          // Once at takeoff, point across the barrier: walking navigation would
+          // incorrectly steer the jump marker around the obstacle instead.
+          const jumpAcross=tutorialSessionRef.current.stepId==='parkour'&&distance(me,tutorialDirector.area.start)<=24;
+          if(goal.point&&distance(me,goal.point)>70&&!jumpAcross){
             const vector=navigateAroundHazards(me,{x:goal.point.x-me.x,y:goal.point.y-me.y},now,78,0);
             const length=Math.hypot(vector.x,vector.y);
             if(length>1)goal.point={x:me.x+vector.x/length*Math.min(64,length),y:me.y+vector.y/length*Math.min(64,length)};
@@ -3901,6 +3943,14 @@ const spriteFrame = (
           tutorialGoalRef.current=goal;setTutorialGoal(goal);if(development){canvas.dataset.tutorialGoal=JSON.stringify(goal);canvas.dataset.tutorialDebug=JSON.stringify({step:tutorialSessionRef.current.stepId,lastSuccess:tutorialSessionRef.current.lastSuccess,serial:tutorialSessionRef.current.lastSerial,director:goal.en,rewardClaimed:playerProfileRef.current?.tutorial?.rewardClaimed??false});}
         }
         const lockRemaining = fortLockRemaining(progress, phase, now, roundStartedAt);
+        if(clientOnly){
+          if(me.state==='ACTIVE'&&!flightBusy(me)&&Math.hypot(me.vx,me.vy)>8){
+            learnedFacts.add('movement');
+            if(clientLearningPrevious&&me.boost<clientLearningPrevious.boost&&me.parkourUntil===clientLearningPrevious.parkourUntil&&(keys.current.has(' ')||mouseBoost))learnedFacts.add('sprint');
+          }
+          if(clientLearningPrevious&&me.parkourUntil>clientLearningPrevious.parkourUntil)learnedFacts.add('parkour');
+          clientLearningPrevious={boost:me.boost,parkourUntil:me.parkourUntil};
+        }
         if(profileRuntime)canvas.dataset.spriteBudget=JSON.stringify(studioImageBudget());
         canvas.dataset.playerPosition = `${me.x.toFixed(1)},${me.y.toFixed(1)}`;
         if(development){canvas.dataset.flightStage=me.flight?.stage??'NORMAL';canvas.dataset.flightRemaining=String(me.flight?.remaining??0);}
@@ -3946,6 +3996,11 @@ const spriteFrame = (
           state: me.state,
           paused,
           parkourReady:!vaultLocked&&parkourStatus.reason==='ready',
+          learnedMechanics:[...learnedFacts],
+          guidance:{moving:me.state==='ACTIVE'&&Math.hypot(me.vx,me.vy)>8,nearObstacle:!!parkourStatus.landing&&[.25,.5,.75].some(step=>hitsObstacle(me.x+(parkourStatus.landing!.x-me.x)*step,me.y+(parkourStatus.landing!.y-me.y)*step)),
+            parkourReady:!vaultLocked&&parkourStatus.reason==='ready',rescueNeeded:players.some(p=>p.team===me.team&&p.state==='PRISONER'),ultimateReady:ULTIMATE_CHARACTER_IDS.has(me.characterId)&&ultimateMeter>=100&&!vaultLocked,
+            nearEnemyFort:distance(me,bases[other(me.team)])<baseRadius*2,fortOpen:lockRemaining===0,
+            tagOpportunity:players.some(p=>distance(me,p)<220&&tagRelationship(me,p,now,isKanalField(field.id))==='target')},
           parkourCooldownSeconds,
           parkourHint:vaultLocked?parkourReasonText.locked:parkourCooldownSeconds>0?`Parkour siap dalam ${parkourCooldownSeconds} detik`:parkourFeedbackUntil>now?parkourFeedback:parkourReasonText[parkourStatus.reason],
           logs,
@@ -3967,6 +4022,10 @@ const spriteFrame = (
           ).length,
           pickupCount: refills.length,
           fortLock: fortStatusText(lockRemaining, blueLock?.name, redLock?.name),
+          fortStatus:resolveFortStatus({actors:players,team:me.team,base:bases[me.team],radius:baseRadius,water:isKanalField(field.id),phase,lockSeconds:lockRemaining,
+            captureProgress:scoredMatch?fortProgress[other(me.team)]:Math.max(0,...players.filter(p=>p.team!==me.team).map(p=>p.fortCharge/1.5)),
+            captureSeconds:scoredMatch?(MATCH_FORMAT_CONFIG.fort.captureSecondsByAttackers[Math.max(0,Math.min(3,players.filter(p=>p.team!==me.team&&p.state==='ACTIVE'&&!flightBusy(p)&&!(isKanalField(field.id)&&p.waterEnteredAt)&&distance(p,bases[me.team])<baseRadius).length)-1)]+fortCaptureBonusSeconds(teamPerks[me.team])):1.5,
+            captured:(phase==='ROUND_OVER'||phase==='MATCH_OVER')&&roundWinner===other(me.team)&&roundEndReason==='BENTENG DIREBUT'}),
           baseGrace:
             me.state === 'IN_BASE' && me.exitDeadline
               ? Math.max(0, Math.ceil((me.exitDeadline - now) / 1000))
@@ -4113,7 +4172,7 @@ const spriteFrame = (
       }
       return state;
     };
-    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}) };
+    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}),readEffects:()=>structuredClone(effectBadges) };
     if(development)coreHost.__bentengGameCore=coreProbe;
     if (development && (isKanalField(field.id) || field.id === 'pasar' || field.id === 'taman')) {
       collisionToggle = document.createElement('button');
@@ -4164,7 +4223,7 @@ const spriteFrame = (
       document.removeEventListener('visibilitychange', stopWhenHidden);
       document.removeEventListener('pointerdown', stopForMenu);
       stopLoop();
-      eventSigns.clear();signBounds.clear();localParkour.reset();
+      eventSigns.clear();signBounds.clear();playerEffects.clear();localParkour.reset();
       scene3d?.dispose();
       window.removeEventListener('pointerdown', gameplayAudio.unlock);
       window.removeEventListener('keydown', gameplayAudio.unlock);
@@ -4195,12 +4254,18 @@ const spriteFrame = (
   const playerMechanicsLocked =
     snapshot.state === 'PRISONER' ||
     snapshot.ultimateCasting ||
-    snapshot.paused;
+    snapshot.paused || onlineMenuOpen;
+  useEffect(()=>{if(mode!=='playing'||playerMechanicsLocked)touchPointers.current?.clear();},[mode,playerMechanicsLocked]);
+  useLearningMemory(snapshot.learnedMechanics??[]);
+  useEffect(()=>{if(!snapshot.paused&&focusCanvasOnResume.current){focusCanvasOnResume.current=false;canvasRef.current?.focus({preventScroll:true});}},[snapshot.paused]);
+  const openPause=(page:'home'|'help'='home')=>{setPausePage(page);keys.current.clear();if(networkSession)setOnlineMenu(true);else keys.current.add('p');};
+  const resumePause=()=>{keys.current.clear();if(networkSession)setOnlineMenu(false);else keys.current.add('p');};
   const start = () => {
     if (!playerProfile || !selectedFaction || assetsLoading) return;
     const gate = selectionGate();
     if (gate) { setContentGateError(gate); return; }
     setContentGateError('');
+    setOnlineMenu(false);
     setTutorialMatch(false);
     stopCharacterVoice();
     setRendererError('');
@@ -4214,6 +4279,7 @@ const spriteFrame = (
   const quit = () => {
     if(tutorialMatch){try{skipPlayerTutorial();}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');return;}}
     setTutorialMatch(false);
+    setOnlineMenu(false);
     networkSession?.close();setNetworkSession(null);setMultiplayerOpen(false);
     stopCharacterVoice();
     keys.current.clear();
@@ -4344,7 +4410,7 @@ const spriteFrame = (
       const key = event.key.toLowerCase();
       if (!playerProfile) return;
       if (tutorialModalOpen) return;
-      if (profileOpen || multiplayerOpen) return;
+      if (profileOpen || multiplayerOpen || document.querySelector('dialog:modal')) return;
       if (creditsOpen) return;
       if (rulesOpen) {
         if (key === 'escape') setRulesOpen(false);
@@ -4416,20 +4482,18 @@ const spriteFrame = (
     multiplayerOpen,
   ]);
 
-  const touchKey = (key: string, pressed: boolean) =>
-    {if(pressed){if(key==='shift'&&!keys.current.has(key))keys.current.add('parkour-pulse');keys.current.add(key);}else keys.current.delete(key);};
   const tapKey = (key: string) => {
     if(key==='shift')keys.current.add('parkour-pulse');
     keys.current.add(key);
     window.setTimeout(() => keys.current.delete(key), 120);
   };
   const touchControl = (key: string) => {
-    const release = () => touchKey(key, false);
+    const release = (event: ReactPointerEvent<HTMLButtonElement>) => touchPointers.current?.release(event.pointerId);
     return {
       onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => {
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
-        touchKey(key, true);
+        touchPointers.current?.press(event.pointerId,key);
       },
       onPointerUp: release,
       onPointerCancel: release,
@@ -4647,57 +4711,60 @@ const spriteFrame = (
     );
   }
   return (
-    <main className={`game-shell playing-shell${hudPreferences.contrast ? ' hud-high-contrast' : ''}${tutorialMatch?' tutorial-highlight-'+(tutorialStep(tutorialSession.stepId)?.control??'none'):''}`}>
-      {tutorialHandoff&&playerProfile&&<TutorialFinish session={tutorialSession} profile={playerProfile} result={tutorialReward} error={tutorialEntryError} catalog={SELECTION_FIELDS}
+    <GameplayScreenShell hudScale={hudPreferences.scale} className={`game-shell playing-shell${hudPreferences.contrast ? ' hud-high-contrast' : ''}${tutorialMatch?' tutorial-highlight-'+(tutorialStep(tutorialSession.stepId)?.control??'none'):''}`}>
+      {tutorialHandoff&&playerProfile&&<TutorialFinish profile={playerProfile} result={tutorialReward} error={tutorialEntryError} catalog={SELECTION_FIELDS}
         onReward={()=>{try{updatePlayerTutorialStep('reward');setTutorialReward(recordPlayerTutorialReward());setTutorialEntryError('');}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Reward belum tersimpan.');}}}
-        onSignal={kind=>tutorialSignal(kind,tutorialSession.stepId)}
-        onComplete={()=>{try{if(!completePlayerTutorial())throw new Error('Profil pemain tidak tersedia.');tutorialSignal('ACK','complete');setTutorialEntryError('');quit();setMenuStep('team');}catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}}}
+        onComplete={destination=>{try{
+          if(!tutorialReward)return;
+          const next=finishTutorialSummary(tutorialSessionRef.current,tutorialSerial.current);
+          if(!next.finished)return;
+          if(!completePlayerTutorial())throw new Error('Profil pemain tidak tersedia.');
+          tutorialSessionRef.current=next;tutorialSerial.current=next.lastSerial;setTutorialSession(next);
+          setTutorialEntryError('');quit();if(destination==='play')setMenuStep('team');
+        }catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}}}
         onLeave={quit}/>}
-      {tutorialMatch&&!tutorialHandoff&&!snapshot.paused&&!showStatsBoard&&<TutorialCoach session={tutorialSession} goal={tutorialGoal} onAck={()=>tutorialSignal('ACK',tutorialSession.stepId)} onRetry={()=>{tutorialRetryRef.current=true;}} onSkip={quit}/>}
+      <HudZone zone="context" owner="tutorial-coach" placement="anchored">
+      {tutorialMatch&&!tutorialHandoff&&!snapshot.paused&&!showStatsBoard&&<TutorialCoach session={tutorialSession} goal={tutorialGoal} onAck={()=>{tutorialSignal('ACK',tutorialSession.stepId);canvasRef.current?.focus({preventScroll:true});}} onHelp={()=>openPause('help')}/>}
+      </HudZone>
       {tutorialMatch&&tutorialEntryError&&<p className="tutorial-save-error" role="alert">{t(tutorialEntryError)}</p>}
-      <PlayingTopbar
-        logoSrc={publicAsset('brand/benteng-tag-logo.webp?v=9')}
-        hasProfile={Boolean(playerProfile)}
-        musicMuted={musicMuted}
-        hudPreferences={hudPreferences}
-        onHudPreferences={setHudPreferences}
-        onHudOpen={() => keys.current.clear()}
-        onOpenProfile={() => {
-          keys.current.clear();
-          setProfileOpen(true);
-        }}
-        onAudioOpen={() => keys.current.clear()}
-        onToggleMusic={toggleBackgroundMusic}
-        onToggleMission={() => setMissionOpen((value) => !value)}
-        onPause={() => keys.current.add('p')}
-      />
+      <HudZone zone="pause" owner="playing-topbar" placement="anchored">
+      <PlayingTopbar onPause={()=>openPause()}/>
+      </HudZone>
       <section className="prototype-grid">
         <div className="stage-card">
           <canvas
             ref={canvasRef}
+            tabIndex={0}
             aria-label={tutorialMatch?`Tutorial 2v2 · ${FIELD_BY_ID[selectedFieldId].name}`:t(`Arena ${FIELD_BY_ID[selectedFieldId].name} 5 lawan 5 yang dapat dimainkan`)}
           />
           <OrientationHint />
-          {!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&<GameplayGuidance key={`${selectedFieldId}-${run}`} order={snapshot.order}
-            tagged={snapshot.mission.tag} rescued={snapshot.mission.rescue}
-            captured={snapshot.statsBoard.reason==='BENTENG DIREBUT'&&snapshot.statsBoard.winner===(selectedFaction==='red'?'blue':'red')}
-            state={snapshot.state}/>}
+          <HudZone zone="context" owner="contextual-hint" placement="anchored">
+          {!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&!onlineMenuOpen&&<>
+            <PrisonerNotice prisoner={snapshot.state==='PRISONER'} paused={snapshot.paused} requestActive={snapshot.rescueRequestActive} requestRemaining={snapshot.rescueRequestRemaining} requestCooldown={snapshot.rescueRequestCooldown} onRequest={()=>tapKey('r')}/>
+          </>}
+          <ContextualHint context={{state:snapshot.state,learned:learnedTutorialMechanics(playerProfile),...snapshot.guidance??{moving:false,nearObstacle:false,parkourReady:false,rescueNeeded:false,ultimateReady:false,nearEnemyFort:false,fortOpen:false,tagOpportunity:false}}} active={!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&!onlineMenuOpen}/>
+          </HudZone>
           {rendererError && (
             <RendererErrorNotice
               error={rendererError}
               onBack={() => { setRendererError(''); quit(); }}
             />
           )}
+          <HudZone zone="match" owner="stage-hud" placement="anchored">
           <StageHud
             snapshot={snapshot}
             teamSize={tutorialMatch?2:5}
             onToggle={() => setLeaderboardOpen((value) => !value)}
           />
+          </HudZone>
+          <HudZone zone="feedback" owner="match-events">
           <MatchEventFeed events={snapshot.matchEvents} frames={MATCH_EVENT_FRAME} />
           {!tutorialHandoff&&<RoundResultAnnouncementCard result={snapshot.roundResult} assets={ROUND_RESULT_ASSET}
             detail={snapshot.match.scored ? snapshot.roundResult.final
               ? `${snapshot.match.points.blue} — ${snapshot.match.points.red}${snapshot.match.locked ? ` · ${t('MATCH TERKUNCI')}` : ''}`
               : `${t(statsBoard.reason)} +${snapshot.match.lastPoints}${snapshot.match.golden ? ` · ${t('RONDE EMAS!')}` : ''}` : undefined} />}
+          </HudZone>
+          <HudZone zone="dialogs" owner="results">
           {showStatsBoard && !tutorialHandoff && (
             <RoundStatsOverlay
               statsBoard={statsBoard}
@@ -4721,12 +4788,8 @@ const spriteFrame = (
               )}
             />
           )}
-          <ArenaIntel
-            baseGrace={snapshot.baseGrace}
-            fortLock={snapshot.fortLock}
-            pickupCount={snapshot.pickupCount}
-            fieldWins={snapshot.fieldWins}
-          />
+          </HudZone>
+          <HudZone zone="fort" owner="fort-status" placement="anchored"><FortStatusHud value={snapshot.fortStatus??{state:'safe',lockSeconds:0,capturePercent:0}} baseGrace={snapshot.baseGrace}/></HudZone>
           {mode === 'playing' && (
             <>
               <StatusRibbon
@@ -4734,18 +4797,6 @@ const spriteFrame = (
                 factionLabel={selectedFaction ? factionName(selectedFaction) : ''}
                 state={snapshot.state}
                 order={snapshot.order}
-              />
-              <PrisonerNotice
-                prisoner={snapshot.state === 'PRISONER'}
-                paused={snapshot.paused}
-                requestActive={snapshot.rescueRequestActive}
-                requestRemaining={snapshot.rescueRequestRemaining}
-                requestCooldown={snapshot.rescueRequestCooldown}
-                onRequest={() => tapKey('r')}
-              />
-              <ActiveObjective
-                missionCount={missionCount}
-                onOpen={() => setMissionOpen(true)}
               />
               <CharacterHud
                 characterId={selected.id}
@@ -4771,12 +4822,8 @@ const spriteFrame = (
                 callout={snapshot.comboCallout}
                 surge={Boolean(snapshot.comboSurgeRemaining)}
               />
-              <CameraSwitcher
-                options={CAMERA_OPTIONS}
-                cameraMode={cameraMode}
-                onSelect={(id) => setCameraMode(id as CameraMode)}
-              />
               <BoostStack boost={snapshot.boost} boostCountdown={snapshot.boostCountdown} />
+              <HudZone zone="ultimate" owner="ultimate-meter" placement="anchored">
               {snapshot.state !== 'PRISONER' && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
                 <UltimateMeterHud
                   playerName={selected.name}
@@ -4784,37 +4831,11 @@ const spriteFrame = (
                   hudTitle={selected.ultimate?.hudTitle ?? 'TITAH HALILINTAR'}
                   shieldClass={selected.ultimate?.shieldClass}
                   meter={snapshot.ultimateMeter}
+                  disabled={playerMechanicsLocked} onActivate={()=>tapKey('capslock')}
                 />
               )}
-              <ActionDock
-                mechanicsLocked={playerMechanicsLocked}
-                state={snapshot.state}
-                intel={{
-                  baseGrace: snapshot.baseGrace,
-                  fortLock: snapshot.fortLock,
-                  pickupCount: snapshot.pickupCount,
-                  fieldWins: snapshot.fieldWins,
-                }}
-                comboSurge={Boolean(snapshot.comboSurgeRemaining)}
-                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
-                meter={snapshot.ultimateMeter}
-                casting={snapshot.ultimateCasting}
-                ultimateActionClass={selected.ultimate?.actionClass ?? ''}
-                ultimateTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
-                ultimateIconId={selected.ultimate?.icon ?? 'zap'}
-                onTapUltimate={() => tapKey('capslock')}
-                parkourReady={snapshot.parkourReady}
-                parkourHint={snapshot.parkourHint}
-                parkourCooldownSeconds={snapshot.parkourCooldownSeconds}
-                onTapParkour={()=>tapKey('shift')}
-              />
-              {snapshot.state !== 'PRISONER' && snapshot.ultimateBuffRemaining > 0 && (
-                <UltimateBuffIndicator ultimate={selected.ultimate} remaining={snapshot.ultimateBuffRemaining} />
-              )}
-              <ControlRibbon
-                state={snapshot.state}
-                hasUltimate={ULTIMATE_CHARACTER_IDS.has(selectedId)}
-              />
+              </HudZone>
+              <HudZone zone="controller" owner="mobile-controls" placement="anchored">
               <MobileControls
                 state={snapshot.state}
                 playerMechanicsLocked={playerMechanicsLocked}
@@ -4827,16 +4848,27 @@ const spriteFrame = (
                 parkourHint={snapshot.parkourHint}
                 parkourCooldownSeconds={snapshot.parkourCooldownSeconds}
               />
-              <output className="parkour-feedback" aria-live="polite">{t(snapshot.parkourHint)}</output>
-              {snapshot.paused && (
+              </HudZone>
+              <HudZone zone="dialogs" owner="pause">
+              {(snapshot.paused||onlineMenuOpen) && (
                 <PauseOverlay
                   musicMuted={musicMuted}
-                  onResume={() => keys.current.add('p')}
+                  initialPage={pausePage}
+                  controlsInitiallyOpen={tutorialMatch&&['move','sprint','parkour','ultimate'].includes(tutorialSession.stepId)}
+                  tutorialActions={tutorialMatch?<button onClick={()=>{keys.current.clear();tutorialRetryRef.current=true;focusCanvasOnResume.current=true;resumePause();}}>{getLanguage()==='id'?'ULANGI LANGKAH':'RETRY LESSON'}</button>:undefined}
+                  onResume={resumePause}
+                  online={Boolean(networkSession)}
+                  onOpenProfile={playerProfile?()=>{keys.current.clear();setProfileOpen(true);}:undefined}
+                  hudPreferences={hudPreferences} onHudPreferences={setHudPreferences}
+                  mapPanel={<PauseMap source={canvasRef} options={CAMERA_OPTIONS} cameraMode={cameraMode} onSelect={id=>setCameraMode(id as CameraMode)}/>}
+                  helpPanel={<HowToPlayPanel initialTab={tutorialMatch?helpTabForLesson(tutorialSession.stepId):'fort'}/>}
+                  statusPanel={<PauseMatchOverview snapshot={snapshot}/>}
                   onToggleMusic={toggleBackgroundMusic}
                   onRestart={() => {if(tutorialMatch)launchTutorial();else setRun((value) => value + 1);}}
                   onQuit={quit}
                 />
               )}
+              </HudZone>
             </>
           )}
           {ultimateBannerVisible && ULTIMATE_CHARACTER_IDS.has(selectedId) && (
@@ -4849,7 +4881,7 @@ const spriteFrame = (
             />
           )}
         </div>
-        <MissionPanel
+        {missionOpen&&<MissionPanel
           open={missionOpen}
           onClose={() => setMissionOpen(false)}
           missionCount={missionCount}
@@ -4857,7 +4889,7 @@ const spriteFrame = (
           mode={mode}
           selectedFaction={selectedFaction}
           musicMuted={musicMuted}
-        />
+        />}
       </section>
       {playerProfile && profileOpen && (
         <Suspense fallback={<LoadingPanel slot="profile" label={t("Memuat profil pemain…")} />}>
@@ -4867,6 +4899,6 @@ const spriteFrame = (
           />
         </Suspense>
       )}
-    </main>
+    </GameplayScreenShell>
   );
 }
