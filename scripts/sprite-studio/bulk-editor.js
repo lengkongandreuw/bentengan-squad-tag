@@ -1,0 +1,38 @@
+import {batchTargets,planBatchEdit,BATCH_FIELDS} from '/lib/sprite-studio-batch.js';
+const labels={scale:'Skala',fps:'FPS',x:'Offset X',y:'Offset Y',pivotX:'Titik kaki X',pivotY:'Titik kaki Y',mirror:'Mirror horizontal',loop:'Loop'};
+export function createBulkEditor({root,getContext,onStage,onUndo,canUndo,slotName}){
+  root.innerHTML='<summary>Edit kolektif · beberapa arah</summary><p>Pilih target dan properti. Sprite/frame tidak diganti. Hasil masuk draft terpilih; simpan lewat “Terapkan movement yang dicentang”.</p><label>Cakupan<select id="bulkScope"><option value="action">Animasi aktif · beberapa arah</option><option value="character">Semua animasi custom karakter (tanpa debu)</option></select></label><div class="bulk-shortcuts"><button type="button" id="bulkSides">Kiri + kanan</button><button type="button" id="bulkExisting">Slot custom</button><button type="button" id="bulkAll">Semua arah</button><button type="button" id="bulkNone">Kosongkan</button></div><fieldset id="bulkTargets"><legend>Target perubahan</legend><div id="bulkTargetList"></div></fieldset><fieldset id="bulkProperties"><legend>Hanya properti yang dicentang</legend><div id="bulkFields"></div></fieldset><button type="button" id="bulkFromCurrent">Ambil nilai arah aktif</button><p>Skala: samakan nilai, atau kalikan (110% = membesarkan 10%). Offset bisa disamakan atau ditambah. Loop takeoff/landing/fly dan debu tetap mengikuti aturan animasi.</p><div id="bulkPreview" aria-label="Preview perubahan kolektif"></div><p id="bulkFeedback" role="status" aria-live="polite"></p><button type="button" id="bulkApply" class="primary">Siapkan draft terpilih</button><button type="button" id="bulkUndo" disabled>Undo edit kolektif terakhir</button>';
+  const $=id=>root.querySelector('#'+id),selected=new Set(),inputs={},use={},modes={};let key='',plan=null,undo=null,targets=[];
+  for(const field of BATCH_FIELDS){const row=document.createElement('div');row.className='bulk-property';const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=field==='scale';check.setAttribute('aria-label',`Ubah ${labels[field]}`);label.append(check,labels[field]);use[field]=check;
+    const mode=document.createElement('select');mode.setAttribute('aria-label',`Mode ${labels[field]}`);for(const [value,text]of [['set','Samakan'],...(field==='scale'?[['multiply','Kalikan (%)']]:['x','y'].includes(field)?[['add','Tambahkan']]:[])]){const o=document.createElement('option');o.value=value;o.textContent=text;mode.append(o);}modes[field]=mode;
+    const input=document.createElement('input');input.type=['mirror','loop'].includes(field)?'checkbox':'number';input.setAttribute('aria-label',`Nilai ${labels[field]}`);input.step=field==='fps'?'1':'0.01';inputs[field]=input;
+    row.append(label,mode,input);$('bulkFields').append(row);for(const el of [check,input])el.addEventListener('change',preview);input.addEventListener('input',preview);
+    mode.onchange=()=>{if(input.type!=='checkbox')input.value=mode.value==='multiply'?100:mode.value==='add'?0:getContext().clip?.[field]??1;preview();};
+  }
+  function context(){return {...getContext(),scope:$('bulkScope').value};}
+  function values(){const c=getContext().clip??{};for(const f of BATCH_FIELDS){if(inputs[f].type==='checkbox')inputs[f].checked=c[f]??false;else inputs[f].value=f==='scale'&&modes[f].value==='multiply'?100:['x','y'].includes(f)&&modes[f].value==='add'?0:c[f]??({scale:1,fps:11,x:0,y:0,pivotX:.5,pivotY:1}[f]);}}
+  function preview(){
+    const c=context();plan=null;$('bulkApply').disabled=true;$('bulkPreview').replaceChildren();
+    for(const f of BATCH_FIELDS){inputs[f].hidden=modes[f].hidden=!use[f].checked;inputs[f].disabled=c.processing||!use[f].checked;modes[f].disabled=c.processing||!use[f].checked;use[f].disabled=c.processing;}
+    if(c.processing||c.pending){$('bulkFeedback').textContent=c.processing?'Tunggu pemrosesan selesai.':'Proses atau batalkan upload/crop terlebih dahulu.';return;}
+    if(!selected.size){$('bulkFeedback').textContent='Pilih minimal satu target.';return;}
+    try{
+      const fields={};for(const f of BATCH_FIELDS)if(use[f].checked)fields[f]={mode:modes[f].value,value:inputs[f].type==='checkbox'?inputs[f].checked:inputs[f].value.trim()===''?NaN:Number(inputs[f].value)/(f==='scale'&&modes[f].value==='multiply'?100:1)};
+      plan=planBatchEdit(c,[...selected],fields);const table=document.createElement('table'),caption=document.createElement('caption');caption.textContent='Sebelum → sesudah (belum disimpan)';table.append(caption);
+      for(const row of plan.rows){const tr=document.createElement('tr'),th=document.createElement('th'),td=document.createElement('td');th.scope='row';th.textContent=slotName(row.slot)+(row.source==='inherited'?' · override baru':'');td.textContent=plan.fields.map(f=>`${labels[f]}: ${row.before[f]} → ${row.after[f]}`).join(' · ');tr.append(th,td);table.append(tr);}
+      $('bulkPreview').append(table);const count=Object.keys(plan.changes).length;$('bulkFeedback').textContent=`${selected.size} target · ${count} berubah. Karakter lain dan properti tanpa centang tidak berubah.`;$('bulkApply').textContent=`Siapkan ${count} draft terpilih`;$('bulkApply').disabled=!count;
+    }catch(e){$('bulkFeedback').textContent=e.message;}
+  }
+  function refresh(){const c=context();if(!c.characters)return;const next=`${c.character}/${c.action}/${c.scope}`;if(next!==key&&!c.processing&&!c.pending){key=next;selected.clear();if(c.clip)selected.add(c.currentSlot);values();}
+    targets=batchTargets(c);for(const s of selected)if(!targets.some(t=>t.slot===s&&t.clip))selected.delete(s);
+    $('bulkTargetList').replaceChildren(...targets.map(t=>{const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=selected.has(t.slot);check.disabled=!t.clip||c.processing||c.pending;check.value=t.slot;check.setAttribute('aria-label',`Target ${slotName(t.slot)}`);check.onchange=()=>{if(check.checked)selected.add(t.slot);else selected.delete(t.slot);preview();};label.append(check,slotName(t.slot),t.source==='inherited'?' · dari default':t.source==='draft'?' · draft':!t.clip?' · belum tersedia':'');return label;}));
+    $('bulkScope').options[1].textContent=c.action==='boost_dust'?'Semua slot debu karakter':'Animasi tubuh karakter';
+    for(const id of ['bulkScope','bulkSides','bulkExisting','bulkAll','bulkNone','bulkFromCurrent'])$(id).disabled=c.processing||c.pending;
+    $('bulkUndo').disabled=c.processing||c.pending||!undo||!canUndo(undo);preview();
+  }
+  for(const [id,predicate]of [['bulkSides',t=>/\.(west|east)$/.test(t.slot)],['bulkExisting',t=>t.source==='saved'||t.source==='draft'],['bulkAll',t=>t.slot.includes('.')],['bulkNone',()=>false]])$(id).onclick=()=>{selected.clear();for(const t of targets)if(t.clip&&predicate(t))selected.add(t.slot);refresh();};
+  $('bulkScope').onchange=refresh;$('bulkFromCurrent').onclick=()=>{values();preview();};
+  $('bulkApply').onclick=()=>{try{if(!plan||getContext().pending||getContext().processing)return;undo=onStage(plan.changes);selected.clear();refresh();$('bulkFeedback').textContent='Draft terpilih siap. Periksa arah di canvas, lalu klik Simpan draft terpilih di bilah bawah. Undo tersedia sebelum draft diubah/disimpan.';}catch(e){$('bulkFeedback').textContent=e.message;}};
+  $('bulkUndo').onclick=()=>{try{if(undo){onUndo(undo);undo=null;refresh();$('bulkFeedback').textContent='Edit kolektif dibatalkan. Draft sebelumnya dipulihkan.';}}catch(e){$('bulkFeedback').textContent=e.message;}};
+  return {refresh};
+}

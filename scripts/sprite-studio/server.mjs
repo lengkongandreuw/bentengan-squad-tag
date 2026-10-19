@@ -27,7 +27,14 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
   roster.push({id:'default',team:'all',name:'Global · All characters (Boost dust)'});
   const ids=roster.map(r=>r.id),token=randomBytes(32).toString('hex');
   const definitions=await readFile(path.join(projectRoot,'lib/characters.ts'),'utf8').catch(()=> '');
-  for(const character of roster){const match=definitions.match(new RegExp(`id: '${character.id}'[\\s\\S]*?visualScale: ([0-9.]+)`));character.visualScale=match?Number(match[1]):1;}
+  for(const character of roster){
+    if(character.id==='default'){character.visualScale=1;continue;}
+    try{
+      const data=JSON.parse(await readFile(path.join(projectRoot,`config/characters/${character.id}.json`),'utf8'));
+      if(data.id!==character.id||!Number.isFinite(data.visualScale)||data.visualScale<=0)throw new Error(`Skala karakter ${character.id} tidak valid.`);
+      character.visualScale=data.visualScale;if(typeof data.name==='string'&&data.name.trim())character.name=data.name;
+    }catch(e){if(e.code!=='ENOENT')throw e;const match=definitions.match(new RegExp(`id: '${character.id}'[\\s\\S]*?visualScale: ([0-9.]+)`));character.visualScale=match?Number(match[1]):1;}
+  }
   const readConfig=async()=>{const b=await readFile(configFile);return {document:validateSpriteDocument(JSON.parse(b),ids),revision:hash(b)};};
   // oxlint-disable-next-line eslint/prefer-const -- origin/busy/job reassigned at listen/runJob below
   let origin,busy=false,job={status:'idle',message:''};
@@ -77,10 +84,11 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
       if(req.method==='GET') {
         if(url.pathname==='/api/state')return json(200,{...await readConfig(),roster,token,job,supportedSlots:Object.fromEntries(ids.map(id=>[id,SLOTS.filter(slot=>slotAllowed(id,slot))]))});
         if(url.pathname==='/api/job')return json(200,job);
-        const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css','/comparison':'comparison.html','/comparison.js':'comparison.js'};
-        if(editors[url.pathname]||url.pathname==='/model.js') {
+        const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css','/comparison':'comparison.html','/comparison.js':'comparison.js','/bulk-editor.js':'bulk-editor.js','/scale-comparison.js':'scale-comparison.js','/workbench-ui.js':'workbench-ui.js'};
+        const libraries={'/model.js':path.join(projectRoot,'lib/sprite-studio-model.js'),'/lib/sprite-studio-model.js':path.join(projectRoot,'lib/sprite-studio-model.js'),'/lib/sprite-studio-batch.js':path.join(root,'lib/sprite-studio-batch.js'),'/lib/sprite-scale-comparison.js':path.join(root,'lib/sprite-scale-comparison.js')};
+        if(editors[url.pathname]||libraries[url.pathname]) {
           res.setHeader('Content-Security-Policy',`default-src 'self'; img-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; ${framePolicy}`);
-          const file=url.pathname==='/model.js'?path.join(projectRoot,'lib/sprite-studio-model.js'):path.join(directory,editors[url.pathname]);
+          const file=libraries[url.pathname]??path.join(directory,editors[url.pathname]);
           res.setHeader('Content-Type',mime[path.extname(file)]);return res.end(await readFile(file));
         }
         const name=decodeURIComponent(url.pathname).slice(1);
