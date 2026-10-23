@@ -23,6 +23,7 @@ export type CollisionWorld = {
   fortOccupied: (team: LegacyTeam, exceptId?: string) => boolean;
   baseChargeTime: (p: RuntimeActor) => number;
   speedAt: (x: number, y: number) => number;
+  dynamicBlocked?: (x:number,y:number,r:number,p:RuntimeActor)=>boolean;
 };
 export function hitsSolid(world: CollisionWorld, x: number, y: number) {
   return (
@@ -33,6 +34,7 @@ export function hitsSolid(world: CollisionWorld, x: number, y: number) {
   );
 }
 export function movementBlocked(world: CollisionWorld, x: number, y: number, p: RuntimeActor, _now: number) {
+  if(world.dynamicBlocked?.(x,y,13,p))return true;
   if (isFlying(p))
     return (
       !!(world.studioFlightSolidAt ? world.studioFlightSolidAt(x, y, 13) : world.studioSolidAt?.(x, y, 13, true)) ||
@@ -146,7 +148,7 @@ export function parkourLanding(world:CollisionWorld,p:RuntimeActor,direction:Poi
   const ux=direction.x/magnitude,uy=direction.y/magnitude;
   const waterReach=PARKOUR_WATER_BASE_REACH*(nominalDistance/54);
   let crossedWater=false,context=false;
-  const hardAt=(x:number,y:number)=>!!world.studioSolidAt?.(x,y,13,true)||
+  const hardAt=(x:number,y:number)=>!!world.dynamicBlocked?.(x,y,13,p)||!!world.studioSolidAt?.(x,y,13,true)||
     (world.parkourSolidAt?world.parkourSolidAt(x,y,13):world.obstacles.some(o=>!parkourPassesObstacle(o)&&pointHitsExpandedRect(x,y,o,13)))||
     (world.kanal&&world.fortCoreAt(x,y));
   const max=Math.max(nominalDistance,waterReach);

@@ -1,6 +1,7 @@
 // Proper names (Tim Merah, Tim Hijau, arenas and named abilities) stay Indonesian.
 // ${n} is a runtime placeholder; never translate IDs, asset paths or game rules.
 export const playerTranslations: Record<string,string> = {
+  'Tiga jalur. Aktifkan Power Relay untuk membuka jalan pintas tengah—kedua tim bisa lewat.':'Three routes. Connect Power Relay to open the center shortcut—both teams can use it.',
   'Tekan Space untuk ledakan lari':'Press Space for a burst of speed',
   'detik. Pulih 20 detik atau ambil refill.':'seconds. Recharge in 20 seconds or grab a refill.',
   'Pasar lapang · neutral-cool':'Open market · room to move',

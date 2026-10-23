@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -16,10 +14,16 @@ concurrency:
 
 jobs:
   build:
+    permissions:
+      contents: read
+      pages: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -42,8 +46,13 @@ jobs:
       - name: Build static site
         run: npm run build:pages
 
+      - name: Verify public artifact contains no editor source or source maps
+        run: node scripts/verify-static-release.mjs dist-pages
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: false
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -51,10 +60,14 @@ jobs:
           path: dist-pages
 
   deploy:
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     steps:
       - name: Deploy to GitHub Pages

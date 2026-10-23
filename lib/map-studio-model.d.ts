@@ -9,6 +9,7 @@ export interface MapObject {
   id: string;
   name: string;
   asset: MapAsset | null;
+  openAsset?: MapAsset;
   x: number;
   y: number;
   w: number;
@@ -90,6 +91,7 @@ export function solidAt(
 export function speedAt(m: StudioMap, x: number, y: number): number;
 export function flightSolidAt(m: StudioMap, x: number, y: number, r?: number): boolean;
 export function collisionRects(o:MapObject): {x:number;y:number;w:number;h:number}[];
+export function collisionTouches(o:MapObject,x:number,y:number,r?:number):boolean;
 export function frameAt(a: MapAsset, ms: number): MapAsset['frames'][number];
 export function mapIssues(
   m: StudioMap,

@@ -1,15 +1,17 @@
 import { previewEntry, previewDefaults, previewStyle } from '/model.js';
+import {bindStudioKeyboard,createStudioHistory,historyButtons} from '/studio-keyboard.js';
 
 const $ = id => document.getElementById(id);
 let state, id, entry, dirty = false, working = false;
 let uploads = {}, localUrls = {}, imageGeneration = 0;
 let logoUpload = null, logoUrl = null, logoDirty = false;
 let layerUploads = [], layerUrls = [];
+let engineVisible=true,editHistory=null,updateHistory=()=>{};
 function stopVoiceMix() {
   for (const audio of [$('voicePreview'), ...$('voiceLayers').querySelectorAll('audio')]) { audio.pause(); audio.currentTime = 0; }
 }
 window.addEventListener('message',event=>{
-  if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&event.data.active===false)stopVoiceMix();
+  if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&typeof event.data.active==='boolean'){engineVisible=event.data.active;if(!engineVisible){stopVoiceMix();editHistory?.end();}}
 });
 function renderLayers() {
   stopVoiceMix(); $('voiceLayers').replaceChildren();
@@ -61,7 +63,7 @@ $('previewVoiceMix').onclick = async () => {
 function renderLogo() { $('logoImage').src = logoUrl || (state.document.branding?.logo ? `/${state.document.branding.logo}` : '/brand/benteng-tag-logo.webp'); }
 const message = text => { $('status').textContent = text; };
 const original = () => `/ui-v2/portraits/${id}.webp`;
-function markDirty() { dirty = true; message('Perubahan belum disimpan.'); }
+function markDirty() { dirty = true; editHistory?.record(); message('Perubahan belum disimpan.'); }
 // oxlint-disable-next-line typescript/unbound-method -- URL.revokeObjectURL is static, no this-binding
 function clearUploads() { stopVoiceMix(); layerUrls.filter(Boolean).forEach(URL.revokeObjectURL); layerUploads = []; layerUrls = []; Object.values(localUrls).forEach(URL.revokeObjectURL); uploads = {}; localUrls = {}; for (const kind of ['animated', 'static', 'voice']) $(kind).value = ''; }
 function renderVoice() {
@@ -99,12 +101,13 @@ function select(next) {
   const character = state.roster.find(item => item.id === id);
   $('character').value = id; $('team').textContent = character.team === 'red' ? 'Tim Merah' : 'Tim Hijau';
   $('title').textContent = character.name; render(); renderVoice(); renderLayers();
+  editHistory?.reset();
 }
 async function api(route, data) {
   const response = await fetch(route, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Token': state.token }, body: JSON.stringify(data) });
   const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Permintaan gagal.'); return result;
 }
-function lock(value) { working = value; document.querySelectorAll('button, input, select').forEach(control => { control.disabled = value; }); $('addVoiceLayer').disabled = value || (entry?.voiceLayers.length ?? 0) >= 4; }
+function lock(value) { working = value; document.querySelectorAll('button, input, select').forEach(control => { control.disabled = value; }); $('addVoiceLayer').disabled = value || (entry?.voiceLayers.length ?? 0) >= 4; updateHistory(); }
 $('character').onchange = event => {
   if (dirty && !confirm('Pindah karakter dan buang perubahan yang belum disimpan?')) { $('character').value = id; return; }
   select(event.target.value); message('Konfigurasi tersimpan dimuat.');
@@ -170,6 +173,7 @@ $('publish').onclick = async () => {
 let drag;
 $('stage').onpointerdown = event => {
   if (working) return;
+  $('stage').focus({preventScroll:true});editHistory?.begin();
   drag = { px: event.clientX, py: event.clientY, x: entry.x, y: entry.y }; $('stage').setPointerCapture(event.pointerId);
 };
 $('stage').onpointermove = event => {
@@ -178,13 +182,16 @@ $('stage').onpointermove = event => {
   entry.y = Math.round(Math.max(-50, Math.min(50, drag.y + (event.clientY - drag.py) / rect.height * 100)) * 10) / 10;
   transform(); markDirty();
 };
-$('stage').onpointerup = $('stage').onpointercancel = () => { drag = null; };
-$('stage').onkeydown = event => {
-  if (working || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
-  event.preventDefault(); const key = event.key === 'ArrowLeft' || event.key === 'ArrowRight' ? 'x' : 'y';
-  entry[key] = Math.max(-50, Math.min(50, entry[key] + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1)));
-  transform(); markDirty();
-};
+$('stage').onpointerup = $('stage').onpointercancel = $('stage').onlostpointercapture = () => { drag = null;editHistory?.end(); };
+editHistory=createStudioHistory(()=>({x:entry.x,y:entry.y,scale:entry.scale}),value=>{Object.assign(entry,value);transform();dirty=true;message('Undo/Redo posisi/skala diterapkan. File gambar dan suara tidak diubah.');},()=>updateHistory());
+const historyBarUpdate=historyButtons(editHistory,document.querySelector('.workspace'),'Undo/Redo posisi dan skala karakter');
+updateHistory=()=>{historyBarUpdate();for(const button of document.querySelectorAll('.studio-history button'))button.disabled ||= working;};
+bindStudioKeyboard({surface:$('stage'),enabled:()=>!!entry&&!working&&!drag&&engineVisible,
+  undo:()=>editHistory.undo(),redo:()=>editHistory.redo(),begin:()=>editHistory.begin(),end:()=>editHistory.end(),
+  nudge(dx,dy,step){entry.x=Math.max(-50,Math.min(50,entry.x+dx*step));entry.y=Math.max(-50,Math.min(50,entry.y+dy*step));transform();markDirty();},
+});
+$('stage').setAttribute('aria-label','Preview aktif. Panah: geser 1%; Shift+panah: 10%; Ctrl+Z/Y: Undo/Redo posisi dan skala.');
+const shortcutHint=document.createElement('p');shortcutHint.className='hint';shortcutHint.textContent='Klik preview aktif: panah = geser 1% · Shift+panah = 10% · Ctrl/Cmd+Z = Undo posisi/skala · Ctrl+Y / Ctrl/Cmd+Shift+Z = Redo. Riwayat transform direset saat menyimpan atau berpindah karakter; file gambar/suara tidak dihapus dengan Delete.';$('stage').closest('.previews').after(shortcutHint);
 window.addEventListener('beforeunload', event => { if (dirty || logoDirty || working) { event.preventDefault(); } });
 $('logoFile').onchange = async event => {
   const file = event.target.files[0]; if (!file) return;

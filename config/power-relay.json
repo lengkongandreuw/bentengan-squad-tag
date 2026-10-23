@@ -1,0 +1,14 @@
+{
+  "announceAfterMs": 25000,
+  "announcementMs": 1500,
+  "activeWindowMs": 30000,
+  "gateOpenMs": 20000,
+  "closingWarningMs": 2500,
+  "closingGraceMs": 2000,
+  "laneSpeedMultiplier": 1.35,
+  "channelMs": 650,
+  "interactionRadius": 56,
+  "movementTolerance": 12,
+  "actorRadius": 15,
+  "feedbackMs": 3000
+}

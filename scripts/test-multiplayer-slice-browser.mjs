@@ -24,6 +24,9 @@ try{
     const context=await browser.newContext({viewport:{width:1280,height:800}});contexts.push(context);
     const page=await context.newPage();pages.push(page);page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
     await page.getByLabel("PLAYER NAME",{exact:true}).fill(`SliceQA${index}`);await page.getByRole('button',{name:"SAVE NAME",exact:true}).click();
+    const tutorialEntry=page.locator('.tutorial-entry:modal');
+    await tutorialEntry.waitFor({state:'visible'});await tutorialEntry.getByRole('button',{name:'SKIP',exact:true}).click();
+    await page.keyboard.press('Escape'); // Skip enters team selection; lobby lives on landing.
     await page.getByRole('button',{name:"MULTIPLAYER · LOBBY",exact:true}).click();
     const arenaSelect=page.getByLabel("Multiplayer arena",{exact:true}),requestedArena=process.env.BENTENG_ARENA_ID||'kampung';
     await arenaSelect.waitFor();await arenaSelect.locator('option').first().waitFor({state:'attached'});
@@ -43,7 +46,7 @@ try{
     await page.getByText("Lobby connected",{exact:false}).waitFor({timeout:25000});
     await page.getByLabel("Team",{exact:true}).selectOption(index%2?'green':'red');
     await page.getByLabel("Character",{exact:true}).selectOption(characters[index]);
-    await host.getByText(`${index%2?'HIJAU':'MERAH'} · ${characters[index].toUpperCase()} · BELUM SIAP`,{exact:true}).waitFor();
+    await host.getByText(`${index%2?'HIJAU':'MERAH'} · ${characters[index].toUpperCase()} · NOT READY`,{exact:true}).waitFor();
     await page.getByLabel("Ready to play",{exact:false}).check();
   }
   await host.getByRole('button',{name:"START MATCH",exact:true}).click();

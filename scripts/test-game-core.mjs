@@ -311,7 +311,7 @@ void test('10 event boundary stays finite and runtime connects presentation with
 void test('10 actual interaction presenter preserves player/bot audio routing and never mutates match truth',()=>{
   const source=fs.readFileSync('app/prototype.tsx','utf8'),start=source.indexOf('const presentInteractionEvents ='),end=source.indexOf('const capture =',start);
   const initialize=vm.runInThisContext(ts.transpileModule(`(function(players,presentGameEvents){
-    let localSignSerial=0;const learning=[],observeLearningEvents=events=>learning.push(...events),tutorialIdentity=false,network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
+    let localSignSerial=0;const relayTelemetry=null,relay=null,learning=[],observeLearningEvents=events=>learning.push(...events),tutorialIdentity=false,network=null,clientOnly=false,eventSigns={accept(){}},matchId='test',sounds=[],feed=[],bursts=[],logs=[],TEAM_COLOR={blue:'red',red:'green'},
       distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),gameplayAudio={play:(...args)=>sounds.push(args),resetTagStreak:()=>sounds.push(['reset']),playerTag:now=>sounds.push(['playerTag',now])},
       addMatchEvent=event=>feed.push(event),burst=(...args)=>bursts.push(args),log=text=>logs.push(text),beep=()=>{};
     ${source.slice(start,end)}
@@ -536,12 +536,12 @@ void test('03 actual runtime factory assigns all ten actors and reuses IDs on ro
     compilerOptions:{target:ts.ScriptTarget.ES2022}
   }).outputText;
   const characters=Object.fromEntries(['raja','kaka','bebe','ciici','jago','robot'].map(id=>[id,{name:id,boost:100}]));
-  const setup=`const bases={blue:{x:100,y:100},red:{x:900,y:100}},GAME_RULES={spawnOffsets:Array.from({length:5},(_,i)=>({x:i,y:i}))};
+  const setup=`const bases={blue:{x:100,y:100},red:{x:900,y:100}},GAME_RULES={spawnOffsets:realOffsets??Array.from({length:5},(_,i)=>({x:i,y:i}))};
     const CHARACTER_BY_ID=characters,selectedFaction='red',TEAM_FOR_FACTION={red:'blue',green:'red'},network=null;
-    const tutorialIdentity=tutorialEnabled,baseRadius=118,chooseTutorialSpawn=()=>null,TUTORIAL_MATCH={friendly:['raja','robot'],enemy:['ciici','kaka'],spawnOffsets:[{x:92,y:0},{x:92,y:35}]};
+    const tutorialIdentity=tutorialEnabled,baseRadius=radius,chooseTutorialSpawn=()=>null,TUTORIAL_MATCH={friendly:['raja','robot'],enemy:['ciici','kaka'],spawnOffsets:[{x:92,y:0},{x:92,y:35}]};
     const teamPerks={blue:[],red:[]},devAutobot=false,effectiveStats=id=>CHARACTER_BY_ID[id]; // no perks → base stats
     let selectedId='raja';const lineupFor=(faction,id)=>[id??'kaka','bebe','ciici','jago','raja'];\n`;
-  const init=vm.runInThisContext(`(function(createEntityRegistry,characters,tutorialEnabled=false){${setup}${factory}})`);
+  const init=vm.runInThisContext(`(function(createEntityRegistry,characters,tutorialEnabled=false,radius=118,realOffsets=null){${setup}${factory}})`);
   const runtime=init(entities.createEntityRegistry,characters),first=runtime.makePlayers();
   assert.equal(first.length,10);assert.equal(new Set(first.map(p=>p.entityId)).size,10);
   assert.equal(first.filter(p=>p.controller==='local').length,1);assert.equal(first.filter(p=>p.controller==='bot').length,9);
@@ -552,6 +552,9 @@ void test('03 actual runtime factory assigns all ten actors and reuses IDs on ro
   assert.equal(training.length,4);assert.equal(training.filter(p=>p.controller==='local').length,1);
   assert.equal(training.filter(p=>p.controller==='bot').length,3);
   assert.equal(training.filter(p=>p.team==='blue').length,2);assert.equal(training.filter(p=>p.team==='red').length,2);
+  const offsets=JSON.parse(fs.readFileSync('config/game-rules.json','utf8')).spawnOffsets;
+  const gardu=init(entities.createEntityRegistry,characters,false,68,offsets).makePlayers();
+  for(const p of gardu){const b=p.team==='blue'?{x:100,y:100}:{x:900,y:100};assert(Math.hypot(p.x-b.x,p.y-b.y)<68,'Every real Gardu spawn must charge inside the fort');assert.equal(p.lastX,p.x);assert.equal(p.lastY,p.y);}
 });
 void test('04 keyboard aliases/opposing axes and mouse pulses produce monotonic JSON inputs',()=>{
   const adapter=input.createLocalInputAdapter(),keys=['a','d','w','s','arrowleft','arrowright','arrowup','arrowdown',' ','shift','capslock','r'];

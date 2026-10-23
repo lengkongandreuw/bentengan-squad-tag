@@ -2,3 +2,4 @@
 :root .logo-editor{margin-top:25px;padding:18px;border:1px solid #51634b;border-radius:10px;background:#1c271e}.logo-editor summary{cursor:pointer;font-weight:750}.logo-stage{width:100%;aspect-ratio:2/1;background:#111713;border-radius:8px;margin:12px 0}.logo-stage img{width:100%;height:100%;object-fit:contain}.logo-editor input{max-width:100%}
 audio{width:100%;margin-top:12px}
 .voice-layer{border:1px solid #51634b;border-radius:8px;padding:10px;margin:12px 0}.voice-layer h4{margin:0}.voice-layer label{display:block}
+:root .studio-history{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}:root .studio-history button{width:auto;min-height:36px;margin:0;padding:7px 12px}

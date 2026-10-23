@@ -24,6 +24,7 @@ try{
     await page.keyboard.down('d');await page.waitForTimeout(50);await page.keyboard.up('d');
     assert.equal((await profile()).tutorial.currentStepId,'move','tiny input cannot complete meaningful movement');
     assert.deepEqual((await profile()).progression,before.progression);assert.deepEqual((await profile()).economy,before.economy);
+    await page.getByRole('button',{name:'Tutorial help',exact:true}).click();
     await page.getByRole('button',{name:'RETRY LESSON',exact:true}).click();await page.waitForTimeout(200);
     assert.equal((await profile()).tutorial.currentStepId,'move');
     if(name==='mobile'){
@@ -31,7 +32,7 @@ try{
       assert.ok(card.y+card.height<=pad.y,'long recovery copy must not cover D-pad');
       for(const button of await page.locator('.tutorial-coach button').all())assert.ok((await button.boundingBox()).height>=44);
       await page.emulateMedia({reducedMotion:'reduce'});
-      assert.equal(await page.locator('.tutorial-success').evaluate(node=>getComputedStyle(node).animationName),'none');
+      assert.equal(await page.locator('.tutorial-coach').evaluate(node=>getComputedStyle(node).animationName),'none');
       await page.setViewportSize({width:375,height:812});
       assert.ok((await page.locator('.tutorial-coach').boundingBox()).width<=343);
       await page.setViewportSize(viewport);
@@ -41,10 +42,11 @@ try{
     await page.getByRole('button',{name:'TUTORIAL',exact:true}).click();
     await page.waitForFunction(()=>window.__bentengGameCore?.readState().phase==='PLAYING',{},{timeout:90000});
     assert.equal((await profile()).tutorial.currentStepId,'intro_ui','interruption restarts scenario, not positions');
-    await page.getByRole('button',{name:'SKIP TUTORIAL',exact:true}).click();await page.getByRole('button',{name:'LEAVE',exact:true}).click();
+    await page.getByRole('button',{name:'Pause',exact:true}).click();
+    await page.getByRole('button',{name:'Exit to menu',exact:true}).click();await page.locator('.pause-confirm-action').click();
     assert.equal((await profile()).tutorial.status,'skipped');assert.deepEqual((await profile()).economy,before.economy);
     await page.locator('.enter-game').click();await page.getByRole('button',{name:'Choose Tim Merah',exact:true}).click();
-    await page.getByRole('button',{name:/^CHOOSE RAJA$/i}).click({timeout:90000});await page.getByRole('button',{name:'LET’S PLAY',exact:true}).click();
+    await page.locator('.character-panel-select').click({timeout:90000});await page.locator('.map-start-match').click();
     await page.waitForFunction(()=>window.__bentengGameCore?.readState().phase==='PLAYING',{},{timeout:90000});
     const ordinary=await page.evaluate(()=>window.__bentengGameCore.readState());assert.equal(ordinary.entities.length,10);
     assert.ok(!ordinary.matchId.startsWith('tutorial:'));assert.equal(await page.locator('.tutorial-coach').count(),0);

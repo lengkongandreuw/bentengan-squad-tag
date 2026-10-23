@@ -9,7 +9,6 @@ import {
   rm,
 } from 'node:fs/promises';
 import path from 'node:path';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
@@ -487,9 +486,8 @@ void test('archive metadata and inherited water mask remain backwards compatible
   assert.equal(doc.builtinStates.pasar, 'deleted');
   assert.ok(waterAt(m, 100, 100));
   assert.ok(!waterAt(m, 1200, 100));
-  assert.throws(() =>
-    validateDocument({ version: 1, maps: [m, { ...m, id: 'studio-second' }] }),
-  );
+  assert.equal(validateDocument({version:1,maps:[m,{...m,id:'studio-second'}]}).maps.length,2,'historical inactive aliases may coexist');
+  assert.throws(()=>validateDocument({version:1,maps:[{...m,archived:false,enabled:true},{...m,id:'studio-second',archived:false,enabled:true}]}),'only one live replacement');
   assert.throws(() =>
     validateDocument({
       version: 1,
@@ -509,7 +507,9 @@ void test('archive metadata and inherited water mask remain backwards compatible
   );
 });
 void test('local API upload, session guard, revision conflict and safe map merge', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'benteng-map-test-'));
+  await mkdir('outputs',{recursive:true});
+  const fixturePrefix=path.resolve('outputs/benteng-map-test-');
+  const dir = await mkdtemp(fixturePrefix);
   let server;
   try {
     await mkdir(path.join(dir, 'config'));
@@ -561,7 +561,7 @@ void test('local API upload, session guard, revision conflict and safe map merge
     m.prisons.red.overlayVisual=visual(asset);
     m.baseRadius=100;
     const saved = await post('/api/save', { map: m });
-    assert.equal(saved.status, 200);
+    assert.equal(saved.status, 200,saved.ok?'':await saved.text());
     const next = await saved.json();
     assert.equal((await post('/api/save', { map: m })).status, 409);
     state = { ...state, ...next };
@@ -577,7 +577,7 @@ void test('local API upload, session guard, revision conflict and safe map merge
     assert.equal(disk.maps.length, 2);
     assert.deepEqual(disk.maps[0], m);
     const backups = await readdir(path.join(dir, '.preview-admin'));
-    assert.equal(backups.length, 2);
+    assert.equal(backups.filter(name=>name.startsWith('map-backup-')).length, 2);
     state = {
       ...state,
       ...(await (await fetch(origin + '/api/state')).json()),
@@ -596,6 +596,7 @@ void test('local API upload, session guard, revision conflict and safe map merge
     state = { ...state, ...(await trash.json()) };
     assert.ok(state.document.maps[0].deleted);
     const restored = await post('/api/manage', { id: m.id, action: 'restore' });
+    assert.equal(restored.status, 200, await restored.clone().text());
     state = { ...state, ...(await restored.json()) };
     assert.ok(!state.document.maps[0].deleted);
     assert.equal(state.document.maps[0].enabled, false);
@@ -626,7 +627,7 @@ void test('local API upload, session guard, revision conflict and safe map merge
     assert.ok((await fetch(origin + '/editor.js')).ok);
   } finally {
     if (server) await new Promise((r) => server.close(r));
-    assert.ok(dir.startsWith(path.join(os.tmpdir(), 'benteng-map-test-')));
+    assert.ok(dir.startsWith(fixturePrefix));
     await rm(dir, { recursive: true, force: true });
   }
 });

@@ -48,8 +48,10 @@ void test('runtime checks contact range before expensive LOS; original quality s
   assert.equal(exports.tagContacts(actors,0,rules).length,0);assert.equal(lineTests,0);
   actors[1].x=10;assert.equal(exports.tagContacts(actors,0,rules).length,1);assert.equal(lineTests,1);
   assert.ok(code.includes("imageSmoothingQuality = 'high'"));
-  assert.ok(code.includes('studioLayers.world.filter(objectVisible)'));
+  assert.ok(code.includes('drawStudioDepth(players,objectVisible,'));
+  assert.ok(code.includes('createStudioDepth(studioLayers.world)'));
   assert.ok(code.includes('createMapQueries(studioMap)'));
-  assert.ok(code.includes('retainStudioImages(matchCharacters)'));
+  assert.ok(code.includes('retainStudioImages(matchCharacters,ultimateCharacters)'));
+  assert.ok(code.includes('const ultimateCharacters=networkSession?matchCharacters:[selectedId]'));
   assert.ok(code.includes('for (const id of matchCharacters)'));
 });

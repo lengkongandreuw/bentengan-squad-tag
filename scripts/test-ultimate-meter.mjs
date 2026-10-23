@@ -6,10 +6,13 @@ assert.equal(chargeUltimateMeter(40, false, 'kaka', 20), 40);
 assert.equal(chargeUltimateMeter(40, undefined, 'raja', 20), 40);
 // Non-ultimate characters never charge, even when controlled.
 assert.equal(chargeUltimateMeter(40, true, 'jago', 20), 40);
-assert.equal(chargeUltimateMeter(40, true, 'bebe', 30), 40);
 // Controlled ultimate owners accumulate verbatim.
 assert.equal(chargeUltimateMeter(40, true, 'kaka', 20), 60);
 assert.equal(chargeUltimateMeter(40, true, 'raja', 30), 70);
+assert.equal(chargeUltimateMeter(40, true, 'bebe', 30), 70);
+assert.equal(chargeUltimateMeter(40, true, 'ciici', 30), 70);
+assert.equal(chargeUltimateMeter(40, false, 'bebe', 30), 40);
+assert.equal(chargeUltimateMeter(40, false, 'ciici', 30), 40);
 // Clamp holds both ends.
 assert.equal(chargeUltimateMeter(95, true, 'kaka', 20), 100);
 assert.equal(chargeUltimateMeter(5, true, 'raja', -20), 0);

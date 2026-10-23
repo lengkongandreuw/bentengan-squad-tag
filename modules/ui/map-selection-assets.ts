@@ -9,8 +9,10 @@ export function orderArenaSelection<T extends {id: string; difficulty: 'easy' | 
   const difficulty = {easy: 0, normal: 1, hard: 2};
   const native = ['kampung', 'kampung3d', 'pasar', 'taman', 'kanal', 'kanal2'];
   const rank = (id: string) => {const i = native.indexOf(id);return i < 0 ? native.length : i;};
+  const gardu=fields.some(f=>f.id==='studio-gardu-tengah'&&canonicalId(f.id)==='pasar');
+  const campaignHead=(id:string)=>id==='kampung'?0:gardu&&id==='pasar'?1:2;
   return fields.map((field,index)=>({field,index,id:canonicalId(field.id)}))
-    .sort((a,b)=>Number(b.id==='kampung')-Number(a.id==='kampung') ||
+    .sort((a,b)=>campaignHead(a.id)-campaignHead(b.id) ||
       difficulty[a.field.difficulty]-difficulty[b.field.difficulty] ||
       rank(a.id)-rank(b.id) || a.index-b.index)
     .map(entry=>entry.field);

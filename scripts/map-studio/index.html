@@ -33,6 +33,8 @@
           <p id="versionDetails"></p>
           <button id="editVersion" hidden>Buka draft editor</button>
           <button id="exportDraft">Ekspor draft JSON · cadangan</button>
+          <button id="importDraftButton" type="button">Buka cadangan draft JSON</button>
+          <input id="draftFile" type="file" accept=".json,application/json" hidden>
           <p>“Aktif lokal” mengikuti konfigurasi repo ini. GitHub Pages baru berubah setelah Build/publish berhasil.</p>
           <label class="check"
             ><input type="checkbox" id="showArchived" />Tampilkan Arsip &
@@ -52,6 +54,7 @@
             <button id="new">+ Map kosong</button
             ><button id="clone">Salin Kampung</button>
           </div>
+          <button id="garduPrototype" type="button">+ Prototype Gardu Tengah</button>
           <button id="duplicateMap">Duplikat map ini</button
           ><label>Nama map<input id="mapName" maxlength="80" /></label
           ><label
@@ -94,11 +97,28 @@
         </section>
         <section>
           <h2>02 · Aset</h2>
+          <div id="terrainTools" class="terrain-tools" aria-labelledby="terrainHeading">
+            <h3 id="terrainHeading">Terrain &amp; tambalan</h3>
+            <p id="terrainInfo" role="status"></p>
+            <button id="replaceTerrain" type="button">Ganti seluruh terrain dari file</button>
+            <button id="terrainLibrary" type="button">Pilih terrain dari library</button>
+            <button id="restoreTerrain" type="button">Pulihkan terrain asli map ini</button>
+            <hr>
+            <button id="addTerrainPatch" type="button">+ Tambalan terrain dari file</button>
+            <button id="patchLibrary" type="button">+ Tambalan dari library</button>
+            <input id="terrainFile" type="file" accept="image/png,image/gif,image/webp" hidden>
+            <p>Hanya visual: collider, area air, struktur, dan unlock tidak ikut berubah.</p>
+            <details id="terrainHelp"><summary>Cara memakai &amp; catatan</summary>
+              <p>Tambalan = gambar di layer Latar, tanpa collider. Setelah ditambahkan: seret, ubah ukuran, rotasi, mirror, atau opacity di panel objek. PNG/WebP transparan dapat dipakai untuk tepi yang menyatu. Undo/Redo dan Delete tetap tersedia.</p>
+              <p>Gambar bangunan yang menyatu dalam terrain lama ikut terganti saat seluruh terrain diganti. Collider-nya tetap; sesuaikan secara terpisah jika diperlukan. Simpan map dahulu; Build/publish diperlukan untuk versi publik.</p>
+            </details>
+          </div>
           <label
             >Upload sebagai<select id="uploadKind">
               <option value="object">Objek baru</option>
               <option value="replace">Ganti gambar objek dipilih</option>
               <option value="terrain">Terrain</option>
+              <option value="patch">Tambalan terrain · tanpa collider</option>
               <option value="icon">Ikon / thumbnail</option>
             </select></label
           ><label class="upload"
@@ -107,12 +127,14 @@
               type="file"
               accept="image/png,image/gif,image/webp" /></label
           ><img id="uploadPreview" alt="Preview file yang dipilih" hidden />
+          <div id="assetOptimization"></div>
+          <p>Optimasi otomatis aktif: ukuran tekstur dibatasi dan frame identik berbagi gambar. File asli dicadangkan lokal; tidak dipublikasikan.</p>
           <p>
             Preview sumber langsung. GIF menjadi atlas; collider tidak ikut
             bergerak. Batas 30 MB / 128 frame / atlas 4096 px.
           </p>
           <details>
-            <summary>Terrain & ikon</summary>
+            <summary>Area air bawaan</summary>
             <label
               >Mode terrain<select id="terrainMode">
                 <option value="stretch">Penuhi luas map</option>
@@ -124,12 +146,14 @@
                 type="number"
                 min="32"
                 max="1024" /></label
-            ><button id="clearTerrain">Hapus terrain</button
+            ><button id="clearTerrain">Lepas gambar terrain · gunakan warna dasar</button
             ><button id="clearWaterMask">Hapus area air bawaan</button>
           </details>
           <label
-            >Cari objek bawaan<input id="search" placeholder="parkTree…"
+            >Cari aset<input id="search" placeholder="Nama aset…"
           /></label>
+          <div class="pair"><label>Koleksi<select id="libraryFilter"><option value="all">Semua</option><option value="upload">Upload proyek</option><option value="builtin">Bawaan</option></select></label><button id="refreshLibrary" type="button">Muat ulang aset</button></div>
+          <p id="libraryStatus" role="status"></p>
           <div id="library"></div>
         </section>
       </aside>
@@ -223,12 +247,14 @@
           <strong id="selectionTitle"></strong>
           <p id="nothing">Pilih objek, benteng, atau penjara.</p>
           <div id="properties" hidden>
-            <label>Nama objek<input id="objectName" /></label>
+            <label>Nama objek<input id="objectName" maxlength="100" aria-describedby="objectNameHelp objectNameCount" /></label>
+            <small id="objectNameHelp">Nama singkat agar mudah dicari; nama file gambar tidak berubah.</small>
+            <output id="objectNameCount" aria-live="off">0 / 100 karakter</output>
             <div class="pair">
-              <label>X<input id="x" type="number" /></label
-              ><label>Y<input id="y" type="number" /></label
-              ><label>Lebar<input id="w" type="number" min="1" /></label
-              ><label>Tinggi<input id="h" type="number" min="1" /></label>
+              <label>X<input id="x" type="number" step="any" /></label
+              ><label>Y<input id="y" type="number" step="any" /></label
+              ><label>Lebar<input id="w" type="number" min="1" step="any" /></label
+              ><label>Tinggi<input id="h" type="number" min="1" step="any" /></label>
             </div>
             <label class="check"
               ><input id="ratio" type="checkbox" checked /> Pertahankan
@@ -336,18 +362,20 @@
             <div id="structureProperties" hidden></div>
           </div>
         </section>
-        <section>
-          <h2>Objek & titik gameplay</h2>
+        <details id="objectsPanel" class="object-list-panel">
+          <summary>Objek &amp; titik gameplay <span id="objectCount"></span></summary>
           <button id="area">+ Area tanpa gambar</button>
           <div id="objects"></div>
-        </section>
+        </details>
         </div>
         <input id="structureFile" type="file" accept="image/png,image/gif,image/webp" hidden />
+        <p id="textureBudget"></p>
+        <button id="optimizeMapImages" type="button" hidden>Ringankan gambar</button>
         <details id="validationPanel" class="inspector-section">
           <summary>Pemeriksaan map · <span id="issueCount">0</span> issue</summary>
           <button id="validate">Periksa sekarang</button>
           <ul id="issues"></ul>
-          <button id="autoFix">Auto-fix collider</button>
+          <button id="autoFix">Perbaiki masalah yang aman secara otomatis</button>
           <p>Titik berulang dan sisi bersilang diperbaiki otomatis saat selesai menggambar, aktivasi, atau simpan. Bisa dibatalkan dengan Undo. Jalur/spawn tertutup tetap perlu diperiksa.</p>
           <div id="autoFixSummary" role="status" aria-live="polite"></div>
         </details>

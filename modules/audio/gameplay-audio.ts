@@ -5,7 +5,8 @@ import { publicAsset } from '../../lib/characters.ts';
 const SFX_BOOST = 3; 
 
 export type GameplaySound = 'step' | 'dash' | 'tag' | 'caught' | 'prison' |
-  'rescued' | 'rescue' | 'fort-enter' | 'fort-captured' | 'countdown' | 'ultimate' | 'victory' | 'defeat';
+  'rescued' | 'rescue' | 'fort-enter' | 'fort-captured' | 'countdown' | 'ultimate' | 'victory' | 'defeat' |
+  'relay-ready' | 'relay-start' | 'relay-connect' | 'relay-error' | 'relay-cancel' | 'relay-open' | 'relay-warning' | 'relay-close';
 
 export const SAMPLE_FILES = {
   dash: 'audio/gameplay/boost.mp3', caught: 'audio/gameplay/captured.mp3',
@@ -165,9 +166,9 @@ export class GameplayAudio {
       const pool = choices.length ? choices : available;
       const file = pool[Math.floor(Math.random() * pool.length)];
       if (file && this.sample(file, level * .85)) { this.lastTagSample = file; return true; }
-    } else if (sound !== 'step' && sound !== 'prison') {
+    } else if (sound in SAMPLE_FILES) {
       const gain = sound === 'dash' ? .85 : sound === 'rescue' || sound === 'fort-enter' ? .9 : sound === 'countdown' ? .95 : 1;
-      if (this.sample(SAMPLE_FILES[sound], level * gain, 0, false, sound === 'countdown' ? fitSeconds : undefined)) return true;
+      if (this.sample(SAMPLE_FILES[sound as keyof typeof SAMPLE_FILES], level * gain, 0, false, sound === 'countdown' ? fitSeconds : undefined)) return true;
       if (sound === 'fort-captured' && this.sample(CAPTURE_FALLBACK, level)) return true;
     }
     const tone = (hz: number, end: number, duration: number, gain: number, delay = 0, type: OscillatorType = 'sine') => {
@@ -201,6 +202,15 @@ export class GameplayAudio {
     };
     try {
       switch (sound) {
+        // Short synthesized electrical cues: no downloads, shared SFX/mute output.
+        case 'relay-ready': [440,660].forEach((f,i)=>tone(f,f,.16,.07,i*.12,'triangle')); break;
+        case 'relay-start': tone(240,400,.12,.04); break;
+        case 'relay-connect': [660,990].forEach((f,i)=>tone(f,f,.17,.08,i*.08)); break;
+        case 'relay-error': tone(230,100,.24,.075,0,'triangle'); break;
+        case 'relay-cancel': tone(400,260,.12,.04); break;
+        case 'relay-open': [440,660,880].forEach((f,i)=>tone(f,f,.26,.09,i*.1,'triangle')); break;
+        case 'relay-warning': [0,.22].forEach(delay=>tone(540,440,.15,.08,delay,'triangle')); break;
+        case 'relay-close': tone(300,140,.25,.08,0,'triangle'); break;
         case 'step': noise(.075, 600 + Math.random() * 300, 140, .18); tone(105, 65, .07, .1); break;
         case 'dash': noise(.3, 550, 3400, .36); tone(170, 65, .19, .12); break;
         case 'tag': noise(.10, 2000, 400, .28); tone(600, 1100, .13, .22); tone(1400, 950, .15, .12, .08); break;

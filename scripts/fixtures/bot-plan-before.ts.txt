@@ -1,0 +1,45 @@
+export function planBot(p: RuntimeActor, now: number, w: BotWorld): BotPlan {
+  const toward = (target: Point, objective: BotObjective, targetId?: string): BotPlan => ({ vector: { x: target.x - p.x, y: target.y - p.y }, objective, ...(targetId ? { targetId } : {}) });
+  if (p.state === 'RETURNING') return toward(w.bases[p.team], 'return');
+  if (p.state === 'IN_BASE') return toward({ x: w.width / 2, y: w.height / 2 + Math.sin(now / 920 + p.aiSeed) * 230 }, 'exit');
+  const requester = w.request ? w.players.find((q) => q.id === w.request?.requesterId) : undefined;
+  if (requester?.state === 'PRISONER' && w.request?.assignedRescuerId === p.id) return toward(requester, 'rescue', requester.entityId);
+  if (w.duty?.guards?.[p.team] === p.id) return planGuard(p, now, w, w.duty);
+  const held = w.players.filter((q) => q.team === p.team && q.state === 'PRISONER').sort((a, b) => b.prisonIndex - a.prisonIndex);
+  if (held.length && (p.aiSeed % 3 < w.profile.rescueCutoff || held.length >= 3)) return toward(held[0], 'rescue', held[0].entityId);
+  if (p.boost < 34) {
+    const item = w.refills.slice().sort((a, b) => botDistance(p, a) - botDistance(p, b))[0];
+    if (item && botDistance(p, item) < 360) return toward(item, 'refill');
+  }
+  const sees = (q: RuntimeActor) => botSees(p, q, now, weaknessFor(p, w));
+  const threat = w.players.filter((q) => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder > p.exitOrder && sees(q)).sort((a, b) => botDistance(p, a) - botDistance(p, b))[0];
+  if (threat && botDistance(p, threat) < w.profile.threatRadius) return { vector: { x: p.x - threat.x, y: p.y - threat.y }, objective: 'evade', targetId: threat.entityId };
+  const target = w.players.filter((q) => q.team !== p.team && q.state === 'ACTIVE' && q.exitOrder < p.exitOrder && sees(q)).sort((a, b) => {
+    const aBias = a.controlled ? -w.profile.playerBias : 0, bBias = b.controlled ? -w.profile.playerBias : 0;
+    return botDistance(p, a) + aBias - botDistance(p, b) - bBias;
+  })[0];
+  if (target) return toward({ x: target.x + target.vx * w.profile.prediction, y: target.y + target.vy * w.profile.prediction }, 'tag', target.entityId);
+  if (p.boost < 18 || Math.sin(now / 4300 + p.aiSeed) > 0.86) return toward(w.bases[p.team], 'return');
+  const enemy = w.bases[p.team === 'blue' ? 'red' : 'blue'];
+  return { vector: { x: enemy.x - p.x, y: enemy.y - p.y + Math.sin(now / 740 + p.aiSeed) * 150 }, objective: 'fort' };
+}
+/**
+ * Guard duty: patrol inside baseRadius×1.4 of the own fort. An enemy within baseRadius×2
+ * is chased only when the guard outranks it (higher exitOrder); otherwise the guard steps
+ * into the fort to refresh its exit order (the existing IN_BASE behaviour).
+ */
+function planGuard(p: RuntimeActor, now: number, w: BotWorld, duty: BotDuty): BotPlan {
+  const fort = w.bases[p.team];
+  const intruder = w.players
+    .filter((q) => q.team !== p.team && q.state === 'ACTIVE' && botDistance(q, fort) < duty.baseRadius * GUARD_ALERT_RADIUS
+      && (!weaknessFor(p, w) || now >= q.parkourUntil))
+    .sort((a, b) => botDistance(a, fort) - botDistance(b, fort))[0];
+  if (intruder) {
+    if (p.exitOrder > intruder.exitOrder)
+      return { vector: { x: intruder.x + intruder.vx * w.profile.prediction - p.x, y: intruder.y + intruder.vy * w.profile.prediction - p.y }, objective: 'guard', targetId: intruder.entityId };
+    return { vector: { x: fort.x - p.x, y: fort.y - p.y }, objective: 'guard' };
+  }
+  const angle = now / 2600 + p.aiSeed;
+  const ring = duty.baseRadius * 1.2;
+  return { vector: { x: fort.x + Math.cos(angle) * ring - p.x, y: fort.y + Math.sin(angle) * ring - p.y }, objective: 'guard' };
+}

@@ -1,8 +1,10 @@
+import {bindStudioKeyboard,createStudioHistory,historyButtons} from '/studio-keyboard.js';
 const $=id=>document.getElementById(id);
 let state,pending=null,objectUrl=null,busy=false,generation=0;
 let playing=false,progressStart=0,animationFrame=0;
+let editHistory=null,updateHistory=()=>{},historyContext='';
 const message=text=>$('message').textContent=text;
-function buttons(){ $('save').disabled=busy||!pending;const own=state?.document.slots[$('slot').value];$('reset').disabled=busy||!own;$('save-fit').disabled=busy||!own;for(const id of ['slot','file','fit','reload'])$(id).disabled=busy; }
+function buttons(){ $('save').disabled=busy||!pending;const own=state?.document.slots[$('slot').value];$('reset').disabled=busy||!own;$('save-fit').disabled=busy||!own;for(const id of ['slot','file','fit','reload'])$(id).disabled=busy;updateHistory(); }
 function release(){if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;pending=null;$('file').value='';generation++;}
 function current(){const slot=$('slot').value;return state.document.slots[slot]||(slot.startsWith('match:')?state.document.slots.match:null);}
 function builtin(){const slot=$('slot').value;return state.builtinPreviews[slot==='match'?$('arena').value:slot]??{label:'Memuat aset…'};}
@@ -34,6 +36,7 @@ function render(){
   $('current-source').textContent=source;$('draft-source').textContent=pending?'File baru · '+pending.name:entry&&entry.fit!==$('fit').value?'Perubahan ukuran tampilan · belum disimpan':'Belum ada perubahan media';
   $('status').textContent=pending?'DRAFT · belum disimpan':state.document.slots[slot]?'TERSIMPAN LOKAL · bukan status publish':entry?'MENGIKUTI LOADING MATCH DEFAULT':'BAWAAN GAME';
   $('details').textContent=pending?`${pending.name} · ${(pending.file.size/1024/1024).toFixed(2)} MB`:(entry?.asset??'Belum ada file pengganti.');$('arena').disabled=slot!=='match';progressPreview();buttons();
+  const context=slot+'/'+state.revision;if(editHistory&&context!==historyContext){historyContext=context;editHistory.reset();}updateHistory();
 }
 async function reload(){const response=await fetch('/api/state');if(!response.ok)throw new Error('Panel gagal memuat konfigurasi.');const previous=$('slot').value;state=await response.json();$('slot').replaceChildren();$('arena').replaceChildren();for(const [value,label]of Object.entries(state.slots)){const option=new Option(label,value);$('slot').append(option);if(value.startsWith('match:'))$('arena').append(new Option(label,value));}if(previous&&state.slots[previous])$('slot').value=previous;release();$('fit').value=current()?.fit??'cover';render();}
 async function save(route){if(busy)return;busy=true;buttons();message('Menyimpan…');try{const response=await fetch(route,{method:'POST',headers:{'X-Admin-Token':state.token,'X-Revision':state.revision,'X-Loading-Slot':$('slot').value,'X-Media-Fit':$('fit').value,'X-Media-Kind':pending?.kind??'image','X-Preserve-Progress':String($('slot').value.startsWith('character-')&&$('preserve-progress').checked)},body:route==='/api/upload'?pending.file:undefined});const data=await response.json();if(!response.ok)throw new Error(data.error);state={...state,...data};release();$('fit').value=current()?.fit??'cover';render();message('Tersimpan lokal. Reload game untuk melihat perubahan. Belum dipublish ke GitHub.');}catch(error){message(error.message);}finally{busy=false;buttons();}}
@@ -58,4 +61,10 @@ $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Jeda simu
 $('save').onclick=()=>void save('/api/upload');$('save-fit').onclick=()=>void save('/api/fit');$('reset').onclick=()=>{if(confirm('Kembalikan slot ini ke bawaan? File lama tetap disimpan.'))void save('/api/reset');};
 $('reload').onclick=()=>{if(!pending||confirm('Buang pilihan file yang belum disimpan?'))reload().then(()=>{state.selected=$('slot').value;message('Konfigurasi terbaru dimuat.');}).catch(e=>message(e.message));};
 window.addEventListener('beforeunload',e=>{if(pending||busy){e.preventDefault();}});
+editHistory=createStudioHistory(()=>({fit:$('fit').value,preserve:$('preserve-progress').checked}),value=>{$('fit').value=value.fit;$('preserve-progress').checked=value.preserve;render();message('Undo/Redo pengaturan tampilan draft. File media tidak diubah.');},()=>updateHistory());
+const historyBarUpdate=historyButtons(editHistory,document.querySelector('main>section'),'Undo/Redo pengaturan tampilan loading');
+updateHistory=()=>{historyBarUpdate();for(const button of document.querySelectorAll('.studio-history button'))button.disabled ||= busy;};
+for(const id of ['fit','preserve-progress'])$(id).addEventListener('change',()=>{if(state&&!busy)editHistory.record();});
+bindStudioKeyboard({enabled:()=>!!state&&!busy,undo:()=>editHistory.undo(),redo:()=>editHistory.redo()});
+const shortcutHint=document.createElement('p');shortcutHint.textContent='Ctrl/Cmd+Z = Undo tampilan draft · Ctrl+Y / Ctrl/Cmd+Shift+Z = Redo. Klik area kosong preview dahulu; input tetap memakai shortcut normal. File media tidak dihapus lewat Delete dan riwayat direset saat menyimpan/berpindah slot.';document.querySelector('main>section').append(shortcutHint);
 reload().then(()=>{state.selected=$('slot').value;}).catch(e=>message(e.message));

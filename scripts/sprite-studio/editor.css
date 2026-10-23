@@ -95,3 +95,14 @@ body:has(.sprite-layout)>header{padding:8px 20px}body:has(.sprite-layout)>header
  .sprite-workspace #sourceEditor{flex:1;min-height:0;overflow:auto}
  .sprite-workspace .view-tools{padding:4px 0;margin-bottom:6px}.sprite-workspace .toolbar button{min-height:32px}
 }
+:root .studio-history{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}:root .studio-history button{width:auto;min-height:36px;margin:0;padding:7px 12px}
+/* Engine chrome leaves a shorter iframe: scroll tools, never collapse the canvas. */
+@media(min-width:1051px) and (max-height:700px){
+ .sprite-workspace{overflow:auto}.sprite-workspace>#animationPanel{flex:none}
+ .sprite-workspace .preview-viewport{flex:none;height:180px;min-height:180px}
+ .sprite-workspace>.view-tools{position:static}
+}
+:root .asset-optimization-report{padding:10px;border:1px solid #64854b;border-radius:8px;margin:10px 0;background:#1b2c1b;overflow-wrap:anywhere;font-size:12px;line-height:1.5}
+:root .asset-optimization-report p{font-size:12px;line-height:1.5;letter-spacing:normal;margin:8px 0}
+:root #textureBudget{padding:10px;border:1px solid #506849;border-radius:8px;font-size:12px;line-height:1.5;color:#dcebd4;overflow-wrap:anywhere}
+:root #textureBudget[data-level=warning],:root #textureBudget[data-level=over]{border-color:#e8c570;color:#ffe1a0}

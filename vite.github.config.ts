@@ -1,8 +1,8 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { readFileSync, readdirSync, unlinkSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {loadingBootHtml} from './lib/loading-media-model.js';
 
@@ -28,6 +28,7 @@ const contentManifest={buildVersion:treeHash(['app','lib','modules','config'],tr
 const githubPagesCacheCompatibility: Plugin = {
   name: 'github-pages-cache-compatibility',
   generateBundle(_options, bundle) {
+    this.emitFile({type:'asset',fileName:'LICENSE.txt',source:readFileSync(new URL('./LICENSE',import.meta.url),'utf8')});
     let commit = process.env.GITHUB_SHA ?? '';
     if (!commit) {
       try {
@@ -82,11 +83,22 @@ const loadingBoot:Plugin={name:'loading-boot-media',transformIndexHtml(html){
   return loadingBootHtml(html,JSON.parse(readFileSync('config/loading-media.json','utf8')));
 }};
 
+// Exclude the original font download archive from the generated public release.
+// Keep public/fonts/creato_display.zip untouched for local production work.
+let releaseOutDir = resolve('dist-pages');
+const releaseAssetHygiene:Plugin={name:'release-asset-hygiene',configResolved(config){
+  releaseOutDir=resolve(config.root,config.build.outDir);
+},closeBundle(){
+  const generatedArchive=join(releaseOutDir,'fonts','creato_display.zip');
+  try{unlinkSync(generatedArchive);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+}};
+
 export default defineConfig({
   define:{__BENTENG_CONTENT__:JSON.stringify(contentManifest)},
   base: '/bentengan-squad-tag/',
-  plugins: [react(), loadingBoot, githubPagesCacheCompatibility],
+  plugins: [react(), loadingBoot, githubPagesCacheCompatibility,releaseAssetHygiene],
   build: {
+    sourcemap: false,
     outDir: 'dist-pages',
     emptyOutDir: true,
     rolldownOptions: {

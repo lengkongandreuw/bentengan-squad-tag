@@ -62,7 +62,7 @@ void test('voice replacement persists independently, rejects fake audio and rest
     const data = { revision: initial.revision, id: 'ciici', entry: original.characters.ciici };
     assert.equal((await post({ ...data, uploads: { voice: Buffer.from('<svg/>').toString('base64') } })).status, 400);
     const response = await post({ ...data, uploads: { voice: bytes.toString('base64') } });
-    assert.equal(response.status, 200);
+    assert.equal(response.status, 200, await response.clone().text());
     const saved = await response.json(), voice = saved.document.characters.ciici.voice;
     assert.match(voice, /^selection-previews\/ciici\/[a-f0-9]{64}\.mp3$/);
     assert.equal(saved.document.characters.ciici.x, 7);
@@ -123,7 +123,7 @@ void test('local server isolates assets, checks session, validates upload and pr
     assert.equal((await post({ ...data, uploads: { animated: Buffer.from('<svg/>').toString('base64') } })).status, 400);
     const bytes = await sharp({ create: { width: 8, height: 8, channels: 4, background: '#ff0000' } }).png().toBuffer();
     const result = await post({ ...data, uploads: { static: bytes.toString('base64') } });
-    assert.equal(result.status, 200);
+    assert.equal(result.status, 200, await result.clone().text());
     const saved = await result.json();
     assert.equal(saved.document.characters.ciici.x, 5);
     assert.match(saved.document.characters.ciici.static, /^selection-previews\/ciici\/[a-f0-9]{64}\.png$/);

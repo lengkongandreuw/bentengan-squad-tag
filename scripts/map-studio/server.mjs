@@ -7,6 +7,9 @@ import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { build } from 'esbuild';
 import { compileSprites } from '../sprite-studio/compile.mjs';
+import {registerMapAsset,readMapAssetLibrary} from './asset-library.mjs';
+import {optimizeMapAssets} from './optimize-map-assets.mjs';
+import {ASSET_PROFILES,BUDGETS,guardBudget,preserveStudioSources,mapOptimizationProfile} from '../studio-asset-policy.mjs';
 import {
   validateDocument,
   validateMap,
@@ -15,6 +18,7 @@ import {
   BUILTIN_IDS,
 } from '../../lib/map-studio-model.js';
 import { templates } from './templates.mjs';
+import {createGarduPrototype} from '../../modules/world/relay-map/relay-layout.ts';
 import { prepareArenaMap } from '../../modules/world/map-arena-rules.ts';
 import { waitForPagesDeployment, PAGES_URL } from './deployment.mjs';
 import { studioFramePolicy } from '../../lib/local-studio-frame.js';
@@ -312,9 +316,11 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
       res.setHeader('Cache-Control', 'no-store');
       if (req.method === 'GET') {
         if (url.pathname === '/api/state')
-          return json(200, { ...(await read()), token, job, capabilities: {structureVisuals: 1, mapAssetBundles: 1} });
+          return json(200, { ...(await read()), token, job, capabilities: {structureVisuals: 1, mapAssetBundles: 1,assetOptimization:1,assetBudgetAutofix:1},assetProfiles:ASSET_PROFILES,assetBudgets:BUDGETS });
         if (url.pathname === '/api/templates')
           return json(200, await catalog());
+        if(url.pathname==='/api/prototypes/gardu-tengah')return json(200,{map:createGarduPrototype()});
+        if(url.pathname==='/api/library')return json(200,await readMapAssetLibrary(projectRoot,(await read()).document));
         if (url.pathname === '/api/job') return json(200, job);
         const local = {
           '/': 'index.html',
@@ -323,9 +329,13 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
           '/catalog.mjs': 'catalog.mjs',
           '/map-versions.mjs': 'map-versions.mjs',
           '/editor-tools.js': 'editor-tools.js',
+          '/coachmarks.js':'coachmarks.js',
         };
         let file;
-        if (local[url.pathname]) file = path.join(here, local[url.pathname]);
+        if(url.pathname==='/asset-feedback.js')file=fileURLToPath(new URL('../studio-asset-feedback.js',import.meta.url));
+        else if(url.pathname==='/relay-prototype-visuals.js')file=fileURLToPath(new URL('../../modules/world/relay-map/relay-prototype-visuals.js',import.meta.url));
+        else if (url.pathname === '/studio-keyboard.js') file = fileURLToPath(new URL('../studio-keyboard.js', import.meta.url));
+        else if (local[url.pathname]) file = path.join(here, local[url.pathname]);
         else if (url.pathname === '/model.js')
           file = path.join(projectRoot, 'lib/map-studio-model.js');
         else if (
@@ -369,6 +379,7 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
       if (
         ![
           '/api/upload',
+          '/api/optimize-map',
           '/api/save',
           '/api/manage',
           '/api/build',
@@ -405,14 +416,12 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
             throw new Error('Aksi map tidak valid.');
           const document = structuredClone(current.document),
             builtin = BUILTIN_IDS.includes(data.id),
-            m = document.maps.find((m) =>
-              builtin ? m.replaces === data.id : m.id === data.id,
-            );
+            m = builtin ? document.maps.find(m=>m.replaces===data.id&&m.enabled&&!m.archived&&!m.deleted)??document.maps.find(m=>m.replaces===data.id):document.maps.find(m=>m.id===data.id);
           if (!builtin && !m) throw new Error('Map tidak ditemukan.');
           if (data.action === 'reset') {
             if (!builtin)
               throw new Error('Pulihkan asli hanya untuk map bawaan.');
-            document.maps = document.maps.filter((m) => m.replaces !== data.id);
+            document.maps = document.maps.map(m=>m.replaces===data.id?{...m,enabled:false}:m);
           } else if (m) {
             m.archived = data.action === 'archive';
             m.deleted = data.action === 'delete';
@@ -433,6 +442,7 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
         }
         if (url.pathname === '/api/upload') {
           let file = data.file;
+          const originalFile=file;
           if (data.kind === 'icon') {
             if (
               typeof file?.data !== 'string' ||
@@ -447,8 +457,8 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
             if (
               bytes.length > 30 * 1024 * 1024 ||
               !['png', 'gif', 'webp'].includes(meta.format) ||
-              meta.width > 4096 ||
-              (meta.pageHeight ?? meta.height) > 4096 ||
+              meta.width > 8192 ||
+              (meta.pageHeight ?? meta.height) > 8192 ||
               (meta.pages ?? 1) > 128
             )
               throw new Error('Ikon terlalu besar atau format tidak didukung.');
@@ -466,9 +476,14 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
             const bytes = await sharp(Buffer.from(file.data, 'base64')).webp({lossless: true}).toBuffer();
             return {bytes, hash: hash(bytes), width: 640, height: 360,
               frames: [{x: 0, y: 0, width: 640, height: 360}]};
-          })() : await compileSprites([file], {}),
+          })() : await compileSprites([file], {},{optimization:mapOptimizationProfile(data.kind,data.displaySize)}),
             asset = `map-studio/${result.hash}.webp`,
             dir = path.join(projectRoot, 'public/map-studio');
+          const sources=await preserveStudioSources(projectRoot,[originalFile]);
+          const inputMeta=data.kind==='icon'?await sharp(Buffer.from(originalFile.data,'base64'),{limitInputPixels:32_000_000}).metadata():null;
+          const optimization=result.optimization??{profile:'Preview map',inputBytes:Buffer.from(originalFile.data,'base64').length,outputBytes:result.bytes.length,
+            sourceFrame:{width:inputMeta.width,height:inputMeta.pageHeight??inputMeta.height},outputFrame:{width:640,height:360},frames:1,uniqueFrames:1,
+            beforeRGBA:inputMeta.width*(inputMeta.pageHeight??inputMeta.height)*4,afterRGBA:640*360*4,resized:true,losslessEncoding:true,warnings:[]};
           await mkdir(dir, { recursive: true });
           const publicDir = await realpath(path.join(projectRoot, 'public')),
             resolved = await realpath(dir);
@@ -481,20 +496,21 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
           ).catch((e) => {
             if (e.code !== 'EEXIST') throw e;
           });
+          const uploadedAsset={asset,width:result.width,height:result.height,frames:result.frames,fps:12};
+          const libraryItem=await registerMapAsset(projectRoot,uploadedAsset,file.name??originalFile.name??'Aset upload');
           return json(200, {
-            asset: {
-              asset,
-              width: result.width,
-              height: result.height,
-              frames: result.frames,
-              fps: 12,
-            },
+            libraryItem,
+            optimization:{...optimization,sources},
+            asset:uploadedAsset,
           });
         }
         const map = schema.validateMap(data.map);
         if (map.replaces === 'kampung3d')
           throw new Error('Map 3D belum mendukung edit visual di editor 2D.');
         await verify(map);
+        if(url.pathname==='/api/optimize-map')return json(200,await optimizeMapAssets(projectRoot,map));
+        const previousMap=current.document.maps.find(m=>m.id===map.id);
+        const budget=guardBudget(previousMap?schema.mapAssets(previousMap):[],schema.mapAssets(map),'map');
         const issues = schema.mapIssues(map);
         if (map.enabled && issues.length)
           return json(400, {
@@ -510,7 +526,7 @@ export async function startMapStudio(port = 4320, projectRoot = root, options = 
           document.builtinStates[map.replaces] = 'active';
         }
         await saveDocument(document, current);
-        return json(200, { ...(await read()), issues });
+        return json(200, { ...(await read()), issues,budget });
       } finally {
         if (job.status !== 'running') busy = false;
       }

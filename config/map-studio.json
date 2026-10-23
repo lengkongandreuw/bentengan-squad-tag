@@ -2,6 +2,2299 @@
   "version": 1,
   "maps": [
     {
+      "id": "studio-gardu-tengah",
+      "replaces": "pasar",
+      "name": "Gardu Tengah",
+      "description": "Tiga jalur. Aktifkan Power Relay untuk membuka jalan pintas tengah—kedua tim bisa lewat.",
+      "width": 1920,
+      "height": 1080,
+      "baseRadius": 68,
+      "enabled": true,
+      "terrain": {
+        "asset": "map-studio/56d81c3dd3c0b3df01e3e8d932753d0958f3004733048c03c00a0fcfcfe54140.webp",
+        "width": 1600,
+        "height": 900,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 1600,
+            "height": 900
+          }
+        ],
+        "fps": 1
+      },
+      "icon": {
+        "asset": "map-studio/9b6e26ee7da70364749783334a77734b8f3c6ce26dda0f40dd6eb3c612e2fb5e.webp",
+        "width": 640,
+        "height": 360,
+        "frames": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 640,
+            "height": 360
+          }
+        ],
+        "fps": 1
+      },
+      "terrainMode": "stretch",
+      "tileSize": 256,
+      "objects": [
+        {
+          "id": "obj-relay-plaza",
+          "name": "relay-plaza",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 770,
+                "y": 258,
+                "width": 229,
+                "height": 252
+              }
+            ],
+            "fps": 1
+          },
+          "x": 790,
+          "y": 330,
+          "w": 340,
+          "h": 420,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-wall-top-left",
+          "name": "relay-wall-top-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 2,
+                "width": 252,
+                "height": 82
+              }
+            ],
+            "fps": 1
+          },
+          "x": 790,
+          "y": 330,
+          "w": 110,
+          "h": 30,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-wall-bottom-left",
+          "name": "relay-wall-bottom-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 2,
+                "width": 252,
+                "height": 82
+              }
+            ],
+            "fps": 1
+          },
+          "x": 790,
+          "y": 720,
+          "w": 110,
+          "h": 30,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-wall-top-right",
+          "name": "relay-wall-top-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 2,
+                "width": 252,
+                "height": 82
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1020,
+          "y": 330,
+          "w": 110,
+          "h": 30,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-wall-bottom-right",
+          "name": "relay-wall-bottom-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 2,
+                "width": 252,
+                "height": 82
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1020,
+          "y": 720,
+          "w": 110,
+          "h": 30,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-west-wall-top",
+          "name": "relay-west-wall-top",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 2,
+                "width": 60,
+                "height": 250
+              }
+            ],
+            "fps": 1
+          },
+          "x": 790,
+          "y": 360,
+          "w": 30,
+          "h": 140,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-west-wall-bottom",
+          "name": "relay-west-wall-bottom",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 2,
+                "width": 60,
+                "height": 250
+              }
+            ],
+            "fps": 1
+          },
+          "x": 790,
+          "y": 580,
+          "w": 30,
+          "h": 140,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-power-gate-west",
+          "name": "power-gate-west",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 258,
+                "width": 88,
+                "height": 252
+              }
+            ],
+            "fps": 1
+          },
+          "openAsset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 258,
+                "width": 66,
+                "height": 252
+              }
+            ],
+            "fps": 1
+          },
+          "x": 790,
+          "y": 500,
+          "w": 30,
+          "h": 80,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-east-wall-top",
+          "name": "relay-east-wall-top",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 2,
+                "width": 60,
+                "height": 250
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1100,
+          "y": 360,
+          "w": 30,
+          "h": 140,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-east-wall-bottom",
+          "name": "relay-east-wall-bottom",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 2,
+                "width": 60,
+                "height": 250
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1100,
+          "y": 580,
+          "w": 30,
+          "h": 140,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-power-gate-east",
+          "name": "power-gate-east",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 258,
+                "width": 88,
+                "height": 252
+              }
+            ],
+            "fps": 1
+          },
+          "openAsset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 258,
+                "width": 66,
+                "height": 252
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1100,
+          "y": 500,
+          "w": 30,
+          "h": 80,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-power-relay-node-a",
+          "name": "power-relay-node-a",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 258,
+                "width": 252,
+                "height": 239
+              }
+            ],
+            "fps": 1
+          },
+          "x": 940,
+          "y": 400,
+          "w": 40,
+          "h": 40,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "ellipse",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-power-relay-node-b",
+          "name": "power-relay-node-b",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 258,
+                "width": 252,
+                "height": 239
+              }
+            ],
+            "fps": 1
+          },
+          "x": 940,
+          "y": 520,
+          "w": 40,
+          "h": 40,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "ellipse",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-power-relay-node-c",
+          "name": "power-relay-node-c",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 258,
+                "width": 252,
+                "height": 239
+              }
+            ],
+            "fps": 1
+          },
+          "x": 940,
+          "y": 640,
+          "w": 40,
+          "h": 40,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "ellipse",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-outer-north-left",
+          "name": "relay-outer-north-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 2,
+                "width": 252,
+                "height": 133
+              }
+            ],
+            "fps": 1
+          },
+          "x": 360,
+          "y": 180,
+          "w": 220,
+          "h": 120,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-outer-south-left",
+          "name": "relay-outer-south-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 770,
+                "width": 252,
+                "height": 142
+              }
+            ],
+            "fps": 1
+          },
+          "x": 360,
+          "y": 750,
+          "w": 220,
+          "h": 120,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-outer-north-right",
+          "name": "relay-outer-north-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 2,
+                "width": 252,
+                "height": 133
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1340,
+          "y": 180,
+          "w": 220,
+          "h": 120,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-outer-south-right",
+          "name": "relay-outer-south-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 258,
+                "y": 770,
+                "width": 252,
+                "height": 142
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1340,
+          "y": 750,
+          "w": 220,
+          "h": 120,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-parkour-north-left",
+          "name": "relay-parkour-north-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 770,
+                "y": 2,
+                "width": 252,
+                "height": 64
+              }
+            ],
+            "fps": 1
+          },
+          "x": 610,
+          "y": 275,
+          "w": 120,
+          "h": 26,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "parkour",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-parkour-south-left",
+          "name": "relay-parkour-south-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 770,
+                "y": 2,
+                "width": 252,
+                "height": 64
+              }
+            ],
+            "fps": 1
+          },
+          "x": 610,
+          "y": 790,
+          "w": 120,
+          "h": 26,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "parkour",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-parkour-north-right",
+          "name": "relay-parkour-north-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 770,
+                "y": 2,
+                "width": 252,
+                "height": 64
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1190,
+          "y": 275,
+          "w": 120,
+          "h": 26,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "parkour",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-parkour-south-right",
+          "name": "relay-parkour-south-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 770,
+                "y": 2,
+                "width": 252,
+                "height": 64
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1190,
+          "y": 790,
+          "w": 120,
+          "h": 26,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "parkour",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-approach-upper-left",
+          "name": "relay-approach-upper-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 770,
+                "width": 252,
+                "height": 74
+              }
+            ],
+            "fps": 1
+          },
+          "x": 470,
+          "y": 430,
+          "w": 180,
+          "h": 36,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-approach-lower-left",
+          "name": "relay-approach-lower-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 770,
+                "width": 252,
+                "height": 74
+              }
+            ],
+            "fps": 1
+          },
+          "x": 470,
+          "y": 614,
+          "w": 180,
+          "h": 36,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-approach-upper-right",
+          "name": "relay-approach-upper-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 770,
+                "width": 252,
+                "height": 74
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1270,
+          "y": 430,
+          "w": 180,
+          "h": 36,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-approach-lower-right",
+          "name": "relay-approach-lower-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 2,
+                "y": 770,
+                "width": 252,
+                "height": 74
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1270,
+          "y": 614,
+          "w": 180,
+          "h": 36,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-prison-cover-left",
+          "name": "relay-prison-cover-left",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 770,
+                "width": 252,
+                "height": 69
+              }
+            ],
+            "fps": 1
+          },
+          "x": 175,
+          "y": 735,
+          "w": 140,
+          "h": 24,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "parkour",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-relay-prison-cover-right",
+          "name": "relay-prison-cover-right",
+          "asset": {
+            "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+            "width": 1024,
+            "height": 1024,
+            "frames": [
+              {
+                "x": 514,
+                "y": 770,
+                "width": 252,
+                "height": 69
+              }
+            ],
+            "fps": 1
+          },
+          "x": 1605,
+          "y": 735,
+          "w": 140,
+          "h": 24,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "parkour",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-698fd2e21a7e4b8fa83222dd41de5790",
+          "name": "Tambalan terrain · e5774651-901a-4a0a-85a3-6716e2d38a78",
+          "asset": {
+            "asset": "map-studio/c38d73e68c1956849a7575c7e96f8ecd52ca0639a16a5816fd1cb478e95d936d.webp",
+            "width": 728,
+            "height": 487,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 487
+              }
+            ],
+            "fps": 12
+          },
+          "x": 330.38957868303567,
+          "y": 178.54891934237634,
+          "w": 269.4155447823661,
+          "h": 180.22715701787405,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-401b361dd35b4e678d977bb5553070f8",
+          "name": "Tambalan terrain · e5774651-901a-4a0a-85a3-6716e2d38a78 salinan",
+          "asset": {
+            "asset": "map-studio/c38d73e68c1956849a7575c7e96f8ecd52ca0639a16a5816fd1cb478e95d936d.webp",
+            "width": 728,
+            "height": 487,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 487
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1308.2231812636542,
+          "y": 170.69585044277528,
+          "w": 269.4155447823661,
+          "h": 180.22715701787405,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-3ec671e813654168bc03cad3ac73b672",
+          "name": "Tambalan terrain · e5774651-901a-4a0a-85a3-6716e2d38a78 salinan salinan",
+          "asset": {
+            "asset": "map-studio/c38d73e68c1956849a7575c7e96f8ecd52ca0639a16a5816fd1cb478e95d936d.webp",
+            "width": 728,
+            "height": 487,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 487
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1297.275370218109,
+          "y": 724.5450390647833,
+          "w": 269.4155447823661,
+          "h": 180.22715701787405,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-34f4177754ee43079ee2b8feae713f0d",
+          "name": "Tambalan terrain · e5774651-901a-4a0a-85a3-6716e2d38a78 salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/c38d73e68c1956849a7575c7e96f8ecd52ca0639a16a5816fd1cb478e95d936d.webp",
+            "width": 728,
+            "height": 487,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 487
+              }
+            ],
+            "fps": 12
+          },
+          "x": 325.3988897909147,
+          "y": 722.8817141811397,
+          "w": 269.4155447823661,
+          "h": 180.22715701787405,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-1e3f302c0eb44bb5b80e5d32fd5664a8",
+          "name": "Tambalan terrain · 6041e5a3-2e02-4a63-9ed5-976c770a02f6",
+          "asset": {
+            "asset": "map-studio/7cdba2d70d9fe04f5f7616ca9c27d0e0bf2bac305a092cb37587b3f03a7bfac2.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 626.808380776263,
+          "y": 386.0623714793974,
+          "w": 650.8028850149603,
+          "h": 327.1893625212575,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-443587d73d724366b410d51a5a69e15c",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 35.431221203926285,
+          "y": 494.9402235541152,
+          "w": 239.91840069110577,
+          "h": 104.799521181005,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-4afb0163c4c1427d876429ee96ccd343",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7 salinan",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1618.135454226763,
+          "y": 481.3737046238267,
+          "w": 288.9160625751201,
+          "h": 126.20234601495633,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-bfedaca507d345f2acf8f515f59519ec",
+          "name": "gardu 2",
+          "asset": {
+            "asset": "map-studio/0866d2b66ed2932a867a764bd5e7da28aaf3634891441e044dcd92cad9ab7172.webp",
+            "width": 728,
+            "height": 108,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 108
+              }
+            ],
+            "fps": 12
+          },
+          "x": 0,
+          "y": 0,
+          "w": 1920,
+          "h": 284.83516483516485,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-eca77b437d854601be586d0e997311d3",
+          "name": "Collider poligon",
+          "asset": null,
+          "x": 0,
+          "y": 28.787935697115383,
+          "w": 1920,
+          "h": 229.37058668870193,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.0016086121909638755,
+              "y": 0.959349709986811
+            },
+            {
+              "x": 0.02200493445763221,
+              "y": 0.959349709986811
+            },
+            {
+              "x": 0.08610745780488364,
+              "y": 0.4796748549934054
+            },
+            {
+              "x": 0.09970501956776676,
+              "y": 0.35772364380198723
+            },
+            {
+              "x": 0.1531237822312575,
+              "y": 0.33333367448518475
+            },
+            {
+              "x": 0.22499634669377253,
+              "y": 0.3414633231056008
+            },
+            {
+              "x": 0.24345010773748413,
+              "y": 0.26016240192737144
+            },
+            {
+              "x": 0.40176407903687567,
+              "y": 0.21951211191418252
+            },
+            {
+              "x": 0.5960143325675247,
+              "y": 0.22764210168645005
+            },
+            {
+              "x": 0.665944335807083,
+              "y": 0.235772432610569
+            },
+            {
+              "x": 0.7290756192981687,
+              "y": 0.1707321732805776
+            },
+            {
+              "x": 0.7329606602334569,
+              "y": 0.2439024223828365
+            },
+            {
+              "x": 0.7708393814217331,
+              "y": 0.3252033435610658
+            },
+            {
+              "x": 0.8349419455242972,
+              "y": 0.33333367448518475
+            },
+            {
+              "x": 0.8640795487623948,
+              "y": 0.455284885676603
+            },
+            {
+              "x": 0.9145845918573884,
+              "y": 0.5203251450065944
+            },
+            {
+              "x": 0.9422652334229558,
+              "y": 0.7439024223828364
+            },
+            {
+              "x": 0.9699458749885232,
+              "y": 0.9674796997590784
+            },
+            {
+              "x": 0.9981121976151426,
+              "y": 1
+            },
+            {
+              "x": 1,
+              "y": 0.2764227226237579
+            },
+            {
+              "x": 0.7688969017094017,
+              "y": 0
+            },
+            {
+              "x": 0.0016086121909638755,
+              "y": 0.10569089049503179
+            },
+            {
+              "x": 0,
+              "y": 0.9512197202145435
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-1a2fb8f37d5a4c448073b7ba935a6052",
+          "name": "s-3",
+          "asset": {
+            "asset": "map-studio/f288299ed40e4cd87077cfa2c08e6d2e6f44ceffd1473593eac9067534549de4.webp",
+            "width": 728,
+            "height": 126,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 126
+              }
+            ],
+            "fps": 12
+          },
+          "x": 0,
+          "y": 927.2706965158677,
+          "w": 882.4359756860977,
+          "h": 152.7293034841323,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-5c4893c9a9084d0480b23f9a4b8dd56f",
+          "name": "s-3 salinan",
+          "asset": {
+            "asset": "map-studio/f288299ed40e4cd87077cfa2c08e6d2e6f44ceffd1473593eac9067534549de4.webp",
+            "width": 728,
+            "height": 126,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 126
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1037.5640243139023,
+          "y": 927.2706965158677,
+          "w": 882.4359756860977,
+          "h": 152.7293034841323,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "foreground",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-2ca98a6c4bea43618d941e1f5e4c6455",
+          "name": "Collider poligon",
+          "asset": null,
+          "x": 0,
+          "y": 1004.0793003180088,
+          "w": 877.6806953625801,
+          "h": 65.2680225861377,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.012017736983318442,
+              "y": 0.08571455974986017
+            },
+            {
+              "x": 0.06938449964685445,
+              "y": 0.5999995204377452
+            },
+            {
+              "x": 0.9872518107068458,
+              "y": 0.5999995204377452
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 0.9428577594371859
+            },
+            {
+              "x": 0.003518973839768381,
+              "y": 0
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-a596c45abc9c40889824c413942ae66d",
+          "name": "Collider poligon",
+          "asset": null,
+          "x": 1047.377679286859,
+          "y": 1026.4569796048677,
+          "w": 868.9977401342148,
+          "h": 46.620060847355944,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "polygon",
+          "points": [
+            {
+              "x": 0.008583592051920061,
+              "y": 0.3999986572269743
+            },
+            {
+              "x": 0.9334763511791677,
+              "y": 0.43999986572269645
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 0.9978540119405253,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            },
+            {
+              "x": 0.01072958011139481,
+              "y": 0.4800010742184235
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        }
+      ],
+      "bases": {
+        "blue": {
+          "x": 150,
+          "y": 540,
+          "visual": {
+            "asset": {
+              "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+              "width": 1024,
+              "height": 1024,
+              "frames": [
+                {
+                  "x": 2,
+                  "y": 514,
+                  "width": 252,
+                  "height": 243
+                }
+              ],
+              "fps": 1
+            },
+            "w": 136,
+            "h": 136,
+            "offsetX": -68,
+            "offsetY": -68,
+            "rotation": 0,
+            "opacity": 1,
+            "mirror": false,
+            "visible": true
+          }
+        },
+        "red": {
+          "x": 1770,
+          "y": 540,
+          "visual": {
+            "asset": {
+              "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+              "width": 1024,
+              "height": 1024,
+              "frames": [
+                {
+                  "x": 258,
+                  "y": 514,
+                  "width": 252,
+                  "height": 243
+                }
+              ],
+              "fps": 1
+            },
+            "w": 136,
+            "h": 136,
+            "offsetX": -68,
+            "offsetY": -68,
+            "rotation": 0,
+            "opacity": 1,
+            "mirror": false,
+            "visible": true
+          }
+        }
+      },
+      "prisons": {
+        "blue": {
+          "x": 160,
+          "y": 790,
+          "w": 170,
+          "h": 120,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+              "width": 1024,
+              "height": 1024,
+              "frames": [
+                {
+                  "x": 514,
+                  "y": 514,
+                  "width": 252,
+                  "height": 191
+                }
+              ],
+              "fps": 1
+            },
+            "w": 170,
+            "h": 120,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 1,
+            "mirror": false,
+            "visible": true
+          }
+        },
+        "red": {
+          "x": 1590,
+          "y": 790,
+          "w": 170,
+          "h": 120,
+          "floorVisual": {
+            "asset": {
+              "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+              "width": 1024,
+              "height": 1024,
+              "frames": [
+                {
+                  "x": 770,
+                  "y": 514,
+                  "width": 252,
+                  "height": 192
+                }
+              ],
+              "fps": 1
+            },
+            "w": 170,
+            "h": 120,
+            "offsetX": 0,
+            "offsetY": 0,
+            "rotation": 0,
+            "opacity": 1,
+            "mirror": false,
+            "visible": true
+          }
+        }
+      }
+    },
+    {
       "id": "studio-kampung-2420b8cf",
       "name": "Arena Benteng 1",
       "description": "Latar dan footprint Kampung. Beberapa dekorasi menyatu di latar; upload terrain bersih untuk memisahkannya.",
@@ -23,15 +2316,15 @@
         "fps": 12
       },
       "icon": {
-        "asset": "map-studio/cb52f8609a32507c106a3628198fb1d2991363819148c3086c28b55b3e8bc1fb.webp",
-        "width": 648,
-        "height": 368,
+        "asset": "map-studio/a2eab603ba1aec57a39ad3b4c2a728a5a1956eb1a03ef22a04b8ba02742b5d6b.webp",
+        "width": 640,
+        "height": 360,
         "frames": [
           {
             "x": 0,
             "y": 0,
-            "width": 648,
-            "height": 368
+            "width": 640,
+            "height": 360
           }
         ],
         "fps": 12
@@ -199,93 +2492,6 @@
           "visible": true,
           "locked": false,
           "mirror": true
-        },
-        {
-          "id": "obj-visual-6",
-          "name": "parkBarrier",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1369,
-                "y": 1936,
-                "width": 218,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 451.9060481144832,
-          "y": 315.17950674203723,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-6",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 456.49571345402643,
-          "y": 346.1795067420373,
-          "w": 97,
-          "h": 18,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
         },
         {
           "id": "obj-visual-7",
@@ -1576,180 +3782,6 @@
           "mirror": false
         },
         {
-          "id": "obj-visual-19",
-          "name": "parkBarrier",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1369,
-                "y": 1936,
-                "width": 218,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1103.6923076923076,
-          "y": 909.0769230769231,
-          "w": 117.46153846153834,
-          "h": 48.36651583710402,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-19",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 1107,
-          "y": 928.5384615384615,
-          "w": 121.84615384615381,
-          "h": 22.61062648691514,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-visual-20",
-          "name": "drain",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1128,
-                "y": 1936,
-                "width": 233,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1222.1538461538462,
-          "y": 911,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
-          "id": "obj-collider-20",
-          "name": "Batas drain",
-          "asset": null,
-          "x": 1225.4615384615386,
-          "y": 938.1538461538462,
-          "w": 120.69230769230762,
-          "h": 22.396510705789044,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
           "id": "obj-collider-23",
           "name": "Batas parkTree",
           "asset": null,
@@ -2308,15 +4340,15 @@
             ],
             "fps": 12
           },
-          "x": 1087.0280573918271,
-          "y": 826.8320958064154,
+          "x": 1080.8647480035856,
+          "y": 869.9753649735235,
           "w": 156.907747708834,
           "h": 158.08308664298255,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
+          "layer": "background",
+          "z": 4,
+          "behavior": "solid",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -3100,8 +5132,8 @@
           "h": 135.82290664100097,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
-          "z": 0,
+          "layer": "background",
+          "z": 4,
           "behavior": "decoration",
           "slow": 0.5,
           "shape": "polygon",
@@ -3152,7 +5184,7 @@
           "opacity": 1,
           "layer": "world",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "solid",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -3242,17 +5274,17 @@
                 "height": 895
               }
             ],
-            "fps": 12
+            "fps": 1
           },
-          "x": 424.8287729116587,
+          "x": 421.74711821753783,
           "y": 153.84627122145451,
           "w": 161.7428471491885,
           "h": 274.16637916387066,
           "rotation": 0,
           "opacity": 1,
-          "layer": "world",
+          "layer": "background",
           "z": 0,
-          "behavior": "decoration",
+          "behavior": "solid",
           "slow": 0.5,
           "shape": "polygon",
           "points": [
@@ -3265,8 +5297,8 @@
               "y": 0.08663900535199898
             },
             {
-              "x": 1,
-              "y": 0.8009588418459759
+              "x": 0.9878178465398524,
+              "y": 0.8078229066465511
             },
             {
               "x": 0.03290288876264519,
@@ -3618,7 +5650,7 @@
           "h": 153.91608391608398,
           "rotation": 0,
           "opacity": 1,
-          "layer": "foreground",
+          "layer": "world",
           "z": 0,
           "behavior": "decoration",
           "slow": 0.5,
@@ -3686,10 +5718,10 @@
           "id": "obj-11c8684558ad4f2b84bda3a2c8943f30",
           "name": "Batas besdawdnteng tag",
           "asset": null,
-          "x": 424.8287729116587,
-          "y": 153.84627122145451,
-          "w": 161.7428471491885,
-          "h": 274.16637916387066,
+          "x": 410.9612750634066,
+          "y": 281.735303100427,
+          "w": 175.18084788415706,
+          "h": 120.78301779138977,
           "rotation": 0,
           "opacity": 1,
           "layer": "world",
@@ -5070,6 +7102,1108 @@
           "visible": true,
           "locked": false,
           "mirror": false
+        },
+        {
+          "id": "obj-c6a21b60ed2f4b40b182add43847cf18",
+          "name": "Tambalan terrain · 50d00e0a-02c1-4660-989e-3c914ff6acab",
+          "asset": {
+            "asset": "map-studio/00ef5116d4304dbafb96de7b51beee2259ecf147a476866eb5e2d08a6d766dbd.webp",
+            "width": 1536,
+            "height": 565,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1536,
+                "height": 565
+              }
+            ],
+            "fps": 12
+          },
+          "x": 800.9523687595274,
+          "y": 32.63612328506089,
+          "w": 360,
+          "h": 132.421875,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-86f49b83aa1b46608d582514d3a0e5c2",
+          "name": "Tambalan terrain · b0ee1f97-b638-4deb-ba43-6180971d5e3e",
+          "asset": {
+            "asset": "map-studio/9e4cbd28d5f00298b898e31a225f296f953a4c7b1acdf2698bef3fc69193d2c4.webp",
+            "width": 1536,
+            "height": 671,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1536,
+                "height": 671
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1168.7169801836517,
+          "y": 0,
+          "w": 747.0131131826632,
+          "h": 227.88964519287828,
+          "rotation": -11,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-489c6061dff246c38355c06b44e23af1",
+          "name": "Tambalan terrain · b0ee1f97-b638-4deb-ba43-6180971d5e3e salinan",
+          "asset": {
+            "asset": "map-studio/9e4cbd28d5f00298b898e31a225f296f953a4c7b1acdf2698bef3fc69193d2c4.webp",
+            "width": 1536,
+            "height": 671,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1536,
+                "height": 671
+              }
+            ],
+            "fps": 12
+          },
+          "x": 103.99726141287374,
+          "y": 0,
+          "w": 747.0131131826632,
+          "h": 227.88964519287828,
+          "rotation": -11,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-bed576e03fb146a58a720a4db545f0cb",
+          "name": "Tambalan terrain · b0ee1f97-b638-4deb-ba43-6180971d5e3e salinan salinan",
+          "asset": {
+            "asset": "map-studio/9e4cbd28d5f00298b898e31a225f296f953a4c7b1acdf2698bef3fc69193d2c4.webp",
+            "width": 1536,
+            "height": 671,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1536,
+                "height": 671
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1221.9868868173367,
+          "y": 1332.1103548071217,
+          "w": 747.0131131826632,
+          "h": 227.88964519287828,
+          "rotation": -1,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false,
+          "mirrorY": true
+        },
+        {
+          "id": "obj-01d9e4e85dd843f38c0196b42a493261",
+          "name": "Tambalan terrain · b0ee1f97-b638-4deb-ba43-6180971d5e3e salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/9e4cbd28d5f00298b898e31a225f296f953a4c7b1acdf2698bef3fc69193d2c4.webp",
+            "width": 1536,
+            "height": 671,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1536,
+                "height": 671
+              }
+            ],
+            "fps": 12
+          },
+          "x": 20,
+          "y": 1332.1103548071217,
+          "w": 747.0131131826632,
+          "h": 227.88964519287828,
+          "rotation": 11,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true,
+          "mirrorY": true
+        },
+        {
+          "id": "obj-9b4fa69d739b45398c17d637302e0cfc",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1341.9721620141004,
+          "y": 247.27154284180472,
+          "w": 376.26514267339985,
+          "h": 283.3273162473721,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-fae38d05a5844c21a7d29a839f68a4d4",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7 salinan",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 267.51541956459573,
+          "y": 857.9587689279329,
+          "w": 376.26514267339985,
+          "h": 283.3273162473721,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-f5e6f395ccaa48118400f94f52a6251a",
+          "name": "Tambalan terrain · 23d6bd4c-5398-43fc-83c6-7ebfe17448e3",
+          "asset": {
+            "asset": "map-studio/4a24a2bb44d4de9b9edbf2c8c4457030e0345dc0753e074c333fa61028082ad1.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 121.57317073170734,
+          "y": 622.0996821722247,
+          "w": 273.3824969035823,
+          "h": 178.12205408444458,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 3,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-ec43e98bf5b84b27bc4bf42a1872f31d",
+          "name": "Tambalan terrain · 23d6bd4c-5398-43fc-83c6-7ebfe17448e3 salinan",
+          "asset": {
+            "asset": "map-studio/4a24a2bb44d4de9b9edbf2c8c4457030e0345dc0753e074c333fa61028082ad1.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1495.009971060404,
+          "y": 624.3613026705098,
+          "w": 273.3824969035823,
+          "h": 178.12205408444458,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 3,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-74a240fcbe1042d28867077883ccd561",
+          "name": "Tambalan terrain · 6041e5a3-2e02-4a63-9ed5-976c770a02f6",
+          "asset": {
+            "asset": "map-studio/7cdba2d70d9fe04f5f7616ca9c27d0e0bf2bac305a092cb37587b3f03a7bfac2.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1052.8370152915397,
+          "y": 898.8181195531317,
+          "w": 360,
+          "h": 180.989010989011,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 3,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-945d8dc3b74947708292ce41e7594061",
+          "name": "Tambalan terrain · 6041e5a3-2e02-4a63-9ed5-976c770a02f6 salinan",
+          "asset": {
+            "asset": "map-studio/7cdba2d70d9fe04f5f7616ca9c27d0e0bf2bac305a092cb37587b3f03a7bfac2.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1581.9281273818601,
+          "y": 906.4011869121257,
+          "w": 265.79957841082296,
+          "h": 182.95591936645678,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 4,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-e864c9126a1f4135a92ce005e18f4fd1",
+          "name": "Tambalan terrain · 6041e5a3-2e02-4a63-9ed5-976c770a02f6 salinan salinan",
+          "asset": {
+            "asset": "map-studio/7cdba2d70d9fe04f5f7616ca9c27d0e0bf2bac305a092cb37587b3f03a7bfac2.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 365.56457221798803,
+          "y": 245.2481732640693,
+          "w": 265.79957841082296,
+          "h": 182.95591936645678,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -3,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-85a9533aa03f48d58b8e11b9b60cb7c0",
+          "name": "Tambalan terrain · e5774651-901a-4a0a-85a3-6716e2d38a78",
+          "asset": {
+            "asset": "map-studio/c38d73e68c1956849a7575c7e96f8ecd52ca0639a16a5816fd1cb478e95d936d.webp",
+            "width": 728,
+            "height": 487,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 487
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1035.098710222942,
+          "y": 194.84278596843797,
+          "w": 260.9657131288111,
+          "h": 137.08619292828462,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 5,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-5f52a4aaf4c34237a59364129cfaaa01",
+          "name": "Tambalan terrain · e5774651-901a-4a0a-85a3-6716e2d38a78 salinan",
+          "asset": {
+            "asset": "map-studio/c38d73e68c1956849a7575c7e96f8ecd52ca0639a16a5816fd1cb478e95d936d.webp",
+            "width": 728,
+            "height": 487,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 487
+              }
+            ],
+            "fps": 12
+          },
+          "x": 721.6173542301827,
+          "y": 1014.8426371022033,
+          "w": 260.9657131288111,
+          "h": 137.08619292828462,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-f3dc803499b04c98a4716235268c088a",
+          "name": "Tambalan terrain · af4336bb-70b9-4b9f-b78e-6faefd4948fc",
+          "asset": {
+            "asset": "map-studio/db29c1ec42d7148ae09c6ff2ab94cedc0683a555d13322de30605c906ec6e89d.webp",
+            "width": 728,
+            "height": 411,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 411
+              }
+            ],
+            "fps": 12
+          },
+          "x": 559.710615948933,
+          "y": 726.2725147910871,
+          "w": 314.1807772008384,
+          "h": 141.35492214917588,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 6,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-957e32fe12294e0dae16c282f1940bd2",
+          "name": "Tambalan terrain · af4336bb-70b9-4b9f-b78e-6faefd4948fc salinan",
+          "asset": {
+            "asset": "map-studio/db29c1ec42d7148ae09c6ff2ab94cedc0683a555d13322de30605c906ec6e89d.webp",
+            "width": 728,
+            "height": 411,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 411
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1078.158536585366,
+          "y": 581.3057268480613,
+          "w": 294.6685820788873,
+          "h": 151.9978158705934,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 6,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-189f2496381c4d92948515588223b750",
+          "name": "Tambalan terrain · af4336bb-70b9-4b9f-b78e-6faefd4948fc salinan salinan",
+          "asset": {
+            "asset": "map-studio/db29c1ec42d7148ae09c6ff2ab94cedc0683a555d13322de30605c906ec6e89d.webp",
+            "width": 728,
+            "height": 411,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 411
+              }
+            ],
+            "fps": 12
+          },
+          "x": 448.93457626714934,
+          "y": 549.8644039631529,
+          "w": 281.2760396817836,
+          "h": 135.05801439860397,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 6,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-9a8e8a86237b4ced9960b63b854ff39c",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 706.939024390244,
+          "y": 499.1563382400517,
+          "w": 360,
+          "h": 157.25274725274727,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 7,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-4090d4d4be4b4021a0eea5d08b2c90b0",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7 salinan",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 684.3667051733995,
+          "y": 331.129723934602,
+          "w": 182.42912776295736,
+          "h": 109.00345924232255,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 7,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-bc13890d35ee4d0caa37802673fff6d0",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7 salinan salinan",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 931.4176352896342,
+          "y": 333.3914188660044,
+          "w": 182.42912776295736,
+          "h": 109.00345924232255,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 7,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-89bac24017594562ae2bcaab1bf5934e",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7 salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 387.3377923732851,
+          "y": 1254.5000257162333,
+          "w": 182.42912776295736,
+          "h": 109.00345924232255,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 7,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-aa728c2c628042279cdbfd4cb734c168",
+          "name": "Tambalan terrain · dee5afe4-6edf-481f-974c-ce3c3784e3c7 salinan salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/9139640a8fd5955f9598ca3ee46e1033eb6c078f4c41398670339d5e758aa021.webp",
+            "width": 728,
+            "height": 318,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 318
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1423.745531035633,
+          "y": 1184.034312587422,
+          "w": 257.240975728849,
+          "h": 95.12314220562416,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 7,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
         }
       ],
       "bases": {
@@ -5184,180 +8318,6 @@
       "terrainMode": "stretch",
       "tileSize": 256,
       "objects": [
-        {
-          "id": "obj-visual-4",
-          "name": "parkBarrier",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1369,
-                "y": 1936,
-                "width": 218,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 614.0338532820992,
-          "y": 237.9323597783628,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
-          "id": "obj-collider-4",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 626,
-          "y": 267,
-          "w": 97,
-          "h": 18,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
-          "id": "obj-visual-5",
-          "name": "drain",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1128,
-                "y": 1936,
-                "width": 233,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1016.1060959946442,
-          "y": 305.97052836898524,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-5",
-          "name": "Batas drain",
-          "asset": null,
-          "x": 1033.8692557050717,
-          "y": 316.5487217180044,
-          "w": 97,
-          "h": 18,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
         {
           "id": "obj-visual-6",
           "name": "parkBarrier",
@@ -5533,93 +8493,6 @@
           "mirror": false
         },
         {
-          "id": "obj-visual-10",
-          "name": "parkBarrier",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1369,
-                "y": 1936,
-                "width": 218,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 615,
-          "y": 470,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-10",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 626,
-          "y": 501,
-          "w": 97,
-          "h": 18,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-collider-13",
           "name": "Batas parkBarrier",
           "asset": null,
@@ -5627,180 +8500,6 @@
           "y": 647.8007047087148,
           "w": 117.31709550066694,
           "h": 22.25460783529786,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-visual-14",
-          "name": "drain",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1128,
-                "y": 1936,
-                "width": 233,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 615,
-          "y": 623.1463935665968,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-14",
-          "name": "Batas drain",
-          "asset": null,
-          "x": 616.2439024390244,
-          "y": 638.5365407059834,
-          "w": 118.63415378477532,
-          "h": 29.756142220846073,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-visual-15",
-          "name": "parkBarrier",
-          "asset": {
-            "asset": "field/objects.webp",
-            "width": 2048,
-            "height": 2176,
-            "frames": [
-              {
-                "x": 1369,
-                "y": 1936,
-                "width": 218,
-                "height": 88
-              }
-            ],
-            "fps": 12
-          },
-          "x": 1082.829238519436,
-          "y": 628.9999627834411,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "decoration",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-collider-15",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 1084.0731409584603,
-          "y": 631.7073021865473,
-          "w": 113.24401036704467,
-          "h": 29.756105004287406,
           "rotation": 0,
           "opacity": 1,
           "layer": "world",
@@ -6886,85 +9585,11 @@
           "mirror": false
         },
         {
-          "id": "obj-812115154c1045d7b9ed9998f71bcebd",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 615,
-          "y": 470,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-3ef33a77fe324e6a9c23ab632ae62e4e",
           "name": "Batas parkBarrier",
           "asset": null,
           "x": 1212.3171178306022,
           "y": 386.53662258241235,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
-          "id": "obj-cf672150d102492aaee23a8c70b6886a",
-          "name": "Batas drain",
-          "asset": null,
-          "x": 1001.5944681824958,
-          "y": 302.1152278378305,
           "w": 119,
           "h": 49,
           "rotation": 0,
@@ -7900,43 +10525,6 @@
           "mirror": false
         },
         {
-          "id": "obj-8ed278e40b8e4280aba5dc576c0cb48f",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 1082.829238519436,
-          "y": 628.9999627834411,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false
-        },
-        {
           "id": "obj-da47ba5bbf2c47e4a3f567cdff155843",
           "name": "Batas drain",
           "asset": null,
@@ -8048,43 +10636,6 @@
           "mirror": false
         },
         {
-          "id": "obj-e898bd155b75441ba41c148bad19c3b7",
-          "name": "Batas parkBarrier",
-          "asset": null,
-          "x": 615,
-          "y": 236,
-          "w": 119,
-          "h": 49,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "solid",
-          "slow": 0.5,
-          "shape": "rect",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": true
-        },
-        {
           "id": "obj-75b321dd1e974807b42a0a75ab99de69",
           "name": "b208c3c8-a48e-4a58-a91a-f88648762862",
           "asset": {
@@ -8188,7 +10739,7 @@
             ],
             "fps": 12
           },
-          "x": 480.79701299252724,
+          "x": 485.7276708480622,
           "y": 538.4059740149456,
           "w": 157,
           "h": 157,
@@ -8676,6 +11227,957 @@
           "visible": true,
           "locked": false,
           "mirror": false
+        },
+        {
+          "id": "obj-734c8ebeaf21440c8e69f8d1c66016e1",
+          "name": "Tambalan terrain · fcb83d3e-fd62-4713-9fce-14c46e5e48e8",
+          "asset": {
+            "asset": "map-studio/9575279e02d6e71bb93558b3b38323eea43b93bebf0fd76934431434e6eee758.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 727.9206377449682,
+          "y": 511.86374112869794,
+          "w": 390.91611752267613,
+          "h": 170.89788383844743,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-22a910a90fee4a23b532ca9472ba8f22",
+          "name": "Tambalan terrain · fcb83d3e-fd62-4713-9fce-14c46e5e48e8 salinan",
+          "asset": {
+            "asset": "map-studio/9575279e02d6e71bb93558b3b38323eea43b93bebf0fd76934431434e6eee758.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 617.2578166379767,
+          "y": 41.262586219402465,
+          "w": 554.5834200584284,
+          "h": 242.44877264334437,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-752b1297f30446069b2690bbdb1691fa",
+          "name": "Tambalan terrain · fcb83d3e-fd62-4713-9fce-14c46e5e48e8 salinan salinan",
+          "asset": {
+            "asset": "map-studio/9575279e02d6e71bb93558b3b38323eea43b93bebf0fd76934431434e6eee758.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1301.6645962989933,
+          "y": 231.3704632718389,
+          "w": 415.014824818757,
+          "h": 181.4331825778336,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true,
+          "mirrorY": true
+        },
+        {
+          "id": "obj-a2a9cd1913ba47bda09a63d21fb81ed2",
+          "name": "Tambalan terrain · fcb83d3e-fd62-4713-9fce-14c46e5e48e8 salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/9575279e02d6e71bb93558b3b38323eea43b93bebf0fd76934431434e6eee758.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 201.17137016684268,
+          "y": 798.674002483306,
+          "w": 415.014824818757,
+          "h": 181.4331825778336,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-52e59a9d4e2b422fb71e60dc58bf7b53",
+          "name": "Tambalan terrain · bd745e21-d96f-4c9a-bf40-91aec91e39dc",
+          "asset": {
+            "asset": "map-studio/95ec11ff1e5cd3c8268bc713efa16407143dee3dcba6942badc730be9cb4e48d.webp",
+            "width": 1762,
+            "height": 905,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1762,
+                "height": 905
+              }
+            ],
+            "fps": 12
+          },
+          "x": 56.11789716300309,
+          "y": 538.7808404436394,
+          "w": 360,
+          "h": 184.90351872871736,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-458a1192522f4462b666fe121d70369b",
+          "name": "Tambalan terrain · bd745e21-d96f-4c9a-bf40-91aec91e39dc salinan",
+          "asset": {
+            "asset": "map-studio/95ec11ff1e5cd3c8268bc713efa16407143dee3dcba6942badc730be9cb4e48d.webp",
+            "width": 1762,
+            "height": 905,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1762,
+                "height": 905
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1396.302740581965,
+          "y": 510.7067582468703,
+          "w": 360,
+          "h": 184.90351872871736,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": true
+        },
+        {
+          "id": "obj-7a5fdea3de6142ec81cecaf4ba93715d",
+          "name": "Tambalan terrain · 4233216a-3381-4204-adc8-088e4d3014bb",
+          "asset": {
+            "asset": "map-studio/14b41b2b3c6feec8ff61ee61ffba221a8a017fbb398f1a9717db6dcb5fb40e28.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 334.700350486626,
+          "y": 333.1270447237721,
+          "w": 318.1887331170551,
+          "h": 139.10345138886962,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-0cec430106f444818452c6c8bb721e47",
+          "name": "Tambalan terrain · 4233216a-3381-4204-adc8-088e4d3014bb salinan",
+          "asset": {
+            "asset": "map-studio/14b41b2b3c6feec8ff61ee61ffba221a8a017fbb398f1a9717db6dcb5fb40e28.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1099.2303590936176,
+          "y": 599.6601443993547,
+          "w": 318.1887331170551,
+          "h": 139.10345138886962,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-ff2779821d3a43269eadfcebaa554f38",
+          "name": "Tambalan terrain · 4233216a-3381-4204-adc8-088e4d3014bb salinan salinan",
+          "asset": {
+            "asset": "map-studio/14b41b2b3c6feec8ff61ee61ffba221a8a017fbb398f1a9717db6dcb5fb40e28.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 427.70503881422155,
+          "y": 606.1009258148739,
+          "w": 239.97601835606451,
+          "h": 104.91098184676116,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-0b4fabda9d09407c984234cb3eaf162a",
+          "name": "Tambalan terrain · 2f2f21d9-ccd7-471d-86f7-86560e0e2b35",
+          "asset": {
+            "asset": "map-studio/5ef2949c6e6f40642901cbf155e415d2e64f386787f432c11a43fb138b332a63.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 196.64177535752125,
+          "y": 1046.8404546648471,
+          "w": 249.1594714148569,
+          "h": 108.92573750335367,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 3,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-0eb4f17235394af680e43bc3f2a48b65",
+          "name": "Tambalan terrain · 2f2f21d9-ccd7-471d-86f7-86560e0e2b35 salinan",
+          "asset": {
+            "asset": "map-studio/5ef2949c6e6f40642901cbf155e415d2e64f386787f432c11a43fb138b332a63.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 994.4540477688031,
+          "y": 985.4845224614569,
+          "w": 416.52446992518526,
+          "h": 182.09315831807837,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-de2c08571bdb4e57a6458c26f112b523",
+          "name": "Tambalan terrain · 2f2f21d9-ccd7-471d-86f7-86560e0e2b35 salinan salinan",
+          "asset": {
+            "asset": "map-studio/5ef2949c6e6f40642901cbf155e415d2e64f386787f432c11a43fb138b332a63.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1338.6451767743647,
+          "y": 813.1887109214675,
+          "w": 222.7184960316804,
+          "h": 97.36646292484456,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-6dd30ceef5d2401283d8f0034227b4f1",
+          "name": "Tambalan terrain · 2f2f21d9-ccd7-471d-86f7-86560e0e2b35 salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/5ef2949c6e6f40642901cbf155e415d2e64f386787f432c11a43fb138b332a63.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1495.471100370763,
+          "y": 1021.7865161386286,
+          "w": 222.7184960316804,
+          "h": 97.36646292484456,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-045ef254ab614f88b95c7155e57f9a73",
+          "name": "Tambalan terrain · 4233216a-3381-4204-adc8-088e4d3014bb salinan",
+          "asset": {
+            "asset": "map-studio/14b41b2b3c6feec8ff61ee61ffba221a8a017fbb398f1a9717db6dcb5fb40e28.webp",
+            "width": 1910,
+            "height": 835,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1910,
+                "height": 835
+              }
+            ],
+            "fps": 12
+          },
+          "x": 147.61251365532303,
+          "y": 330.9390585115104,
+          "w": 186.0160987983317,
+          "h": 81.32117408199316,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -1,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-a4519a7dab9d46189023ad3fee0c7816",
+          "name": "Tambalan terrain · 6041e5a3-2e02-4a63-9ed5-976c770a02f6",
+          "asset": {
+            "asset": "map-studio/8af3725009257b8aede04b3569a9f217e4e0873c4d32e578763224cfb2532511.webp",
+            "width": 1782,
+            "height": 895,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1782,
+                "height": 895
+              }
+            ],
+            "fps": 12
+          },
+          "x": 259.50752077264303,
+          "y": 114.3262152401598,
+          "w": 273.81296759136654,
+          "h": 137.52110325155616,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 4,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-1e7599aec2c94940ad1c4c8d1d8ca4a3",
+          "name": "Tambalan terrain · 50d00e0a-02c1-4660-989e-3c914ff6acab",
+          "asset": {
+            "asset": "map-studio/e174adcaae30df0f3b820abd79c798e1477ff42533bef1ffabce1aef30527879.webp",
+            "width": 2081,
+            "height": 766,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 2081,
+                "height": 766
+              }
+            ],
+            "fps": 12
+          },
+          "x": 46.256581451933215,
+          "y": 17.672453196242373,
+          "w": 360,
+          "h": 132.51321480057663,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-de01630e0fc04b80aed5a0abdc55d526",
+          "name": "Tambalan terrain · 50d00e0a-02c1-4660-989e-3c914ff6acab salinan",
+          "asset": {
+            "asset": "map-studio/e174adcaae30df0f3b820abd79c798e1477ff42533bef1ffabce1aef30527879.webp",
+            "width": 2081,
+            "height": 766,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 2081,
+                "height": 766
+              }
+            ],
+            "fps": 12
+          },
+          "x": 375.6557368908898,
+          "y": 6.855802805617358,
+          "w": 360,
+          "h": 132.51321480057663,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-7b21165a31144769bd19d089c0c7913e",
+          "name": "Tambalan terrain · 50d00e0a-02c1-4660-989e-3c914ff6acab salinan salinan",
+          "asset": {
+            "asset": "map-studio/e174adcaae30df0f3b820abd79c798e1477ff42533bef1ffabce1aef30527879.webp",
+            "width": 2081,
+            "height": 766,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 2081,
+                "height": 766
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1071.1566389698091,
+          "y": 14.52913230442563,
+          "w": 360,
+          "h": 132.51321480057663,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-f8b375672d6b423693b07dcff3602687",
+          "name": "Tambalan terrain · 50d00e0a-02c1-4660-989e-3c914ff6acab salinan salinan salinan",
+          "asset": {
+            "asset": "map-studio/e174adcaae30df0f3b820abd79c798e1477ff42533bef1ffabce1aef30527879.webp",
+            "width": 2081,
+            "height": 766,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 2081,
+                "height": 766
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1378.3677047470867,
+          "y": 0,
+          "w": 360,
+          "h": 132.51321480057663,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": -2,
+          "behavior": "decoration",
+          "slow": 1,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
         }
       ],
       "bases": {
@@ -8806,7 +12308,7 @@
       "description": "Pasar lapang · neutral-cool · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 2100,
       "height": 1050,
-      "enabled": true,
+      "enabled": false,
       "terrain": {
         "asset": "field/pasar2/ground.webp",
         "width": 2100,
@@ -8822,15 +12324,15 @@
         "fps": 12
       },
       "icon": {
-        "asset": "ui-v2/fields/pasar.webp",
-        "width": 420,
-        "height": 560,
+        "asset": "map-studio/537d3de1c91642dfe6c3e3934485621bc43244ea933bae286cf47cafe1656d96.webp",
+        "width": 640,
+        "height": 360,
         "frames": [
           {
             "x": 0,
             "y": 0,
-            "width": 420,
-            "height": 560
+            "width": 640,
+            "height": 360
           }
         ],
         "fps": 12
@@ -8856,7 +12358,7 @@
             "fps": 12
           },
           "x": 950,
-          "y": 475,
+          "y": 469.2582782946135,
           "w": 200,
           "h": 115,
           "rotation": 0,
@@ -16782,6 +20284,80 @@
           "layer": "world",
           "z": 0,
           "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-84757c3e886b497cb4364e43b0e0058d",
+          "name": "Collider kosong",
+          "asset": null,
+          "x": 0,
+          "y": 34.45008930407076,
+          "w": 2096.9500089946546,
+          "h": 55.143255936472,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-71197a5595144981936182acfd3333e5",
+          "name": "Collider kosong salinan",
+          "asset": null,
+          "x": 3.0499910053454187,
+          "y": 885.072230288857,
+          "w": 2096.9500089946546,
+          "h": 55.143255936472,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "solid",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -27364,7 +30940,7 @@
           ]
         ]
       },
-      "name": "Alun Kanal Nusantara 2",
+      "name": "Cagar Taman Budaya",
       "description": "Kanal panjang · ruang tengah 2× · Versi editor; sebagian grafik menyatu di terrain.",
       "width": 2883,
       "height": 1296,
@@ -27384,7 +30960,7 @@
         "fps": 12
       },
       "icon": {
-        "asset": "map-studio/c059bbc047230b796c341acf3f3aace5bc6c6d862f4c42415c13c8061b3e376e.webp",
+        "asset": "map-studio/fa58091b3af5fd4f0555ffaa5203723cbc6a68b4e5dff322a4abd47704cd0e1a.webp",
         "width": 640,
         "height": 360,
         "frames": [
@@ -30205,310 +33781,6 @@
           "nativeCollision": "bands"
         },
         {
-          "id": "obj-collider-25-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 588,
-          "y": 603,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-26-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 755,
-          "y": 603,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-27-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 588,
-          "y": 672,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-28-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 755,
-          "y": 672,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-29-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 2099,
-          "y": 603,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-30-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 2266,
-          "y": 603,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-31-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 2099,
-          "y": 672,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
-          "id": "obj-collider-32-0",
-          "name": "Batas kanalNusaBridgeH",
-          "asset": null,
-          "x": 2266,
-          "y": 672,
-          "w": 29,
-          "h": 13,
-          "rotation": 0,
-          "opacity": 1,
-          "layer": "world",
-          "z": 0,
-          "behavior": "parkour",
-          "slow": 0.5,
-          "shape": "polygon",
-          "points": [
-            {
-              "x": 0,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 0
-            },
-            {
-              "x": 1,
-              "y": 1
-            },
-            {
-              "x": 0,
-              "y": 1
-            }
-          ],
-          "visible": true,
-          "locked": false,
-          "mirror": false,
-          "nativeCollision": "rect"
-        },
-        {
           "id": "obj-visual-33",
           "name": "kanalNusaPlanterOval",
           "asset": {
@@ -30813,26 +34085,26 @@
           "nativeCollision": "bands"
         },
         {
-          "id": "obj-decoration-0",
-          "name": "kanalNusaBridgeH",
+          "id": "obj-7c42792a5c2a4f23ab44000993edddc2",
+          "name": "934ffdc2-63fc-44aa-b7f9-4120d55f5dbc",
           "asset": {
-            "asset": "field/kanal-object-atlas.webp",
-            "width": 1024,
-            "height": 1408,
+            "asset": "map-studio/55937708d4f850612b43ef902ab82678b83bb0a6d47ef15237ffd36f90684afa.webp",
+            "width": 728,
+            "height": 366,
             "frames": [
               {
-                "x": 8,
-                "y": 8,
-                "width": 600,
-                "height": 293
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
               }
             ],
             "fps": 12
           },
-          "x": 570,
-          "y": 567,
-          "w": 240,
-          "h": 126,
+          "x": 575.673353883026,
+          "y": 557.1796244422361,
+          "w": 240.13995563588855,
+          "h": 167.12661463568332,
           "rotation": 0,
           "opacity": 1,
           "layer": "background",
@@ -30863,26 +34135,126 @@
           "mirror": false
         },
         {
-          "id": "obj-decoration-1",
-          "name": "kanalNusaBridgeH",
+          "id": "obj-63d908f833b140c488ca7ebf6b82eb31",
+          "name": "934ffdc2-63fc-44aa-b7f9-4120d55f5dbc salinan",
           "asset": {
-            "asset": "field/kanal-object-atlas.webp",
-            "width": 1024,
-            "height": 1408,
+            "asset": "map-studio/55937708d4f850612b43ef902ab82678b83bb0a6d47ef15237ffd36f90684afa.webp",
+            "width": 728,
+            "height": 366,
             "frames": [
               {
-                "x": 8,
-                "y": 8,
-                "width": 600,
-                "height": 293
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
               }
             ],
             "fps": 12
           },
-          "x": 2095,
-          "y": 573.3581000434026,
-          "w": 212.22219679090722,
-          "h": 125.77782864040796,
+          "x": 584.9558374356577,
+          "y": 519.763338977598,
+          "w": 222.43670053463427,
+          "h": 150.18890904357806,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-55af28c3502d416ea679b96a320d3ae6",
+          "name": "934ffdc2-63fc-44aa-b7f9-4120d55f5dbc salinan salinan",
+          "asset": {
+            "asset": "map-studio/55937708d4f850612b43ef902ab82678b83bb0a6d47ef15237ffd36f90684afa.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 583.5204190557234,
+          "y": 610.9594995450323,
+          "w": 222.43670053463427,
+          "h": 150.18890904357806,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-4ae8991b1efc4b9fa30ac1cb8ce9bc2d",
+          "name": "934ffdc2-63fc-44aa-b7f9-4120d55f5dbc salinan",
+          "asset": {
+            "asset": "map-studio/55937708d4f850612b43ef902ab82678b83bb0a6d47ef15237ffd36f90684afa.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 2063.2725281869125,
+          "y": 549.2076035838627,
+          "w": 240.13995563588855,
+          "h": 167.12661463568332,
           "rotation": 0,
           "opacity": 1,
           "layer": "background",
@@ -30910,34 +34282,34 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": false
         },
         {
-          "id": "obj-264486da5cfa47baae1d6b3f0d66e317",
-          "name": "kanalNusaBridgeH salinan",
+          "id": "obj-a6202894644a4e1dbad574a5a8cf392b",
+          "name": "934ffdc2-63fc-44aa-b7f9-4120d55f5dbc salinan salinan",
           "asset": {
-            "asset": "field/kanal-object-atlas.webp",
-            "width": 1024,
-            "height": 1408,
+            "asset": "map-studio/55937708d4f850612b43ef902ab82678b83bb0a6d47ef15237ffd36f90684afa.webp",
+            "width": 728,
+            "height": 366,
             "frames": [
               {
-                "x": 8,
-                "y": 8,
-                "width": 600,
-                "height": 293
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
               }
             ],
             "fps": 12
           },
-          "x": 1294.9999660915794,
-          "y": 1102.8890499538843,
-          "w": 312.222273084853,
-          "h": 188.6665734185117,
+          "x": 2072.5550899897444,
+          "y": 517.385659690739,
+          "w": 222.43670053463427,
+          "h": 150.18890904357806,
           "rotation": 0,
           "opacity": 1,
           "layer": "background",
-          "z": 0,
-          "behavior": "bridge",
+          "z": 1,
+          "behavior": "decoration",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -30960,34 +34332,84 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": false
         },
         {
-          "id": "obj-e1e01a1b552a4c1691f177fdc8032704",
-          "name": "kanalNusaBridgeH salinan salinan",
+          "id": "obj-eefa5076a6044c9ab178a04b02cf8046",
+          "name": "934ffdc2-63fc-44aa-b7f9-4120d55f5dbc salinan salinan salinan",
           "asset": {
-            "asset": "field/kanal-object-atlas.webp",
-            "width": 1024,
-            "height": 1408,
+            "asset": "map-studio/55937708d4f850612b43ef902ab82678b83bb0a6d47ef15237ffd36f90684afa.webp",
+            "width": 728,
+            "height": 366,
             "frames": [
               {
-                "x": 8,
-                "y": 8,
-                "width": 600,
-                "height": 293
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
               }
             ],
             "fps": 12
           },
-          "x": 1323.888549804687,
+          "x": 2073.9069717505618,
+          "y": 600.788980003239,
+          "w": 222.43670053463427,
+          "h": 150.18890904357806,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 1,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-eb72dddf03184940b06b7261b2eec1eb",
+          "name": "ce939b18-1223-47a5-b518-be4937a831f9",
+          "asset": {
+            "asset": "map-studio/d45198c8d2e9f86ae5272b0cd60eaba84eafb63cdb741ac049afc4164a261d94.webp",
+            "width": 728,
+            "height": 356,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 356
+              }
+            ],
+            "fps": 12
+          },
+          "x": 1294.0282138922278,
           "y": 0,
-          "w": 238.88907538520016,
-          "h": 118.88889736599393,
+          "w": 310.92533678886184,
+          "h": 128.9044502453926,
           "rotation": 0,
           "opacity": 1,
           "layer": "background",
           "z": 0,
-          "behavior": "bridge",
+          "behavior": "decoration",
           "slow": 0.5,
           "shape": "rect",
           "points": [
@@ -31010,32 +34432,69 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": false
         },
         {
-          "id": "obj-ca1c72c9249b454697cc0cc1b452cb15",
-          "name": "kanalNusaBridgeH salinan salinan salinan",
+          "id": "obj-e7896fafa1c64393a6ebd8354346631c",
+          "name": "ce939b18-1223-47a5-b518-be4937a831f9 salinan",
           "asset": {
-            "asset": "field/kanal-object-atlas.webp",
-            "width": 1024,
-            "height": 1408,
+            "asset": "map-studio/d45198c8d2e9f86ae5272b0cd60eaba84eafb63cdb741ac049afc4164a261d94.webp",
+            "width": 728,
+            "height": 356,
             "frames": [
               {
-                "x": 8,
-                "y": 8,
-                "width": 600,
-                "height": 293
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 356
               }
             ],
             "fps": 12
           },
-          "x": 843.888549804687,
-          "y": 204.4444274902344,
-          "w": 205.55594550238754,
-          "h": 118.88899485270184,
+          "x": 1261.8135767227566,
+          "y": 1118.3332550831328,
+          "w": 400.4360539362981,
+          "h": 177.66674491686717,
           "rotation": 0,
           "opacity": 1,
           "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-2a748596df3948aa8730545003d33ac2",
+          "name": "Collider kosong",
+          "asset": null,
+          "x": 1360.1352977263623,
+          "y": 40.42420685596958,
+          "w": 172.0907952724358,
+          "h": 47.45460236378203,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
           "z": 0,
           "behavior": "bridge",
           "slow": 0.5,
@@ -31060,32 +34519,156 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": false
         },
         {
-          "id": "obj-16a3d3316803471cbff4165b67644663",
-          "name": "kanalNusaBridgeH salinan salinan salinan salinan",
+          "id": "obj-7cf28958e7404cac9499c129d4ef31bb",
+          "name": "Collider kosong salinan",
+          "asset": null,
+          "x": 1303.678278996394,
+          "y": 1168.116749298878,
+          "w": 306.8695350060095,
+          "h": 66.61538461538476,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "bridge",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-ab761ead43364983a9d647f6d2b7e063",
+          "name": "aff97a72-9ee7-4321-bbf1-4fb78366dbc0",
           "asset": {
-            "asset": "field/kanal-object-atlas.webp",
-            "width": 1024,
-            "height": 1408,
+            "asset": "map-studio/1eed28826ab3204051b54d7cb6ec80b9868739b402a3e184cba0962bd2662750.webp",
+            "width": 728,
+            "height": 366,
             "frames": [
               {
-                "x": 8,
-                "y": 8,
-                "width": 600,
-                "height": 293
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
               }
             ],
             "fps": 12
           },
-          "x": 1817,
-          "y": 935,
-          "w": 205,
-          "h": 118,
+          "x": 1836.6853715945515,
+          "y": 959.095628004808,
+          "w": 191.57797475961524,
+          "h": 128.31704477163453,
           "rotation": 0,
           "opacity": 1,
           "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-ca64aca9bd704c298f51d6cc47338b64",
+          "name": "aff97a72-9ee7-4321-bbf1-4fb78366dbc0 salinan",
+          "asset": {
+            "asset": "map-studio/1eed28826ab3204051b54d7cb6ec80b9868739b402a3e184cba0962bd2662750.webp",
+            "width": 728,
+            "height": 366,
+            "frames": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 728,
+                "height": 366
+              }
+            ],
+            "fps": 12
+          },
+          "x": 840.3682485727165,
+          "y": 231.31003042367826,
+          "w": 191.57797475961524,
+          "h": 128.31704477163453,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "background",
+          "z": 0,
+          "behavior": "decoration",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
+        },
+        {
+          "id": "obj-a0dc469d4b8c422f82b2b222cd6dff22",
+          "name": "Collider kosong salinan",
+          "asset": null,
+          "x": 850.5316036909055,
+          "y": 267.4171925080129,
+          "w": 172.0907952724358,
+          "h": 47.45460236378203,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
           "z": 0,
           "behavior": "bridge",
           "slow": 0.5,
@@ -31110,17 +34693,54 @@
           ],
           "visible": true,
           "locked": false,
-          "mirror": true
+          "mirror": false
+        },
+        {
+          "id": "obj-05ccacc438264beb817366845b638bbf",
+          "name": "Collider kosong salinan salinan",
+          "asset": null,
+          "x": 1847.6877879607375,
+          "y": 994.1769143129007,
+          "w": 172.0907952724358,
+          "h": 47.45460236378203,
+          "rotation": 0,
+          "opacity": 1,
+          "layer": "world",
+          "z": 0,
+          "behavior": "bridge",
+          "slow": 0.5,
+          "shape": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            }
+          ],
+          "visible": true,
+          "locked": false,
+          "mirror": false
         }
       ],
       "bases": {
         "blue": {
-          "x": 297,
-          "y": 571
+          "x": 250.24668884277338,
+          "y": 626.1948274884905
         },
         "red": {
-          "x": 2583,
-          "y": 571
+          "x": 2632.3506295340403,
+          "y": 630.7401936848959
         }
       },
       "prisons": {

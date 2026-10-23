@@ -33,6 +33,11 @@ import { MissionPanel } from '../modules/ui/mission-panel.tsx';
 import { mapSelectionFiles } from '../modules/ui/map-selection-assets.ts';
 import { RoundResultAnnouncementCard } from '../modules/ui/round-result-announcement.tsx';
 import { SplashScreen } from '../modules/ui/splash-screen.tsx';
+import {drawRelayStructure} from '../modules/world/relay-map/relay-prototype-visuals.js';
+import {createRelayWorld,isPowerGate,type RelayActor,type RelayEvent} from '../lib/map-events/power-relay.ts';
+import {relaySounds} from '../lib/map-events/relay-feedback.ts';
+import {createRelayFeedback} from '../modules/world/relay-map/relay-feedback.ts';
+import {createRelayTelemetry} from '../lib/map-events/relay-telemetry.ts';
 import { TeamScreen } from '../modules/ui/team-screen.tsx';
 import { RulesOverlay } from '../modules/ui/rules-overlay.tsx';
 import { FieldSelectScreen } from '../modules/ui/field-select-screen.tsx';
@@ -49,6 +54,7 @@ import { PauseOverlay } from '../modules/ui/pause-overlay.tsx';
 import {PauseMap} from '../modules/ui/pause-map';
 import {PauseMatchOverview} from '../modules/ui/pause-match-overview';
 import {ContextualHint} from '../modules/ui/contextual-hint';
+import {MapEventHud,relayHudVisible} from '../modules/ui/map-event-hud';
 import {FortStatusHud} from '../modules/ui/fort-status-hud';
 import {createPlayerStatusFeedback,drawPlayerEffects,teamBuffDeadline,type EffectBadge} from '../modules/ui/player-status-feedback';
 import {resolveFortStatus} from '../modules/ui/fort-status-view';
@@ -86,6 +92,7 @@ import { presentGameEvents, fortEntryEvents, type GameEvent } from '../lib/game-
 import { createSimulationClock, advanceSimulationClock } from '../lib/game-core/tick.ts';
 import { describeMatch } from '../lib/game-core/state.ts';
 import { createRenderAdapter, type RenderFrame } from '../lib/game-core/render-state.ts';
+import { createStudioDepth } from '../modules/ui/studio-depth.ts';
 import { createSnapshot, type GameSnapshot } from '../lib/game-core/snapshot.ts';
 import type {MultiplayerSession} from '../lib/multiplayer/session';
 import {createContentIdentity} from '../lib/multiplayer/content.ts';
@@ -1232,13 +1239,25 @@ export function BentenganPrototype() {
     const studioMap = studioSource?.replaces === 'kanal'
       ? withApprovedKanalMask(studioSource,getFieldImage(field.waterMask!),field.waterMaskWidth!,field.waterMaskHeight!) : studioSource;
     const originalKanal = field.id === 'kanal' || studioMap?.replaces === 'kanal';
-    const studioQueries = studioMap ? createMapQueries(studioMap) : null;
+    const relayTelemetry=devBuild&&!network&&!tutorialIdentity&&studioMap?.objects.some(o=>o.id==='obj-relay-plaza')?createRelayTelemetry(studioMap):null;
+    const relayEvents:RelayEvent[]=[];
+    const relayBotRetries=new Set<string>();
+    const relayWorld=studioMap?createRelayWorld(studioMap,`${resultIdentity??field.id}:1`,!network&&!tutorialIdentity,event=>{relayTelemetry?.event(event);if(event.type==='reset'){relayEvents.length=0;relayBotRetries.clear();}else relayEvents.push(event);if(event.type==='cancel'&&event.actorId)relayBotRetries.add(event.actorId);}):null;
+    const relay=relayWorld?.relay;
+    const relayBotInputs=new Map<string,boolean>();
+    const drawRelayFeedback=relay&&studioMap?createRelayFeedback(studioMap):null;
+    let relayRevision=relay?.revision()??0;
+    const studioQueries = relayWorld?.queries??(studioMap ? createMapQueries(studioMap) : null);
+    const relayActor=(p:Player,now:number):RelayActor=>({entityId:p.entityId,team:p.team,x:p.x,y:p.y,state:p.state,controller:p.controller,
+      blocked:flightBusy(p)||now<p.parkourUntil||!!p.waterEnteredAt||!!p.action&&now<p.actionUntil||p.entityId===players[0].entityId&&(keys.current.has(' ')||keys.current.has('shift')||keys.current.has('capslock')||mouseBoost)});
+    const drawRuntimeMapObject=(ctx:CanvasRenderingContext2D,o:Parameters<typeof drawMapObject>[1],now:number)=>drawMapObject(ctx,o,now,relay?.gatesOpen()??false,null);
     const studioLayers = {
       background:studioMap?.objects.filter(o=>o.layer==='background').sort((a,b)=>a.z-b.z)??[],
       world:studioMap?.objects.filter(o=>o.layer==='world')??[],
       foreground:studioMap?.objects.filter(o=>o.layer==='foreground').sort((a,b)=>a.z-b.z)??[],
     };
     const studioBounds=new Map(studioMap?.objects.map(o=>[o,objectBounds(o)])??[]);
+    const drawStudioDepth=createStudioDepth(studioLayers.world);
     let visibleWorld={left:0,right:0,top:0,bottom:0};
     const objectVisible=(o:NonNullable<typeof studioMap>['objects'][number])=>visibleBounds(studioBounds.get(o)!,visibleWorld);
     const development = process.env.NODE_ENV !== 'production';
@@ -1433,6 +1452,12 @@ export function BentenganPrototype() {
       const offset =
         (tutorialIdentity?TUTORIAL_MATCH.spawnOffsets[slot]:null) ?? GAME_RULES.spawnOffsets[slot] ?? GAME_RULES.spawnOffsets[0];
       const direction = team === 'blue' ? 1 : -1;
+      // IN_BASE actors must actually spawn inside their charging circle.
+      // Keep valid existing offsets; compact only slots that exceed a small fort.
+      const spawnDistance=Math.hypot(offset.x,offset.y);
+      const spawnAngle=[0,-Math.PI/4,Math.PI/4,-3*Math.PI/4,3*Math.PI/4][slot%5];
+      const spawnOffset=!tutorialIdentity&&spawnDistance>=baseRadius-1
+        ?{x:Math.cos(spawnAngle)*Math.max(1,baseRadius-18),y:Math.sin(spawnAngle)*Math.max(1,baseRadius-18)}:offset;
       const tutorialSpawn=tutorialIdentity?chooseTutorialSpawn(b,baseRadius,slot,(x,y)=>
         x>34&&x<worldWidth-34&&y>58&&y<worldHeight-32&&!solidMask.hits(x,y)&&!studioQueries?.solidAt(x,y,13)&&
         !studioQueries?.waterAt(x,y)&&!obstacles.some(o=>x>=o.x-13&&x<=o.x+o.w+13&&y>=o.y-13&&y<=o.y+o.h+13)):null;
@@ -1444,8 +1469,8 @@ export function BentenganPrototype() {
         team,
         characterId,
         controlled,
-        x: tutorialSpawn?.x ?? b.x + offset.x * direction,
-        y: tutorialSpawn?.y ?? b.y + offset.y,
+        x: tutorialSpawn?.x ?? b.x + spawnOffset.x * direction,
+        y: tutorialSpawn?.y ?? b.y + spawnOffset.y,
         vx: 0,
         vy: 0,
         state: 'IN_BASE',
@@ -1468,8 +1493,8 @@ export function BentenganPrototype() {
         waterFallUntil: 0,
         capturedIds: [],
         actionUntil: 0,
-        lastX: tutorialSpawn?.x ?? b.x + offset.x * direction,
-        lastY: tutorialSpawn?.y ?? b.y + offset.y,
+        lastX: tutorialSpawn?.x ?? b.x + spawnOffset.x * direction,
+        lastY: tutorialSpawn?.y ?? b.y + spawnOffset.y,
         aiSeed: 0.35 + slot * 1.17 + (team === 'red' ? 5.3 : 0),
       };
     };
@@ -1748,6 +1773,8 @@ export function BentenganPrototype() {
       countdownSoundPlayed = false;
       clearMouse();
       players = makePlayers();
+      relay?.reset(`${resultIdentity??field.id}:${round}`);
+      studioRoutes.clear();routeScheduler.clear();
       roundStats = makeStatsStore();
       matchEvents = [];
       rescueRequest = null;
@@ -1898,7 +1925,7 @@ export function BentenganPrototype() {
       .map(rect => ({...rect,asset:'prisonFloor' as FieldAssetId,visualW:1,visualH:1,hidden:true}));
     const solidObstacles = [...obstacles, ...kanalPrisonWalls, ...mapWalls];
     const recoveryObstacles = studioMap ? [
-      ...studioMap.objects.filter(o=>o.nativeCollision&&o.shape==='polygon'&&['solid','parkour'].includes(o.behavior)).flatMap(collisionRects),
+      ...studioMap.objects.filter(o=>(!relayWorld||!isPowerGate(o))&&o.nativeCollision&&o.shape==='polygon'&&['solid','parkour'].includes(o.behavior)).flatMap(collisionRects),
       ...solidObstacles,
     ] : solidObstacles;
     const rectObstacleAt = createRectQuery(solidObstacles);
@@ -1906,7 +1933,7 @@ export function BentenganPrototype() {
     const flightRectAt = createRectQuery(solidObstacles.filter(o=>!flightPassesObstacle(o)));
     const flightObstacleAt = (x:number,y:number,r=PLAYER_COLLISION_RADIUS) => solidMask.hits(x,y) || flightRectAt(x,y,r);
     const parkourRectAt = createRectQuery(solidObstacles.filter(o=>!parkourPassesObstacle(o)));
-    const parkourSolidAt = (x:number,y:number,r=PLAYER_COLLISION_RADIUS) => solidMask.hits(x,y) || parkourRectAt(x,y,r);
+    const parkourSolidAt = (x:number,y:number,r=PLAYER_COLLISION_RADIUS) => solidMask.hits(x,y) || parkourRectAt(x,y,r)||!!relay?.solidAt(x,y,r);
     const kanalFortPolygons = isKanalField(field.id)
       ? Object.values(bases).map(base => kanalFortPolygon(base, fortWidth, fortHeight, fortAnchorY))
       : [];
@@ -1971,7 +1998,9 @@ export function BentenganPrototype() {
       fortCoreAt:isInsideFortCore,fortOccupied:(team,id)=>!!fortOccupant(team,id),
       baseChargeTime:p=>statsOf(p).baseChargeTime,
       speedAt:(x,y)=>studioQueries?.speedAt(x,y)??1,
+      dynamicBlocked:(x,y,r,p)=>relay?.entryBlocked(p,x,y,r)??false,
     };
+    const relayEgress=(p:Player)=>relay?.egressFor(p,(x,y)=>x>=34&&x<=worldWidth-34&&y>=58&&y<=worldHeight-32&&!studioQueries?.solidAt(x,y,15)&&!isWaterAt(x,y));
     const waterFallEffects = (p: Player) => {
       burst(p.x, p.y + 7, '#65e9ff', 12);
       if (p.controlled) {
@@ -1996,7 +2025,7 @@ export function BentenganPrototype() {
         return;
       const recovered = depenetrateFromRects(
         p,
-        recoveryObstacles,
+        relayWorld?[...recoveryObstacles,...relayWorld.recoveryRects()]:recoveryObstacles,
         PLAYER_COLLISION_RADIUS,
         { minX: 34, maxX: worldWidth - 34, minY: 58, maxY: worldHeight - 32 },
       );
@@ -2006,6 +2035,8 @@ export function BentenganPrototype() {
     const blocked = (x:number,y:number,p:Player,now:number) =>
       movementBlocked(movementWorld,x,y,p,now);
     const move = (p:Player,dx:number,dy:number,speed:number,dt:number,now:number,input?:PlayerInputFrame) => {
+      if(relayEgress(p)){p.vx=0;p.vy=0;return;}
+      speed*=isFlying(p)?1:relay?.speedMultiplier(p)??1;
       const event=input?moveInputActor(movementWorld,p,input,{x:dx,y:dy},speed,dt,now):moveActor(movementWorld,p,dx,dy,speed,dt,now);
       if(event)waterFallEffects(p);
     };
@@ -2273,6 +2304,7 @@ export function BentenganPrototype() {
       lineOfSight:hasLineOfSight,
     };
     const presentInteractionEvents = (events:readonly GameEvent[],now:number) => {
+      if(relayTelemetry&&relay&&events.length)relayTelemetry.facts(events,Object.keys(relay.get().channels),relay.gatesOpen());
       if(tutorialIdentity){const signal=tutorialEventSignal(events,players[0].entityId,tutorialDirector?{tagTargetId:tutorialDirector.ids.targetId,friendId:tutorialDirector.ids.friendId}:undefined);if(signal)tutorialSignal(signal);}
       if(network&&!clientOnly)publishNetworkFacts(events);
       if(!clientOnly)for(const event of events)eventSigns.accept(event,`${matchId}:sign:${++localSignSerial}`);
@@ -2429,7 +2461,7 @@ export function BentenganPrototype() {
         keys.current.delete('p');
         paused = !paused;
       }
-      if (paused || mode !== 'playing') { clearMouse(); return; }
+      if (paused || mode !== 'playing') { clearMouse();relay?.cancelChannels(); return; }
       if (phase !== 'PLAYING') clearMouse();
       if (phase === 'ROUND_OVER' && perkDraft && !perkDraft.resolved) {
         const humanPicks = perkDraft.offer.length > 0 && perkDraft.loser === players[0].team && !devAutobot;
@@ -2724,6 +2756,7 @@ export function BentenganPrototype() {
         returnVector:(p,now)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
         combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:isKanalField(field.id),boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
       });
+      relayBotInputs.clear();
       if(tutorialDirector){
         for(const p of players.filter(p=>p.controller==='bot')){
           const goal=tutorialDirector.destination(tutorialSessionRef.current.stepId,p,players);
@@ -2732,6 +2765,9 @@ export function BentenganPrototype() {
           move(p,vector.x,vector.y,Math.min(125,statsOf(p).speed),dt,now);
         }
       }else botAuthority.run(simulationAuthority,{
+        navigationRevision:relay?.revision(),
+        baseRadius,
+        relayTargets:relay?{blue:relay.targetPoint('blue'),red:relay.targetPoint('red')}:undefined,
         players,bases,width:worldWidth,height:worldHeight,refills,request:rescueRequest,
         kanal2:isKanalField(field.id),localTeam:me.team,profile:aiProfile,boostThreshold:AI_BOOST_THRESHOLD,
         // Bot Mudah: enemy-only reaction/vision limits. Bot Sulit: fort guards (6 s gap on rotation).
@@ -2739,6 +2775,8 @@ export function BentenganPrototype() {
         duty:bots.guardDuty?{baseRadius,maxFortAttackers:2,rotateMs:30000,guardSwapGapMs:bots.guardDuty.guardSwapGapMs}:undefined,
         navigate:(p,desired,now,probe,bias)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,desired,now,probe,bias),
       },now,(p,intent)=>{
+        const retry=relayBotRetries.delete(p.entityId);
+        relayBotInputs.set(p.entityId,!retry&&!!intent.relayHeld);
         if(network&&p.flight)return;
         if(intent.blocked){p.vx=0;p.vy=0;return;}
         const stats=statsOf(p);
@@ -2749,6 +2787,12 @@ export function BentenganPrototype() {
           dt,now,intent.frame);
       });
       resolvePlayerSpacing(now);
+      // After a visible grace period, gently walk gate campers to the nearest
+      // clear side. No damage, teleport or closure through an occupied actor.
+      if(relay)for(const p of players){
+        const egress=relayEgress(p);
+        if(egress)moveActor(movementWorld,p,egress.x,egress.y,180,dt,now);
+      }
       riverFallCheck(now);
       // Only actual grounded movement produces footsteps (not pressing into a wall).
       const travelled = previousSoundPosition ? distance(me, previousSoundPosition) : 0;
@@ -2804,6 +2848,18 @@ export function BentenganPrototype() {
       for(const event of resolveAllHeld(players,totalCapture,dt,fullCaptureHoldSeconds(progress))) {
         if(event.type==='objective')winRound(event.team,event.reason);
       }
+      if(relay){
+        const actors=players.map(p=>relayActor(p,now));
+        relay.step(dt*1000,actors,[{entityId:me.entityId,held:keys.current.has('e')},...Array.from(relayBotInputs,([entityId,held])=>({entityId,held}))],phase==='PLAYING');
+        for(const cue of relaySounds(relayEvents.splice(0),me.entityId))gameplayAudio.play(cue);
+        if(phase==='PLAYING')relayTelemetry?.actors(actors,relay.gatesOpen());
+        if(relay.revision()!==relayRevision){
+          relayRevision=relay.revision();
+          relayTelemetry?.routeInvalidated();
+          studioRoutes.clear();routeScheduler.clear();
+          const goal=mouseRoute.at(-1);if(goal)mouseRoute=clickRoute(me,goal,worldWidth,worldHeight,(x,y)=>x>=34&&x<=worldWidth-34&&y>=58&&y<=worldHeight-32&&!blocked(x,y,me,now)&&(isFlying(me)||!isWaterAt(x,y)));
+        }
+      }
       particles.forEach((p) => {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
@@ -2830,7 +2886,7 @@ export function BentenganPrototype() {
 
     const drawNearbyFieldDetails = (me: Player, activeCamera: CameraMode) => {
       if (studioMap) {
-        studioLayers.background.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,performance.now());});
+        studioLayers.background.forEach(o=>{if(objectVisible(o))drawRuntimeMapObject(ctx,o,performance.now());});
       }
       if (mode !== 'playing' && !isKanalField(field.id)) return;
       // Kanal has few props, so draw every one at native atlas resolution in
@@ -2886,7 +2942,7 @@ export function BentenganPrototype() {
         const baseVisual = resolveStructureVisual(base, customBase);
         if (customBase) {
           if (baseVisual) drawStructureVisual(ctx, baseVisual, performance.now());
-        } else if (
+        } else if (!drawRelayStructure(ctx,studioMap,team,'base')&&
           !field.structuresInBackground &&
           !field.basesInBackground &&
           isNearby(
@@ -2911,7 +2967,7 @@ export function BentenganPrototype() {
         const floorVisual = resolveStructureVisual(prison, customFloor);
         if (customFloor) {
           if (floorVisual) drawStructureVisual(ctx, floorVisual, performance.now());
-        } else if (
+        } else if (!drawRelayStructure(ctx,studioMap,team,'prison')&&
           !field.structuresInBackground &&
           isNearby(prison.x, prison.y, prison.w, prison.h)
         )
@@ -3027,6 +3083,7 @@ export function BentenganPrototype() {
           if (overlayVisual) drawStructureVisual(ctx, overlayVisual, _now);
           return;
         }
+        if(drawRelayStructure(ctx,studioMap,team,'overlay'))return;
         if (field.structuresInBackground) return;
         drawFieldAsset(
           ctx,
@@ -3727,13 +3784,10 @@ const spriteFrame = (
       if (field.id !== 'taman') drawColliderDebug();
       if (mode === 'playing') {
         drawFieldAnimations(now);
+        if(drawRelayFeedback&&relay)drawRelayFeedback(ctx,relay.hud(relayActor(me,now)),getLanguage()==='id',me);
         refills.forEach((item) => drawRefill(item, now));
         if (!scene3d && studioMap) {
-          const entries = [
-            ...players.map(p=>({y:p.y,z:0,draw:()=>drawPlayer(p,me,now,render)})),
-            ...studioLayers.world.filter(objectVisible).map(o=>({y:o.y+o.h,z:o.z,draw:()=>drawMapObject(ctx,o,now)})),
-          ];
-          entries.sort((a,b)=>a.z-b.z||a.y-b.y).forEach(item=>item.draw());
+          drawStudioDepth(players,objectVisible,p=>drawPlayer(p,me,now,render),o=>drawRuntimeMapObject(ctx,o,now));
         }
         if (!scene3d && !studioMap && (field.id === 'taman' || field.id === 'pasar')) {
           drawMapPropDepth(players,now,p=>drawPlayer(p,me,now,render));
@@ -3744,7 +3798,7 @@ const spriteFrame = (
           .sort((a, b) => a.y - b.y)
           .forEach((p) => drawPlayer(p, me, now, render));
         if (selectedFieldId !== 'kampung3d' && field.id !== 'taman') drawPrisonOverlays(now);
-        if (studioMap) studioLayers.foreground.forEach(o=>{if(objectVisible(o))drawMapObject(ctx,o,now);});
+        if (studioMap) studioLayers.foreground.forEach(o=>{if(objectVisible(o))drawRuntimeMapObject(ctx,o,now);});
         const rescueRequester = rescueRequest
           ? players.find((player) => player.id === rescueRequest?.requesterId)
           : undefined;
@@ -3983,6 +4037,7 @@ const spriteFrame = (
         const vaultLocked=paused||players.some(p=>coreUltimateCasting(p,now,ULTIMATE_CHARACTER_IDS));
         const parkourCooldownSeconds=Math.ceil(parkourCooldownRemaining(me,now)/1000);
         setSnapshot({
+          relay:relay?.hud(relayActor(me,now)),
           blue: score.blue,
           red: score.red,
           round,
@@ -4172,7 +4227,7 @@ const spriteFrame = (
       }
       return state;
     };
-    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}),readEffects:()=>structuredClone(effectBadges) };
+    const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}),readEffects:()=>structuredClone(effectBadges),readRelay:()=>relay?.get()??null,readRelayMetrics:()=>relay?relayTelemetry?.read()??null:null,openRelayGate:()=>{if(development)relay?.debugOpen();} };
     if(development)coreHost.__bentengGameCore=coreProbe;
     if (development && (isKanalField(field.id) || field.id === 'pasar' || field.id === 'taman')) {
       collisionToggle = document.createElement('button');
@@ -4408,6 +4463,11 @@ const spriteFrame = (
     if (mode !== 'menu' || assetsLoading) return;
     const navigate = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+      // Native controls own activation: Enter on Rules must not also press Play.
+      if ((key === 'enter' || key === ' ') && target?.closest('button, summary, a[href], [role="button"]')) return;
       if (!playerProfile) return;
       if (tutorialModalOpen) return;
       if (profileOpen || multiplayerOpen || document.querySelector('dialog:modal')) return;
@@ -4487,6 +4547,7 @@ const spriteFrame = (
     keys.current.add(key);
     window.setTimeout(() => keys.current.delete(key), 120);
   };
+  const holdRelay=useCallback((held:boolean)=>{if(held)keys.current.add('e');else keys.current.delete('e');},[]);
   const touchControl = (key: string) => {
     const release = (event: ReactPointerEvent<HTMLButtonElement>) => touchPointers.current?.release(event.pointerId);
     return {
@@ -4742,7 +4803,7 @@ const spriteFrame = (
           {!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&!onlineMenuOpen&&<>
             <PrisonerNotice prisoner={snapshot.state==='PRISONER'} paused={snapshot.paused} requestActive={snapshot.rescueRequestActive} requestRemaining={snapshot.rescueRequestRemaining} requestCooldown={snapshot.rescueRequestCooldown} onRequest={()=>tapKey('r')}/>
           </>}
-          <ContextualHint context={{state:snapshot.state,learned:learnedTutorialMechanics(playerProfile),...snapshot.guidance??{moving:false,nearObstacle:false,parkourReady:false,rescueNeeded:false,ultimateReady:false,nearEnemyFort:false,fortOpen:false,tagOpportunity:false}}} active={!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&!onlineMenuOpen}/>
+          <ContextualHint context={{state:snapshot.state,learned:learnedTutorialMechanics(playerProfile),...snapshot.guidance??{moving:false,nearObstacle:false,parkourReady:false,rescueNeeded:false,ultimateReady:false,nearEnemyFort:false,fortOpen:false,tagOpportunity:false}}} active={!tutorialMatch&&!showStatsBoard&&!snapshot.paused&&!onlineMenuOpen} priority={relayHudVisible(snapshot.relay)&&snapshot.relay?<MapEventHud view={snapshot.relay} onHold={holdRelay}/>:undefined}/>
           </HudZone>
           {rendererError && (
             <RendererErrorNotice
@@ -4861,7 +4922,7 @@ const spriteFrame = (
                   onOpenProfile={playerProfile?()=>{keys.current.clear();setProfileOpen(true);}:undefined}
                   hudPreferences={hudPreferences} onHudPreferences={setHudPreferences}
                   mapPanel={<PauseMap source={canvasRef} options={CAMERA_OPTIONS} cameraMode={cameraMode} onSelect={id=>setCameraMode(id as CameraMode)}/>}
-                  helpPanel={<HowToPlayPanel initialTab={tutorialMatch?helpTabForLesson(tutorialSession.stepId):'fort'}/>}
+                  helpPanel={<><HowToPlayPanel initialTab={tutorialMatch?helpTabForLesson(tutorialSession.stepId):'fort'}/>{snapshot.relay&&<section className="relay-help"><h4>POWER RELAY</h4><p>{getLanguage()==='id'?'Aktifkan A/B/C sesuai urutan. Tahan E atau ACTIVATE selama 0,65 detik. Pemenang membuka jalur tengah 20 detik dan mendapat +35% kecepatan di jalur itu. Kedua tim bisa lewat.':'Activate A/B/C in order. Hold E or ACTIVATE for 0.65 seconds. The winning team opens the center for 20 seconds and gets +35% lane speed. Both teams can pass.'}</p><p>{getLanguage()==='id'?'Bergerak atau tertangkap membatalkan aktivasi. Bot juga berlomba mengaktifkan Relay. Jangan berhenti di gerbang saat menutup—pengaman mengarahkanmu keluar.':'Moving or being tagged cancels activation. Bots also compete for the Relay. Keep moving when gates close—safety guides occupants out.'}</p></section>}</>}
                   statusPanel={<PauseMatchOverview snapshot={snapshot}/>}
                   onToggleMusic={toggleBackgroundMusic}
                   onRestart={() => {if(tutorialMatch)launchTutorial();else setRun((value) => value + 1);}}

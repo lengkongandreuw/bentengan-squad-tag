@@ -133,6 +133,7 @@ export async function startAdmin(port = 4318, projectRoot = root, options = {}) 
           response.setHeader('Content-Type', url.pathname.endsWith('.js') ? 'text/javascript' : url.pathname.endsWith('.css') ? 'text/css' : 'text/html');
           return response.end(await readFile(path.join(directory, files[url.pathname])));
         }
+        if (url.pathname === '/studio-keyboard.js') { response.setHeader('Content-Type', 'text/javascript'); return response.end(await readFile(fileURLToPath(new URL('../studio-keyboard.js',import.meta.url)))); }
         if (url.pathname === '/model.js') { response.setHeader('Content-Type', 'text/javascript'); return response.end(await readFile(path.join(root, 'lib/selection-preview-model.js'))); }
         // Explicit image routes only; never serve repository files or credentials.
         const candidate = decodeURIComponent(url.pathname).slice(1);

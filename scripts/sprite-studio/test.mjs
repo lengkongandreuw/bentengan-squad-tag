@@ -89,7 +89,10 @@ void test('local API: token, revision guard, per-slot save/delete and untouched 
     const inspected=await post('inspect',{files:[{name:'frame.png',data:(await png()).toString('base64')}]}).then(r=>r.json());
     assert.equal(inspected.files[0].format,'png');assert.equal(inspected.files[0].pages,1);
     assert.equal((await post('inspect',{files:[{name:'broken.png',data:Buffer.from('not an image').toString('base64')}]})).status,400);
-    const saved=await post('save',{id:'lala',slot:'run.east',clip:compiled.clip}).then(r=>r.json());
+    assert.ok(compiled.clip,JSON.stringify(compiled));
+    const saveResponse=await post('save',{id:'lala',slot:'run.east',clip:compiled.clip});
+    assert.equal(saveResponse.status,200,await saveResponse.clone().text());
+    const saved=await saveResponse.json();
     assert.ok(saved.document.characters.lala['run.east']);assert.equal(saved.document.characters.jago,undefined);
     assert.equal((await post('save',{id:'lala',slot:'idle',clip:compiled.clip})).status,409);
     const removed=await post('save',{revision:saved.revision,id:'lala',slot:'run.east',clip:null}).then(r=>r.json());

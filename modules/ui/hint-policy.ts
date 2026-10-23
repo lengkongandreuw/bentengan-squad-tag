@@ -1,6 +1,14 @@
 import type {TutorialMechanic} from '../../lib/player-profile/tutorial.ts';
 export type HintId='returning'|TutorialMechanic;
 export type HintContext={state:string;learned:readonly TutorialMechanic[];nearObstacle:boolean;parkourReady:boolean;rescueNeeded:boolean;ultimateReady:boolean;nearEnemyFort:boolean;fortOpen:boolean;moving:boolean;tagOpportunity:boolean};
+export function urgentGameplayHint(c:HintContext):HintId|null{
+  if(c.state==='PRISONER')return null;
+  if(c.state==='RETURNING')return 'returning';
+  if(c.rescueNeeded)return 'rescue';
+  if(c.nearEnemyFort&&c.fortOpen)return 'capture';
+  if(c.tagOpportunity)return 'tag';
+  return null;
+}
 /** Priority is presentation only. Learned beginner hints do not reappear. */
 export function contextualHintCandidates(c:HintContext):HintId[]{
   if(c.state==='PRISONER')return [];

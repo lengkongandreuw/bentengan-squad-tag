@@ -1,4 +1,7 @@
 import { validateCatalog } from '/catalog.mjs';
+const relayVisuals=await import('/relay-prototype-visuals.js').catch(()=>null);
+import {bindStudioKeyboard,nativeKeyboardTarget} from '/studio-keyboard.js';
+const {showOptimization,showTextureBudget}=await import('/asset-feedback.js').catch(()=>({showOptimization:host=>{host.textContent='Laporan optimasi belum tersedia. Simpan/ekspor draft sebelum memperbarui server.';},showTextureBudget:host=>{host.textContent='Optimasi baru belum aktif di server ini. Simpan/ekspor draft sebelum restart Map Studio.';}}));
 let engineVisible=true;
 window.addEventListener('message',event=>{
   if(window.parent!==window&&event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&typeof event.data.active==='boolean'){
@@ -21,6 +24,10 @@ import {
   validateMap,
   autoFixMap,
   resolveStructureVisual,
+  createTerrainPatch,
+  editorText,
+  repairMapText,
+  mapAssets,
 } from '/model.js';
 const $ = (id) => document.getElementById(id),
   canvas = $('canvas'),
@@ -40,6 +47,7 @@ let state,
   builtinTemplates = [],
   builtins = [],
   library = [],
+  builtinLibrary = [],
   selected = '',
   dirty = false,
   inspectOnly = false,
@@ -60,7 +68,11 @@ let state,
   loading = false,
   uploadUrl,
   tileCache;
-let replacement = null, fileTarget = null;
+let replacement = null, fileTarget = null,terrainPick=null,terrainFileTarget='terrain';
+let textRepairToken=null;
+const recovery=document.createElement('div');recovery.id='editRecovery';recovery.hidden=true;
+recovery.innerHTML='<p id="recoveryMessage" role="status" aria-live="polite"></p><div class="recovery-actions"><button id="repairSafeText" type="button">Rapikan nama & isian</button><button id="optimizeBudget" type="button" hidden>Ringankan gambar otomatis</button><button id="locateProblem" type="button">Lihat bagian bermasalah</button><button id="undoTextRepair" type="button" hidden>Batalkan perapian</button><button id="dismissRecovery" type="button">Tutup pesan</button></div><details id="repairReport" hidden><summary id="repairReportTitle">Lihat perubahan</summary><ul id="repairReportList"></ul></details>';
+const feedbackArea=document.createElement('div');feedbackArea.id='studioFeedback';$('status').before(feedbackArea);feedbackArea.append($('status'),recovery);
 const keys = new Set(),
   cache = new Map(),
   uid = () => crypto.randomUUID().replaceAll('-', ''),
@@ -69,9 +81,11 @@ const keys = new Set(),
   clamp = (n, a, b) => Math.max(a, Math.min(b, n)),
   snap = (n) => ($('grid').checked ? Math.round(n / 20) * 20 : n);
 const notice = (s, error = false) => {
-    $('status').textContent = s;
+    $('status').textContent = error?friendlyError(s):s;
     $('status').title = s;
     $('status').className = error ? 'error' : '';
+    if(error)showRecovery(s);
+    else if($('repairReport').hidden)recovery.hidden=true;
   },
   safe = (fn) => async () => {
     try {
@@ -80,9 +94,68 @@ const notice = (s, error = false) => {
       notice(e.message, true);
     }
   };
+function friendlyError(text){
+  if(/Failed to fetch|fetch failed|NetworkError/i.test(text))return 'Koneksi ke Map Studio terputus. Draft masih ada di panel ini. Periksa server, lalu coba lagi; ekspor draft sebelum menutup tab.';
+  if(/Nama objek|Nama map|Keterangan.*(panjang|teks)|Keterangan tidak valid/.test(text))return 'Ada nama/keterangan yang perlu dirapikan. Gambar dan posisi objek tetap aman; gunakan “Rapikan nama & isian”.';
+  if(/Objek [XY]:/.test(text))return 'Posisi objek berada di luar batas yang diizinkan. Periksa kolom X/Y yang ditandai; gambar Anda tidak dihapus.';
+  if(/Perbaiki nilai field/.test(text))return 'Ada isian yang belum sesuai. Periksa kolom yang ditandai, lalu coba Simpan lagi. Draft Anda masih ada.';
+  return text;
+}
+function showRecovery(text){
+  recovery.hidden=false;$('recoveryMessage').textContent=friendlyError(text);$('recoveryMessage').title=text;
+  $('repairReport').hidden=true;
+  $('repairSafeText').hidden=!map||inspectOnly||!repairMapText(map).fixes.length;
+  $('optimizeBudget').hidden=!map||inspectOnly||!/Anggaran gambar map|128 MiB/.test(text);
+  $('locateProblem').hidden=!map||!(document.querySelector('input:invalid,textarea:invalid,select:invalid')||mapIssues(map).length);$('undoTextRepair').hidden=true;
+}
+function textInputs(){
+  $('mapName').value=map.name;$('description').value=map.description;
+  if(object()){$('objectName').value=object().name;$('selectionTitle').textContent=object().name;}
+  for(const id of ['mapName','description','objectName']){$(id).setCustomValidity('');$(id).removeAttribute('aria-invalid');}
+  $('objectNameCount').textContent=`${object()?.name?.length??0} / 100 karakter`;list();
+}
+function reportTextRepairs(fixes){
+  recovery.hidden=false;$('recoveryMessage').textContent=`${fixes.length} nama/isian dirapikan. Gambar, collider, dan posisi tidak berubah. Periksa hasilnya; perapian bisa dibatalkan.`;
+  $('repairSafeText').hidden=true;$('locateProblem').hidden=true;$('undoTextRepair').hidden=false;$('repairReport').hidden=false;
+  $('repairReportTitle').textContent=`Lihat ${fixes.length} perubahan`;
+  $('repairReportList').replaceChildren(...fixes.map(f=>{const li=document.createElement('li');li.textContent=`${f.message} → ${f.after}`;li.title=`Sebelumnya: ${typeof f.before==='string'?f.before:'belum berupa teks'}`;return li;}));
+  textRepairToken=JSON.stringify(map);
+}
+function repairTextDraft(){
+  if(!map||inspectOnly||loading||testing||drawing)return 0;
+  const result=repairMapText(map);
+  if(result.fixes.length){remember();map=result.map;textInputs();reportTextRepairs(result.fixes);check();}
+  else {for(const id of ['mapName','description','objectName']){$(id).setCustomValidity('');$(id).removeAttribute('aria-invalid');}}
+  return result.fixes.length;
+}
+$('repairSafeText').onclick=()=>{const count=repairTextDraft();notice(count?`${count} nama/isian sudah dirapikan. Simpan map jika hasilnya sesuai.`:'Tidak ada nama/isian yang perlu dirapikan. Periksa bagian yang ditandai.');};
+$('undoTextRepair').onclick=()=>{if(textRepairToken===JSON.stringify(map)){$('undo').click();recovery.hidden=true;}else{ $('undoTextRepair').hidden=true;notice('Ada perubahan baru setelah perapian. Gunakan Undo di atas untuk membatalkan langkah satu per satu.');}};
+$('dismissRecovery').onclick=()=>{recovery.hidden=true;};
+$('optimizeBudget').onclick=safe(async()=>{
+  if(!map||loading||testing||inspectOnly)return;
+  const before=JSON.stringify(map);loading=true;$('optimizeBudget').disabled=true;
+  notice('Mengoptimalkan salinan gambar. Objek dan collider tetap.');
+  try{
+    const result=await api('/api/optimize-map',{map:structuredClone(map)});
+    if(JSON.stringify(map)!==before)throw new Error('Draft berubah selama optimasi. Hasil tidak menimpa perubahan baru; coba lagi.');
+    remember();map=result.map;fields();check();
+    for(const item of result.libraryItems??[]){library=library.filter(i=>i.key!==item.key);library.unshift(item);}renderLibrary();
+    const r=result.optimization;
+    notice(`Gambar diringankan: ${(r.before/1048576).toFixed(1)} → ${(r.after/1048576).toFixed(1)} MiB. ${r.resized?'Resolusi disesuaikan ringan; periksa preview.':'Tanpa menurunkan resolusi.'} Belum disimpan; gunakan Undo untuk membatalkan, atau Simpan map.`);
+    recovery.hidden=true;
+  }finally{loading=false;$('optimizeBudget').disabled=false;}
+});
+$('optimizeMapImages').onclick=()=>$('optimizeBudget').click();
+$('objectName').addEventListener('input',()=>{$('objectNameCount').textContent=`${$('objectName').value.length} / 100 karakter`;});
+$('locateProblem').onclick=()=>{
+  const issue=map?repairMapText(map).fixes[0]??mapIssues(map)[0]:null;if(issue?.object)select(issue.object);
+  const field=document.querySelector('input:invalid,textarea:invalid,select:invalid')??$(issue?.field??'objectName');
+  if(field&&!field.disabled){for(let parent=field.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;field.scrollIntoView({block:'center'});field.focus();}
+};
 async function api(route, data) {
   if (data) {
     const live = await (await fetch('/api/state')).json();
+    if(route==='/api/optimize-map'&&live.capabilities?.assetBudgetAutofix!==1)throw new Error('Backend belum mendukung perbaikan anggaran gambar. Simpan/ekspor draft sebelum memperbarui server; jangan refresh draft yang belum tersimpan.');
     if (live.capabilities?.structureVisuals !== 1)
       throw new Error('Server editor masih versi lama dan tidak menyimpan visual Benteng/Penjara. Draft tetap di panel ini. Jalankan ulang npm run admin:maps sebelum mencoba Simpan; jangan refresh draft yang belum tersimpan.');
     if (live.revision !== state.revision)
@@ -117,6 +190,8 @@ function remember() {
   publishSummary();
 }
 function publishSummary() {
+  if(map)showTextureBudget($('textureBudget'),mapAssets(map),state?.assetBudgets?.map??{warning:64*1048576,limit:128*1048576});
+  $('optimizeMapImages').hidden=!map||inspectOnly||!['warning','over'].includes($('textureBudget').dataset.level);
   if (!map) return;
   if(choiceValue==='builtin:kampung3d'){
     $('versionBadge').textContent='MAP 3D · PENGELOLAAN DAFTAR SAJA';
@@ -202,8 +277,8 @@ function structureFields() {
     const img = image(v.asset);if(img?.complete)paint();else img?.addEventListener('load',paint,{once:true});section.append(thumb);
     const path = document.createElement('p');path.textContent = anchor[slot] ? v.asset?.asset ?? 'Tanpa gambar' : 'Visual bawaan';section.append(path);
     const action = (text, fn, name) => {const b = document.createElement('button');b.textContent=text;b.dataset.action=name;b.onclick=safe(fn);section.append(b);};
-    action('Ganti dari file',()=>{fileTarget=target;$('structureFile').click();},'file');
-    action('Pilih dari library',()=>{replacement=target;renderReplacement();$('library').scrollIntoView({block:'nearest'});},'library');
+    action('Ganti dari file',()=>{terrainPick=null;fileTarget=target;$('structureFile').click();},'file');
+    action('Pilih dari library',()=>{terrainPick=null;replacement=target;renderReplacement();$('library').scrollIntoView({block:'nearest'});},'library');
     action('Pulihkan visual bawaan',()=>{if(testing||loading||inspectOnly)return;const current=structureTarget(target).anchor;remember();delete current[slot];propertyFields();},'reset');
     const grid = document.createElement('div');grid.className='pair';
     for(const [key,text,min,max] of [['w','Lebar visual',1,map.width],['h','Tinggi visual',1,map.height],['offsetX','Offset X',-map.width,map.width],['offsetY','Offset Y',-map.height,map.height],['rotation','Rotasi °',-180,180],['opacity','Opacity %',0,100],['mirror','Mirror horizontal ↔'],['mirrorY','Mirror vertikal ↕'],['visible','Visual terlihat']]) {
@@ -219,8 +294,9 @@ function structureFields() {
 function renderReplacement() {
   let banner=$('replacementBanner');
   if(!banner){banner=document.createElement('div');banner.id='replacementBanner';$('library').before(banner);}
-  banner.replaceChildren();banner.hidden=!replacement;
+  banner.replaceChildren();banner.hidden=!replacement&&!terrainPick;
   if(replacement){const text=document.createElement('p');text.textContent=`Pilih aset pengganti ${replacement.id} · ${replacement.slot}. Klik library tidak menambah objek.`;const cancel=document.createElement('button');cancel.textContent='Batal';cancel.onclick=()=>{replacement=null;renderReplacement();};banner.append(text,cancel);}
+  else if(terrainPick){const text=document.createElement('p');text.textContent=terrainPick==='terrain'?'Pilih gambar di library untuk mengganti SELURUH terrain. Objek/collider tidak dihapus.':'Pilih gambar di library untuk membuat TAMBALAN visual di layer Latar, tanpa collider.';const cancel=document.createElement('button');cancel.textContent='Batal pilih terrain';cancel.onclick=()=>{terrainPick=null;renderReplacement();};banner.append(text,cancel);}
 }
 function image(a) {
   if (!a) return null;
@@ -251,6 +327,7 @@ function propertyFields() {
   if (!v) return;
   $('objectName').disabled = !o;
   $('objectName').value = o?.name ?? selected;
+  $('objectNameCount').textContent=o?`${typeof o.name==='string'?o.name.length:0} / 100 karakter`:'Nama objek tidak berlaku untuk benteng/penjara.';
   for (const k of ['x', 'y', 'w', 'h']) {
     $(k).value = v[k] ?? '';
     $(k).disabled = (k === 'w' || k === 'h') && !('w' in v);
@@ -288,12 +365,13 @@ function nodeFields() {
     b.onclick = () => {
       selectedNode = index;
       nodeFields();
+      canvas.focus({preventScroll:true});
     };
     $('nodes').append(b);
   });
 }
 function select(id) {
-  replacement = null;renderReplacement();
+  replacement = null;terrainPick=null;renderReplacement();
   selected = id;
   pointsMode = false;
   selectedNode = -1;
@@ -303,6 +381,7 @@ function select(id) {
 }
 function list() {
   const root = $('objects');
+  $('objectCount').textContent=String(map.objects.length+4);
   root.replaceChildren();
   const entries = [
     ['base:blue', '⚑ Benteng Merah'],
@@ -311,14 +390,15 @@ function list() {
     ['prison:red', '▣ Penjara Hijau'],
     ...map.objects.map((o) => [
       o.id,
-      `${o.locked ? '🔒 ' : ''}${o.name} · ${o.behavior}`,
+      o.name,
     ]),
   ];
   for (const [id, name] of entries) {
     const b = document.createElement('button');
     b.textContent = name;
+    const o=map.objects.find(o=>o.id===id);b.title=o?`${o.name} · ${o.behavior}${o.locked?' · posisi terkunci':''}`:name;
     b.className = selected === id ? 'selected' : '';
-    b.onclick = () => select(id);
+    b.onclick = () => {select(id);canvas.focus({preventScroll:true});};
     root.append(b);
   }
 }
@@ -358,6 +438,19 @@ function fields() {
   list();
   resize();
   publishSummary();
+  terrainFields();
+}
+function terrainFields(){
+  if(!map)return;
+  $('terrainInfo').textContent=map.terrain?`${map.terrainMode==='tile'?'Ulang tekstur':'Penuhi map'} · ${map.terrain.frames.length} frame · ${map.terrain.asset}`:'Belum ada gambar terrain. Warna dasar tetap digunakan.';
+  $('restoreTerrain').disabled=inspectOnly||!builtinTemplates.some(m=>m.replaces===map.replaces);
+}
+function terrainEditable(){if(!map||inspectOnly||loading||testing||drawing)throw new Error('Buka draft editor dan selesaikan upload/uji/gambar polygon dahulu.');}
+function applyTerrain(asset){terrainEditable();remember();map.terrain=structuredClone(asset);tileCache=null;terrainPick=null;replacement=null;renderReplacement();terrainFields();notice('Terrain diganti sebagai draft visual. Collider, area air, struktur, dan unlock tidak berubah. Simpan map untuk menerapkan.');}
+function addTerrainPatch(asset,name){
+  if(testing||inspectOnly)throw new Error('Buka draft editor sebelum menambah tambalan.');
+  const patch=createTerrainPatch(map,asset,'obj-'+uid(),name);remember();map.objects.push(patch);select(patch.id);canvas.focus({preventScroll:true});
+  notice('Tambalan dibuat di tengah map, layer Latar/Dekorasi tanpa collider. Geser dan ubah ukuran; Simpan map jika sudah sesuai.');return patch;
 }
 function blank() {
   return {
@@ -392,6 +485,7 @@ function open(m, options = {}) {
     return;
   }
   map = structuredClone(m);
+  recovery.hidden=true;textRepairToken=null;$('repairReport').hidden=true;
   inspectOnly=!!options.readOnly;
   choiceValue=options.value??m.id;
   $('save').disabled = false;
@@ -403,7 +497,7 @@ function open(m, options = {}) {
     $(id).disabled = false;
   dirty = !inspectOnly && !state.document.maps.some((v) => v.id === m.id);
   selected = '';
-  replacement = null;fileTarget = null;renderReplacement();
+  replacement = null;fileTarget = null;terrainPick=null;renderReplacement();
   drag=null;pointsMode=false;selectedNode=-1;
   history = [];
   future = [];
@@ -422,16 +516,16 @@ function open(m, options = {}) {
   applyViewMode();
 }
 function applyViewMode() {
-  const allowed=new Set(['maps','showArchived','new','clone','duplicateMap','editVersion','exportDraft','zoom','fit','grid','bounds','cleanPreview','structures','validate']);
+  const allowed=new Set(['maps','showArchived','new','clone','garduPrototype','duplicateMap','editVersion','exportDraft','importDraftButton','draftFile','zoom','fit','grid','bounds','cleanPreview','structures','validate']);
   for(const el of document.querySelectorAll('main > aside:first-child input,main > aside:first-child textarea,main > aside:first-child select,main > aside:first-child button'))
-    if(!allowed.has(el.id))el.disabled=inspectOnly;
+    if(!allowed.has(el.id)&&el.dataset.studioHelp!=='true')el.disabled=inspectOnly;
   document.querySelector('.inspector-edit-region').inert=inspectOnly;
   const assets=document.querySelectorAll('main > aside:first-child section')[1];
   if(assets)assets.inert=inspectOnly;
   for(const id of ['save','undo','redo','test','polygon','solidArea','autoFix'])$(id).disabled=inspectOnly;
   $('resetMap').disabled=inspectOnly||!map.replaces;
   $('editVersion').hidden=!inspectOnly;
-  const saved=state.document.maps.find(m=>m.id===map.id || map.replaces&&m.replaces===map.replaces);
+  const saved=state.document.maps.find(m=>m.id===map.id)??state.document.maps.find(m=>map.replaces&&m.replaces===map.replaces&&m.enabled&&!m.archived&&!m.deleted);
   $('editVersion').textContent=choiceValue.startsWith('builtin:')?'Edit map bawaan terbaru':saved?'Buka versi editor tersimpan':'Buat draft dari versi ini';
 }
 function add(asset, name = 'Area baru') {
@@ -442,7 +536,7 @@ function add(asset, name = 'Area baru') {
     h = f ? (w * f.height) / f.width : 100,
     o = {
       id: 'obj-' + uid(),
-      name,
+      name:editorText(name,100,'Objek baru'),
       asset: asset ? structuredClone(asset) : null,
       x: Math.round(map.width / 2 - w / 2),
       y: Math.round(map.height / 2 - h / 2),
@@ -471,12 +565,13 @@ function add(asset, name = 'Area baru') {
 }
 function repairColliders(recordHistory = true) {
   if (inspectOnly || testing || loading || drawing) return 0;
-  const result = autoFixMap(map);
+  const labels=repairMapText(map),result = autoFixMap(labels.map);result.fixes.unshift(...labels.fixes);
   if (result.fixes.length) {
     if (recordHistory) remember();
     map = result.map;
     selectedNode = -1;
     fields();
+    if(labels.fixes.length)reportTextRepairs(labels.fixes);
   }
   $('autoFixSummary').textContent = result.fixes.length
     ? `Auto-fix: ${result.fixes.map(f => f.message).join(' ')} Bisa Undo; simpan untuk menerapkan.`
@@ -532,6 +627,7 @@ function world(o, p) {
   };
 }
 function drawObject(o, now) {
+  relayVisuals?.drawRelayPrimitive(ctx,o);
   ctx.save();
   ctx.translate(o.x + o.w / 2, o.y + o.h / 2);
   ctx.rotate((o.rotation * Math.PI) / 180);
@@ -561,6 +657,7 @@ function drawObject(o, now) {
     ctx.stroke();
   }
   ctx.restore();
+  relayVisuals?.drawRelayNodeLabel(ctx,o);
   if (o.id === selected && !testing)
     for (const [index, p] of (pointsMode
       ? o.points
@@ -593,6 +690,7 @@ function drawObject(o, now) {
     }
 }
 function terrain(now) {
+  if(relayVisuals?.drawRelayGround(ctx,map))return;
   ctx.fillStyle = '#344936';
   ctx.fillRect(0, 0, map.width, map.height);
   if (!map.terrain) return;
@@ -713,6 +811,7 @@ function drawGameplayAssets(now, overlay = false) {
   for (const t of ['blue', 'red']) {
     const slots = overlay ? [['prison','overlayVisual']] : [['base','visual'],['prison','floorVisual']];
     for(const [kind,slot] of slots) {
+      if(relayVisuals?.drawRelayStructure(ctx,map,t,overlay?'overlay':kind))continue;
       const anchor=kind==='base'?map.bases[t]:map.prisons[t];
       const v=resolveStructureVisual(anchor,anchor[slot],baked?undefined:structureFallback(kind,t,slot));
       if(!v)continue;
@@ -764,6 +863,7 @@ function animate(now) {
   testStep(now, dt);
   ctx.setTransform(zoom(), 0, 0, zoom(), 0, 0);
   terrain(now);
+  map.objects.filter(o=>o.layer==='background'&&($('layerFilter').value==='all'||$('layerFilter').value==='background')).sort((a,b)=>a.z-b.z||a.y+a.h-b.y-b.h).forEach(o=>drawObject(o,now));
   drawGameplayAssets(now);
   if ($('grid').checked) {
     ctx.strokeStyle = '#ffffff18';
@@ -782,7 +882,7 @@ function animate(now) {
   const entries = map.objects
     .filter(
       (o) =>
-        $('layerFilter').value === 'all' || o.layer === $('layerFilter').value,
+        o.layer!=='background'&&($('layerFilter').value === 'all' || o.layer === $('layerFilter').value),
     )
     .map((o) => ({
       layer: layers.indexOf(o.layer),
@@ -824,6 +924,14 @@ function animate(now) {
   }
   const ic = $('iconPreview').getContext('2d');
   ic.clearRect(0, 0, ic.canvas.width, ic.canvas.height);
+  if(!map.icon&&relayVisuals?.isRelayPrototypeMap(map)){
+    // Same primitive preview as the arena; never inherit the old Pasar picture.
+    ic.save();ic.scale(ic.canvas.width/map.width,ic.canvas.height/map.height);
+    relayVisuals.drawRelayGround(ic,map);
+    for(const object of [...map.objects].sort((a,b)=>a.z-b.z))relayVisuals.drawRelayPrimitive(ic,object);
+    for(const team of ['blue','red'])for(const kind of ['base','prison'])relayVisuals.drawRelayStructure(ic,map,team,kind);
+    ic.restore();return;
+  }
   const artwork = map.icon ?? builtinTemplates.find(m => m.replaces === map.replaces)?.icon ??
     (map.terrain?.frames.length === 1 ? map.terrain : null);
   drawAsset(ic, artwork, 0, 0, ic.canvas.width, ic.canvas.height, now);
@@ -995,8 +1103,8 @@ canvas.ondblclick = (e) => {
   nodeFields();
 };
 document.addEventListener('keydown', (e) => {
-  if(inspectOnly)return;
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if(inspectOnly||loading||!map||!engineVisible||document.hidden||e.defaultPrevented||e.isComposing)return;
+  if (nativeKeyboardTarget(e)) return;
   if (e.key === 'Escape') {
     if (drawing) cancelDrawing();
     else if (pointsMode) {
@@ -1031,12 +1139,29 @@ document.addEventListener('keydown', (e) => {
     keys.add(e.key.toLowerCase());
     return;
   }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-    e.preventDefault();
-    $('undo').click();
-  } else if (e.key === 'Delete' && object())
-    (pointsMode ? $('deleteNode') : $('delete')).click();
 });
+let keyboardMoveRecorded=false;
+const releaseKeyboard=bindStudioKeyboard({surface:canvas,enabled:()=>!!map&&!inspectOnly&&!loading&&!testing&&!drawing&&!drag&&engineVisible&&!document.querySelector('.coach-popover:popover-open'),
+  undo:()=>{$('undo').click();},redo:()=>{$('redo').click();},
+  begin:()=>{keyboardMoveRecorded=false;},end:()=>{keyboardMoveRecorded=false;},
+  remove:()=>{if(object()?.locked)return notice('Objek terkunci. Buka kunci sebelum menghapus.');if(object())(pointsMode?$('deleteNode'):$('delete')).click();},
+  nudge(dx,dy,step){
+    const o=object(),v=o??marker();if(!v||v.locked)return;
+    const record=()=>{if(!keyboardMoveRecorded){remember();keyboardMoveRecorded=true;}};
+    if(pointsMode&&o&&selectedNode>=0){
+      const point=o.points[selectedNode];if(!point)return;
+      const angle=(o.rotation??0)*Math.PI/180;
+      const x=clamp(point.x+(dx*Math.cos(angle)+dy*Math.sin(angle))*step/o.w,0,1),y=clamp(point.y+(-dx*Math.sin(angle)+dy*Math.cos(angle))*step/o.h,0,1);
+      if(x===point.x&&y===point.y)return;record();point.x=x;point.y=y;nodeFields();
+    }else{
+      const x=clamp(v.x+dx*step,selected.startsWith('base:')?80:0,map.width-(v.w??80)),y=clamp(v.y+dy*step,selected.startsWith('base:')?100:0,map.height-(v.h??80));
+      if(x===v.x&&y===v.y)return;record();v.x=x;v.y=y;propertyFields();
+    }
+  },
+});
+window.addEventListener('message',event=>{if(event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&event.data.active===false)releaseKeyboard();});
+canvas.setAttribute('aria-label','Map canvas. Panah: geser 1 px; Shift+panah: 10 px; Delete: hapus objek/titik; Ctrl+Z: Undo; Ctrl+Y: Redo.');
+const keyboardHint=document.createElement('p');keyboardHint.className='hint';keyboardHint.textContent='Klik canvas untuk keyboard: panah = 1 px · Shift+panah = 10 px · Delete = hapus objek/titik · Ctrl/Cmd+Z = Undo · Ctrl+Y / Ctrl/Cmd+Shift+Z = Redo. Kolom input tetap memakai keyboard normal.';canvas.parentElement.before(keyboardHint);
 document.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur', () => keys.clear());
 window.addEventListener('beforeunload', (e) => {
@@ -1045,15 +1170,19 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 function editField(el, mutate) {
-  const candidate = structuredClone(map);
+  let candidate = structuredClone(map),fixes=[];
   try {
     mutate(candidate);
-    validateMap(candidate);
+    try{validateMap(candidate);}catch(error){const repaired=repairMapText(candidate);if(!repaired.fixes.length)throw error;validateMap(repaired.map);candidate=repaired.map;fixes=repaired.fixes;}
     el.setCustomValidity('');
+    el.removeAttribute('aria-invalid');
     remember();
     map = candidate;
+    if(fixes.length){textInputs();reportTextRepairs(fixes);notice('Nama/isian dirapikan otomatis. Perubahan Anda tetap diterapkan; belum disimpan.');}
+    else if($('status').classList.contains('error'))notice('Isian sudah sesuai. Perubahan belum disimpan.');
   } catch (e) {
     el.setCustomValidity(e.message);
+    el.setAttribute('aria-invalid','true');
     notice(e.message, true);
   }
 }
@@ -1074,6 +1203,7 @@ for (const [id, key] of [
         : el.value;
     });
     resize();
+    if(id==='terrainMode'||id==='tileSize'){tileCache=null;terrainFields();}
   };
   el.onchange = el.oninput;
 }
@@ -1222,6 +1352,15 @@ $('redo').onclick = () => {
   $('autoFixSummary').textContent = 'Redo diterapkan. Periksa hasil sebelum menyimpan.';
 };
 $('new').onclick = () => open(blank());
+$('garduPrototype').onclick=safe(async()=>{
+  if(loading||testing)return;
+  const response=await fetch('/api/prototypes/gardu-tengah');
+  if(!response.ok)throw new Error('Prototype memerlukan backend terbaru. Simpan/ekspor draft sebelum restart Map Studio.');
+  const draft=validateMap((await response.json()).map);
+  if(state.document.maps.some(m=>m.id===draft.id))draft.id='studio-gardu-tengah-'+uid().slice(0,8);
+  open(draft);
+  if(map.id===draft.id)notice('Gardu Tengah · Prototype Power Relay single-player. Preview editor menampilkan gerbang tertutup; Relay berjalan di pertandingan game. Draft belum disimpan; slot Pasar tidak berubah.');
+});
 $('clone').onclick = () => {
   const m = structuredClone(template);
   m.id = 'studio-kampung-' + uid().slice(0, 8);
@@ -1233,7 +1372,7 @@ $('duplicateMap').onclick = () => {
   delete m.archived;
   delete m.deleted;
   m.id = 'studio-copy-' + uid().slice(0, 8);
-  m.name += ' — salinan';
+  m.name = editorText(m.name,80-' — salinan'.length,'Map')+' — salinan';
   m.enabled = false;
   open(m);
 };
@@ -1298,12 +1437,12 @@ async function manageMap(action) {
     !confirm(
       action === 'delete'
         ? 'Pindahkan map ke Sampah? Data dan aset tetap tersedia untuk dipulihkan.'
-        : 'Pulihkan map bawaan asli? Versi editor akan dilepas dari daftar; backup tetap tersimpan.',
+        : 'Pulihkan map bawaan asli? Versi editor dinonaktifkan; data dan aset tetap tersimpan.',
     )
   )
     return;
   if(inspectOnly && value!=='builtin:kampung3d')throw new Error('Buka versi editor sebelum mengelola arena.');
-  const id = value.startsWith('builtin:') ? value.slice(8) : map.replaces ?? map.id,
+  const id = value.startsWith('builtin:') ? value.slice(8) : action==='reset'&&map.replaces?map.replaces:map.id,
     r = await api('/api/manage', { id, action });
   state.document = r.document;
   state.revision = r.revision;
@@ -1346,14 +1485,14 @@ $('duplicate').onclick = () => {
   remember();
   const c = structuredClone(o);
   c.id = 'obj-' + uid();
-  c.name += ' salinan';
+  c.name = editorText(c.name,92,'Objek')+' salinan';
   c.x = clamp(c.x + 20, 0, map.width - c.w);
   c.y = clamp(c.y + 20, 0, map.height - c.h);
   map.objects.push(c);
   select(c.id);
 };
 $('delete').onclick = () => {
-  if (!object() || testing) return;
+  if (!object() || testing || loading || inspectOnly || object().locked) return;
   remember();
   map.objects = map.objects.filter((o) => o.id !== selected);
   select('');
@@ -1370,7 +1509,7 @@ $('separateCollider').onclick = () => {
   remember();
   const c = structuredClone(o);
   c.id = 'obj-' + uid();
-  c.name = 'Batas ' + o.name;
+  c.name = editorText('Batas ' + o.name,100,'Batas objek');
   c.asset = null;
   c.behavior = o.behavior === 'decoration' ? 'solid' : o.behavior;
   o.behavior = 'decoration';
@@ -1381,8 +1520,10 @@ $('separateCollider').onclick = () => {
 };
 for (const k of ['Terrain', 'Icon'])
   $('clear' + k).onclick = () => {
+    if(testing||loading||inspectOnly)return;
     remember();
     map[k.toLowerCase()] = null;
+    if(k==='Terrain'){tileCache=null;terrainFields();}
   };
 $('zoom').oninput = resize;
 $('clearWaterMask').onclick = () => {
@@ -1433,11 +1574,26 @@ $('exportDraft').onclick = safe(() => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   notice('Draft diekspor sebagai JSON. Aset gambar tetap berada di folder proyek; map tidak diubah.');
 });
+$('importDraftButton').onclick=()=>{if(!loading&&!testing&&!drawing)$('draftFile').click();};
+$('draftFile').onchange=safe(async()=>{
+  try{
+    const file=$('draftFile').files[0];if(!file)return;if(file.size>8*1024*1024)throw new Error('Cadangan terlalu besar. Gunakan JSON draft Map Studio maksimal8MB.');
+    const previous=map,previousContent=JSON.stringify(map);let data;
+    try{data=JSON.parse(await file.text());}catch{throw new Error('Cadangan tidak bisa dibaca. Pilih JSON hasil Ekspor draft; map yang terbuka tidak berubah.');}
+    const repaired=repairMapText(data),candidate=validateMap(repaired.map);
+    if(map!==previous||JSON.stringify(map)!==previousContent)throw new Error('Map berubah saat cadangan dibaca. Draft tidak ditimpa; pilih file cadangan lagi.');
+    open(candidate);if(map===previous)return;
+    dirty=true;publishSummary();
+    if(repaired.fixes.length){reportTextRepairs(repaired.fixes);$('undoTextRepair').hidden=true;textRepairToken=null;}
+    notice(`Cadangan dibuka sebagai draft${repaired.fixes.length?`; ${repaired.fixes.length} nama/isian dirapikan`:''}. Belum ditulis ke proyek. Periksa lalu Simpan; gambar harus tetap tersedia di proyek ini.`);
+  }finally{$('draftFile').value='';}
+});
 $('save').onclick = safe(async () => {
   if(inspectOnly)throw new Error('Preview hanya baca. Buka versi editor sebelum menyimpan.');
   if (loading) return;
   if (drawing)
     throw new Error('Klik Selesai poligon atau Batal sebelum menyimpan.');
+  const repairedText=repairTextDraft();
   for (const el of document.querySelectorAll('input,textarea,select'))
     if (!el.disabled && !el.checkValidity()) {
       el.reportValidity();
@@ -1463,9 +1619,9 @@ $('save').onclick = safe(async () => {
   dirty = false;
   mapChoices();
   notice(
-    map.enabled
+    (repairedText?`${repairedText} nama/isian dirapikan otomatis. `:'')+(map.enabled
       ? 'Map disimpan dan aktif. Build/publish untuk menerapkan.'
-      : 'Draft disimpan lokal; tidak muncul di game sebelum diaktifkan.',
+      : 'Draft disimpan lokal; tidak muncul di game sebelum diaktifkan.'),
   );
   publishSummary();
 });
@@ -1585,6 +1741,7 @@ async function job(publish) {
 $('build').onclick = safe(() => job(false));
 $('publish').onclick = safe(() => job(true));
 async function uploadFile(f, target) {
+  if(f&&state.capabilities?.assetOptimization!==1)throw new Error('Server Map Studio masih versi lama. Simpan/ekspor draft sebelum restart server, lalu upload ulang untuk optimasi otomatis.');
   if(inspectOnly)throw new Error('Preview hanya baca. Buka versi editor sebelum upload.');
   if (loading || testing) throw new Error('Selesaikan upload/uji cepat dahulu.');
   if ($('maps').value === 'builtin:kampung3d')
@@ -1614,19 +1771,21 @@ async function uploadFile(f, target) {
         r.readAsDataURL(f);
       }),
       result = await api('/api/upload', {
-        kind: target === 'structure' ? 'object' : target,
+        kind: target === 'structure'||target==='patch' ? 'object' : target,
+        displaySize:target==='terrain'?{width:map.width,height:map.height}:target==='replace'?{width:object()?.w,height:object()?.h}:target==='structure'?(()=>{const {visual}=structureTarget(structureBefore);return {width:visual.w,height:visual.h};})():{width:360,height:360},
         file: { name: f.name, data },
       });
     if (target === 'structure') {
       // Target captured before async upload. Map switches are blocked by loading.
       loading = false;
       replaceStructure(structureBefore, result.asset);
-    } else if (target === 'object') add(result.asset, f.name.replace(/\.[^.]+$/, ''));
+    } else if(target==='patch') addTerrainPatch(result.asset,f.name.replace(/\.[^.]+$/,''));
+    else if(target==='terrain'){loading=false;applyTerrain(result.asset);}
+    else if (target === 'object') add(result.asset, f.name.replace(/\.[^.]+$/, ''));
     else {
       if (target === 'replace' && !map.objects.some(o=>o.id===selectedBefore)) throw new Error('Objek berubah. Upload ulang.');
       remember();
-      if (target === 'terrain') map.terrain = result.asset;
-      else if (target === 'icon') map.icon = result.asset;
+      if (target === 'icon') map.icon = result.asset;
       else {
         const o = map.objects.find((o) => o.id === selectedBefore);
         if (!o) throw new Error('Objek berubah. Upload ulang.');
@@ -1634,6 +1793,9 @@ async function uploadFile(f, target) {
       }
     }
     propertyFields();
+    showOptimization($('assetOptimization'),result.optimization);
+    if(result.libraryItem){library=library.filter(i=>i.key!==result.libraryItem.key);library.unshift(result.libraryItem);renderLibrary();}
+    publishSummary();
     notice(
       `File diterima · ${result.asset.frames.length} frame. Simpan map setelah penempatan selesai.`,
     );
@@ -1649,6 +1811,12 @@ $('structureFile').onchange = safe(async () => {
   finally { $('structureFile').value = ''; fileTarget = null; }
 });
 $('file').onchange = safe(() => uploadFile($('file').files[0], $('uploadKind').value));
+$('replaceTerrain').onclick=safe(()=>{terrainEditable();terrainFileTarget='terrain';$('terrainFile').click();});
+for(const element of [$('terrainMode').parentElement,$('tileSize').parentElement,$('clearTerrain')])$('terrainTools').insertBefore(element,$('terrainHelp'));
+$('addTerrainPatch').onclick=safe(()=>{terrainEditable();terrainFileTarget='patch';$('terrainFile').click();});
+$('terrainFile').onchange=safe(async()=>{try{await uploadFile($('terrainFile').files[0],terrainFileTarget);}finally{$('terrainFile').value='';}});
+for(const [button,mode]of [['terrainLibrary','terrain'],['patchLibrary','patch']])$(button).onclick=safe(()=>{terrainEditable();replacement=null;terrainPick=mode;renderReplacement();$('library').scrollIntoView({block:'nearest'});});
+$('restoreTerrain').onclick=safe(()=>{terrainEditable();const original=builtinTemplates.find(m=>m.replaces===map.replaces);if(!original)throw new Error('Map ini tidak memiliki terrain asli bawaan. Gunakan Undo atau pilih file baru.');if(!confirm('Pulihkan hanya terrain asli? Tambalan, objek, collider dan struktur tetap dipertahankan.'))return;applyTerrain(original.terrain);map.terrainMode=original.terrainMode;map.tileSize=original.tileSize;fields();});
 $('chooseMapPreview').onclick = () => $('mapPreviewFile').click();
 $('mapPreviewFile').onchange = safe(async () => {
   try { await uploadFile($('mapPreviewFile').files[0], 'icon'); }
@@ -1656,8 +1824,10 @@ $('mapPreviewFile').onchange = safe(async () => {
 });
 function renderLibrary() {
   const q = $('search').value.toLowerCase();
+  const filter=$('libraryFilter').value;
   $('library').replaceChildren();
-  for (const item of library.filter((i) => i.name.toLowerCase().includes(q))) {
+  const visible=library.filter(i=>i.name.toLowerCase().includes(q)&&(filter==='all'||(filter==='upload')===(i.source==='upload')));
+  for (const item of visible) {
     const b = document.createElement('button'),
       thumb = document.createElement('canvas');
     thumb.width = thumb.height = 48;
@@ -1676,30 +1846,44 @@ function renderLibrary() {
       };
     if (i.complete) paint();
     else i.addEventListener('load', paint, { once: true });
-    b.append(thumb, document.createTextNode(item.arena ? `${item.name} · ${item.arena === 'taman' ? 'Taman terbaru' : 'Pasar terbaru'}` : item.name));
-    b.onclick = () => {
+    b.append(thumb, document.createTextNode(item.name));b.title=`${item.name} · ${item.source==='upload'?'Upload proyek':item.arena??'Bawaan'}`;
+    b.onclick = safe(() => {
       if (loading || testing || inspectOnly) return;
-      if(replacement){const target=replacement;replaceStructure(target,item.clip);replacement=null;renderReplacement();}
+      if(terrainPick==='terrain')applyTerrain(item.clip);
+      else if(terrainPick==='patch')addTerrainPatch(item.clip,item.name);
+      else if(replacement){const target=replacement;replaceStructure(target,item.clip);replacement=null;renderReplacement();}
       else add(item.clip, item.name);
-    };
+    });
     b.draggable = true;
     b.ondragstart = (e) =>
-      e.dataTransfer.setData('application/map-studio-asset', `${item.arena ?? ''}:${item.name}`);
+      e.dataTransfer.setData('application/map-studio-asset', item.key??`${item.arena ?? ''}:${item.name}`);
     $('library').append(b);
   }
+  $('libraryStatus').textContent=`${visible.length} aset`;
 }
 $('search').oninput = renderLibrary;
+$('libraryFilter').onchange=renderLibrary;
+async function refreshAssetLibrary(){
+  const result=await api('/api/library');
+  library=[...result.items,...builtinLibrary];renderLibrary();
+  if(result.warnings?.length)notice(result.warnings.join(' '),true);
+}
+$('refreshLibrary').onclick=safe(refreshAssetLibrary);
+try{$('objectsPanel').open=sessionStorage.getItem('benteng-map-objects-open')==='true';}catch{/* Optional UI preference. */}
+$('objectsPanel').addEventListener('toggle',()=>{try{sessionStorage.setItem('benteng-map-objects-open',String($('objectsPanel').open));}catch{/* Optional UI preference. */}});
 canvas.ondragover = (e) => e.preventDefault();
 canvas.ondrop = (e) => {
   e.preventDefault();
-  if (testing || loading || inspectOnly) return;
+  if (testing || loading || inspectOnly || drawing) return;
   const i = library.find(
-    (i) => `${i.arena ?? ''}:${i.name}` === e.dataTransfer.getData('application/map-studio-asset'),
+    (i) => (i.key??`${i.arena ?? ''}:${i.name}`) === e.dataTransfer.getData('application/map-studio-asset'),
   );
   if (!i) return;
-  add(i.clip, i.name);
+  if(terrainPick==='terrain'){applyTerrain(i.clip);return;}
+  if(replacement){const target=replacement;replaceStructure(target,i.clip);replacement=null;renderReplacement();return;}
+  const added=terrainPick==='patch'?addTerrainPatch(i.clip,i.name):add(i.clip, i.name);
   const p = position(e),
-    o = object();
+    o = added??object();
   o.x = clamp(snap(p.x - o.w / 2), 0, map.width - o.w);
   o.y = clamp(snap(p.y - o.h / 2), 0, map.height - o.h);
   propertyFields();
@@ -1713,7 +1897,8 @@ void safe(async () => {
   template = t.template;
   builtinTemplates = t.builtinTemplates;
   builtins = t.builtins;
-  library = t.library;
+  builtinLibrary=t.library;library=[...builtinLibrary];
+  try{await refreshAssetLibrary();}catch{$('libraryStatus').textContent='Koleksi upload memerlukan backend terbaru. Aset bawaan tetap tersedia.';}
   const first=mapVersions(state.document,builtins,builtinTemplates).find(e=>e.active&&e.map);
   map=structuredClone(first?.map??blank());inspectOnly=!!first;choiceValue=first?.value??map.id;
   fields();
@@ -1728,4 +1913,5 @@ void safe(async () => {
     'Map Studio siap · lokal. Mulai dengan Map kosong atau Salin Kampung.',
   );
   requestAnimationFrame(animate);
+  try{const {installMapCoachmarks}=await import('/coachmarks.js');installMapCoachmarks();}catch{notice('Editor siap. Bantuan ringkas memerlukan backend terbaru; simpan/ekspor draft sebelum memperbarui server.');}
 })();

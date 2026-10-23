@@ -50,6 +50,14 @@ async function ready(options) {
   await audio.unlock(); await audio.preload;
   return { ...f, audio };
 }
+void test('Relay cues are short procedural SFX, share mute/volume, throttle duplicates and add no asset fetch',async()=>{
+  const f=await ready();
+  for(const cue of ['relay-ready','relay-start','relay-connect','relay-error','relay-cancel','relay-open','relay-warning','relay-close']){
+    f.audio.context.currentTime++;assert.equal(f.audio.play(cue),true);assert.equal(f.audio.play(cue),false);
+  }
+  assert(f.events.length>8);assert(f.events.every(e=>!e.file));assert.equal(f.requests.length,20);
+  f.levels.sfx=0;f.listeners.get('volume')();assert.equal(f.audio.output.gain.value,0);f.audio.close();assert.equal(f.audio.play('relay-open'),false);
+});
 void test('manifest:20 actual assets, Pages path,4 impacts and5 announcers', async () => {
   const f = await ready();
   assert.equal(f.TAG_SAMPLE_FILES.length, 4); assert.equal(f.TAG_COUNTER_FILES.length, 5);
@@ -111,7 +119,7 @@ void test('countdown loading is optional and one-shot; result guard and player-o
   const f = await ready({ suspended: true });
   assert.equal(f.audio.play('countdown'), true); assert.equal(f.audio.play('countdown'), false);
   const game = await readFile(new URL('../app/prototype.tsx', import.meta.url), 'utf8');
-  assert.match(game, /const outcome = scoredMatch \? scored\?\.outcome \?\? null : endRound\(players, score, phase, team, reason, resultNow\);\s+if \(!outcome\) return;/);
+  assert.match(game, /const outcome = scoredMatch \? scored\?\.outcome \?\? null : endRound\(players, score, phase, team, reason, resultNow, tutorialIdentity\?TUTORIAL_MATCH.requiredWins:2\);\s+if \(!outcome\) return;/);
   assert.match(game, /presentGameEvents\(\[\{type:outcome.type,team:outcome.team,reason:outcome.reason\}\]/);
   const core = await readFile(new URL('../modules/game-core/match-control.ts', import.meta.url), 'utf8');
   assert.match(core, /if\s*\(\s*phase\s*!==\s*'PLAYING'\s*\)\s*return null/);

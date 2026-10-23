@@ -21,11 +21,11 @@ try{
    }
   }
   await page.selectOption('#character','buto');await page.waitForFunction(()=>!document.querySelector('#x').disabled&&document.querySelector('#x').value!=='');
-  const oldX=Number(await page.locator('#x').inputValue());await page.locator('#preview').focus();await page.keyboard.press('Shift+ArrowRight');assert.equal(Number(await page.locator('#x').inputValue()),oldX+1);
-  await page.locator('#snapGrid').check();await page.locator('#preview').focus();await page.keyboard.press('Shift+ArrowRight');assert.equal(Number(await page.locator('#x').inputValue()),oldX+17);
+  const oldX=Number(await page.locator('#x').inputValue());await page.locator('#preview').focus();await page.keyboard.press('ArrowRight');assert.equal(Number(await page.locator('#x').inputValue()),oldX+1);
+  await page.locator('#snapGrid').check();await page.locator('#preview').focus();await page.keyboard.press('ArrowRight');assert.equal(Number(await page.locator('#x').inputValue()),oldX+17);
   await page.locator('#snapGrid').uncheck();
   await page.locator('#preview').focus();await page.keyboard.press('Space');assert.equal(await page.locator('#play').textContent(),'Play');
-  await page.keyboard.press('ArrowRight');assert.ok(await page.locator('#frame').inputValue());
+  await page.keyboard.press('Alt+ArrowRight');assert.ok(await page.locator('#frame').inputValue());
   await page.locator('#gridVisible').uncheck();await page.locator('#rulersVisible').uncheck();await page.selectOption('#gridSize','32');await page.locator('#gridVisible').check();await page.locator('#rulersVisible').check();
   await page.setInputFiles('#files',{name:'crop-fixture.png',mimeType:'image/png',buffer:bytes});
   await page.waitForFunction(()=>document.querySelector('#fileStatus').textContent.startsWith('File diterima'));

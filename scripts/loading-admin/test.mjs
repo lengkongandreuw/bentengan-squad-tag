@@ -49,7 +49,7 @@ void test('HTTP uploads require local session, retain backups, reject stale writ
     const headers={'Origin':origin,'X-Admin-Token':state.token,'X-Revision':state.revision,'X-Loading-Slot':'boot','X-Media-Kind':'image','X-Media-Fit':'contain'};
     assert.equal((await fetch(origin+'/api/upload',{method:'POST',body:image})).status,403);
     assert.equal((await fetch(origin+'/api/state',{headers:{Origin:'https://evil.example'}})).status,403);
-    const response=await fetch(origin+'/api/upload',{method:'POST',headers,body:image});assert.equal(response.status,200);const saved=await response.json();
+    const response=await fetch(origin+'/api/upload',{method:'POST',headers,body:image});assert.equal(response.status,200,await response.clone().text());const saved=await response.json();
     assert.equal(saved.document.slots.boot.kind,'image');assert.equal(saved.document.slots.boot.fit,'contain');
     const asset=saved.document.slots.boot.asset;assert.deepEqual(await readFile(path.join(root,'public',asset)),image);
     const range=await fetch(origin+'/'+asset,{headers:{Range:'bytes=0-7'}});assert.equal(range.status,206);assert.equal((await range.arrayBuffer()).byteLength,8);

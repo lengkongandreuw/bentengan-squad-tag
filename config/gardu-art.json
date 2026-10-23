@@ -1,0 +1,364 @@
+{
+  "version": 1,
+  "terrain": {
+    "asset": "map-studio/56d81c3dd3c0b3df01e3e8d932753d0958f3004733048c03c00a0fcfcfe54140.webp",
+    "width": 1600,
+    "height": 900,
+    "frames": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1600,
+        "height": 900
+      }
+    ],
+    "fps": 1
+  },
+  "atlas": {
+    "asset": "map-studio/009fa065e58f8d509d35adadcc52b15b8fae48e3d9f3b973ff1c0dcf121dff50.webp",
+    "width": 1024,
+    "height": 1024
+  },
+  "frames": {
+    "block": {
+      "x": 2,
+      "y": 2,
+      "width": 252,
+      "height": 133
+    },
+    "wallVertical": {
+      "x": 258,
+      "y": 2,
+      "width": 60,
+      "height": 250
+    },
+    "wallHorizontal": {
+      "x": 514,
+      "y": 2,
+      "width": 252,
+      "height": 82
+    },
+    "rail": {
+      "x": 770,
+      "y": 2,
+      "width": 252,
+      "height": 64
+    },
+    "gateClosed": {
+      "x": 2,
+      "y": 258,
+      "width": 88,
+      "height": 252
+    },
+    "gateOpen": {
+      "x": 258,
+      "y": 258,
+      "width": 66,
+      "height": 252
+    },
+    "node": {
+      "x": 514,
+      "y": 258,
+      "width": 252,
+      "height": 239
+    },
+    "plaza": {
+      "x": 770,
+      "y": 258,
+      "width": 229,
+      "height": 252
+    },
+    "fortRed": {
+      "x": 2,
+      "y": 514,
+      "width": 252,
+      "height": 243
+    },
+    "fortGreen": {
+      "x": 258,
+      "y": 514,
+      "width": 252,
+      "height": 243
+    },
+    "prisonRed": {
+      "x": 514,
+      "y": 514,
+      "width": 252,
+      "height": 191
+    },
+    "prisonGreen": {
+      "x": 770,
+      "y": 514,
+      "width": 252,
+      "height": 192
+    },
+    "barrier": {
+      "x": 2,
+      "y": 770,
+      "width": 252,
+      "height": 74
+    },
+    "blockVents": {
+      "x": 258,
+      "y": 770,
+      "width": 252,
+      "height": 142
+    },
+    "cover": {
+      "x": 514,
+      "y": 770,
+      "width": 252,
+      "height": 69
+    },
+    "plate": {
+      "x": 770,
+      "y": 770,
+      "width": 151,
+      "height": 145
+    }
+  },
+  "bytes": 1377306,
+  "decodedBytes": 9954304,
+  "extraction": [
+    {
+      "name": "block",
+      "source": {
+        "left": 38,
+        "top": 97,
+        "width": 357,
+        "height": 188
+      },
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "width": 252,
+        "height": 133
+      }
+    },
+    {
+      "name": "wallVertical",
+      "source": {
+        "left": 458,
+        "top": 45,
+        "width": 60,
+        "height": 250
+      },
+      "frame": {
+        "x": 258,
+        "y": 2,
+        "width": 60,
+        "height": 250
+      }
+    },
+    {
+      "name": "wallHorizontal",
+      "source": {
+        "left": 640,
+        "top": 156,
+        "width": 268,
+        "height": 87
+      },
+      "frame": {
+        "x": 514,
+        "y": 2,
+        "width": 252,
+        "height": 82
+      }
+    },
+    {
+      "name": "rail",
+      "source": {
+        "left": 967,
+        "top": 169,
+        "width": 257,
+        "height": 65
+      },
+      "frame": {
+        "x": 770,
+        "y": 2,
+        "width": 252,
+        "height": 64
+      }
+    },
+    {
+      "name": "gateClosed",
+      "source": {
+        "left": 138,
+        "top": 351,
+        "width": 90,
+        "height": 259
+      },
+      "frame": {
+        "x": 2,
+        "y": 258,
+        "width": 88,
+        "height": 252
+      }
+    },
+    {
+      "name": "gateOpen",
+      "source": {
+        "left": 450,
+        "top": 348,
+        "width": 69,
+        "height": 263
+      },
+      "frame": {
+        "x": 258,
+        "y": 258,
+        "width": 66,
+        "height": 252
+      }
+    },
+    {
+      "name": "node",
+      "source": {
+        "left": 642,
+        "top": 361,
+        "width": 268,
+        "height": 254
+      },
+      "frame": {
+        "x": 514,
+        "y": 258,
+        "width": 252,
+        "height": 239
+      }
+    },
+    {
+      "name": "plaza",
+      "source": {
+        "left": 948,
+        "top": 325,
+        "width": 282,
+        "height": 310
+      },
+      "frame": {
+        "x": 770,
+        "y": 258,
+        "width": 229,
+        "height": 252
+      }
+    },
+    {
+      "name": "fortRed",
+      "source": {
+        "left": 36,
+        "top": 670,
+        "width": 277,
+        "height": 267
+      },
+      "frame": {
+        "x": 2,
+        "y": 514,
+        "width": 252,
+        "height": 243
+      }
+    },
+    {
+      "name": "fortGreen",
+      "source": {
+        "left": 343,
+        "top": 670,
+        "width": 277,
+        "height": 267
+      },
+      "frame": {
+        "x": 258,
+        "y": 514,
+        "width": 252,
+        "height": 243
+      }
+    },
+    {
+      "name": "prisonRed",
+      "source": {
+        "left": 634,
+        "top": 700,
+        "width": 281,
+        "height": 213
+      },
+      "frame": {
+        "x": 514,
+        "y": 514,
+        "width": 252,
+        "height": 191
+      }
+    },
+    {
+      "name": "prisonGreen",
+      "source": {
+        "left": 946,
+        "top": 699,
+        "width": 283,
+        "height": 216
+      },
+      "frame": {
+        "x": 770,
+        "y": 514,
+        "width": 252,
+        "height": 192
+      }
+    },
+    {
+      "name": "barrier",
+      "source": {
+        "left": 31,
+        "top": 1056,
+        "width": 289,
+        "height": 85
+      },
+      "frame": {
+        "x": 2,
+        "y": 770,
+        "width": 252,
+        "height": 74
+      }
+    },
+    {
+      "name": "blockVents",
+      "source": {
+        "left": 349,
+        "top": 979,
+        "width": 356,
+        "height": 201
+      },
+      "frame": {
+        "x": 258,
+        "y": 770,
+        "width": 252,
+        "height": 142
+      }
+    },
+    {
+      "name": "cover",
+      "source": {
+        "left": 743,
+        "top": 1061,
+        "width": 266,
+        "height": 73
+      },
+      "frame": {
+        "x": 514,
+        "y": 770,
+        "width": 252,
+        "height": 69
+      }
+    },
+    {
+      "name": "plate",
+      "source": {
+        "left": 1062,
+        "top": 1017,
+        "width": 151,
+        "height": 145
+      },
+      "frame": {
+        "x": 770,
+        "y": 770,
+        "width": 151,
+        "height": 145
+      }
+    }
+  ]
+}

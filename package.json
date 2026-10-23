@@ -6,6 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "test:audit": "node scripts/run-audit-tests.mjs",
     "admin:engine": "node --experimental-strip-types scripts/benteng-engine/server.mjs",
     "test:engine": "node --experimental-strip-types --test scripts/benteng-engine/test.mjs",
     "test:engine-browser": "node --experimental-strip-types scripts/benteng-engine/test-browser.mjs",

@@ -10,6 +10,7 @@ import {
   type MapAsset,
 } from './map-studio-model.js';
 import { publicAsset } from './characters.ts';
+import {drawRelayPrimitive,drawRelayGround,drawRelayOpenGate,drawRelayTarget,drawRelayNodeLabel,isRelayPrototypeMap} from '../modules/world/relay-map/relay-prototype-visuals.js';
 export const mapDocument = validateDocument(config);
 export const studioBuiltinStates = mapDocument.builtinStates ?? {};
 export const studioMaps = mapDocument.maps.filter(
@@ -70,6 +71,7 @@ export function drawMapTerrain(
   m: StudioMap,
   now: number,
 ) {
+  if(drawRelayGround(ctx,m))return;
   ctx.fillStyle = '#425a3d';
   ctx.fillRect(0, 0, m.width, m.height);
   if (!m.terrain) return;
@@ -105,7 +107,14 @@ export function drawMapObject(
   ctx: CanvasRenderingContext2D,
   o: MapObject,
   now: number,
+  gateOpen=false,
+  relayTarget:string|null=null,
 ) {
+  if(gateOpen&&o.openAsset&&['obj-power-gate-west','obj-power-gate-east'].includes(o.id)){
+    drawMapObject(ctx,{...o,asset:o.openAsset,openAsset:undefined},now,false,null);return;
+  }
+  if(drawRelayOpenGate(ctx,o,gateOpen))return;
+  if(drawRelayPrimitive(ctx,o)){drawRelayTarget(ctx,o,relayTarget);return;}
   if (!o.visible || !o.asset) return;
   ctx.save();
   ctx.translate(o.x + o.w / 2, o.y + o.h / 2);
@@ -114,6 +123,8 @@ export function drawMapObject(
   ctx.scale(o.mirror ? -1 : 1, o.mirrorY ? -1 : 1);
   drawAsset(ctx, o.asset, -o.w / 2, -o.h / 2, o.w, o.h, now);
   ctx.restore();
+  drawRelayNodeLabel(ctx,o);
+  drawRelayTarget(ctx,o,relayTarget);
 }
 export function drawStructureVisual(ctx: CanvasRenderingContext2D,
   v: import('./map-studio-model.js').StructureVisual & {x: number; y: number}, now: number) {
@@ -129,5 +140,5 @@ export function drawStructureVisual(ctx: CanvasRenderingContext2D,
 export function mapArtwork(id: string) {
   const m = studioMapById[id],
     a = m?.icon ?? (!m?.replaces && m?.terrain?.frames.length === 1 ? m.terrain : null);
-  return m ? publicAsset(a?.asset ?? `ui-v2/fields/${m.replaces ?? 'kampung'}.webp`) : null;
+  return m ? publicAsset(a?.asset ?? (isRelayPrototypeMap(m)?'ui-v2/fields/gardu-tengah.svg':`ui-v2/fields/${m.replaces ?? 'kampung'}.webp`)) : null;
 }

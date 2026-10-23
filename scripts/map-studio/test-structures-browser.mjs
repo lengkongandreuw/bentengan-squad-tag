@@ -15,7 +15,7 @@ try {
   // Intercept all writes: this browser test never saves/uploads into user maps.
   await page.route('**/api/**',async route=>{
     const req=route.request(),name=new URL(req.url()).pathname;
-    if(name==='/api/state')return route.fulfill({json:{token,revision,document:{version:1,maps:[snapshot]},...(modern?{capabilities:{structureVisuals:1}}:{})}});
+    if(name==='/api/state')return route.fulfill({json:{token,revision,document:{version:1,maps:[snapshot]},...(modern?{capabilities:{structureVisuals:1,mapAssetBundles:1,assetOptimization:1}}:{})}});
     if(req.method()==='POST'){
       if(name==='/api/save'){saveCount++;assert.equal(req.headers()['x-admin-token'],token);snapshot=validateMap(req.postDataJSON().map);revision+='x';const output=structuredClone(snapshot);if(corrupt)delete output.bases.blue.visual;return route.fulfill({json:{revision,document:{version:1,maps:[output]}}});}
       if(name==='/api/upload'){uploads++;if(req.postDataJSON().file.name==='bad.png')return route.fulfill({status:400,json:{error:'Fixture rejected upload'}});return route.fulfill({json:{asset:clip}});}
@@ -26,7 +26,7 @@ try {
   await page.goto(origin);await page.waitForFunction(()=>!document.querySelector('main').inert);
   await page.selectOption('#maps',fixture.id);
   const save=async()=>{const response=page.waitForResponse(r=>r.url().endsWith('/api/save'));await page.click('#save');await response;await page.waitForFunction(()=>document.querySelector('#saveState').textContent.includes('Tersimpan'));return structuredClone(snapshot);};
-  const pick=async id=>page.locator('#objects button').filter({hasText:id}).click();
+  const pick=async id=>{if(!await page.locator('#objectsPanel').evaluate(el=>el.open))await page.locator('#objectsPanel > summary').click();await page.locator('#objects button').filter({hasText:id}).click();};
   const panel=slot=>page.locator(`.structure-visual[data-slot="${slot}"]`);
   const file=async(slot,name='test.png')=>{await panel(slot).locator('[data-action=file]').click();await page.setInputFiles('#structureFile',{name,mimeType:'image/png',buffer:Buffer.from('fixture')});await page.waitForFunction(()=>document.querySelector('#save').disabled===false);};
   for(const [name,team] of [['Benteng Merah','blue'],['Benteng Hijau','red']]){

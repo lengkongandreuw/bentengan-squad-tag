@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="640" height="360">
+<rect width="1920" height="1080" fill="#292f33"/>
+<rect x="790" y="330" width="340" height="420" fill="#41494e"/>
+<g fill="#68747c" stroke="#a4b0b8" stroke-width="3">
+<path d="M790 330h110v30H790z M1020 330h110v30h-110z M790 720h110v30H790z M1020 720h110v30h-110z M790 360h30v140h-30z M790 580h30v140h-30z M1100 360h30v140h-30z M1100 580h30v140h-30z M360 180h220v120H360z M1340 180h220v120h-220z M360 750h220v120H360z M1340 750h220v120h-220z M470 430h180v36H470z M470 614h180v36H470z M1270 430h180v36h-180z M1270 614h180v36h-180z"/>
+</g>
+<path d="M610 275h120v26H610z M1190 275h120v26h-120z M610 790h120v26H610z M1190 790h120v26h-120z M175 735h140v24H175z M1605 735h140v24h-140z" fill="#d9b559"/>
+<path d="M790 500h30v80h-30z M1100 500h30v80h-30z" fill="#ff9561"/>
+<g fill="#81dcf4" stroke="#d5f6ff" stroke-width="4"><circle cx="960" cy="420" r="25"/><circle cx="960" cy="540" r="25"/><circle cx="960" cy="660" r="25"/></g>
+<g fill="#0b2734" font-family="sans-serif" font-size="32" font-weight="bold" text-anchor="middle"><text x="960" y="432">A</text><text x="960" y="552">B</text><text x="960" y="672">C</text></g>
+<g fill="#ff687533" stroke="#ff6875" stroke-width="6"><circle cx="150" cy="540" r="68"/><rect x="160" y="790" width="170" height="120"/></g>
+<g fill="#8ae58833" stroke="#8ae588" stroke-width="6"><circle cx="1770" cy="540" r="68"/><rect x="1590" y="790" width="170" height="120"/></g>
+</svg>

@@ -304,14 +304,15 @@ void test('module09 runtime smoke executes actual ultimate block: base/upgraded 
   const setup=`
     const {stepUltimate,ultimateCasting:coreUltimateCasting,ultimateSpeed}=core;
     const presentGameEvents=(events,consume)=>events.forEach(consume);
-    const me=players[0],config=null,keys={current:new Set()},field={id:'kampung'},network=null;
+    const me=players[0],config=null,keys={current:new Set()},field={id:'kampung'},network=null,tutorialIdentity=null;
     const isKanalField=id=>id==='kanal'||id==='kanal2';
     const ULTIMATE_CHARACTER_IDS=new Set(['raja','kaka']);
     const RAJA_ULTIMATE_RECHARGE_SECONDS=45,RAJA_ULTIMATE_CAST_MS=3200,KAKA_ULTIMATE_CAST_MS=3600,
       RAJA_ULTIMATE_BUFF_MS=5000,KAKA_ULTIMATE_SHIELD_MS=5000,RAJA_ULTIMATE_SPEED_MULTIPLIER=1.4;
     let ultimateMeter=0,ultimateImpactAt=0,ultimateImpactApplied=false,ultimateBuffUntil=0,ultimateShieldUntil=0,
       boostBurstUntil=0,bannerTimeout=0;
-    const audio=[],messages=[];
+    const audio=[],messages=[],learningEvents=[];
+    const observeLearningEvents=events=>learningEvents.push(...events);
     const gameplayAudio={play:(event)=>audio.push(event)},window={clearTimeout:()=>{},setTimeout:()=>0};
     const flightBusy=p=>!!p.flight,clamp=(v,min,max)=>Math.max(min,Math.min(max,v)),clearMouse=()=>{},
       setUltimateBannerVisible=()=>{},burst=()=>{},beep=()=>{},log=text=>messages.push(text);
@@ -323,7 +324,7 @@ void test('module09 runtime smoke executes actual ultimate block: base/upgraded 
         const input={ultimate:keys.current.has('capslock')};
         ${source.slice(start,end)}
         return {meter:ultimateMeter,casting:ultimateCasting,buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil,
-          multipliers:players.map(rajaUltimateMultiplier),audio:[...audio],messages:[...messages]};
+          multipliers:players.map(rajaUltimateMultiplier),audio:[...audio],messages:[...messages],learningEvents:[...learningEvents]};
       }
     };
   `;
@@ -344,6 +345,8 @@ void test('module09 runtime smoke executes actual ultimate block: base/upgraded 
     assert.equal(me.actionUntil,1000+stats.castMs);assert.deepEqual(casting.audio,['ultimate']);
     const before=run.step(0,me.actionUntil-1);assert.equal(before.buffUntil,0);assert.equal(before.shieldUntil,0);
     const applied=run.step(0,me.actionUntil);
+    assert.equal(applied.learningEvents.filter(event=>event.type==='ULTIMATE_STARTED').length,1);
+    assert.equal(applied.learningEvents.filter(event=>event.type==='ULTIMATE_APPLIED').length,1);
     if(id==='raja') {
       assert.equal(applied.buffUntil,me.actionUntil+stats.durationMs);
       assert.deepEqual(applied.multipliers,[stats.speedMultiplier,stats.speedMultiplier,1,1]);

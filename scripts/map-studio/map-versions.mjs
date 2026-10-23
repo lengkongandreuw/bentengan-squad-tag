@@ -3,7 +3,7 @@ export const mapActive = m => !!m?.enabled && !m.archived && !m.deleted;
 // Editing a native preview must start from that preview, never an obsolete
 // replacement draft. Reuse its save slot; saving still backs up the old draft.
 export function editableMapVersion(selected, savedMaps) {
-  const saved = savedMaps.find(m => m.id === selected.map.id || selected.map.replaces && m.replaces === selected.map.replaces);
+  const saved = savedMaps.find(m=>m.id===selected.map.id)??savedMaps.find(m=>selected.map.replaces&&m.replaces===selected.map.replaces&&mapActive(m))??savedMaps.find(m=>selected.map.replaces&&m.replaces===selected.map.replaces);
   if (selected.kind !== 'native' && saved) return { map: structuredClone(saved), refreshed: false };
   const draft = structuredClone(selected.map);
   if (saved) draft.id = saved.id;
@@ -14,7 +14,7 @@ export function editableMapVersion(selected, savedMaps) {
 export function mapVersions(document, builtins, templates, showHidden = false) {
   const entries=[];
   for(const b of builtins){
-    const saved=document.maps.find(m=>m.replaces===b.id),state=document.builtinStates?.[b.id]??'active';
+    const saved=document.maps.find(m=>m.replaces===b.id&&mapActive(m)),state=document.builtinStates?.[b.id]??'active';
     const active=state==='active'&&!mapActive(saved),source=templates.find(m=>m.replaces===b.id);
     if(active || showHidden || state==='active')entries.push({value:'builtin:'+b.id,kind:'native',readOnly:true,active,
       group:active?'Aktif di konfigurasi lokal':'Versi asli / arsip',

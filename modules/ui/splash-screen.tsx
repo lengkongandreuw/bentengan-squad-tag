@@ -1,5 +1,5 @@
 import { t } from '../../lib/language';
-import { landingLogoAsset } from '../../lib/branding.ts';
+import { landingLogoAsset, PRODUCT_COPYRIGHT } from '../../lib/branding.ts';
 
 // Landing splash: hero art, logo, and the enter button. Pure presentation;
 // the UI-asset resolver and the enter action are injected.
@@ -37,5 +37,6 @@ export const SplashScreen = ({
         <img src={resolveAsset('controls/multiplayer.webp')} alt="" width="1024" height="366" />
       </button>
     </div>
+    <footer className="splash-copyright">{PRODUCT_COPYRIGHT}</footer>
   </section>
 );

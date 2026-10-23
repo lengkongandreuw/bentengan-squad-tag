@@ -19,6 +19,17 @@ try{
   await containFocus('.player-profile-overlay');
   await page.getByRole('button',{name:'SAVE NAME',exact:true}).click();
   await page.getByRole('button',{name:'SKIP',exact:true}).click();
+  await page.keyboard.press('Escape');
+  await page.locator('.enter-game').blur();await page.keyboard.press('Control+Enter');
+  assert.equal(await page.locator('.enter-game').count(),1,'modified shortcuts must not trigger Play');
+  const sound=page.locator('.sound-trigger'),muted=await sound.getAttribute('aria-pressed');
+  await sound.focus();await page.keyboard.press('Space');
+  assert.notEqual(await sound.getAttribute('aria-pressed'),muted,'Space activates the focused sound button');
+  assert.equal(await page.locator('.enter-game').count(),1,'Space on sound must not also trigger Play');
+  await page.locator('.rules-button').focus();await page.keyboard.press('Enter');
+  await page.locator('.rules-overlay:modal').waitFor({timeout:5000});
+  assert.equal(await page.locator('.enter-game').count(),1,'Enter on Rules must not also trigger Play');
+  await page.keyboard.press('Escape');await page.locator('.enter-game').click();
   await page.getByRole('button',{name:/Choose Tim Merah/}).click();
   await page.locator('.character-panel-select').waitFor();
   for(const [width,height]of [[1366,768],[844,390],[1280,600]]){
@@ -72,7 +83,7 @@ try{
     assert.equal((await state()).timer,frozen.timer,`${tab}: single-player stays paused`);
     if(tab==='Map'){
       assert(await page.locator('.pause-map-preview').evaluate(e=>e.width>0&&e.height>0),'map preview initialized');
-      assert(await page.locator('.pause-map-preview').evaluate(e=>{const pixels=e.getContext('2d').getImageData(0,0,e.width,e.height).data;return pixels.some((v,i)=>i%4!==3&&v>20);}),'map copies visible arena pixels');
+      await page.waitForFunction(()=>{const e=document.querySelector('.pause-map-preview');if(!e?.width||!e.height)return false;const pixels=e.getContext('2d').getImageData(0,0,e.width,e.height).data;return pixels.some((v,i)=>i%4!==3&&v>20);},null,{timeout:5000});
       assert(await page.locator('.camera-map button.selected').last().isVisible(),'overview selected');
     }
     if(tab==='How to Play'){

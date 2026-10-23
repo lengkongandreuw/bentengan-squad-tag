@@ -83,6 +83,7 @@ export const initialMatchFormatView: MatchFormatView = {
 };
 
 export type Snapshot = {
+  relay?:import('../../lib/map-events/power-relay.ts').RelayHud;
   blue: number;
   red: number;
   round: number;

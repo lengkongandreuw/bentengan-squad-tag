@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { studioFramePolicy } from '../../lib/local-studio-frame.js';
 import { compileSprites } from './compile.mjs';
+import {ASSET_PROFILES,BUDGETS,guardBudget,preserveStudioSources} from '../studio-asset-policy.mjs';
 import { SLOTS,slotAllowed,slotLoop,isFlightSlot,validateClip,validateSpriteDocument,validateBoostDust,BOOST_DUST_LIMITS } from '../../lib/sprite-studio-model.js';
 const directory=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(directory,'../..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
@@ -82,10 +83,10 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
       if(req.headers.host!==new URL(origin).host||(req.headers.origin&&req.headers.origin!==origin)||req.headers['sec-fetch-site']==='cross-site')return json(403,{error:'Gunakan panel lokal yang sama.'});
       const url=new URL(req.url,origin);
       if(req.method==='GET') {
-        if(url.pathname==='/api/state')return json(200,{...await readConfig(),roster,token,job,supportedSlots:Object.fromEntries(ids.map(id=>[id,SLOTS.filter(slot=>slotAllowed(id,slot))]))});
+        if(url.pathname==='/api/state')return json(200,{...await readConfig(),roster,token,job,assetOptimization:1,assetProfiles:ASSET_PROFILES,assetBudgets:BUDGETS,supportedSlots:Object.fromEntries(ids.map(id=>[id,SLOTS.filter(slot=>slotAllowed(id,slot))]))});
         if(url.pathname==='/api/job')return json(200,job);
         const editors={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css','/comparison':'comparison.html','/comparison.js':'comparison.js','/bulk-editor.js':'bulk-editor.js','/scale-comparison.js':'scale-comparison.js','/workbench-ui.js':'workbench-ui.js'};
-        const libraries={'/model.js':path.join(projectRoot,'lib/sprite-studio-model.js'),'/lib/sprite-studio-model.js':path.join(projectRoot,'lib/sprite-studio-model.js'),'/lib/sprite-studio-batch.js':path.join(root,'lib/sprite-studio-batch.js'),'/lib/sprite-scale-comparison.js':path.join(root,'lib/sprite-scale-comparison.js')};
+        const libraries={'/asset-feedback.js':fileURLToPath(new URL('../studio-asset-feedback.js',import.meta.url)),'/studio-keyboard.js':fileURLToPath(new URL('../studio-keyboard.js',import.meta.url)),'/model.js':path.join(projectRoot,'lib/sprite-studio-model.js'),'/lib/sprite-studio-model.js':path.join(projectRoot,'lib/sprite-studio-model.js'),'/lib/sprite-studio-batch.js':path.join(root,'lib/sprite-studio-batch.js'),'/lib/sprite-scale-comparison.js':path.join(root,'lib/sprite-scale-comparison.js')};
         if(editors[url.pathname]||libraries[url.pathname]) {
           res.setHeader('Content-Security-Policy',`default-src 'self'; img-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; ${framePolicy}`);
           const file=libraries[url.pathname]??path.join(directory,editors[url.pathname]);
@@ -126,7 +127,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
             if(boost&&pages>BOOST_DUST_LIMITS.maxFrames)throw new Error('Boost dust: GIF maksimal 32 frame; tidak dipotong otomatis.');
             if(!['png','gif','webp'].includes(meta.format))throw new Error('Format ditolak: hanya PNG/GIF/WebP.');
             pixels+=meta.width*height*pages;
-            if(meta.width>4096||height>4096||pages>128||pixels>64_000_000)throw new Error('File ditolak: sisi maksimal 4096 px, 128 frame, total 64 juta pixel.');
+            if(meta.width>8192||height>8192||pages>128||pixels>64_000_000)throw new Error('File ditolak: sisi maksimal 8192 px, 128 frame, total 64 juta pixel.');
             if(data.files.length>1&&pages>1)throw new Error('Pilih satu GIF/WebP animasi, atau beberapa gambar statis saja.');
             files.push({format:meta.format,width:meta.width,height,pages});
           }
@@ -135,13 +136,14 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
         if(!ids.includes(data.id)||(url.pathname!=='/api/save-character'&&!slotAllowed(data.id,data.slot)))throw new Error('Karakter/slot tidak valid. Jika memilih ultimate arah baru, simpan draft yang sudah diproses lalu restart server dengan npm run admin:sprites dan buka ulang panel.');
         if(url.pathname==='/api/compile') {
           const boost=data.slot.split('.')[0]==='boost_dust';
-          const atlas=await compileSprites(data.files,data.options,boost?BOOST_DUST_LIMITS:{});
+          const atlas=await compileSprites(data.files,data.options,{...(boost?BOOST_DUST_LIMITS:{}),optimization:boost?ASSET_PROFILES.dust:ASSET_PROFILES.sprite});
+          const sources=await preserveStudioSources(projectRoot,data.files);
           const asset=`sprite-studio/${data.id}/${atlas.hash}.webp`;
           await mkdir(path.dirname(path.join(projectRoot,'public',asset)),{recursive:true});
           const assetDir=await realpath(path.dirname(path.join(projectRoot,'public',asset))),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!assetDir.startsWith(publicDir+path.sep))throw new Error('Folder aset di luar proyek.');
           await writeFile(path.join(projectRoot,'public',asset),atlas.bytes,{flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});
-          return json(200,{clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:boost?-32:0,y:boost?5.5:0,pivotX:.5,pivotY:boost ? .5 : 1,mirror:false,loop:slotLoop(data.slot)}});
+          return json(200,{optimization:{...atlas.optimization,sources},clip:{asset,width:atlas.width,height:atlas.height,frames:atlas.frames,fps:12,scale:1,x:boost?-32:0,y:boost?5.5:0,pivotX:.5,pivotY:boost ? .5 : 1,mirror:false,loop:slotLoop(data.slot)}});
         }
         const document=structuredClone(current.document);
         const changes=url.pathname==='/api/save-character'?data.clips:{[data.slot]:data.clip};
@@ -160,10 +162,11 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
         }
         if(document.characters[data.id]&&!Object.keys(document.characters[data.id]).length)delete document.characters[data.id];
         validateSpriteDocument(document,ids);
+        const budget=guardBudget(Object.values(current.document.characters[data.id]??{}),Object.values(document.characters[data.id]??{}),'character');
         const backup=path.join(projectRoot,'.preview-admin');await mkdir(backup,{recursive:true});
         await writeFile(path.join(backup,`sprite-backup-${Date.now()}-${randomBytes(4).toString('hex')}.json`),JSON.stringify(current.document,null,2));
         await writeFile(`${configFile}.tmp`,JSON.stringify(document,null,2)+'\n');await rename(`${configFile}.tmp`,configFile);
-        return json(200,await readConfig());
+        return json(200,{...await readConfig(),budget});
       } finally {if(job.status!=='running')busy=false;}
     } catch(e){json(400,{error:e.code==='ENOENT'?'Aset/build belum tersedia. Jalankan Build + Uji game.':e.message});}
   });

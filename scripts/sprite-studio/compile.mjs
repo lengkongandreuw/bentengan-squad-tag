@@ -11,7 +11,8 @@ export async function compileSprites(files,options={},limits={}) {
     const meta=await sharp(bytes,{limitInputPixels:32_000_000}).metadata();
     if(!['png','gif','webp'].includes(meta.format)) throw new Error('Gunakan PNG, GIF, atau WebP.');
     const h=meta.pageHeight??meta.height,pages=meta.pages??1;
-    if(!meta.width||!h||meta.width>4096||h>4096||pages>maxFrames||meta.width*h*pages>64_000_000)throw new Error(`Gambar terlalu besar: sisi 4096, ${maxFrames} frame, 64 juta pixel.`);
+    const sourceSide=limits.optimization?8192:4096;
+    if(!meta.width||!h||meta.width>sourceSide||h>sourceSide||pages>maxFrames||meta.width*h*pages>64_000_000)throw new Error(`Gambar terlalu besar: sisi ${sourceSide}, ${maxFrames} frame, 64 juta pixel.`);
     pixelBudget+=meta.width*h*pages;
     if(pixelBudget>64_000_000)throw new Error('Total upload melebihi 64 juta pixel.');
     if(inputs.length>1&&pages>1)throw new Error('Multi-file harus berisi gambar statis.');
@@ -39,8 +40,8 @@ export async function compileSprites(files,options={},limits={}) {
   // pose independently: doing that can shift feet or clip wide poses.
   const crop=options.crop;
   if(crop) {
-    for(const key of ['left','top'])int(crop[key],0,4096,'Crop');
-    for(const key of ['width','height'])int(crop[key],1,4096,'Crop');
+    for(const key of ['left','top'])int(crop[key],0,limits.optimization?8192:4096,'Crop');
+    for(const key of ['width','height'])int(crop[key],1,limits.optimization?8192:4096,'Crop');
     frames=await Promise.all(frames.map(async bytes=>{
       const m=await sharp(bytes).metadata();
       if(crop.left+crop.width>m.width||crop.top+crop.height>m.height)throw new Error('Crop keluar dari frame.');
@@ -48,6 +49,7 @@ export async function compileSprites(files,options={},limits={}) {
     }));
   }
   const sizes=await Promise.all(frames.map(f=>sharp(f).metadata()));
+  if(limits.optimization)return optimizedAtlas(frames,sizes,inputs,limits.optimization,limits);
   if(limits.maxFrameSide&&sizes.some(m=>m.width+8>limits.maxFrameSide||m.height+8>limits.maxFrameSide))throw new Error(`Boost dust: frame termasuk padding maksimal ${limits.maxFrameSide} px. Crop/kecilkan gambar.`);
   const cw=Math.max(...sizes.map(m=>m.width))+8,ch=Math.max(...sizes.map(m=>m.height))+8;
   const cols=Math.min(frames.length,Math.floor(4096/cw)),rows=Math.ceil(frames.length/Math.max(1,cols));
@@ -55,4 +57,54 @@ export async function compileSprites(files,options={},limits={}) {
   if(limits.maxAtlasPixels&&cols*cw*rows*ch>limits.maxAtlasPixels)throw new Error('Boost dust: atlas maksimal 4 juta pixel. Kecilkan frame atau jumlah frame.');
   const atlas=await sharp({create:{width:cols*cw,height:rows*ch,channels:4,background:'#00000000'}}).composite(frames.map((input,i)=>({input,left:i%cols*cw+Math.floor((cw-sizes[i].width)/2),top:Math.floor(i/cols)*ch+ch-4-sizes[i].height}))).webp({lossless:true}).toBuffer();
   return {bytes:atlas,hash:createHash('sha256').update(atlas).digest('hex'),width:cols*cw,height:rows*ch,frames:frames.map((_,i)=>({x:i%cols*cw,y:Math.floor(i/cols)*ch,width:cw,height:ch}))};
+}
+
+async function optimizedAtlas(frames,sizes,inputs,policy,limits){
+  const sourceWidth=Math.max(...sizes.map(m=>m.width))+8,sourceHeight=Math.max(...sizes.map(m=>m.height))+8;
+  const unique=[],indices=[],hashes=new Map();
+  for(let i=0;i<frames.length;i++){
+    const key=createHash('sha256').update(frames[i]).digest('hex');
+    if(!hashes.has(key)){hashes.set(key,unique.length);unique.push(i);}
+    indices.push(hashes.get(key));
+  }
+  const maxSide=Math.min(policy.maxFrameSide,limits.maxFrameSide??4096);
+  const maxPixels=Math.min(policy.maxAtlasPixels,limits.maxAtlasPixels??16_777_216);
+  let scale=Math.min(1,maxSide/sourceWidth,maxSide/sourceHeight);
+  const layout=(w,h)=>{
+    let best=null;
+    for(let cols=1;cols<=Math.min(unique.length,Math.floor(4096/w));cols++){
+      const rows=Math.ceil(unique.length/cols),width=cols*w,height=rows*h,pixels=width*height;
+      if(height<=4096&&pixels<=maxPixels&&(!best||pixels<best.pixels||pixels===best.pixels&&Math.abs(width-height)<Math.abs(best.width-best.height)))best={cols,rows,width,height,pixels};
+    }
+    return best;
+  };
+  let cw,ch,packed;
+  for(let attempt=0;attempt<180;attempt++){
+    cw=Math.max(1,Math.round(sourceWidth*scale));ch=Math.max(1,Math.round(sourceHeight*scale));
+    packed=layout(cw,ch);if(packed)break;scale*=.95;
+  }
+  if(!packed)throw new Error('Animasi tidak dapat dimasukkan ke anggaran gambar. Kurangi ukuran/jumlah frame.');
+  const atlasPixels=Buffer.alloc(packed.width*packed.height*4);
+  for(let n=0;n<unique.length;n++){
+    const i=unique[n];
+    // Copy RGBA directly: repeated alpha compositing can round visible colors
+    // even when WebP encoding is lossless. Keep a transparent sampling moat.
+    const raw=await sharp(frames[i]).ensureAlpha().raw().toBuffer();
+    const padded=Buffer.alloc(sourceWidth*sourceHeight*4),left=Math.floor((sourceWidth-sizes[i].width)/2),top=sourceHeight-4-sizes[i].height;
+    for(let y=0;y<sizes[i].height;y++)raw.copy(padded,((top+y)*sourceWidth+left)*4,y*sizes[i].width*4,(y+1)*sizes[i].width*4);
+    const resized=cw!==sourceWidth||ch!==sourceHeight,moat=resized&&cw>4&&ch>4?1:0;
+    const width=cw-moat*2,height=ch-moat*2;
+    const pixels=resized?await sharp(padded,{raw:{width:sourceWidth,height:sourceHeight,channels:4}}).resize(width,height,{fit:'fill',kernel:'lanczos3'}).raw().toBuffer():padded;
+    const x=n%packed.cols*cw+moat,y=Math.floor(n/packed.cols)*ch+moat;
+    for(let row=0;row<height;row++)pixels.copy(atlasPixels,((y+row)*packed.width+x)*4,row*width*4,(row+1)*width*4);
+  }
+  const bytes=await sharp(atlasPixels,{raw:{width:packed.width,height:packed.height,channels:4}}).webp({lossless:true,effort:4}).toBuffer();
+  const originalCols=Math.max(1,Math.min(frames.length,Math.floor(4096/sourceWidth)));
+  const report={profile:policy.label,inputBytes:inputs.reduce((n,b)=>n+b.length,0),outputBytes:bytes.length,
+    sourceFrame:{width:sourceWidth-8,height:sourceHeight-8},outputFrame:{width:cw,height:ch},frames:frames.length,uniqueFrames:unique.length,
+    beforeRGBA:originalCols*sourceWidth*Math.ceil(frames.length/originalCols)*sourceHeight*4,afterRGBA:packed.pixels*4,
+    resized:cw!==sourceWidth||ch!==sourceHeight,losslessEncoding:true,
+    warnings:[...(scale<.5?['Sumber jauh lebih besar daripada kebutuhan game. Periksa detail pada preview sebelum menyimpan.']:[]),...(cw*ch<128*128&&frames.length>32?['Animasi padat: periksa ketajaman pada zoom dekat.']:[])]};
+  return {bytes,hash:createHash('sha256').update(bytes).digest('hex'),width:packed.width,height:packed.height,
+    frames:indices.map(i=>({x:i%packed.cols*cw,y:Math.floor(i/packed.cols)*ch,width:cw,height:ch})),optimization:report};
 }

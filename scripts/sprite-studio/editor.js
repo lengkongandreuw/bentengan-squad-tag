@@ -2,13 +2,17 @@ import {DIRECTIONS,SLOTS,FLIGHT_ACTIONS,isFlightSlot,actionsForCharacter,slotAll
 import {createBulkEditor} from '/bulk-editor.js';
 import {createScaleComparison} from '/scale-comparison.js';
 import {createWorkbench} from '/workbench-ui.js';
-let workbench=null,scaleComparison=null;
+import {bindStudioKeyboard,createStudioHistory,historyButtons} from '/studio-keyboard.js';
+const {showOptimization,showTextureBudget}=await import('/asset-feedback.js').catch(()=>({showOptimization:host=>{host.textContent='Laporan optimasi belum tersedia. Simpan draft sebelum memperbarui server.';},showTextureBudget:host=>{host.textContent='Optimasi baru belum aktif di server ini. Simpan draft sebelum restart Sprite Studio.';}}));
+let workbench=null,scaleComparison=null,editHistory=null,updateHistory=()=>{};
 const $=id=>document.getElementById(id),names={run:'Lari',tag:'Tag / menangkap',parkour:'Lompat / parkour',idle:'Idle',prisoner:'Idle tertangkap',ready:'Bersiap awal',ultimate:'Ultimate (opsional)',victory:'Menang',defeat:'Kalah',south:'Depan / bawah ↓',north:'Belakang / atas ↑',west:'Kiri ←',east:'Kanan →',northwest:'Kiri atas ↖',northeast:'Kanan atas ↗',southwest:'Kiri bawah ↙',southeast:'Kanan bawah ↘'};
+const optimizationReport=document.createElement('div');optimizationReport.id='assetOptimization';$('fileStatus').after(optimizationReport);
+const budgetStatus=document.createElement('p');budgetStatus.id='textureBudget';$('batchSummary').after(budgetStatus);
 names.boost_dust='Boost dust · Efek debu sprint';
 const boostShortcut=document.createElement('button');boostShortcut.textContent='Edit boost dust';boostShortcut.id='editBoostDust';
 const boostHelp=document.createElement('details');boostHelp.id='boostDustHelp';boostHelp.hidden=true;
 const boostSummary=document.createElement('summary');boostSummary.textContent='Boost limits: 32 frame · 8 MB';
-const boostDescription=document.createElement('p');boostDescription.textContent='Global = semua karakter. Arah karakter → default karakter → arah global → default global → bawaan. Default dibuat menghadap kanan (→) dan berputar mengikuti lari; override arah memakai orientasi gambar apa adanya. GIF / WebP animasi atau seri PNG/WebP: 1–32 frame, total 8 MB, sisi frame termasuk padding ≤512 px. Hapus override untuk mewarisi lagi. Tidak mengubah sprite tubuh atau kemampuan.';boostHelp.append(boostSummary,boostDescription);
+const boostDescription=document.createElement('p');boostDescription.textContent='Global = semua karakter. Arah karakter → default karakter → arah global → default global → bawaan. Default dibuat menghadap kanan (→) dan berputar mengikuti lari; override arah memakai orientasi gambar apa adanya. GIF / WebP animasi atau seri PNG/WebP: 1–32 frame, total 8 MB. Frame besar otomatis dikecilkan hingga 256 px dan atlas dibatasi 1 juta piksel. Periksa preview sebelum menyimpan. Hapus override untuk mewarisi lagi. Tidak mengubah sprite tubuh atau kemampuan.';boostHelp.append(boostSummary,boostDescription);
 const headingLabel=document.createElement('label');headingLabel.textContent='Preview running direction';headingLabel.hidden=true;
 const heading=document.createElement('select');heading.id='boostPreviewDirection';headingLabel.append(heading);
 for(const d of DIRECTIONS){const option=document.createElement('option');option.value=d;option.textContent=names[d];heading.append(option);}heading.value='east';
@@ -24,10 +28,11 @@ inspector.append($('advanced'));document.querySelector('main').append(inspector)
 const viewTools=document.createElement('div');viewTools.className='view-tools';
 viewTools.innerHTML='<div class="view-tabs" role="tablist" aria-label="Canvas editor"><button id="previewTab" role="tab" aria-selected="true" aria-controls="animationPanel">Preview animasi</button><button id="sourceTab" role="tab" aria-selected="false" aria-controls="sourceEditor" disabled>Upload & crop</button></div><div class="guide-tools"><label><input id="gridVisible" type="checkbox" checked> Grid</label><label><input id="rulersVisible" type="checkbox" checked> Ruler</label><label>Grid px <select id="gridSize"><option>8</option><option selected>16</option><option>32</option><option>64</option></select></label><label><input id="snapGrid" type="checkbox"> Snap</label></div><small>Crop: pixel sumber · Preview: pixel gameplay, (0,0) di titik kaki · Space: play/pause · ←/→: frame · Shift + panah: geser sprite</small>';
 workspace.insertBefore(viewTools,$('sourceEditor'));
+viewTools.querySelector('small').textContent='Preview: panah = geser · Shift+panah = 10 langkah · Alt+←/→ = frame · Space = play/pause · Ctrl+Z/Y = Undo/Redo. Crop memakai pixel sumber; preview memakai pixel gameplay.';
 const animationPanel=document.createElement('div');animationPanel.id='animationPanel';animationPanel.setAttribute('role','tabpanel');
 const previewElement=$('preview'),playbackBar=previewElement.nextElementSibling,playbackHint=playbackBar.nextElementSibling;
 previewElement.before(animationPanel);animationPanel.append(previewElement,playbackBar,playbackHint);
-previewElement.tabIndex=0;previewElement.setAttribute('aria-label','Canvas preview. Space play/pause; panah untuk frame; Shift dan panah untuk offset sprite.');
+previewElement.tabIndex=0;previewElement.setAttribute('aria-label','Canvas preview. Panah: geser sprite; Shift+panah: 10 langkah; Alt+kiri/kanan: frame; Space: play/pause; Ctrl+Z/Y: Undo/Redo.');
 previewElement.height=506;
 // Keep frequent playback controls outside the advanced inspector.
 animationPanel.append(document.querySelector('.playback'));
@@ -98,6 +103,8 @@ function processingState(value){processing=value;for(const k of ['files','column
 const slotName=s=>`${names[s.split('.')[0]]} ${names[s.split('.')[1]]??''}`.trim();
 function stageCurrent(reviewed=false){if(!selection||pendingUpload||!clip)return;const [character,s]=selection.split('/');drafts[character]??={};drafts[character][s]={clip:structuredClone(clip),reviewed};}
 function refreshBatch(){
+  const assets={...state?.document.characters[id()],...Object.fromEntries(Object.entries(drafts[id()]??{}).map(([s,v])=>[s,v.clip]))};
+  showTextureBudget(budgetStatus,Object.values(assets),state?.assetBudgets?.character??{warning:32*1048576,limit:64*1048576});
   const entries=Object.entries(drafts[id()]??{}),ready=entries.filter(([s,v])=>v.reviewed&&!(pendingUpload&&s===slot())).length;
   $('batchSummary').textContent=entries.length?`${ready} dipilih dari ${entries.length} draft. Draft lainnya tidak ikut diterapkan.`:'Belum ada draft. Anda boleh mengganti satu movement saja.';
   $('batchList').replaceChildren(...entries.map(([s,v])=>{const row=document.createElement('label'),check=document.createElement('input'),b=document.createElement('button');row.className='batch-row';check.type='checkbox';check.checked=v.reviewed;check.disabled=processing;check.setAttribute('aria-label',`Terapkan ${slotName(s)}`);check.onchange=()=>{v.reviewed=check.checked;refreshBatch();};b.className='batch-item';b.textContent=slotName(s);b.onclick=safe(async()=>{$('action').value=s.split('.')[0];$('direction').value=s.split('.')[1]??'default';await loadSlot();});row.append(check,b);return row;}));
@@ -107,6 +114,7 @@ function refreshBatch(){
   bulkEditor.refresh();
   bulkShortcut.disabled=processing||pendingUpload||loadingSlot;
   workbench?.refresh();void scaleComparison?.refresh();
+  updateHistory();
 }
 let sourceUrls=[],sourceTicket=0,sourceWidth=0,sourceHeight=0,crop=null,cropDrag=null,pendingUpload=false;
 // oxlint-disable-next-line typescript/unbound-method -- URL.revokeObjectURL is static, no this-binding
@@ -134,7 +142,7 @@ async function showSource(){const ticket=++sourceTicket;const index=+$('sourceFi
 const slot=()=>$('direction').value==='default'?$('action').value:`${$('action').value}.${$('direction').value}`;
 const id=()=>$('character').value;
 const message=s=>{$('status').textContent=s;};
-const mark=()=>{dirty=true;stageCurrent(false);$('origin').textContent='Draft · belum diperiksa';refreshSlots();};
+const mark=()=>{dirty=true;stageCurrent(false);if(!pendingUpload&&!processing)editHistory?.record();$('origin').textContent='Draft · belum diperiksa';refreshSlots();};
 async function api(route,body){const res=await fetch(`/api/${route}`,body?{method:'POST',headers:{'Content-Type':'application/json','x-admin-token':state.token},body:JSON.stringify({...body,revision:state.revision})}:{});const data=await res.json();if(!res.ok)throw new Error(data.error==='Karakter/slot tidak valid.'?'Server Sprite Studio masih versi lama atau slot tidak cocok. Untuk ultimate baru: simpan draft yang sudah diproses, restart npm run admin:sprites, lalu buka ulang panel dan pilih GIF kembali. GIF belum diproses/dibatalkan, bukan berarti file rusak.':data.error);return data;}
 function options(select,values,label){select.replaceChildren(...values.map(value=>{const o=document.createElement('option');o.value=value;o.textContent=label(value);return o;}));}
 function refreshSlots(){
@@ -199,9 +207,9 @@ async function loadSlot(){
     const missing=actionsForCharacter(id()).filter(s=>FLIGHT_ACTIONS.includes(s)&&!Object.keys(state.document.characters[id()]??{}).some(key=>key.split('.')[0]===s));
     const outdated=flight&&!state.supportedSlots?.[id()]?.includes(slot());
     message((outdated?'WARNING: Server editor belum mendukung slot ultimate ini. Simpan draft yang sudah diproses, restart npm run admin:sprites, lalu buka ulang panel. ': '')+(clip?'Siap mengedit slot ini.':'Slot ini memakai fallback sementara; preview atlas lama hanya referensi.')+(missing.length?` WARNING: ${missing.map(s=>names[s]).join(', ')} belum diisi. Save movement lain tetap diizinkan.`:''));
-  }catch(e){if(ticket===requestId)message(e.message);}finally{if(ticket===requestId){loadingSlot=false;refreshBatch();}}
+  }catch(e){if(ticket===requestId)message(e.message);}finally{if(ticket===requestId){loadingSlot=false;editHistory?.reset();refreshBatch();}}
 }
-async function save(){if(pendingUpload)throw new Error('Proses file dahulu sebelum memilih draft ini.');if(!clip)throw new Error('Proses upload atau salin animasi terlebih dahulu.');stageCurrent(true);dirty=false;refreshSlots();$('origin').textContent='Draft · dipilih untuk disimpan';message('Draft ini dipilih. Klik Simpan draft terpilih di bilah bawah untuk menyimpan ke game lokal.');}
+async function save(){if(pendingUpload)throw new Error('Proses file dahulu sebelum memilih draft ini.');if(!clip)throw new Error('Proses upload atau salin animasi terlebih dahulu.');stageCurrent(true);dirty=false;editHistory?.record();refreshSlots();$('origin').textContent='Draft · dipilih untuk disimpan';message('Draft ini dipilih. Klik Simpan draft terpilih di bilah bawah untuk menyimpan ke game lokal.');}
 async function saveCharacter(onlyCurrent=false){
   if(onlyCurrent){if(pendingUpload||!clip)throw new Error('Proses file movement ini terlebih dahulu.');stageCurrent(true);dirty=false;}
   const entries=Object.entries(drafts[id()]??{}).filter(([s,v])=>onlyCurrent?s===slot():v.reviewed&&!(pendingUpload&&s===slot()));
@@ -227,11 +235,11 @@ const bulkEditor=createBulkEditor({root:bulkRoot,slotName,getContext:()=>({chara
     const token={character:id(),previous:{},expected:{}};drafts[id()]??={};
     for(const [s,c]of Object.entries(changes)){token.previous[s]=drafts[id()][s]?structuredClone(drafts[id()][s]):null;token.expected[s]={clip:structuredClone(c),reviewed:true};}
     for(const [s,v]of Object.entries(token.expected))drafts[id()][s]=structuredClone(v);
-    refreshBulkCurrent();message(`${Object.keys(changes).length} draft kolektif siap. Belum ditulis ke game.`);return token;
+    refreshBulkCurrent();editHistory?.record();message(`${Object.keys(changes).length} draft kolektif siap. Belum ditulis ke game.`);return token;
   },
-  onUndo(token){if(!canUndoBulk(token))throw Error('Draft sudah diedit/disimpan setelah operasi ini. Undo diblokir agar perubahan terbaru aman.');for(const [s,v]of Object.entries(token.previous)){if(v)drafts[id()][s]=structuredClone(v);else delete drafts[id()][s];}refreshBulkCurrent();message('Edit kolektif dibatalkan; draft sebelumnya dipulihkan.');},
+  onUndo(token){if(!canUndoBulk(token))throw Error('Draft sudah diedit/disimpan setelah operasi ini. Undo diblokir agar perubahan terbaru aman.');for(const [s,v]of Object.entries(token.previous)){if(v)drafts[id()][s]=structuredClone(v);else delete drafts[id()][s];}refreshBulkCurrent();editHistory?.record();message('Edit kolektif dibatalkan; draft sebelumnya dipulihkan.');},
 });
-workbench=createWorkbench({getContext:()=>({character:id(),name:state?.roster.find(r=>r.id===id())?.name??'',drafts,slot:slot(),clip,pending:pendingUpload,processing:processing||loadingSlot,canCompile:uploadValid&&uploaded.length>0}),onReviewAll(value){for(const [s,v]of Object.entries(drafts[id()]??{}))if(!(pendingUpload&&s===slot()))v.reviewed=value;refreshSlots();}});
+workbench=createWorkbench({getContext:()=>({character:id(),name:state?.roster.find(r=>r.id===id())?.name??'',drafts,slot:slot(),clip,pending:pendingUpload,processing:processing||loadingSlot,active:engineVisible,canCompile:uploadValid&&uploaded.length>0}),onReviewAll(value){for(const [s,v]of Object.entries(drafts[id()]??{}))if(!(pendingUpload&&s===slot()))v.reviewed=value;editHistory?.record();refreshSlots();}});
 const comparisonRoot=document.createElement('div');comparisonRoot.id='scaleComparison';animationPanel.prepend(comparisonRoot);
 scaleComparison=createScaleComparison({root:comparisonRoot,loadLegacy:legacyClip,loadImage,getContext:()=>({characters:state?.document.characters??{},drafts,roster:state?.roster,character:id(),action:$('action').value,slot:slot()})});
 $('zoom').prepend(new Option('0.5× · sprite besar','.5'));
@@ -248,7 +256,7 @@ $('files').onchange=safe(async()=>{
   await showSource();const activeTicket=sourceTicket;
   const inspection=await api('inspect',{id:id(),slot:slot(),files:await filePayload()});if(activeTicket!==sourceTicket)return;
   uploadValid=true;fileNotice(`File diterima: ${inspection.files.map(f=>`${f.format.toUpperCase()} ${f.width}×${f.height}, ${f.pages} frame`).join('; ')}. PNG sheet: atur grid di Advanced options. Klik Proses untuk validasi hasil akhir.`);message('File dapat dibaca. Preview belum diterapkan ke game.');
-  } finally {processingState(false);settings();}
+  } finally {processingState(false);editHistory?.reset();settings();}
 });
 $('sourceFile').onchange=safe(showSource);$('sourceCell').oninput=renderCrop;
 for(const k of ['count','order'])$(k).oninput=()=>{if(uploaded.length){pendingUpload=true;mark();$('save').disabled=true;}};
@@ -261,6 +269,7 @@ $('cropBox').onpointerup=$('cropBox').onpointercancel=$('cropBox').onlostpointer
 new ResizeObserver(renderCrop).observe($('cropStage'));
 new ResizeObserver(renderCrop).observe(workspace);
 $('compile').onclick=safe(async()=>{
+  if(state.assetOptimization!==1)throw new Error('Server Sprite Studio masih versi lama. Simpan/ekspor draft, restart server, lalu proses ulang file untuk optimasi otomatis.');
   if(!uploaded.length)throw new Error('Pilih file dahulu.');
   if(!uploadValid)throw new Error('File belum lolos pemeriksaan. Pilih PNG/GIF/WebP yang valid dan tunggu status File diterima.');
   if(uploaded.reduce((sum,f)=>sum+f.size,0)>30*1024*1024)throw new Error('Total maksimal 30 MB.');
@@ -271,12 +280,13 @@ $('compile').onclick=safe(async()=>{
   if($('order').value.trim())options.order=$('order').value.split(',').map(v=>Number(v.trim()));
   if($('cropWidth').value||$('cropHeight').value)options.crop={left:+$('cropLeft').value,top:+$('cropTop').value,width:+$('cropWidth').value,height:+$('cropHeight').value};
   const result=await api('compile',{id:id(),slot:slot(),files,options});const previous=clip;
+  showOptimization(optimizationReport,result.optimization);
   clip=result.clip;if(previous)for(const k of [...numeric,'loop','mirror'])clip[k]=previous[k];
   if(isFlightSlot(slot())||$('action').value==='boost_dust')clip.loop=slotLoop(slot());
   image=await loadImage('/'+clip.asset);pendingUpload=false;frame=0;start=performance.now();settings();mark();setWorkspaceView('preview');fileNotice(`Siap digunakan: ${clip.frames.length} frame. Klik Simpan arah aktif, atau pilih beberapa draft untuk disimpan bersama.`);message('Pemrosesan berhasil. Periksa preview, lalu simpan melalui bilah bawah.');
-  } finally {processingState(false);settings();}
+  } finally {processingState(false);editHistory?.reset();settings();}
 });
-$('copy').onclick=safe(async()=>{const s=$('copySource').value,source=drafts[id()]?.[s]?.clip??state.document.characters[id()]?.[s];if(!source)throw new Error('Belum ada animasi custom untuk disalin.');clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';clip=structuredClone(source);image=await loadImage('/'+clip.asset);settings();mark();message('Animasi disalin sebagai draft. Atur mirror bila perlu, kemudian tandai sudah sesuai.');});
+$('copy').onclick=safe(async()=>{const s=$('copySource').value,source=drafts[id()]?.[s]?.clip??state.document.characters[id()]?.[s];if(!source)throw new Error('Belum ada animasi custom untuk disalin.');clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';clip=structuredClone(source);image=await loadImage('/'+clip.asset);settings();mark();editHistory?.reset();message('Animasi disalin sebagai draft. Atur mirror bila perlu, kemudian tandai sudah sesuai.');});
 numeric.forEach(k=>{$(k).oninput=()=>{if(clip){clip[k]=+$(k).value;mark();}};});['loop','mirror'].forEach(k=>{$(k).onchange=()=>{if(clip){clip[k]=$(k).checked;mark();}};});
 $('quickFps').oninput=()=>{if(!clip||processing)return;const fps=+$('quickFps').value;if(!Number.isInteger(fps)||fps<1||fps>60){fileNotice('FPS harus bilangan bulat 1–60.',true);return;}clip.fps=fps;$('fps').value=fps;mark();};
 $('fps').oninput=()=>{if(clip){const fps=+$('fps').value;if(!Number.isInteger(fps)||fps<1||fps>60){fileNotice('FPS harus bilangan bulat 1–60.',true);return;}clip.fps=fps;$('quickFps').value=fps;mark();}};
@@ -291,9 +301,9 @@ $('restart').onclick=()=>{frame=0;start=performance.now();};
 const step=n=>{playing=false;$('play').textContent='Play';const c=clip??legacy;if(c)frame=(frame+n+c.frames.length)%c.frames.length;};
 $('previous').onclick=()=>step(-1);$('next').onclick=()=>step(1);$('frame').oninput=()=>{playing=false;$('play').textContent='Play';frame=+$('frame').value;};
 const canvas=$('preview'),ctx=canvas.getContext('2d'),ground=new Image();ground.src='/field/kampung-map.webp';
-canvas.onpointerdown=e=>{if(!clip||processing)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*canvas.width/rect.width;if(scaleComparison?.isReferenceArea(x,canvas.width)){message('Karakter referensi hanya untuk dilihat. Seret karakter aktif di sebelah kiri untuk mengedit offset.');return;}if($('rulersVisible').checked&&(x<24||(e.clientY-rect.top)*canvas.height/rect.height<24))return;canvas.focus();canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,ox:clip.x,oy:clip.y};};
+canvas.onpointerdown=e=>{if(!clip||processing)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*canvas.width/rect.width;if(scaleComparison?.isReferenceArea(x,canvas.width)){message('Karakter referensi hanya untuk dilihat. Seret karakter aktif di sebelah kiri untuk mengedit offset.');return;}if($('rulersVisible').checked&&(x<24||(e.clientY-rect.top)*canvas.height/rect.height<24))return;canvas.focus();editHistory?.begin();canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,ox:clip.x,oy:clip.y};};
 canvas.onpointermove=e=>{if(!drag||!clip)return;const r=canvas.getBoundingClientRect(),factor=canvas.width/r.width/(+$('zoom').value);clip.x=Math.max(-150,Math.min(150,snapCoordinate(drag.ox+(e.clientX-drag.x)*factor)));clip.y=Math.max(-150,Math.min(150,snapCoordinate(drag.oy+(e.clientY-drag.y)*factor)));settings();mark();};
-canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=()=>{drag=null;};
+canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=()=>{drag=null;editHistory?.end();};
 function draw(now){
   if(!engineVisible||document.hidden||workspace.dataset.view==='source'){requestAnimationFrame(draw);return;}
   ctx.fillStyle='#1c261f';ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -314,14 +324,20 @@ function draw(now){
     $('frame').value=frame;$('frameLabel').textContent=`${frame+1}/${c.frames.length}`;
   }requestAnimationFrame(draw);
 }
-canvas.onkeydown=e=>{
-  if(processing||e.ctrlKey||e.metaKey||e.altKey)return;
-  if(e.code==='Space'){e.preventDefault();$('play').click();return;}
-  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
-  e.preventDefault();
-  if(!e.shiftKey){if(e.key==='ArrowLeft'||e.key==='ArrowRight')step(e.key==='ArrowLeft'?-1:1);return;}
-  if(!clip)return;const key=e.key==='ArrowLeft'||e.key==='ArrowRight'?'x':'y',delta=e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:1;
-  clip[key]=Math.max(-150,Math.min(150,clip[key]+delta*($('snapGrid').checked?guideStep():1)));settings();mark();
-};
+editHistory=createStudioHistory(()=>({clip,drafts}),snapshot=>{
+  clip=snapshot.clip;for(const key of Object.keys(drafts))delete drafts[key];Object.assign(drafts,snapshot.drafts);
+  dirty=Object.keys(drafts[id()]??{}).length>0;settings();refreshSlots();message('Undo/Redo draft diterapkan. Belum disimpan ke game.');
+},()=>updateHistory());
+const historyBarUpdate=historyButtons(editHistory,$('settings'),'Undo/Redo pengaturan draft sprite');
+document.addEventListener('change',event=>{if(event.target.closest?.('#batchList')&&!pendingUpload&&!processing)editHistory.record();});
+const importDrafts=importInput.onchange;importInput.onchange=async()=>{await importDrafts();editHistory.reset();};
+updateHistory=()=>{historyBarUpdate();for(const button of $('settings').querySelectorAll('.studio-history button'))button.disabled ||= processing||loadingSlot||pendingUpload;};
+const releaseKeyboard=bindStudioKeyboard({surface:canvas,enabled:()=>!!state&&!processing&&!loadingSlot&&!pendingUpload&&!drag&&engineVisible&&workspace.dataset.view==='preview',
+  undo:()=>editHistory.undo(),redo:()=>editHistory.redo(),begin:()=>editHistory.begin(),end:()=>editHistory.end(),
+  frame:step,play:()=>$('play').click(),
+  nudge(dx,dy,multiplier){if(!clip)return;const step=($('snapGrid').checked?guideStep():1)*multiplier;clip.x=Math.max(-150,Math.min(150,clip.x+dx*step));clip.y=Math.max(-150,Math.min(150,clip.y+dy*step));settings();mark();},
+});
+window.addEventListener('message',event=>{if(event.source===window.parent&&event.data?.type==='benteng-engine-visibility'&&event.data.active===false)releaseKeyboard();});
+const shortcutHint=document.createElement('p');shortcutHint.className='hint';shortcutHint.textContent='Klik canvas: panah = geser · Shift+panah = 10 langkah · Alt+←/→ = frame · Space = play/pause · Ctrl/Cmd+Z = Undo · Ctrl+Y / Ctrl/Cmd+Shift+Z = Redo. Riwayat draft direset saat berpindah slot, memproses file, atau menyimpan.';$('advanced').append(shortcutHint);
 window.onbeforeunload=e=>{if(dirty||pendingUpload||Object.values(drafts).some(d=>Object.keys(d).length)){e.preventDefault();}};
 try{state=await api('state');options($('character'),state.roster.map(r=>r.id),id=>state.roster.find(r=>r.id===id).name);options($('direction'),['default',...DIRECTIONS],d=>names[d]);const params=new URLSearchParams(location.search),character=params.get('character'),requested=params.get('slot');if(state.roster.some(c=>c.id===character))$('character').value=character;refreshActions();if(slotAllowed(id(),requested)){$('action').value=requested.split('.')[0];$('direction').value=requested.split('.')[1]??'default';}await loadSlot();requestAnimationFrame(draw);}catch(e){message(e.message);fileNotice(e.message,true);}

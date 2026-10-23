@@ -58,6 +58,7 @@ export async function startLoadingAdmin(port=4322,root=projectRoot) {
           return json(200,{...state,slots,builtinPreviews:builtinPreviews(maps),token,maxBytes:MAX_BYTES});
         }
         const staticFiles={'/':'index.html','/editor.js':'editor.js','/editor.css':'editor.css'};
+        if(url.pathname==='/studio-keyboard.js'){res.setHeader('Content-Type','text/javascript');return res.end(await readFile(fileURLToPath(new URL('../studio-keyboard.js',import.meta.url))));}
         if(staticFiles[url.pathname]){res.setHeader('Content-Type',url.pathname==='/'?'text/html':url.pathname.endsWith('.js')?'text/javascript':'text/css');return res.end(await readFile(path.join(directory,staticFiles[url.pathname])));}
         const candidate=decodeURIComponent(url.pathname).slice(1);
         if(/^(loading-media\/[a-f0-9]{64}\.(png|jpg|gif|webp|avif|mp4|webm|ogv)|arena-ui\/(red-loading|green-loading|kampung|kanal|pasar|taman)\.(webp|mp4)|loading-ui\/TEAM (MERAH|HIJAU) LOADING (00|20|40|60|80|100)_\.png|ui-v2\/fields\/[a-z0-9-]+\.webp|map-studio\/[a-f0-9]{64}\.(png|jpg|gif|webp|avif))$/.test(candidate)) {

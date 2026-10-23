@@ -1,4 +1,9 @@
 /* P0/P1 layout layer: all surfaces share the real viewport, never CSS rotation. */
+.splash-copyright { position:absolute;z-index:3;bottom:0;left:0;right:0;margin:0;padding:10px max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom));background:#0b100ef2;color:#f5f5ed;text-align:center;font:400 12px/1.5 var(--font-body);overflow-wrap:anywhere; }
+.pregame-shell.step-splash .pregame-actions { bottom:64px; }
+@media(max-width:1024px) { .pregame-shell.step-splash .profile-trigger { bottom:76px; } }
+@media(max-height:620px) and (orientation:landscape), (max-width:620px) and (orientation:portrait) { .pregame-shell.step-splash .pregame-actions { bottom:auto; } }
+@media(max-height:620px) and (orientation:landscape) { .pregame-shell.step-splash .splash-center { top:64px;bottom:64px; } .pregame-shell.step-splash .splash-logo { max-height:calc(100dvh - 265px);min-height:0; } }
 .custom-loading-media { position:absolute;inset:0;background:#101812;pointer-events:none; }
 .custom-loading-media img,.custom-loading-media video { width:100%;height:100%;display:block; }
 .asset-loading-screen .custom-loading-media ~ .asset-loading-card { position:relative;z-index:2;background:#101812e8;border:1px solid #ffffff60;border-radius:12px;padding:20px; }
