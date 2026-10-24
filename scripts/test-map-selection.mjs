@@ -4,13 +4,13 @@ import {readFile} from 'node:fs/promises';
 import sharp from 'sharp';
 import {mapSelectionTheme,mapSelectionFiles,orderArenaSelection} from '../modules/ui/map-selection-assets.ts';
 import {uiAsset} from '../modules/ui/ui-assets.ts';
-void test('arena selection sorts easy to hard and editor replacements keep canonical Kampung first without mutating inputs',()=>{
+void test('arena selection follows campaign before optional free-play and replacements keep canonical Kampung first',()=>{
   const fields=[{id:'kanal',difficulty:'hard'}, {id:'custom-normal',difficulty:'normal'},
     {id:'studio-pasar-new-id',difficulty:'normal'}, {id:'taman',difficulty:'hard'},
     {id:'studio-kampung-new-id',difficulty:'easy',name:'Renamed village'},
     {id:'kanal2',difficulty:'hard'}, {id:'custom-easy',difficulty:'easy'}];
   const before=JSON.stringify(fields),aliases={'studio-pasar-new-id':'pasar','studio-kampung-new-id':'kampung'};
-  const expected=['studio-kampung-new-id','custom-easy','studio-pasar-new-id','custom-normal','taman','kanal','kanal2'];
+  const expected=['studio-kampung-new-id','studio-pasar-new-id','taman','kanal','kanal2','custom-easy','custom-normal'];
   assert.deepEqual(orderArenaSelection(fields,id=>aliases[id]??id).map(f=>f.id),expected);
   assert.equal(JSON.stringify(fields),before);
   const originals=fields.map(f=>({...f,id:aliases[f.id]??f.id}));

@@ -33,20 +33,20 @@ function clock(){let now=1000,serial=0;const tasks=new Map();return {tasks,now:(
 void test('14 adapter validates bounded protocol, exchanges HELLO/PING/PONG, unsubscribe and disconnect',async()=>{
   const net=network(),host=await transport.createRoom(net.driver(1)),client=await transport.joinRoom(host.roomCode,net.driver(2));
   assert.ok(transport.parseRoomCode(host.roomCode));const seen=[],left=[];
-  host.onMessage((p,m)=>{seen.push(m.type);if(m.type==='PING')void host.send(p,{version:1,type:'PONG',nonce:m.nonce,sentAtMs:m.sentAtMs});});
+  host.onMessage((p,m)=>{seen.push(m.type);if(m.type==='PING')void host.send(p,{version:2,type:'PONG',nonce:m.nonce,sentAtMs:m.sentAtMs});});
   client.onMessage((p,m)=>seen.push(m.type));host.onPeerLeave(p=>left.push(p));await settle();
-  await client.send(host.localPeerId,{version:1,type:'HELLO',peerId:client.localPeerId,name:'Client'});
-  await client.send(host.localPeerId,{version:1,type:'PING',nonce:1,sentAtMs:1000});await settle();assert.deepEqual(seen,['HELLO','PING','PONG']);
+  await client.send(host.localPeerId,{version:2,type:'HELLO',peerId:client.localPeerId,name:'Client'});
+  await client.send(host.localPeerId,{version:2,type:'PING',nonce:1,sentAtMs:1000});await settle();assert.deepEqual(seen,['HELLO','PING','PONG']);
   net.links.get(host.localPeerId).handlers.message('not-json',client.localPeerId);
   net.links.get(host.localPeerId).handlers.message('{"version":2,"type":"PING"}',client.localPeerId);
-  assert.equal(seen.length,3);await assert.rejects(host.send('missing',{version:1,type:'PING',nonce:1,sentAtMs:1000}));
-  let callbacks=0;const off=host.onMessage(()=>callbacks++);off();await client.broadcast({version:1,type:'READY',peerId:client.localPeerId,ready:true});await settle();assert.equal(callbacks,0);
+  assert.equal(seen.length,3);await assert.rejects(host.send('missing',{version:2,type:'PING',nonce:1,sentAtMs:1000}));
+  let callbacks=0;const off=host.onMessage(()=>callbacks++);off();await client.broadcast({version:2,type:'READY',peerId:client.localPeerId,ready:true});await settle();assert.equal(callbacks,0);
   client.close();client.close();await settle();assert.deepEqual(left,[client.localPeerId]);assert.equal(host.getPeers().length,0);host.close();
 });
 void test('14 invalid room/self join fails before opening transport and closed rooms reject sends',async()=>{
   const net=network();await assert.rejects(transport.joinRoom('invalid',net.driver(1)));assert.equal(net.rooms.size,0);
   const host=await transport.createRoom(net.driver(1));await assert.rejects(transport.joinRoom(host.roomCode,net.driver(1)),/tab/);
-  host.close();await assert.rejects(host.broadcast({version:1,type:'PING',nonce:1,sentAtMs:0}));
+  host.close();await assert.rejects(host.broadcast({version:2,type:'PING',nonce:1,sentAtMs:0}));
 });
 void test('15 host/client bind HELLO ACK to real peer and session, exchange ping and clean up on leave',async()=>{
   const net=network(),hc=clock(),cc=clock(),host=await session.hostSession('Host',net.driver(1),hc),client=await session.joinSession(host.read().roomCode,'Client',net.driver(2),cc);
@@ -65,7 +65,7 @@ void test('16 selection/ready synchronize under host authority, duplicate/forged
   try{await settle();assert.deepEqual(lobby.botPreview(host.read().lobby),{red:4,green:4});assert.equal(host.start(),false);assert.equal(client.start(),false);
     client.select('green','ciici');await settle();assert.equal(host.read().lobby.participants[1].characterId,'ciici');assert.equal(client.read().lobby.participants[1].ready,false);
     client.select('red','raja');await settle();assert.equal(host.read().lobby.participants[1].characterId,'ciici');assert.match(client.read().error,/Pilihan ditolak/);
-    const before=host.read().lobby;await net.links.get(peer(2)).send(protocol.encodeProtocolMessage({version:1,type:'READY',peerId:peer(1),ready:false}),peer(1));
+    const before=host.read().lobby;await net.links.get(peer(2)).send(protocol.encodeProtocolMessage({version:2,type:'READY',peerId:peer(1),ready:false}),peer(1));
     await settle();assert.deepEqual(host.read().lobby,before);
     client.ready(true);await settle();assert.equal(client.read().lobby.participants[1].ready,true);assert.equal(host.start(),true);await settle();
     assert.equal(client.read().phase,'playing');assert.equal(host.read().lobby.phase,'started');client.select('green','kaka');await settle();assert.equal(host.read().lobby.participants[1].characterId,'ciici');
@@ -80,11 +80,11 @@ void test('16 maximum four humans, full room rejection and client departure upda
 });
 void test('16 clients ignore forged/stale lobby states and protocol rejects malformed canonical roster',async()=>{
   const net=network(),host=await session.hostSession('Host',net.driver(1),clock()),client=await session.joinSession(host.read().roomCode,'Client',net.driver(2),clock());
-  try{await settle();const before=client.read().lobby,bad={version:1,type:'LOBBY_STATE',lobby:{...before,revision:before.revision+1}};
+  try{await settle();const before=client.read().lobby,bad={version:2,type:'LOBBY_STATE',lobby:{...before,revision:before.revision+1}};
     net.links.get(peer(2)).handlers.message(protocol.encodeProtocolMessage(bad),'impostor');assert.deepEqual(client.read().lobby,before);
-    net.links.get(peer(2)).handlers.message(protocol.encodeProtocolMessage({version:1,type:'LOBBY_STATE',lobby:before}),peer(1));assert.deepEqual(client.read().lobby,before);
+    net.links.get(peer(2)).handlers.message(protocol.encodeProtocolMessage({version:2,type:'LOBBY_STATE',lobby:before}),peer(1));assert.deepEqual(client.read().lobby,before);
     for(const alter of [s=>s.participants[1].host=true,s=>s.hostPeerId='missing',s=>s.participants.push(s.participants[0]),s=>s.participants=[]]){
-      const state=structuredClone(before);alter(state);assert.equal(protocol.parseProtocolMessage({version:1,type:'LOBBY_STATE',lobby:state}),null);
+      const state=structuredClone(before);alter(state);assert.equal(protocol.parseProtocolMessage({version:2,type:'LOBBY_STATE',lobby:state}),null);
     }
   }finally{client.close();host.close();}
 });
@@ -115,7 +115,7 @@ void test('20 takeover preserves actor identity, character, prison and stats; la
   assert.equal(p.characterId,'kodo');assert.equal(p.state,'PRISONER');assert.equal(p.captures,2);assert.equal(p.x,100);
   assert.deepEqual(roster.takeoverDisconnected([p],new Set(),disconnected),[]);
   const buffer=remote.createRemoteInputBuffer('match-test',new Map([[p.entityId,peer(2)]]),1000,800);
-  buffer.disconnect(peer(2));assert.equal(buffer.accept(peer(2),{version:1,type:'INPUT',matchId:'match-test',entityId:p.entityId,sequence:2,input:remote.neutralInput()},1000),false);
+  buffer.disconnect(peer(2));assert.equal(buffer.accept(peer(2),{version:2,type:'INPUT',matchId:'match-test',entityId:p.entityId,sequence:2,input:remote.neutralInput()},1000),false);
 });
 void test('20 host removes silent client without ending match, retaining frozen reserve roster for future rounds',async()=>{
   const net=network(),hc=clock(),host=await session.hostSession('Host',net.driver(1),hc),client=await session.joinSession(host.read().roomCode,'Client',net.driver(2),clock());
@@ -129,14 +129,14 @@ function sampleSnapshot(){
   const entity={id:'entity-0001',character:'raja',team:'red',controller:'local',x:200,y:200,vx:0,vy:0,direction:null,poseSeed:0,state:'ACTIVE',
     action:null,actionUntil:0,parkourUntil:0,exitOrder:1,boost:100,baseCharge:0,exitDeadline:0,boostReadyAt:0,fortCharge:0,prisonOwner:null,prisonIndex:0,
     rescueShieldUntil:0,ultimateShieldUntil:0,waterEnteredAt:0,waterFallUntil:0,fallNoticeUntil:0,tagDirection:null,flight:null,ultimateMeter:0};
-  return {version:1,matchId:'match-test',arenaId:'kampung',tick:1,timeMs:900000,simulationTimeMs:30,phase:'PLAYING',paused:false,round:1,timer:240,
+  return {version:2,matchId:'match-test',arenaId:'kampung',tick:1,timeMs:900000,simulationTimeMs:30,phase:'PLAYING',paused:false,round:1,timer:240,
     phaseUntilMs:null,suddenDeath:false,entities:[entity],score:{red:0,green:0},combos:{red:{step:0,expiresAt:0,surgeUntil:0},green:{step:0,expiresAt:0,surgeUntil:0}},
-    objective:{redHeldSeconds:0,greenHeldSeconds:0},ultimate:{actorId:null,impactAt:0,impactApplied:false,buffUntil:0,shieldUntil:0,castMs:null,speedMultiplier:null},
+    objective:{redHeldSeconds:0,greenHeldSeconds:0},ultimate:{actorId:null,impactAt:0,impactApplied:false,buffUntil:0,shieldUntil:0,castMs:null,speedMultiplier:null,actors:[]},
     refills:[],rescueRequest:null,result:null};
 }
 void test('17 remote ownership/sequence/shape/bounds gates and timeout neutralization happen before writes',()=>{
   const buffer=remote.createRemoteInputBuffer('match-test',new Map([['entity-0002',peer(2)]]),1000,800);
-  const m={version:1,type:'INPUT',matchId:'match-test',entityId:'entity-0002',sequence:1,input:{...remote.neutralInput(),moveX:1,sprint:true,sprintPulse:true}};
+  const m={version:2,type:'INPUT',matchId:'match-test',entityId:'entity-0002',sequence:1,input:{...remote.neutralInput(),moveX:1,sprint:true,sprintPulse:true}};
   for(const invalid of [{...m,entityId:'entity-0001'},{...m,matchId:'other'},{...m,sequence:0},{...m,input:{...m.input,moveX:NaN}},
     {...m,input:{...m.input,moveY:2}},{...m,input:{...m.input,target:{x:2000,y:200}}},{...m,input:{...m.input,pause:true}}])assert.equal(buffer.accept(peer(2),invalid,1000),false);
   assert.equal(buffer.accept(peer(3),m,1000),false);assert.equal(buffer.accept(peer(2),m,1000),true);
@@ -177,22 +177,22 @@ void test('18 snapshot projection detaches presentation and carries latest priso
 });
 void test('19 compatibility rejects protocol/build/arena/revision differences with readable messages',()=>{
   const c=content.testContent;assert.equal(content.contentMismatch(c,{...c}),null);
-  for(const [key,value,pattern] of [['protocolVersion',2,/protokol/],['buildVersion','other',/build/],['arenaId','other',/Arena/],['arenaRevision','other',/Revisi/]])
+  for(const [key,value,pattern] of [['protocolVersion',1,/protokol/],['buildVersion','other',/build/],['arenaId','other',/Arena/],['arenaRevision','other',/Revisi/]])
     assert.match(content.contentMismatch(c,{...c,[key]:value}),pattern);
 });
 void test('19 mismatch never admits participant or starts, including wire protocol mismatch',async()=>{
-  for(const alteration of [{arenaRevision:'changed'},{arenaId:'another'},{buildVersion:'changed'},{protocolVersion:2}]){
+  for(const alteration of [{arenaRevision:'changed'},{arenaId:'another'},{buildVersion:'changed'},{protocolVersion:1}]){
     const net=network(),host=await session.hostSession('Host',net.driver(1),clock(),content.testContent),client=await session.joinSession(host.read().roomCode,'Client',net.driver(2),clock(),{...content.testContent,...alteration});
     try{await settle();assert.equal(client.read().phase,'ended');assert.equal(host.read().lobby.participants.length,1);assert.equal(host.start(),false);}finally{client.close();host.close();}
   }
   const net=network(),host=await session.hostSession('Host',net.driver(1),clock()),client=await transport.joinRoom(host.read().roomCode,net.driver(2)),seen=[];
-  client.onMessage((p,m)=>seen.push(m));await settle();await net.links.get(peer(2)).send(JSON.stringify({version:2,type:'HELLO',peerId:peer(2),name:'Old'}),peer(1));await settle();
+  client.onMessage((p,m)=>seen.push(m));await settle();await net.links.get(peer(2)).send(JSON.stringify({version:1,type:'HELLO',peerId:peer(2),name:'Old'}),peer(1));await settle();
   assert.equal(seen[0].code,'incompatible');assert.equal(host.read().lobby.participants.length,1);client.close();host.close();
 });
 void test('19 a peer cannot keep its compatibility approval after changing revision',async()=>{
   const net=network(),host=await session.hostSession('Host',net.driver(1),clock()),client=await session.joinSession(host.read().roomCode,'Client',net.driver(2),clock());
   try{await settle();client.ready(true);await settle();
-    await net.links.get(peer(2)).send(protocol.encodeProtocolMessage({version:1,type:'CONTENT_VERSION',content:{...content.testContent,arenaRevision:'changed'}}),peer(1));await settle();
+    await net.links.get(peer(2)).send(protocol.encodeProtocolMessage({version:2,type:'CONTENT_VERSION',content:{...content.testContent,arenaRevision:'changed'}}),peer(1));await settle();
     assert.equal(host.start(),false);assert.equal(host.read().lobby.participants.length,1);assert.equal(client.read().phase,'ended');
   }finally{client.close();host.close();}
 });
@@ -201,10 +201,10 @@ void test('17–18 session routes host-bound INPUT and host-only monotonic snaps
   try{await settle();client.ready(true);await settle();host.start();await settle();const inputs=[],received=[];
     host.onGameplay((p,m)=>inputs.push({p,m}));client.onGameplay((p,m)=>received.push(m));
     const matchId=`${host.read().roomCode}:match`,s={...sampleSnapshot(),matchId};
-    client.sendInput({version:1,type:'INPUT',matchId,entityId:'entity-0002',sequence:1,input:remote.neutralInput()});
-    host.publishSnapshot({version:1,type:'SNAPSHOT',matchId,tick:s.tick,snapshot:s});await settle();assert.equal(inputs[0].p,peer(2));assert.equal(received.length,1);
-    host.publishSnapshot({version:1,type:'SNAPSHOT',matchId,tick:s.tick,snapshot:s});await settle();assert.equal(received.length,1);
-    net.links.get(peer(2)).handlers.message(protocol.encodeProtocolMessage({version:1,type:'SNAPSHOT',matchId,tick:2,snapshot:{...s,tick:2}}),'impostor');assert.equal(received.length,1);
+    client.sendInput({version:2,type:'INPUT',matchId,entityId:'entity-0002',sequence:1,input:remote.neutralInput()});
+    host.publishSnapshot({version:2,type:'SNAPSHOT',matchId,tick:s.tick,snapshot:s});await settle();assert.equal(inputs[0].p,peer(2));assert.equal(received.length,1);
+    host.publishSnapshot({version:2,type:'SNAPSHOT',matchId,tick:s.tick,snapshot:s});await settle();assert.equal(received.length,1);
+    net.links.get(peer(2)).handlers.message(protocol.encodeProtocolMessage({version:2,type:'SNAPSHOT',matchId,tick:2,snapshot:{...s,tick:2}}),'impostor');assert.equal(received.length,1);
   }finally{client.close();host.close();}
 });
 void test('17–19 live client branch does not call authoritative update, routing, reward; rates are configurable separately',()=>{
@@ -228,7 +228,7 @@ const results=load('lib/multiplayer/result.ts'),skills=load('lib/multiplayer/ult
 function finalPacket(matchId='match-test'){
   const s=sampleSnapshot();s.matchId=matchId;s.tick=20;s.phase='MATCH_OVER';s.score.red=2;s.round=2;s.result={winner:'red',reason:'BENTENG DIREBUT',complete:true};
   s.entities.push({...s.entities[0],id:'entity-0002',character:'kaka',team:'green',controller:'remote'});
-  return {version:1,type:'MATCH_RESULT',matchId,arenaId:'kampung',tick:20,winner:'red',reason:'BENTENG DIREBUT',snapshot:s,
+  return {version:2,type:'MATCH_RESULT',matchId,arenaId:'kampung',tick:20,winner:'red',reason:'BENTENG DIREBUT',snapshot:s,
     humans:[{peerId:peer(1),entityId:'entity-0001',team:'red',eligible:true,tags:3,rescues:2,prisons:1},
       {peerId:peer(2),entityId:'entity-0002',team:'green',eligible:true,tags:2,rescues:1,prisons:3}]};
 }
@@ -286,10 +286,10 @@ void test('22 each human has independent authoritative ultimate meter; Raja/Kaka
 void test('22 reliable presentation events are host-only and deduplicated, complete frame stats bound to snapshot identities',async()=>{
   const net=network(),identity={...content.testContent,arenaId:'kampung'},host=await session.hostSession('Host',net.driver(1),clock(),identity),client=await session.joinSession(host.read().roomCode,'Client',net.driver(2),clock(),identity);
   try{await settle();client.ready(true);await settle();host.start();await settle();const received=[];client.onGameplay((p,m)=>received.push(m));
-    const matchId=`${host.read().roomCode}:match`,message={version:1,type:'GAME_EVENT',matchId,tick:1,eventId:'evt-1',event:{type:'PLAYER_TAGGED',actorId:'entity-0001',targetId:'entity-0002',x:1,y:1}};
+    const matchId=`${host.read().roomCode}:match`,message={version:2,type:'GAME_EVENT',matchId,tick:1,eventId:'evt-1',event:{type:'PLAYER_TAGGED',actorId:'entity-0001',targetId:'entity-0002',x:1,y:1}};
     host.publishEvent(message);host.publishEvent(message);await settle();assert.equal(received.length,1);
     net.links.get(peer(2)).handlers.message(protocol.encodeProtocolMessage({...message,eventId:'evt-forged'}),'other');assert.equal(received.length,1);
-    const s={...sampleSnapshot(),matchId},rows=[{entityId:'entity-0001',tags:3,rescues:1,prisons:0}],frame={version:1,type:'MATCH_FRAME',matchId,tick:1,snapshot:s,matchStartedAtMs:1000,rescueCooldownUntil:0,roundStats:rows,matchStats:rows};
+    const s={...sampleSnapshot(),matchId},rows=[{entityId:'entity-0001',tags:3,rescues:1,prisons:0}],frame={version:2,type:'MATCH_FRAME',matchId,tick:1,snapshot:s,matchStartedAtMs:1000,rescueCooldownUntil:0,roundStats:rows,matchStats:rows};
     host.publishSnapshot(frame);await settle();assert.equal(received.at(-1).type,'MATCH_FRAME');assert.equal(received.at(-1).matchStats[0].tags,3);
     assert.equal(protocol.parseProtocolMessage({...frame,roundStats:[{...rows[0],entityId:'unknown'}]}),null);
   }finally{client.close();host.close();}
@@ -302,7 +302,7 @@ void test('23 three/four human ownership queues isolate controls, fill 7/6 bots 
     assert.equal(actors.length,10);assert.equal(actors.filter(p=>p.controller==='bot').length,10-humans);
     const owners=new Map(actors.filter(p=>p.controller==='remote').map(p=>[p.entityId,p.ownerPeerId])),queue=remote.createRemoteInputBuffer('match-test',owners,1000,800);
     for(const p of actors.filter(p=>p.controller==='remote')){
-      const m={version:1,type:'INPUT',matchId:'match-test',entityId:p.entityId,sequence:1,input:{...remote.neutralInput(),moveX:1}};
+      const m={version:2,type:'INPUT',matchId:'match-test',entityId:p.entityId,sequence:1,input:{...remote.neutralInput(),moveX:1}};
       assert.equal(queue.accept(peer(1),m,1000),false);assert.equal(queue.accept(p.ownerPeerId,m,1000),true);
     }
     const departed=actors.find(p=>p.controller==='remote'),disconnected=new Set(),present=new Set(state.participants.map(p=>p.peerId));present.delete(departed.ownerPeerId);
@@ -312,14 +312,14 @@ void test('23 three/four human ownership queues isolate controls, fill 7/6 bots 
 });
 void test('22 one-shot skills survive coalesced network inputs and never consume twice per simulation frame',()=>{
   const queue=remote.createRemoteInputBuffer('match-test',new Map([['entity-0002',peer(2)]]),1000,800);
-  const m={version:1,type:'INPUT',matchId:'match-test',entityId:'entity-0002',sequence:1,input:{...remote.neutralInput(),ultimate:true,rescue:true}};
+  const m={version:2,type:'INPUT',matchId:'match-test',entityId:'entity-0002',sequence:1,input:{...remote.neutralInput(),ultimate:true,rescue:true}};
   assert.equal(queue.accept(peer(2),m,1000),true);assert.equal(queue.accept(peer(2),{...m,sequence:2,input:remote.neutralInput()},1001),true);
   const frame=queue.sample(m.entityId,1002);assert.equal(frame.ultimate,true);assert.equal(frame.rescue,true);
   assert.equal(queue.sample(m.entityId,1003).ultimate,false);assert.equal(queue.sample(m.entityId,1004).rescue,false);
 });
 void test('23 telemetry counts exact UTF-8 payload bytes/types, peer-specific sends and detached readings',async()=>{
   const net=network(),host=await transport.createRoom(net.driver(1)),client=await transport.joinRoom(host.roomCode,net.driver(2));
-  try{await settle();host.resetMetrics();client.resetMetrics();const m={version:1,type:'HELLO',peerId:peer(2),name:'Pémain'};
+  try{await settle();host.resetMetrics();client.resetMetrics();const m={version:2,type:'HELLO',peerId:peer(2),name:'Pémain'};
     await client.send(peer(1),m);await settle();const expected=new TextEncoder().encode(protocol.encodeProtocolMessage(m)).byteLength;
     assert.equal(client.metrics().sentBytes,expected);assert.equal(host.metrics().receivedBytes,expected);assert.equal(client.metrics().sentByType.HELLO.messages,1);
     const copy=client.metrics();copy.sentByType.HELLO.bytes=0;assert.equal(client.metrics().sentByType.HELLO.bytes,expected);

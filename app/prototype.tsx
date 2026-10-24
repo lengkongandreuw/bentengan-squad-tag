@@ -45,6 +45,9 @@ import { CharacterSelectScreen } from '../modules/ui/character-select-screen.tsx
 import { AssetLoadingScreen } from '../modules/ui/asset-loading-screen.tsx';
 import { LoadingPanel } from '../modules/ui/loading-media.tsx';
 import { MenuActionsRow } from '../modules/ui/menu-actions-row.tsx';
+import { HomeMenuActions } from '../modules/ui/home-menu-actions.tsx';
+import { MenuReveal } from '../modules/ui/menu-reveal.tsx';
+import { ModeSelectScreen, CustomRoomScreen, ModeBackButton } from '../modules/ui/mode-select-screen.tsx';
 import { BackButton } from '../modules/ui/back-button.tsx';
 import { ProfileTriggerButton } from '../modules/ui/profile-trigger-button.tsx';
 import {GameplayScreenShell,HudZone} from '../modules/ui/gameplay-screen-shell';
@@ -104,8 +107,11 @@ import { createNetworkPump } from '../lib/multiplayer/pump.ts';
 import {createMatchRoster,takeoverDisconnected} from '../lib/multiplayer/roster.ts';
 import {createMatchResult,createResultHandoff,type MatchResultPacket} from '../lib/multiplayer/result.ts';
 import {createNetworkUltimates} from '../lib/multiplayer/ultimates.ts';
-import {toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol.ts';
+import {MULTIPLAYER_PROTOCOL_VERSION,toNetworkGameEvent,fromNetworkGameEvent,type ProtocolMessage} from '../lib/multiplayer/protocol.ts';
+import {networkUltimateRulesFor} from '../lib/multiplayer/ultimate-rules.ts';
 import { gainUltimate, stepUltimate, stepFlight, ultimateCasting as coreUltimateCasting, ultimateSpeed, freezeUltimateActors } from '../modules/gameplay/ultimate.ts';
+import {isSprintJammed,isIronDriveActive,ironDriveMultiplier,ultimateEffectDeadline} from '../modules/gameplay/ultimate-effects.ts';
+import {drawUltimateEffects} from '../modules/ui/draw-ultimate-effects.ts';
 import { endRound, stepMatchTimer, phaseTransition, suddenDeathTagWinner } from '../modules/game-core/match-control.ts';
 import { moveActor, moveInputActor, movementBlocked, enterWaterFall, parkourLanding, parkourPassesObstacle, drainBoost, type CollisionWorld } from '../modules/gameplay/movement.ts';
 import { resolveTag, tagContacts, tagRelationship, resolveRescue, resolveBase, resolveAllHeld, resolveTeamFort, layoutPrisoners, fortOccupant as coreFortOccupant } from '../modules/gameplay/tag-combat.ts';
@@ -134,7 +140,7 @@ import { spritePlacement } from '../lib/sprite-studio-model.js';
 import { studioMaps, studioBuiltinStates, studioMapById, mapImages, retainMapImages, mapArtwork, drawMapTerrain, drawMapObject, drawStructureVisual } from '../lib/map-studio.ts';
 import {resolveStructureVisual} from '../lib/map-studio-model.js';
 import {getProgressionArenaId} from '../lib/player-profile/arena-identity.ts';
-import {orderArenaSelection} from '../modules/ui/map-selection-assets.ts';
+import {orderArenaSelection,arenaSelectionDifficulty} from '../modules/ui/map-selection-assets.ts';
 import { collisionRects } from '../lib/map-studio-model.js';
 import { arenaRulesFor, prepareArenaMap, kanalColliderObjects, kanalPrisonWalls as createKanalPrisonWalls } from '../modules/world/map-arena-rules.ts';
 import {createMapQueries,objectBounds,visibleBounds} from '../modules/world/map-runtime-index.ts';
@@ -168,7 +174,7 @@ import { interactiveTarget as interactiveTargetAt, handlePointerOut as handlePoi
 import { rosterCharacters, squadLineup } from '../modules/gameplay/roster.ts';
 import { ArenaBackdrop, arenaImage } from '../modules/ui/arena-backdrop.tsx';
 import { imageReady, videoReady } from '../lib/asset-ready.ts';
-import { CHARACTER_BY_ID, CharacterId, characterFullBodyPortrait, characterPreviewIcon, characterRuntimeAsset, characterSelectionVideo, characterUsesDedicatedEast, kakaUltimateBannerAsset, publicAsset, rajaUltimateBannerAsset, uiAudioAsset, ULTIMATE_CHARACTER_IDS } from '../lib/characters.ts';
+import { CHARACTER_BY_ID, CharacterId, characterFullBodyPortrait, characterPreviewIcon, characterRuntimeAsset, characterSelectionVideo, characterUsesDedicatedEast, kakaUltimateBannerAsset, publicAsset, rajaUltimateBannerAsset, uiAudioAsset, ULTIMATE_CHARACTER_IDS as ALL_ULTIMATE_CHARACTER_IDS, MULTIPLAYER_ULTIMATE_CHARACTER_IDS } from '../lib/characters.ts';
 import { characterAnimationMapping } from '../lib/character-animation.js';
 import { DeveloperCredits } from '../modules/ui/developer-credits.tsx';
 import { PlayerProfileSetup } from '../modules/ui/player-profile/player-profile-setup.tsx';
@@ -254,7 +260,7 @@ import {
 } from '../modules/game-core/snapshot-types.ts';
 
 type CameraMode = 'follow' | 'tactical' | 'overview';
-type MenuStep = 'splash' | 'team' | 'character' | 'field';
+type MenuStep = 'splash' | 'modes' | 'custom' | 'team' | 'character' | 'field';
 type Player = RuntimeActor;
 const PLAYER_COLLISION_RADIUS = 13;
 const BASE_REENTRY_COOLDOWN_MS = 1500;
@@ -269,10 +275,9 @@ const RAJA_ULTIMATE_RESCUE_BONUS = 30;
 const RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4;
 const RAJA_ULTIMATE_CAST_MS = 3200;
 const RAJA_ULTIMATE_BUFF_MS = 5000;
-const KAKA_ULTIMATE_CAST_MS = 3600;
 const KAKA_ULTIMATE_FRAME_COUNT = 9;
 const KAKA_ULTIMATE_SHIELD_MS = 5000;
-const ultimateName = (id:CharacterId) => id === 'bebe' ? 'JET FLIGHT' : id === 'ciici' ? 'VAMPIRE FLIGHT' : id === 'kaka' ? 'PERISAI HIJAU' : 'TITAH HALILINTAR';
+const ultimateName = (id:CharacterId) => CHARACTER_BY_ID[id].ultimate?.name??'ULTIMATE';
 const ultimateBannerAsset = (id:CharacterId) => flightConfig(id) ? publicAsset(flightConfig(id)!.icon) : id === 'kaka' ? kakaUltimateBannerAsset() : rajaUltimateBannerAsset();
 const DIFFICULTY_PROFILES = {
   easy: {
@@ -389,7 +394,7 @@ for (let index = FIELD_CONFIGS.length - 1; index >= 0; index--) {
   if (replacedFields.has(id) || ['archived','deleted'].includes(studioBuiltinStates[id])) FIELD_CONFIGS.splice(index, 1);
 }
 FIELD_CONFIGS.push(...studioMaps.map((map): FieldConfig => ({
-  id: map.id, name: map.name, kicker: playerArenaCopy(map.id,map.description,map.replaces), difficulty: map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal',
+  id: map.id, name: map.name, kicker: playerArenaCopy(map.id,map.description,map.replaces), difficulty: arenaSelectionDifficulty(getProgressionArenaId(map.id),map.replaces ? nativeFieldConfigs[map.replaces].difficulty : 'normal'),
   aiIntensity: map.replaces ? nativeFieldConfigs[map.replaces].aiIntensity : 1, objectScale: map.replaces ? nativeFieldConfigs[map.replaces].objectScale : undefined, baseRadius: map.baseRadius ?? (map.replaces ? nativeFieldConfigs[map.replaces].baseRadius : undefined), ground: 'kampungGround', width: map.width, height: map.height,
   bases: map.bases, prisons: Object.fromEntries(Object.entries(map.prisons).map(([team,p])=>[team,{
     ...(map.replaces ? nativeFieldConfigs[map.replaces].prisons[team as Team] : arenaRulesFor(map)==='kanal2' ? nativeFieldConfigs.kanal2.prisons[team as Team] : {}),...p,
@@ -492,6 +497,7 @@ export function BentenganPrototype() {
   const [view, setView] = useState<'game' | 'workshop'>('game');
   useEffect(()=>{let active=true;queueMicrotask(()=>{if(active&&parseInvite(window.location.href,FIELD_CONFIGS))setMultiplayerOpen(true);});return()=>{active=false;};},[]);
   const [networkSession,setNetworkSession]=useState<MultiplayerSession|null>(null);
+  const ULTIMATE_CHARACTER_IDS=networkSession?MULTIPLAYER_ULTIMATE_CHARACTER_IDS:ALL_ULTIMATE_CHARACTER_IDS;
   const [onlineMenuOpen,setOnlineMenuOpen]=useState(false);
   const [pausePage,setPausePage]=useState<'home'|'help'>('home');
   const focusCanvasOnResume=useRef(false);
@@ -984,13 +990,13 @@ export function BentenganPrototype() {
     banner.src = ultimateBannerAsset(selectedId);
     if (selectedId === 'kaka') getKakaUltimateImage();
     if(process.env.NODE_ENV!=='production'&&flightConfig(selectedId)) {
-      const missing=['ultimate_takeoff','ultimate_fly','ultimate_land'].filter(slot=>!studioFlightClip(selectedId,slot));
+      const missing=['ultimate_takeoff','ultimate_fly'].filter(slot=>!studioFlightClip(selectedId,slot));
       if(missing.length)console.warn(`${selectedId}: animasi Flight belum lengkap (${missing.join(', ')}). Fallback sementara; unggah sequence final melalui Sprite Studio.`);
     }
     banner.src = ultimateBannerAsset(selectedId);
     if (selectedId === 'kaka') getKakaUltimateImage();
     if(process.env.NODE_ENV!=='production'&&flightConfig(selectedId)) {
-      const missing=['ultimate_takeoff','ultimate_fly','ultimate_land'].filter(slot=>!studioFlightClip(selectedId,slot));
+      const missing=['ultimate_takeoff','ultimate_fly'].filter(slot=>!studioFlightClip(selectedId,slot));
       if(missing.length)console.warn(`${selectedId}: animasi Flight belum lengkap (${missing.join(', ')}). Fallback sementara; unggah sequence final melalui Sprite Studio.`);
     }
   }, [selectedId]);
@@ -1132,7 +1138,7 @@ export function BentenganPrototype() {
     // Match-local immutable snapshot: profile refresh never restarts this effect.
     const playerUltimateStats = snapshotUltimateStats(mode==='playing'&&!network ? loadPlayerProfile() ?? playerProfileRef.current ?? null : null,selectedId);
     const ultimateCastMsFor = (player: Player) => {
-      const base=player.characterId==='kaka'?KAKA_ULTIMATE_CAST_MS:RAJA_ULTIMATE_CAST_MS;
+      const base=CHARACTER_BY_ID[player.characterId]?.ultimate?.castMs??RAJA_ULTIMATE_CAST_MS;
       return player.controlled ? playerUltimateStats?.castMs ?? base : base;
     };
     setMatchProgressionResult(null);
@@ -1227,7 +1233,10 @@ export function BentenganPrototype() {
       ultimateImpactAt = 0,
       ultimateBuffUntil = 0,
       ultimateShieldUntil = 0,
+      ultimateJammerUntil = 0,
+      ultimateDriveUntil = 0,
       ultimateImpactApplied = false;
+    const effectStateFor=(actor:Player)=>network?clientOnly?clientPresentation?.ultimate.actors?.find(p=>p.actorId===actor.entityId):networkUltimates.get(actor.entityId):actor.entityId===players[0]?.entityId?{jammerUntil:ultimateJammerUntil,driveUntil:ultimateDriveUntil}:undefined;
     let mouseRoute: Array<{ x: number; y: number }> = [];
     let mouseBoost = false;
     let mouseStuckTime = 0;
@@ -1543,12 +1552,10 @@ export function BentenganPrototype() {
     const myEntityId=players[0].entityId;
     const humanIdentities=players.filter(p=>p.ownerPeerId).map(p=>({peerId:p.ownerPeerId!,entityId:p.entityId}));
     const networkUltimates=createNetworkUltimates(humanIdentities);
-    const networkUltimateRules=(p:Player)=>({supported:ULTIMATE_CHARACTER_IDS,kanal2:isKanalField(field.id),
-      rechargeSeconds:RAJA_ULTIMATE_RECHARGE_SECONDS,castMs:p.characterId==='kaka'?KAKA_ULTIMATE_CAST_MS:RAJA_ULTIMATE_CAST_MS,
-      durationMs:p.characterId==='kaka'?KAKA_ULTIMATE_SHIELD_MS:RAJA_ULTIMATE_BUFF_MS,speedMultiplier:RAJA_ULTIMATE_SPEED_MULTIPLIER});
+    const networkUltimateRules=(p:Player)=>networkUltimateRulesFor(p,isKanalField(field.id));
     let lastNetworkFrame:Extract<ProtocolMessage,{type:'MATCH_FRAME'}>|null=null,networkEventSerial=0;
     const receivedNetworkEvents:GameEvent[]=[];
-    const publishNetworkFacts=(facts:readonly GameEvent[])=>{if(network&&!clientOnly)for(const event of facts)network.publishEvent({version:1,type:'GAME_EVENT',
+    const publishNetworkFacts=(facts:readonly GameEvent[])=>{if(network&&!clientOnly)for(const event of facts)network.publishEvent({version:MULTIPLAYER_PROTOCOL_VERSION,type:'GAME_EVENT',
       matchId:matchId!,tick:simulationClock.tick,eventId:`${matchId}:event:${++networkEventSerial}`,event:toNetworkGameEvent(event)});};
     const resultHandoff=network?createResultHandoff({matchId:matchId!,arenaId:field.id,peerId:network.read().localPeerId,
       entityId:myEntityId,team:FACTION_FOR_TEAM[players[0].team]},summary=>recordMatchProgression(summary)):null;
@@ -1574,8 +1581,8 @@ export function BentenganPrototype() {
         const state=readCanonicalState(now),s=createSnapshot(state),rows=(stats:CanonicalGameState['matchStats'])=>
           Object.entries(stats).map(([entityId, counts]) => ({ entityId, ...counts }));
         network.publishSnapshot(initial
-          ? { version: 1, type: 'MATCH_START', matchId: matchId!, arenaId: field.id, startAtMs: phaseUntil, snapshot: s }
-          : { version: 1, type: 'MATCH_FRAME', matchId: matchId!, tick: s.tick, snapshot: s,
+          ? { version: MULTIPLAYER_PROTOCOL_VERSION, type: 'MATCH_START', matchId: matchId!, arenaId: field.id, startAtMs: phaseUntil, snapshot: s }
+          : { version: MULTIPLAYER_PROTOCOL_VERSION, type: 'MATCH_FRAME', matchId: matchId!, tick: s.tick, snapshot: s,
             matchStartedAtMs: matchStartedAt, rescueCooldownUntil: rescueRequestCooldownUntil,
             roundStats: rows(state.roundStats), matchStats: rows(state.matchStats) });
       },
@@ -1797,6 +1804,8 @@ export function BentenganPrototype() {
       ultimateImpactAt = 0;
       ultimateBuffUntil = 0;
       ultimateShieldUntil = 0;
+      ultimateJammerUntil = 0;
+      ultimateDriveUntil = 0;
       ultimateImpactApplied = false;
       setUltimateBannerVisible(false);
       teamCombos = {
@@ -1846,6 +1855,8 @@ export function BentenganPrototype() {
       roundWinner = outcome.team;
       roundEndReason = reason;
       phase = outcome.phase;
+      ultimateJammerUntil=0;ultimateDriveUntil=0;
+      if(network)for(const p of players){const state=networkUltimates.get(p.entityId);if(state){state.jammerUntil=0;state.driveUntil=0;}}
       matchEvents = [];
       resultWinner = outcome.team;
       resultAnnouncementUntil = resultNow + 1500;
@@ -2348,8 +2359,13 @@ export function BentenganPrototype() {
         const actor=players.find(p=>p.entityId===event.actorId);if(!actor)continue;
         if(event.type==='ULTIMATE_STARTED'){
           gameplayAudio.play('ultimate');burst(actor.x,actor.y,TEAM_COLOR[actor.team],14);log(`${actor.name} mengaktifkan ${ultimateName(actor.characterId)}.`);
-          if(actor.controlled){boostBurstUntil=0;clearMouse();setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),1050);}
-        }else {burst(actor.x,actor.y,event.effect==='shield'?'#35f477':'#ef233c',28);log(`${actor.name} · ${event.effect==='shield'?'PERISAI HIJAU':'TITAH HALILINTAR'} ${event.durationMs/1000} detik.`);}
+          if(actor.controlled){boostBurstUntil=0;clearMouse();setUltimateBannerVisible(true);window.clearTimeout(bannerTimeout);bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),CHARACTER_BY_ID[actor.characterId].ultimate?.bannerMs??820);}
+        }else {
+          const descriptor=CHARACTER_BY_ID[actor.characterId].ultimate;
+          burst(actor.x,actor.y,descriptor?.castBurst??TEAM_COLOR[actor.team],28);
+          const detail=event.effect==='jammer'?'Enemy Sprint disabled nearby.':event.effect==='drive'?'Movement +25%. Parkour disabled.':event.effect==='shield'?'Tag shield.':'Team speed boost.';
+          log(`${actor.name} · ${ultimateName(actor.characterId)} · ${event.durationMs/1000}s · ${detail}`);
+        }
       }
     };
     const capture = (winner:Player,loser:Player,now:number) => {
@@ -2529,6 +2545,7 @@ export function BentenganPrototype() {
           movementLesson=practiceArea?createMovementLessonMonitor(practiceArea):null;
           ultimateLesson.reset();ultimateImpactAt=0;ultimateImpactApplied=false;
           ultimateBuffUntil=0;ultimateShieldUntil=0;
+          ultimateJammerUntil=0;ultimateDriveUntil=0;
           if(step==='ultimate')ultimateMeter=100;
         }
       }
@@ -2577,14 +2594,14 @@ export function BentenganPrototype() {
         player.lastY = player.y;
       });
       const me = players[0];
-      const config = flightConfig(me.characterId);
+      const config = flightConfig(me.characterId,playerUltimateStats?.durationMs);
       const flightGroundValid = (x:number,y:number) => x>=34 && x<=worldWidth-34 && y>=58 && y<=worldHeight-32 && !hitsObstacle(x,y) && !isInsideFortCore(x,y) && !kanalWaterBlocks(x,y);
       if(network){
         const stepped=networkUltimates.tick(players,humanFrames,dt,now,networkUltimateRules,
           (p,slot,elapsed,fallback)=>sequenceComplete(studioFlightClip(p.characterId,slot,p.flight?.direction),elapsed,fallback),flightGroundValid,p=>resetFallenPlayer(p,now));
         publishNetworkFacts(stepped.facts);presentNetworkUltimate(stepped.facts);
         const own=networkUltimates.get(myEntityId)!;ultimateMeter=own.meter;ultimateImpactAt=own.impactAt;ultimateImpactApplied=own.impactApplied;
-        ultimateBuffUntil=own.buffUntil;ultimateShieldUntil=own.shieldUntil;
+        ultimateBuffUntil=own.buffUntil;ultimateShieldUntil=own.shieldUntil;ultimateJammerUntil=own.jammerUntil;ultimateDriveUntil=own.driveUntil;
         if(input.ultimate)keys.current.delete('capslock');
         if(stepped.casting){clearMouse();freezeUltimateActors(players);return;}
       }
@@ -2604,7 +2621,7 @@ export function BentenganPrototype() {
       let dx = 0,
         dy = 0;
       // Numeric match snapshot feeds authority; presentation consumes returned facts.
-      const ultimateState = {meter:ultimateMeter,impactAt:ultimateImpactAt,impactApplied:ultimateImpactApplied,buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil};
+      const ultimateState = {meter:ultimateMeter,impactAt:ultimateImpactAt,impactApplied:ultimateImpactApplied,buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil,jammerUntil:ultimateJammerUntil,driveUntil:ultimateDriveUntil};
       const ultimateRules = {
         supported:ULTIMATE_CHARACTER_IDS,kanal2:isKanalField(field.id),
         rechargeSeconds:playerUltimateStats?.rechargeSeconds ?? RAJA_ULTIMATE_RECHARGE_SECONDS,
@@ -2622,6 +2639,7 @@ export function BentenganPrototype() {
       if(input.ultimate)keys.current.delete('capslock');
       ultimateMeter=ultimateState.meter;ultimateImpactAt=ultimateState.impactAt;ultimateImpactApplied=ultimateState.impactApplied;
       ultimateBuffUntil=ultimateState.buffUntil;ultimateShieldUntil=ultimateState.shieldUntil;
+      ultimateJammerUntil=ultimateState.jammerUntil;ultimateDriveUntil=ultimateState.driveUntil;
       presentGameEvents(ultimateFacts,fact=>{
         if(fact.type==='ULTIMATE_STARTED') {
           boostBurstUntil=0;gameplayAudio.play('ultimate');
@@ -2630,16 +2648,20 @@ export function BentenganPrototype() {
           bannerTimeout=window.setTimeout(()=>setUltimateBannerVisible(false),!fact.flight&&me.characterId==='kaka'?1050:820);
           if(fact.flight)log(`${me.name} mengaktifkan ${ultimateName(me.characterId)}.`);
           else {
-            const isKaka=me.characterId==='kaka';
-            burst(me.x,me.y,isKaka?'#35f477':'#ef233c',14);
-            log(isKaka?'KAKA membangkitkan PERISAI HIJAU.':'RAJA memanggil TITAH HALILINTAR.');
+            const descriptor=CHARACTER_BY_ID[me.characterId].ultimate;
+            burst(me.x,me.y,descriptor?.castBurst??'#ef233c',14);
+            log(descriptor?.castLog??`${me.name} · Ultimate`);
           }
         } else if(fact.type==='ULTIMATE_APPLIED'&&fact.effect==='shield') {
           burst(me.x,me.y,'#35f477',34);burst(me.x,me.y,'#baffc9',18);beep(540,.32);
           log(`PERISAI HIJAU · seluruh rekan kebal TAG selama ${fact.durationMs/1000} detik.`);
-        } else if(fact.type==='ULTIMATE_APPLIED') {
+        } else if(fact.type==='ULTIMATE_APPLIED'&&fact.effect==='speed') {
           burst(me.x,me.y,'#ef233c',28);burst(me.x,me.y,'#b54a32',18);beep(118,.32);
           log(`TITAH HALILINTAR · rekan di lapangan bergerak +${Math.round((fact.speedMultiplier-1)*100)}% selama ${fact.durationMs/1000} detik.`);
+        } else if(fact.type==='ULTIMATE_APPLIED'){
+          const descriptor=CHARACTER_BY_ID[me.characterId].ultimate!;
+          burst(me.x,me.y,descriptor.castBurst,18);beep(descriptor.castBeepHz,.25);
+          log(`${descriptor.name} · ${fact.durationMs/1000}s · ${fact.effect==='jammer'?'Enemy Sprint disabled nearby.':'Movement +25%. Parkour disabled.'}`);
         }
       });
       const ultimateCasting = coreUltimateCasting(me,now,ULTIMATE_CHARACTER_IDS);
@@ -2672,9 +2694,13 @@ export function BentenganPrototype() {
       }
       const sprintPulse = input.sprintPulse && mouseBoost;
       const boostKey = input.keyboardSprint || sprintPulse;
+      const sprintJammed=isSprintJammed(me,players,now,effectStateFor);
+      const driveActive=isIronDriveActive(me,now,effectStateFor(me));
+      if(sprintJammed){boostBurstUntil=0;boostLatch=false;}
       let boostActivated=false;
       if (
         boostKey &&
+        !sprintJammed &&
         !flightBusy(me) &&
         (!boostLatch || sprintPulse) &&
         me.boost > 0 &&
@@ -2682,9 +2708,10 @@ export function BentenganPrototype() {
         (me.state === 'ACTIVE' || me.state === 'IN_BASE')
       )
         {boostBurstUntil = now + GAME_RULES.boostDurationMs;boostActivated=true;}
-      boostLatch = boostKey;
+      boostLatch = !sprintJammed&&boostKey;
       mouseBoost = false;
       const boosting =
+        !sprintJammed &&
         !flightBusy(me) &&
         now < boostBurstUntil &&
         me.boost > 0 &&
@@ -2697,7 +2724,7 @@ export function BentenganPrototype() {
         mission.boost = true;
       }
       const vaultBefore={x:me.x,y:me.y};
-      const vault=localParkour.step(me,input.parkour,input.parkourPulse,{x:dx,y:dy},selected.agility,now,findParkourLanding);
+      const vault=localParkour.step(me,input.parkour,input.parkourPulse,{x:dx,y:dy},selected.agility,now,findParkourLanding,driveActive?'IRON_DRIVE':undefined);
       if(vault.performed&&vault.landing){mission.parkour=true;burst(me.x,me.y,vault.landing.crossedWater?'#65e9ff':'#f4df9a',9);beep(460);parkourFeedback='';parkourFeedbackUntil=0;}
       else if(vault.requested){parkourFeedback=parkourReasonText[vault.reason];parkourFeedbackUntil=now+900;}
       const mouseBefore = { x: me.x, y: me.y };
@@ -2733,6 +2760,7 @@ export function BentenganPrototype() {
             (isFlying(me) && config ? config.speedMultiplier : 1) *
             playerComboMultiplier *
             rajaUltimateMultiplier(me) *
+            ironDriveMultiplier(me,now,effectStateFor(me)) *
             (boosting ? selected.boostMultiplier : 1)),
           dt,
           now,
@@ -2755,6 +2783,9 @@ export function BentenganPrototype() {
         move,landing:findParkourLanding,near:()=>true,
         returnVector:(p,now)=>pasar2PrisonEgress?.vector(p)??navigateAroundHazards(p,baseVector(p),now,104,Math.sin(p.aiSeed+now/1700)),
         combo:(p,now)=>teamComboSpeedMultiplier(teamCombos[p.team],now)*rajaUltimateMultiplier(p),water:isKanalField(field.id),boostDurationMs:GAME_RULES.boostDurationMs,groundValid:flightGroundValid,
+        sprintJammed:(p,now)=>isSprintJammed(p,players,now,effectStateFor),
+        driveActive:(p,now)=>isIronDriveActive(p,now,effectStateFor(p)),
+        driveMultiplier:(p,now)=>ironDriveMultiplier(p,now,effectStateFor(p)),
       });
       relayBotInputs.clear();
       if(tutorialDirector){
@@ -2780,10 +2811,11 @@ export function BentenganPrototype() {
         if(network&&p.flight)return;
         if(intent.blocked){p.vx=0;p.vy=0;return;}
         const stats=statsOf(p);
-        if(intent.frame.sprint)drainBoost(p,stats.boostDrain*AI_BOOST_DRAIN_MULTIPLIER,dt,now);
+        const sprint=intent.frame.sprint&&!isSprintJammed(p,players,now,effectStateFor);
+        if(sprint)drainBoost(p,stats.boostDrain*AI_BOOST_DRAIN_MULTIPLIER,dt,now);
         const comboMultiplier=teamComboSpeedMultiplier(teamCombos[p.team],now);
         move(p,intent.frame.moveX,intent.frame.moveY,
-          stats.speed*comboMultiplier*rajaUltimateMultiplier(p)*AI_SPEED_MULTIPLIER*(intent.frame.sprint?stats.boostMultiplier:1),
+          stats.speed*comboMultiplier*rajaUltimateMultiplier(p)*ironDriveMultiplier(p,now,effectStateFor(p))*AI_SPEED_MULTIPLIER*(sprint?stats.boostMultiplier:1),
           dt,now,intent.frame);
       });
       resolvePlayerSpacing(now);
@@ -3230,7 +3262,7 @@ const spriteFrame = (
           ? clamp((now - p.waterEnteredAt) / 720, 0, 1)
           : waterFall ? 1 - (p.waterFallUntil - now) / 720 : 0,
         bob = flightBusy(p)
-          ? -(flightConfig(p.characterId)?.visualHeight ?? 24) * (isFlying(p) ? 1 : p.flight?.stage === 'FLIGHT_TAKEOFF' ? Math.min(1,p.flight.elapsed/(flightConfig(p.characterId)?.takeoffSeconds??.7)) : Math.max(0,1-p.flight!.elapsed/(flightConfig(p.characterId)?.landingSeconds??.4)))
+          ? -(flightConfig(p.characterId)?.visualHeight ?? 24) * (isFlying(p) ? 1 : p.flight?.stage === 'FLIGHT_TAKEOFF' ? Math.min(1,p.flight.elapsed/(flightConfig(p.characterId)?.takeoffSeconds??.7)) : 0)
           : now < p.parkourUntil
           ? -15
           : waterFall
@@ -3294,6 +3326,9 @@ const spriteFrame = (
                 Math.floor(elapsed / (actorUltimateCastMs / columns.length)),
               )
             ];
+        } else if(p.action==='ultimate'){
+          // Pending authored trigger (Phase05): idle pose, never a rescue clip.
+          row=animation.directionRows[direction]??directionalRow(direction);columns=[0];
         } else if (p.action === 'tag' && animation.tagByDirection) {
           row = animation.tag.row;
           columns = [animation.tagByDirection[direction]];
@@ -3832,7 +3867,7 @@ const spriteFrame = (
       if (mode === 'playing') {
         playerEffects.retain(players.map(p=>p.entityId));
         // Snapshot buffUntil belongs to its serialized Raja caster, not the viewer.
-        const buffCasters=network?(clientOnly?players.filter(p=>p.characterId==='raja').slice(0,1).map(p=>({team:p.team,until:ultimateBuffUntil})):players.map(p=>({team:p.team,until:networkUltimates.get(p.entityId)?.buffUntil??0}))):[{team:me.team,until:ultimateBuffUntil}];
+        const buffCasters=network?players.map(p=>({team:p.team,until:clientOnly?clientPresentation?.ultimate.actors?.find(row=>row.actorId===p.entityId)?.buffUntil??0:networkUltimates.get(p.entityId)?.buffUntil??0})):[{team:me.team,until:ultimateBuffUntil}];
         const effects=phase==='PLAYING'?players.slice().sort((a,b)=>Number(!!b.controlled)-Number(!!a.controlled)).flatMap(p=>{
           const sprint=p.entityId===me.entityId&&localSprintActive&&p.boost>0&&!(p.action==='ultimate'&&now<p.actionUntil)?boostBurstUntil:0;
           const effect=playerEffects.read(p,now,sprint,teamBuffDeadline(p,buffCasters));
@@ -3840,6 +3875,7 @@ const spriteFrame = (
           return effect?[{p,...effect,tagRow:relation==='target'||relation==='danger',waterRow:p.state!=='PRISONER'&&now>=p.parkourUntil&&isWaterAt(p.x,p.y)}]:[];
         }):[];
         effectBadges=drawPlayerEffects(ctx,effects,view,getLanguage()==='id',hudPreferencesRef.current.scale,signReducedMotion.matches);
+        if(phase==='PLAYING')drawUltimateEffects(ctx,players,effectStateFor,now,p=>({x:(p.x-camX)*scale+cw/2,y:(p.y-camY)*scale+ch/2}),scale,signReducedMotion.matches);
         drawEventSigns(ctx,eventSigns.read(),signBounds,view,signImages,signReducedMotion.matches);
         const lessonGoal=tutorialGoalRef.current?.point;
         if(tutorialIdentity&&lessonGoal){
@@ -3918,6 +3954,8 @@ const spriteFrame = (
             assignedRescuerId:players.find(p=>p.entityId===s.rescueRequest!.assignedRescuerId)?.id}:null;
           teamCombos={blue:{...teamCombos.blue,...s.combos.red},red:{...teamCombos.red,...s.combos.green}};
           ultimateBuffUntil=s.ultimate.buffUntil;ultimateShieldUntil=s.ultimate.shieldUntil;ultimateMeter=players[0]?s.entities.find(e=>e.id===myEntityId)?.ultimateMeter??0:0;
+          const ownEffects=s.ultimate.actors.find(p=>p.actorId===myEntityId);
+          ultimateJammerUntil=ownEffects?.jammerUntil??0;ultimateDriveUntil=ownEffects?.driveUntil??0;
           roundWinner=s.result?.winner==='red'?'blue':s.result?.winner==='green'?'red':undefined;roundEndReason=s.result?.reason??'';
           resultWinner=roundWinner;if(changedResult)resultAnnouncementUntil=s.timeMs+1500;
           if(lastNetworkFrame){matchStartedAt=lastNetworkFrame.matchStartedAtMs;
@@ -4033,7 +4071,10 @@ const spriteFrame = (
         } else if(cachedStatsBoard.visible) {
           cachedStatsBoard={...cachedStatsBoard,visible:false};
         }
-        const parkourStatus=evaluateParkour(me,localParkour.direction(me.entityId),selected.agility,now,findParkourLanding);
+        const driveActive=isIronDriveActive(me,now,effectStateFor(me));
+        const parkourStatus=evaluateParkour(me,localParkour.direction(me.entityId),selected.agility,now,findParkourLanding,driveActive?'IRON_DRIVE':undefined);
+        const effectUntil=ultimateEffectDeadline(me.characterId,{buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil,jammerUntil:ultimateJammerUntil,driveUntil:ultimateDriveUntil});
+        if(development)canvas.dataset.ultimateEffects=JSON.stringify({jammerUntil:ultimateJammerUntil,driveUntil:ultimateDriveUntil,driveActive,sprintJammed:isSprintJammed(me,players,now,effectStateFor),parkourReason:parkourStatus.reason});
         const vaultLocked=paused||players.some(p=>coreUltimateCasting(p,now,ULTIMATE_CHARACTER_IDS));
         const parkourCooldownSeconds=Math.ceil(parkourCooldownRemaining(me,now)/1000);
         setSnapshot({
@@ -4057,7 +4098,7 @@ const spriteFrame = (
             nearEnemyFort:distance(me,bases[other(me.team)])<baseRadius*2,fortOpen:lockRemaining===0,
             tagOpportunity:players.some(p=>distance(me,p)<220&&tagRelationship(me,p,now,isKanalField(field.id))==='target')},
           parkourCooldownSeconds,
-          parkourHint:vaultLocked?parkourReasonText.locked:parkourCooldownSeconds>0?`Parkour siap dalam ${parkourCooldownSeconds} detik`:parkourFeedbackUntil>now?parkourFeedback:parkourReasonText[parkourStatus.reason],
+          parkourHint:driveActive?parkourReasonText.IRON_DRIVE:vaultLocked?parkourReasonText.locked:parkourCooldownSeconds>0?`Parkour siap dalam ${parkourCooldownSeconds} detik`:parkourFeedbackUntil>now?parkourFeedback:parkourReasonText[parkourStatus.reason],
           logs,
           mission: { ...mission,tag:mission.tag||(matchStats[me.id]?.tags??0)>0,
             rescue:mission.rescue||(matchStats[me.id]?.rescues??0)>0 },
@@ -4102,13 +4143,9 @@ const spriteFrame = (
             : 0,
           ultimateBuffRemaining:
             isFlying(me) ? Math.ceil(me.flight!.remaining) : now <
-            (me.characterId === 'kaka'
-              ? ultimateShieldUntil
-              : ultimateBuffUntil)
+            effectUntil
               ? Math.ceil(
-                  ((me.characterId === 'kaka'
-                    ? ultimateShieldUntil
-                    : ultimateBuffUntil) -
+                  (effectUntil -
                     now) /
                     1000,
                 )
@@ -4225,6 +4262,10 @@ const spriteFrame = (
         const raja=players.find(p=>p.characterId==='raja'),rajaState=raja?networkUltimates.get(raja.entityId):null;
         state.ultimate.buffUntil=rajaState?.buffUntil??0;state.ultimate.effectiveStats={castMs:ultimateCastMsFor(players[0]),speedMultiplier:RAJA_ULTIMATE_SPEED_MULTIPLIER};
       }
+      state.ultimate.actors=players.flatMap(p=>{
+        const effects=network?networkUltimates.get(p.entityId):p.entityId===myEntityId?{buffUntil:ultimateBuffUntil,shieldUntil:ultimateShieldUntil,jammerUntil:ultimateJammerUntil,driveUntil:ultimateDriveUntil}:null;
+        return effects?[{actorId:p.entityId,buffUntil:effects.buffUntil,shieldUntil:effects.shieldUntil,jammerUntil:effects.jammerUntil,driveUntil:effects.driveUntil}]:[];
+      });
       return state;
     };
     const coreProbe = { readState: () => structuredClone(clientPresentation??readCanonicalState()), readSnapshot: () => createSnapshot(clientPresentation??readCanonicalState()),readNetwork:()=>network?.metrics()??null,readArena:()=>({width:worldWidth,height:worldHeight}),readSigns:()=>eventSigns.read(),readSignBounds:()=>Object.fromEntries(signBounds),readView:()=>({...view}),readEffects:()=>structuredClone(effectBadges),readRelay:()=>relay?.get()??null,readRelayMetrics:()=>relay?relayTelemetry?.read()??null:null,openRelayGate:()=>{if(development)relay?.debugOpen();} };
@@ -4300,7 +4341,7 @@ const spriteFrame = (
       if (isKanalField(field.id)) delete debugHost.__kanalCollision;
       if(coreHost.__bentengGameCore===coreProbe)delete coreHost.__bentengGameCore;
     };
-  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate,tutorialMatch,tutorialSignal]);
+  }, [mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, ULTIMATE_CHARACTER_IDS, selectionGate,tutorialMatch,tutorialSignal]);
 
   const missionCount = useMemo(
     () => Object.values(snapshot.mission).filter(Boolean).length,
@@ -4456,7 +4497,11 @@ const spriteFrame = (
       setMenuStep('team');
       return;
     }
-    if (menuStep === 'team') return setMenuStep('splash');
+    if (menuStep === 'team' || menuStep === 'custom') return setMenuStep('modes');
+    if (menuStep === 'modes') {
+      setMenuStep('splash');
+      requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('.enter-game')?.focus());
+    }
   };
 
   useEffect(() => {
@@ -4479,7 +4524,7 @@ const spriteFrame = (
       if (menuStep === 'splash' && (key === ' ' || key === 'enter')) {
         event.preventDefault();
         playAudioCue('press-play.mp3', 0.64);
-        setMenuStep('team');
+        setMenuStep('modes');
         return;
       }
       if (key === 'escape') {
@@ -4621,10 +4666,11 @@ const spriteFrame = (
         }
       >
         <div className="ink-noise" />
+        <MenuReveal key={menuStep} step={menuStep} />
         {contentGateError && <div className="content-gate-notice" role="alert">
           {t(contentGateError)}<button onClick={() => setContentGateError('')} aria-label={t("Tutup pesan")}>{t("×")}</button>
         </div>}
-        {playerProfile && menuStep === 'splash' && (
+        {playerProfile && ['splash','modes','custom'].includes(menuStep) && (
           <ProfileTriggerButton
             onOpen={() => {
               keys.current.clear();
@@ -4632,18 +4678,21 @@ const spriteFrame = (
             }}
           />
         )}
-        {menuStep === 'splash' && <ArenaBackdrop id={landingArena} video onEnded={nextLandingArena} />}
+        {['splash','modes','custom'].includes(menuStep) && <ArenaBackdrop id={menuStep==='splash'?landingArena:'kampung'} video={menuStep==='splash'} onEnded={menuStep==='splash'?nextLandingArena:undefined} />}
         {menuStep === 'field' && <ArenaBackdrop id={selectedFieldId} />}
         {menuStep === 'splash' && (
           <SplashScreen
-            resolveAsset={uiAsset}
             onEnter={() => {
               playAudioCue('press-play.mp3', 0.64);
-              setMenuStep('team');
+              setMenuStep('modes');
             }}
-            onMultiplayer={() => setMultiplayerOpen(true)}
           />
         )}
+
+        {menuStep === 'modes' && <ModeSelectScreen
+          onCampaign={()=>{playAudioCue('press-play.mp3',0.64);setMenuStep('team');}}
+          onOnline={()=>setMultiplayerOpen(true)} onCustom={()=>setMenuStep('custom')} />}
+        {menuStep === 'custom' && <CustomRoomScreen onBack={goBack} />}
 
         {menuStep === 'team' && (
           <TeamScreen
@@ -4707,10 +4756,16 @@ const spriteFrame = (
           />
         )}
 
-        {menuStep !== 'splash' && (
+        {['modes','custom'].includes(menuStep) ? <ModeBackButton onBack={goBack} /> : menuStep !== 'splash' && (
           <BackButton resolveAsset={uiAsset} onBack={goBack} />
         )}
-        <MenuActionsRow
+        {menuStep === 'splash' ? <HomeMenuActions
+          onRules={()=>setRulesOpen(true)} onCredits={()=>setCreditsOpen(true)} onOpen={()=>keys.current.clear()}
+          onTutorial={playerProfile?()=>{
+            try{keys.current.clear();stopCharacterVoice();if(!startPlayerTutorial(playerProfile.tutorial?.status!=='in_progress'))throw new Error('Profil pemain tidak tersedia.');launchTutorial();}
+            catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}
+          }:undefined}
+        /> : !['modes','custom'].includes(menuStep) && <MenuActionsRow
           menuStep={menuStep}
           musicMuted={musicMuted}
           resolveAsset={uiAsset}
@@ -4725,7 +4780,7 @@ const spriteFrame = (
               launchTutorial();
             } catch(error){setTutorialEntryError(error instanceof Error?error.message:'Tutorial belum tersimpan.');}
           }:undefined}
-        />
+        />}
         {tutorialEntryError&&<div className="content-gate-notice" role="alert">{t(tutorialEntryError)}<button onClick={()=>setTutorialEntryError('')} aria-label={t('Tutup')}>×</button></div>}
         {playerProfile&&<TutorialEntry profile={playerProfile} offer={tutorialOffered} open={tutorialEntryOpen}
           onStarted={launchTutorial}
@@ -4744,7 +4799,7 @@ const spriteFrame = (
         )}
         {multiplayerOpen&&playerProfile&&<Suspense fallback={<LoadingPanel slot="multiplayer" label={t("Memuat panel multiplayer…")} />}><MultiplayerPanel
           initialName={playerProfile?.username}
-          arenas={FIELD_CONFIGS.filter(f=>f.id!=='kampung3d')}
+          arenas={SELECTION_FIELDS.filter(f=>f.id!=='kampung3d')}
           prepareContent={async id=>{
             const field=FIELD_BY_ID[id as FieldId],map=runtimeStudioMapById[id];
             retainMapImages(map?[map]:[]);
@@ -4939,6 +4994,7 @@ const spriteFrame = (
               hudTitle={selected.ultimate?.hudTitle ?? 'Titah Halilintar'}
               bannerAlt={selected.ultimate?.bannerAlt ?? 'TITAH HALILINTAR'}
               bannerClass={selected.ultimate?.bannerClass}
+              textOnly={selected.ultimate?.kind==='jammer'||selected.ultimate?.kind==='drive'}
             />
           )}
         </div>

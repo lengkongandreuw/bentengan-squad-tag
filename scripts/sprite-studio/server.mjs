@@ -154,7 +154,7 @@ export async function startSpriteStudio(port=4319,projectRoot=root,options={}) {
           if(value===null) {if(document.characters[data.id])delete document.characters[data.id][slot];continue;}
           const clip=validateClip(value,data.id);
           if(slot.split('.')[0]==='boost_dust'){validateBoostDust(clip);clip.loop=true;}
-          if(isFlightSlot(slot))clip.loop=slotLoop(slot);
+          if(isFlightSlot(slot)||slot.split('.')[0]==='ultimate_cast')clip.loop=slotLoop(slot);
           const target=await realpath(path.join(projectRoot,'public',clip.asset)),publicDir=await realpath(path.join(projectRoot,'public'));
           if(!target.startsWith(publicDir+path.sep))throw new Error('Aset di luar proyek.');
           const meta=await sharp(await readFile(target)).metadata();if(meta.width!==clip.width||meta.height!==clip.height)throw new Error('Ukuran atlas tidak cocok.');

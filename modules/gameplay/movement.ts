@@ -1,6 +1,7 @@
 import type { Point, RuntimeActor, LegacyTeam } from '../../lib/game-core/types.ts';
 import { clamp, distance } from '../../lib/math.ts';
 import { isFlying, flightPassesObstacle } from './flight-ultimate.ts';
+import {LOW_OBSTACLE_ASSETS} from './low-obstacles.ts';
 import { pointHitsExpandedRect } from './collision-navigation.ts';
 import type { PlayerInputFrame } from '../../lib/game-core/input.ts';
 
@@ -138,7 +139,7 @@ export function moveActor(
   else if (enterWaterFall(world, p, now, p.x, y)) return { type: 'water-fall', entityId: p.entityId };
   return null;
 }
-export const PARKOUR_LOW_ASSETS=new Set(['bucket','bush','crates','drain','trash','plant','plantFence','flowerBedSmall','flowerFence','parkBarrier','parkFlowerFence','parkFlowerFenceLong','parkPlanterLong','map2BarrierGreen','map2BarrierRed','map2PlanterGreen','map2PlanterRed','canalBarrier','canalBarrierLong','kanalNusaBarrier','kanalNusaPlanterLong','kanalNusaPlanterOval']);
+export const PARKOUR_LOW_ASSETS=LOW_OBSTACLE_ASSETS;
 export const parkourPassesObstacle=(o:CollisionWorld['obstacles'][number])=>PARKOUR_LOW_ASSETS.has(o.asset);
 // Explicit river allowance, scaled by agility. Water must start on the normal
 // vault path near the actor; distant water cannot extend an unrelated vault.

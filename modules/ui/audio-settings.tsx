@@ -82,9 +82,11 @@ function AudioArtSlider({
 export function AudioSettings({
   onOpen,
   trigger,
+  triggerLabel,
 }: {
   onOpen?: () => void;
   trigger?: ReactNode;
+  triggerLabel?: string;
 }) {
   const [levels, setLevels] = useState(DEFAULT_AUDIO_LEVELS);
   const [sound, setSound] = useState<GameplaySound>('step');
@@ -198,7 +200,7 @@ export function AudioSettings({
           onKeyDown={(event) => event.stopPropagation()}
           onKeyUp={(event) => event.stopPropagation()}
         >
-          {trigger && getLanguage()==='en' ? <span className="settings-wordmark">SETTINGS</span> : t(trigger ?? '♫ AUDIO')}
+          {triggerLabel ?? (trigger && getLanguage()==='en' ? <span className="settings-wordmark">SETTINGS</span> : t(trigger ?? '♫ AUDIO'))}
         </summary>
       </details>
       {t(open &&

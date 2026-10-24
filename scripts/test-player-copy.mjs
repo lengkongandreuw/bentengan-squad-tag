@@ -16,5 +16,5 @@ void test('player-facing maps hide editor notes without changing original descri
 void test('rules still explain flight immunity, restrictions and duration gates without developer vocabulary',()=>{
   const source=fs.readFileSync('modules/ui/rules-overlay.tsx','utf8'),rules=source.slice(source.indexOf('<h2 id="rules-title">'),source.indexOf('Desktop: WASD gerak'));
   for(const word of ['collider','core loop','Rules test','takeoff','pickup'])assert(!rules.includes(word),word);
-  for(const text of ['5 detik','6,5 detik','2 detik','1,5 detik','4 menit','2 ronde','lepas landas','mendarat','tidak','rescue','level upgrade'])assert(rules.includes(text),text);
+  for(const text of ['5 detik','6,5 detik','2 detik','1,5 detik','4 menit','2 ronde','lepas landas','langsung kembali normal','tidak','rescue','Upgrade DOI','durasi terbang'])assert(rules.includes(text),text);
 });

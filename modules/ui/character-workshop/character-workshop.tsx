@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CHARACTERS, CharacterId, characterAsset, characterUsesDedicatedEast } from '../../../lib/characters.ts';
 import { BOOST_COLUMNS, directionalRow, RUN_COLUMNS } from '../../../lib/sprite-motion.js';
-import { ChevronLeft, Download, Grid3X3, Pause, Play, Upload } from 'lucide-react';
+import { Download, Grid3X3, Pause, Play, Upload } from 'lucide-react';
+import { ArtworkBackButton } from '../back-button.tsx';
 
 type Direction = 'south' | 'west' | 'east' | 'north';
 type AnimationName = 'idle' | 'run' | 'boost' | 'tag' | 'rescue' | 'prisoner' | 'victory' | 'defeat';
@@ -117,7 +118,7 @@ export function CharacterWorkshop({ onClose }: { onClose: () => void }) {
     <section className="workshop-shell" aria-label="Bentengan Character Workshop">
       <header className="workshop-head">
         <div><span>Asset pipeline v8 · runtime ringan 7×6</span><h1>Character Workshop</h1><p>Audit frame, anchor, skala, dan animasi sebelum masuk ke arena.</p></div>
-        <button className="workshop-back" onClick={onClose}><ChevronLeft size={17} /> Kembali ke game</button>
+        <ArtworkBackButton className="workshop-back" onBack={onClose} label="Back to game" />
       </header>
       <div className="workshop-layout">
         <aside className="workshop-roster">

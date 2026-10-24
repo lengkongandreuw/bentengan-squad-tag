@@ -1,5 +1,6 @@
 import { t } from '../../lib/language';
 import { ArenaBackdrop } from './arena-backdrop.tsx';
+import { ArtworkBackButton } from './back-button.tsx';
 import { LoadingMedia, loadingUsesBuiltinProgress } from './loading-media.tsx';
 
 // Fullscreen asset-loading screen (selection or match). The owner owns
@@ -56,7 +57,7 @@ export const AssetLoadingScreen = ({
       <progress max={100} value={loadProgress} aria-label={t("Progres pemuatan aset")} />
       <p>{loadProgress}{t("%")}</p>
       {loadError && <button onClick={onRetry}>{t("COBA LAGI")}</button>}
-      <button onClick={onBack}>{t("KEMBALI KE PILIH TIM")}</button>
+      <ArtworkBackButton onBack={onBack} label={t('KEMBALI KE PILIH TIM')} />
     </section>
   </main>;
 };

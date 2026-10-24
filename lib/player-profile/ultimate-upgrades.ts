@@ -27,7 +27,7 @@ export function parseUltimateUpgradeCatalog(value: unknown): UltimateUpgradeCata
   return Object.freeze({version:1,characters:Object.freeze(characters)});
 }
 export const ultimateUpgradeCatalog = parseUltimateUpgradeCatalog(config);
-export const createDefaultUltimateUpgrades = (): UltimateUpgradeState => ({version:1,levels:{raja:0,kaka:0}});
+export const createDefaultUltimateUpgrades = (): UltimateUpgradeState => ({version:1,levels:{raja:0,kaka:0,robot:0,buto:0}});
 export function getUltimateUpgradeConfig(id: string, level=0): UltimateUpgradeLevel | null {
   if(!count(level))return null;
   return ultimateUpgradeCatalog.characters.find(entry=>entry.characterId===id)?.levels[level]??null;

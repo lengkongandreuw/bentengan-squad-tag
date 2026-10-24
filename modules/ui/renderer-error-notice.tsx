@@ -1,4 +1,5 @@
 import { t } from '../../lib/language';
+import { ArtworkBackButton } from './back-button.tsx';
 
 // Renderer failure fallback over the 3D stage. Pure presentation.
 export const RendererErrorNotice = ({
@@ -11,6 +12,6 @@ export const RendererErrorNotice = ({
   <div className="renderer-error" role="alert">
     <strong>{t("MAP 3D TIDAK TERSEDIA")}</strong>
     <p>{t(error)}</p>
-    <button onClick={onBack}>{t("KEMBALI KE MENU")}</button>
+    <ArtworkBackButton onBack={onBack} label={t('KEMBALI KE MENU')} />
   </div>
 );

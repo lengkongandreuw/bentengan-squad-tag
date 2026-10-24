@@ -32,7 +32,8 @@
     "maps:runtime": "node --experimental-strip-types scripts/build-map-runtime.mjs",
     "test:map-runtime": "node --test scripts/test-map-runtime.mjs",
     "sprites:runtime": "node scripts/build-studio-runtime.mjs",
-    "ui:build": "node scripts/build-ui-assets.mjs && node scripts/build-preview-refresh.mjs && node scripts/build-credits.mjs",
+    "ui:build": "node scripts/build-ui-assets.mjs && node scripts/build-preview-refresh.mjs && node scripts/build-credits.mjs && node scripts/build-home-menu-assets.mjs",
+    "ui:home": "node scripts/build-home-menu-assets.mjs",
     "fields:build": "node scripts/build-field-assets.mjs",
     "fields:baseline": "node scripts/update-field-baseline.mjs",
     "sprites:build": "node scripts/build-jago-source.mjs && node scripts/build-sprites.mjs && node scripts/build-series-sprites.mjs && node scripts/build-kaka-ultimate.mjs && node scripts/build-vfx.mjs && node scripts/build-web-assets.mjs",
@@ -43,7 +44,7 @@
     "verify:runtime": "node scripts/verify-runtime-build.mjs",
     "verify": "npm run ui:build && npm run fields:build && npm run sprites:build && npm run audit && npm run build && npm run verify:runtime && npm run build:pages",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint",
+    "lint": "oxlint --ignore-path .gitignore",
     "check": "npx tsc --noEmit && npm run lint && npm run audit && npm run build:pages",
     "format": "oxfmt"
   },

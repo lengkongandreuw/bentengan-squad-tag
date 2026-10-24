@@ -6,6 +6,7 @@ export type ArenaProgressionTier = {
   arenaIds: string[];
   mode?: 'campaign' | 'bonus' | 'free-play';
   tier?: number;
+  difficulty?: 'easy' | 'normal' | 'hard';
 };
 export type ArenaUnlockRequirement = {
   arenaId: string;
@@ -90,9 +91,11 @@ export function parseProgressionRules(value: unknown): ProgressionRules {
     if (!arenaIds.length) fail('tier.arenaIds');
     if (r.mode !== undefined && !['campaign', 'bonus', 'free-play'].includes(r.mode as string)) fail('tier.mode');
     if (r.mode === 'campaign' && r.tier === undefined) fail('tier.tier');
+    if (r.difficulty !== undefined && !['easy', 'normal', 'hard'].includes(r.difficulty as string)) fail('tier.difficulty');
     return { id: id(r.id, 'tier.id'), arenaIds,
       ...(r.mode !== undefined ? { mode: r.mode as ArenaProgressionTier['mode'] } : {}),
       ...(r.tier !== undefined ? { tier: counter(r.tier, 'tier.tier', 1) } : {}),
+      ...(r.difficulty !== undefined ? { difficulty: r.difficulty as ArenaProgressionTier['difficulty'] } : {}),
     };
   });
   unique(tiers.map(t => t.id), 'tier.id');

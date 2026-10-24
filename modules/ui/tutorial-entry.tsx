@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {t} from '../../lib/language';
+import {ArtworkBackButton} from './back-button.tsx';
 import {startPlayerTutorial,skipPlayerTutorial} from '../../lib/player-profile/profile-service';
 import type {LocalPlayerProfile} from '../../lib/player-profile/types';
 import './tutorial-entry.css';
@@ -47,7 +48,7 @@ export function TutorialEntry({profile,offer,open,onStarted,onClosed,onSkipped}:
         <div className="tutorial-entry-actions"><button type="button" onClick={skip}>{t('KELUAR TUTORIAL')}</button>
           <button type="button" onClick={()=>setConfirmExit(false)}>{t('TETAP DI SINI')}</button></div>
       </section>:<div className="tutorial-entry-actions">
-        <button type="button" onClick={onClosed}>{t('KEMBALI KE MENU')}</button>
+        <ArtworkBackButton onBack={onClosed} label={t('KEMBALI KE MENU')} />
         <button type="button" onClick={()=>setConfirmExit(true)}>{t('KELUAR TUTORIAL')}</button>
       </div>}
     </>}

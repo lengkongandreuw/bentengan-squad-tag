@@ -1,20 +1,24 @@
 import type { Faction } from '../world/map-data/field-types';
+import {progressionRules} from '../../lib/player-profile/progression-rules.ts';
 export type MapSelectionTheme = 'purple' | 'green' | 'red';
 export type ArenaSelectionState = { id: string; unlocked: boolean; requirement: string; requirementParts?: string[] };
-// Presentation order only. Resolve editor replacements through their original ID,
-// never their display name or append position in the Studio document.
+const campaignTiers = progressionRules.arenaProgression.tiers.filter(tier=>tier.mode==='campaign')
+  .slice().sort((a,b)=>(a.tier??0)-(b.tier??0));
+const campaignOrder = campaignTiers.flatMap(tier=>tier.arenaIds);
+export function arenaSelectionDifficulty(arenaId:string, fallback:'easy'|'normal'|'hard') {
+  return campaignTiers.find(tier=>tier.arenaIds.includes(arenaId))?.difficulty ?? fallback;
+}
+// Campaign/unlock order first; optional free-play maps follow by difficulty.
+// Editor replacements keep their canonical position, irrespective of name/order.
 export function orderArenaSelection<T extends {id: string; difficulty: 'easy' | 'normal' | 'hard'}>(
   fields: readonly T[], canonicalId: (id: string) => string = id => id,
 ): T[] {
   const difficulty = {easy: 0, normal: 1, hard: 2};
-  const native = ['kampung', 'kampung3d', 'pasar', 'taman', 'kanal', 'kanal2'];
-  const rank = (id: string) => {const i = native.indexOf(id);return i < 0 ? native.length : i;};
-  const gardu=fields.some(f=>f.id==='studio-gardu-tengah'&&canonicalId(f.id)==='pasar');
-  const campaignHead=(id:string)=>id==='kampung'?0:gardu&&id==='pasar'?1:2;
+  const rank = (id:string) => {const i=campaignOrder.indexOf(id);return i<0?campaignOrder.length:i;};
   return fields.map((field,index)=>({field,index,id:canonicalId(field.id)}))
-    .sort((a,b)=>campaignHead(a.id)-campaignHead(b.id) ||
+    .sort((a,b)=>rank(a.id)-rank(b.id) ||
       difficulty[a.field.difficulty]-difficulty[b.field.difficulty] ||
-      rank(a.id)-rank(b.id) || a.index-b.index)
+      a.index-b.index)
     .map(entry=>entry.field);
 }
 export const mapSelectionTheme = (faction?: Faction | null): MapSelectionTheme =>

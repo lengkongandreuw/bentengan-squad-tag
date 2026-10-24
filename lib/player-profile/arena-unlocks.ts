@@ -1,5 +1,5 @@
 import { getArenaStats } from './arena-stats.ts';
-import { getProgressionArenaId, getProgressionArenaIds } from './arena-identity.ts';
+import { getProgressionArenaId, getProgressionArenaIds, getStandaloneStudioArenaIds } from './arena-identity.ts';
 import { progressionRules } from './progression-rules.ts';
 import type { LocalPlayerProfile } from './types';
 import { getLevelFromXP } from './xp-engine.ts';
@@ -38,7 +38,8 @@ export function getArenaUnlockProgress(profile: LocalPlayerProfile, arenaId: str
       check('tierWins', wins, r.minWins, r.tierId);
     }
   }
-  const eligible = starter || (requirement !== null && checks.every(c => c.met));
+  const freePlay = requirement === null && getStandaloneStudioArenaIds().includes(arenaId);
+  const eligible = starter || freePlay || (requirement !== null && checks.every(c => c.met));
   return { arenaId, requirement, checks, eligible, unlocked: historical || eligible };
 }
 
@@ -52,7 +53,7 @@ export function resolveArenaUnlocks(profile: LocalPlayerProfile) {
   const unlocked = new Set(progression.unlockedArenaIds);
   const newlyUnlockedArenaIds: string[] = [];
   for (const id of [...progressionRules.initialUnlocks.arenaIds,
-    ...progressionRules.arenaProgression.unlockRequirements.map(r => r.arenaId)]) {
+    ...progressionRules.arenaProgression.unlockRequirements.map(r => r.arenaId), ...getStandaloneStudioArenaIds()]) {
     if (!unlocked.has(id) && isArenaUnlocked(profile, id)) {
       unlocked.add(id);
       newlyUnlockedArenaIds.push(id);

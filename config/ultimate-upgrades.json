@@ -12,6 +12,30 @@
       { "level": 1, "cost": 120, "rechargeSeconds": 44, "castMs": 3400, "durationMs": 5500 },
       { "level": 2, "cost": 280, "rechargeSeconds": 42, "castMs": 3200, "durationMs": 6000 },
       { "level": 3, "cost": 520, "rechargeSeconds": 40, "castMs": 3000, "durationMs": 6500 }
+    ] },
+    { "characterId": "bebe", "levels": [
+      { "level": 0, "cost": 0, "rechargeSeconds": 45, "castMs": 700, "durationMs": 4000 },
+      { "level": 1, "cost": 120, "rechargeSeconds": 45, "castMs": 700, "durationMs": 5000 },
+      { "level": 2, "cost": 280, "rechargeSeconds": 45, "castMs": 700, "durationMs": 6000 },
+      { "level": 3, "cost": 520, "rechargeSeconds": 45, "castMs": 700, "durationMs": 7000 }
+    ] },
+    { "characterId": "robot", "levels": [
+      { "level": 0, "cost": 0, "rechargeSeconds": 45, "castMs": 650, "durationMs": 4000 },
+      { "level": 1, "cost": 120, "rechargeSeconds": 45, "castMs": 650, "durationMs": 4500 },
+      { "level": 2, "cost": 280, "rechargeSeconds": 45, "castMs": 650, "durationMs": 5000 },
+      { "level": 3, "cost": 520, "rechargeSeconds": 45, "castMs": 650, "durationMs": 5500 }
+    ] },
+    { "characterId": "buto", "levels": [
+      { "level": 0, "cost": 0, "rechargeSeconds": 45, "castMs": 600, "durationMs": 4000, "speedMultiplier": 1.25 },
+      { "level": 1, "cost": 120, "rechargeSeconds": 45, "castMs": 600, "durationMs": 4500, "speedMultiplier": 1.25 },
+      { "level": 2, "cost": 280, "rechargeSeconds": 45, "castMs": 600, "durationMs": 5000, "speedMultiplier": 1.25 },
+      { "level": 3, "cost": 520, "rechargeSeconds": 45, "castMs": 600, "durationMs": 5500, "speedMultiplier": 1.25 }
+    ] },
+    { "characterId": "ciici", "levels": [
+      { "level": 0, "cost": 0, "rechargeSeconds": 45, "castMs": 650, "durationMs": 4000 },
+      { "level": 1, "cost": 120, "rechargeSeconds": 45, "castMs": 650, "durationMs": 5000 },
+      { "level": 2, "cost": 280, "rechargeSeconds": 45, "castMs": 650, "durationMs": 6000 },
+      { "level": 3, "cost": 520, "rechargeSeconds": 45, "castMs": 650, "durationMs": 7000 }
     ] }
   ]
 }

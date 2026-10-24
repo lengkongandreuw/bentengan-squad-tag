@@ -4,6 +4,7 @@ import {
   CHARACTERS,
   CHARACTER_BY_ID,
   ULTIMATE_CHARACTER_IDS,
+  MULTIPLAYER_ULTIMATE_CHARACTER_IDS,
   characterMirrorsWest,
   characterUsesDedicatedEast,
 } from '../lib/characters.ts';
@@ -30,7 +31,8 @@ assert.equal(characterUsesDedicatedEast('jago'), true);
 assert.equal(characterUsesDedicatedEast('raja'), false);
 assert.equal(characterUsesDedicatedEast('kaka'), false);
 // Ultimate set and frozen ultimate numbers.
-assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(), ['bebe', 'ciici', 'kaka', 'raja']);
+assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(), ['bebe', 'buto', 'ciici', 'kaka', 'raja', 'robot']);
+assert.deepEqual([...MULTIPLAYER_ULTIMATE_CHARACTER_IDS].sort(), ['bebe', 'buto', 'ciici', 'kaka', 'raja', 'robot']);
 for(const id of ['bebe','ciici']) {
   assert.equal(CHARACTER_BY_ID[id].ultimate.kind,'flight');
   assert.equal(CHARACTER_BY_ID[id].ultimate.castMs,id==='bebe'?700:650);

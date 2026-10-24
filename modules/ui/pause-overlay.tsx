@@ -8,6 +8,7 @@ import {HudSettings} from './hud-settings';
 import {LanguageSettings} from './language-settings';
 import {RulesOverlay} from './rules-overlay';
 import {PlayerStatusReference} from './player-status-reference';
+import {ArtworkBackButton} from './back-button.tsx';
 import type {HudPreferences} from '../../lib/hud-preferences';
 import './pause-hub.css';
 
@@ -81,7 +82,7 @@ export const PauseOverlay = ({
       </button>
       </>}
       </section></div>
-      {page!=='home'&&<footer><button onClick={back}>{text('Back to Pause','Kembali ke menu jeda')}</button></footer>}
+      {page!=='home'&&<footer><ArtworkBackButton onBack={back} label={text('Back to Pause','Kembali ke menu jeda')} /></footer>}
       </>}
     </div>
     {rules&&<RulesOverlay onClose={()=>setRules(false)}/>}

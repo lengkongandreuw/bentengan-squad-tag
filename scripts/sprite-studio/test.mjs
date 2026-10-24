@@ -30,7 +30,7 @@ void test('boost dust: eight directions, explicit inheritance and bounded import
   assert.throws(()=>validateSpriteDocument({version:1,characters:{default:{run:clip}}},['raja']));
 });
 void test('all movements support default plus eight directions, preserving legacy slot keys',()=>{
-  assert.equal(SLOTS.length,117);assert.equal(new Set(SLOTS).size,117);
+  assert.equal(SLOTS.length,126);assert.equal(new Set(SLOTS).size,126);
   for(const action of ['run','tag','parkour','idle','prisoner','ready','ultimate','victory','defeat'])assert.ok(SLOTS.includes(`${action}.northeast`));
   assert.equal(studioSlotFallback({idle:true},'idle','northwest'),'idle');
   assert.equal(studioSlotFallback({idle:true,'idle.northwest':true},'idle','northwest'),'idle.northwest');
@@ -75,12 +75,15 @@ void test('local API: token, revision guard, per-slot save/delete and untouched 
   let server;
   try {
     await mkdir(path.join(root,'config'),{recursive:true});await mkdir(path.join(root,'public'),{recursive:true});
-    await writeFile(path.join(root,'config/game-rules.json'),JSON.stringify({teams:{red:{roster:['lala','jago','bebe']},green:{roster:['ciici']}}}));
+    await writeFile(path.join(root,'config/game-rules.json'),JSON.stringify({teams:{red:{roster:['lala','jago','bebe','robot']},green:{roster:['ciici','buto']}}}));
     await writeFile(path.join(root,'config/sprite-studio.json'),JSON.stringify({version:1,characters:{}}));
     const started=await startSpriteStudio(0,root);server=started.server;const origin=started.origin;
     const state=await fetch(origin+'/api/state').then(r=>r.json());
     assert.ok(state.supportedSlots.bebe.includes('ultimate_fly.northwest'));
     assert.ok(!state.supportedSlots.lala.includes('ultimate_fly.northwest'));
+    assert.ok(state.supportedSlots.robot.includes('ultimate_cast.northwest'));
+    assert.ok(state.supportedSlots.buto.includes('ultimate_cast.east'));
+    assert.ok(!state.supportedSlots.lala.includes('ultimate_cast'));
     assert.equal(state.roster[0].visualScale,1);assert.equal((await fetch(origin+'/comparison')).status,200);assert.equal((await fetch(origin+'/comparison.js')).status,200);
     const post=(route,body,token=state.token)=>fetch(origin+'/api/'+route,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'x-admin-token':token},body:JSON.stringify({revision:state.revision,...body})});
     assert.equal((await post('save',{},'wrong')).status,403);
@@ -124,6 +127,15 @@ void test('local API: token, revision guard, per-slot save/delete and untouched 
       assert.deepEqual(flight.document.characters.lala,diagonal.document.characters.lala);
       revision=flight.revision;
     }
+    for(const id of ['robot','buto']){
+      const result=await post('compile',{revision,id,slot:'ultimate_cast',files:[{data:(await png()).toString('base64')}],options:{}}).then(r=>r.json());
+      assert.equal(result.clip.loop,false);
+      const cast=await post('save-character',{revision,id,clips:{ultimate_cast:{...result.clip,loop:true},'ultimate_cast.east':{...result.clip,loop:true}}}).then(r=>r.json());
+      assert.equal(cast.document.characters[id].ultimate_cast.loop,false);
+      assert.equal(cast.document.characters[id]['ultimate_cast.east'].loop,false);
+      revision=cast.revision;
+    }
+    assert.equal((await post('save',{revision,id:'lala',slot:'ultimate_cast',clip:compiled.clip})).status,400);
     assert.equal((await post('save',{revision,id:'lala',slot:'ultimate_fly',clip:compiled.clip})).status,400);
     assert.equal((await post('save',{revision,id:'lala',slot:'ultimate_fly.northwest',clip:compiled.clip})).status,400);
     const reload=await fetch(origin+'/api/state').then(r=>r.json());

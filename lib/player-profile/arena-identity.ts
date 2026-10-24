@@ -5,6 +5,13 @@ import mapConfig from '../../config/map-studio.json' with { type: 'json' };
 const replacements = new Map<string, string>(mapConfig.maps.flatMap(map =>
   'replaces' in map && typeof map.replaces === 'string' ? [[map.id, map.replaces]] : []));
 
+// A newly activated standalone editor map is free-play until a campaign rule
+// is explicitly configured. Unknown IDs and inactive/deleted drafts stay gated.
+export function getStandaloneStudioArenaIds(): string[] {
+  return mapConfig.maps.filter(map => map.enabled && !('archived' in map && map.archived) &&
+    !('deleted' in map && map.deleted) && !('replaces' in map && map.replaces)).map(map => map.id);
+}
+
 export function getProgressionArenaId(arenaId: string): string {
   return replacements.get(arenaId) ?? arenaId;
 }

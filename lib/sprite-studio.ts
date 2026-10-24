@@ -1,7 +1,7 @@
 import settings from '../config/sprite-studio.json';
 import runtime from '../config/sprite-runtime.json';
 import { runtimeResource, runtimeFrameKey, type RuntimeManifest, type PackedFrame } from './studio-runtime-resource.ts';
-import { frameAt, spriteSlot, spriteDirection, studioSlotFallback, studioFlightSlot, boostDustSelection } from './sprite-studio-model.js';
+import { frameAt, spriteSlot, spriteDirection, studioSlotFallback, studioFlightSlot, studioCastSlot, boostDustSelection } from './sprite-studio-model.js';
 import { publicAsset, type CharacterId } from './characters.ts';
 type Clip = {asset:string;width:number;height:number;frames:{x:number;y:number;width:number;height:number}[];fps:number;scale:number;x:number;y:number;pivotX:number;pivotY:number;loop:boolean;mirror:boolean};
 const clips = settings.characters as Record<string, Record<string,Clip>>;
@@ -61,13 +61,14 @@ export function createStudioResolver() {
     const vy=moving?c.vy:previous?.vy??1;
     const requested=spriteSlot(c.parkour?{...c,vx,vy}:c);
     const direction=c.flightDirection??spriteDirection(vx,vy);
-    const slot=c.flightSlot?studioFlightSlot(clips[id],c.flightSlot,direction):studioSlotFallback(clips[id],requested,direction);
+    const casting=c.action==='ultimate'&&(id==='robot'||id==='buto');
+    const slot=c.flightSlot?studioFlightSlot(clips[id],c.flightSlot,direction):casting?studioCastSlot(clips[id],direction):studioSlotFallback(clips[id],requested,direction);
     const start=previous&&previous.slot===slot?previous.start:c.now;
     if(previous){previous.slot=slot;previous.start=start;previous.vx=vx;previous.vy=vy;}
     else actors.set(actor,{slot,start,vx,vy});
     const rawClip=slot?clips[id]?.[slot]:null;
     let clip=rawClip;
-    if(rawClip&&c.flightSlot) {
+    if(rawClip&&(c.flightSlot||casting)) {
       let variants=flightClips.get(rawClip);
       if(!variants){variants={loop:{...rawClip,loop:true},once:{...rawClip,loop:false}};flightClips.set(rawClip,variants);}
       clip=c.flightSlot==='ultimate_fly'?variants.loop:variants.once;

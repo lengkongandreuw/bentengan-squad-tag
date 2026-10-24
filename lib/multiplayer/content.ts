@@ -1,7 +1,7 @@
 import {MULTIPLAYER_PROTOCOL_VERSION} from './protocol.ts';
 export type ContentIdentity={protocolVersion:number;buildVersion:string;arenaId:string;arenaRevision:string};
 declare const __BENTENG_CONTENT__: {buildVersion:string;mapAssetsRevision:string}|undefined;
-export const testContent:ContentIdentity={protocolVersion:1,buildVersion:'injected-test-build',arenaId:'test-arena',arenaRevision:'injected-test-map'};
+export const testContent:ContentIdentity={protocolVersion:MULTIPLAYER_PROTOCOL_VERSION,buildVersion:'injected-test-build',arenaId:'test-arena',arenaRevision:'injected-test-map'};
 export function contentMismatch(a:ContentIdentity,b:ContentIdentity):string|null {
   if(a.protocolVersion!==b.protocolVersion)return 'Versi protokol berbeda. Perbarui game kedua pemain.';
   if(a.buildVersion!==b.buildVersion)return 'Versi build game berbeda. Reload kedua perangkat dari versi yang sama.';

@@ -6,7 +6,7 @@ export type GameEvent =
   | {type:'PLAYER_CAPTURED';actorId:EntityId;targetId:EntityId}
   | {type:'PLAYER_RESCUED';actorId:EntityId;targetIds:EntityId[];x:number;y:number}
   | {type:'ULTIMATE_STARTED';actorId:EntityId;flight:boolean}
-  | {type:'ULTIMATE_APPLIED';actorId:EntityId;effect:'shield'|'speed';durationMs:number;speedMultiplier:number}
+  | {type:'ULTIMATE_APPLIED';actorId:EntityId;effect:'shield'|'speed'|'jammer'|'drive';durationMs:number;speedMultiplier:number}
   | {type:'FORT_ENTERED';actorId:EntityId;team:LegacyTeam}
   | {type:'FORT_CAPTURED';actorId:EntityId;team:LegacyTeam;reason:'BENTENG DIREBUT'}
   | {type:'HELP_REQUESTED';actorId:EntityId}

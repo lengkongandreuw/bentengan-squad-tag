@@ -5,14 +5,14 @@ import { t } from '../../lib/language';
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CHARACTER_BY_ID, publicAsset, type CharacterId } from '../../lib/characters.ts';
+import { CHARACTER_BY_ID, ULTIMATE_CHARACTER_IDS, publicAsset, type CharacterId } from '../../lib/characters.ts';
 import { canPurchaseUltimateUpgrade, getEffectiveUltimateStats, getNextUltimateUpgrade,
   getTokenBalance, getUltimateUpgradeLevel, ultimateUpgradeCatalog, economyRules,
   purchasePlayerUltimateUpgrade, createLocalId, type LocalPlayerProfile,
   type UltimateUpgradeLevel, type UltimatePurchaseReason } from '../../lib/player-profile/index.ts';
 import { TokenWallet } from './token-wallet.tsx';
 
-const names = { raja: 'TITAH HALILINTAR', kaka: 'PERISAI HIJAU' };
+const names = { raja: 'TITAH HALILINTAR', kaka: 'PERISAI HIJAU', bebe:'JET FLIGHT', ciici:'VAMPIRE FLIGHT',robot:'JAMMER FIELD',buto:'IRON DRIVE' };
 const currency = economyRules.currency.label;
 const messages: Record<UltimatePurchaseReason, string> = {
   applied: 'Upgrade siap untuk pertandingan berikutnya.', insufficient_balance: `${currency} belum cukup. Cek saldo terbarumu.`,
@@ -22,12 +22,12 @@ const messages: Record<UltimatePurchaseReason, string> = {
   level_mismatch: 'Level sudah berubah. Cek upgrade terbaru sebelum membeli.',
   storage_failed: `Gagal menyimpan di browser. ${currency} tidak dipotong. Coba lagi setelah penyimpanan tersedia.`,
 };
-function Stats({ stats }: { stats: Pick<UltimateUpgradeLevel, 'durationMs' | 'castMs' | 'rechargeSeconds' | 'speedMultiplier'> }) {
+function Stats({ stats, flight=false, selfSpeed=false }: { stats: Pick<UltimateUpgradeLevel, 'durationMs' | 'castMs' | 'rechargeSeconds' | 'speedMultiplier'>; flight?:boolean;selfSpeed?:boolean }) {
   return <dl className="ultimate-upgrade-stats">
-    <div><dt>{t("Durasi efek")}</dt><dd>{t(stats.durationMs / 1000)}{t(" detik")}</dd></div>
+    <div><dt>{t(flight?'Durasi terbang':'Durasi efek')}</dt><dd>{t(stats.durationMs / 1000)}{t(" detik")}</dd></div>
     <div><dt>{t("Isi ulang")}</dt><dd>{t(stats.rechargeSeconds)}{t(" detik")}</dd></div>
-    <div><dt>{t("Waktu aktivasi")}</dt><dd>{t(stats.castMs / 1000)}{t(" detik")}</dd></div>
-    {t(stats.speedMultiplier !== undefined && <div><dt>{t("Kecepatan tim")}</dt><dd>{t("+")}{t(Math.round((stats.speedMultiplier - 1) * 100))}{t("%")}</dd></div>)}
+    {!flight&&<div><dt>{t("Waktu aktivasi")}</dt><dd>{t(stats.castMs / 1000)}{t(" detik")}</dd></div>}
+    {t(stats.speedMultiplier !== undefined && <div><dt>{t(selfSpeed?'Kecepatan diri':'Kecepatan tim')}</dt><dd>{t("+")}{t(Math.round((stats.speedMultiplier - 1) * 100))}{t("%")}</dd></div>)}
   </dl>;
 }
 
@@ -37,6 +37,7 @@ export function UltimateUpgradeDetails({ profile, characterId }: { profile: Loca
   const catalog = ultimateUpgradeCatalog.characters.find(c => c.characterId === characterId);
   if (!current || !catalog) return null;
   const next = getNextUltimateUpgrade(profile, characterId);
+  const flight=characterId==='bebe'||characterId==='ciici';
   return <>
     <h2 id="ultimate-upgrade-title" className="ultimate-upgrade-title">
       <img src={publicAsset('ui-v2/economy/label.png')} alt="" aria-hidden="true" />
@@ -45,9 +46,14 @@ export function UltimateUpgradeDetails({ profile, characterId }: { profile: Loca
     <div className="ultimate-upgrade-meta"><p>{t("LEVEL ")}{t(current.level)}{t(" / ")}{t(catalog.levels.length - 1)}</p>
       <TokenWallet profile={profile} /></div>
     <div className="ultimate-upgrade-comparison">
-      <section><h3>{t("SAAT INI")}</h3><Stats stats={current} /></section>
-      {t(next && <section><h3>{t("LEVEL BERIKUTNYA · ")}{t(next.level)}</h3><Stats stats={next} /></section>)}
+      <section><h3>{t("SAAT INI")}</h3><Stats stats={current} flight={flight} selfSpeed={characterId==='buto'} /></section>
+      {t(next && <section><h3>{t("LEVEL BERIKUTNYA · ")}{t(next.level)}</h3><Stats stats={next} flight={flight} selfSpeed={characterId==='buto'} /></section>)}
     </div>
+    {flight&&<p>{t('Terbang melewati sungai dan objek parkour. Saat durasi habis, langsung kembali normal di tanah aman.')}</p>}
+    {characterId==='robot'&&<p>{t('Upgrade hanya menambah durasi. Radius Jammer tetap 110; hanya Sprint musuh yang diblokir.')}</p>}
+    {characterId==='buto'&&<p>{t('Upgrade hanya menambah durasi. Kecepatan diri tetap +25%; Parkour tidak tersedia selama Iron Drive.')}</p>}
+    {(characterId==='robot'||characterId==='buto')&&<p>{t('Upgrade berlaku di solo. Online memakai level dasar yang sama untuk semua pemain.')}</p>}
+    {!ULTIMATE_CHARACTER_IDS.has(characterId)&&<p role="note">{t('Segera hadir. Data upgrade sudah siap; Ultimate ini belum aktif dalam pertandingan.')}</p>}
     {t(next ? <div className="ultimate-upgrade-cost"><p>{t("Biaya: ")}<b>{t(next.cost)} {t(currency)}</b></p>
       {t(getTokenBalance(profile) < next.cost && <p>{t("Butuh ")}{t(next.cost - getTokenBalance(profile))} {t(currency)}{t(" lagi.")}</p>)}</div>
       : <p>{t("LEVEL MAKSIMAL — Ultimate sudah mentok!")}</p>)}
@@ -65,6 +71,7 @@ export function UltimateUpgradePanel({ profile, characterId, onRefresh }: {
   const consumedQuote = useRef('');
   const current = getEffectiveUltimateStats(profile, characterId);
   const next = getNextUltimateUpgrade(profile, characterId);
+  const pending = !ULTIMATE_CHARACTER_IDS.has(characterId);
   useEffect(() => {
     if (!open || !dialog.current) return;
     const element = dialog.current;
@@ -73,7 +80,7 @@ export function UltimateUpgradePanel({ profile, characterId, onRefresh }: {
   }, [open]);
   const close = () => { setOpen(false); setQuote(null); setMessage(''); };
   const confirm = () => {
-    if (!quote || busy.current || consumedQuote.current === quote.transactionId) return;
+    if (pending || !quote || busy.current || consumedQuote.current === quote.transactionId) return;
     busy.current = true;
     consumedQuote.current = quote.transactionId;
     try {
@@ -106,13 +113,13 @@ export function UltimateUpgradePanel({ profile, characterId, onRefresh }: {
           <p>{t("Saldo setelah pembelian: ")}{t(Math.max(0, getTokenBalance(profile) - quote.cost))} {t(currency)}</p>
           {t((!canPurchaseUltimateUpgrade(profile, characterId) || getUltimateUpgradeLevel(profile, characterId) !== quote.level) &&
             <p role="alert">{t("Saldo atau level telah berubah. Batalkan dan periksa penawaran terbaru.")}</p>)}
-          <button type="button" disabled={!canPurchaseUltimateUpgrade(profile, characterId) || getUltimateUpgradeLevel(profile, characterId) !== quote.level}
+          <button type="button" disabled={pending || !canPurchaseUltimateUpgrade(profile, characterId) || getUltimateUpgradeLevel(profile, characterId) !== quote.level}
             onClick={confirm}>{t("KONFIRMASI PEMBELIAN")}</button>
           <button type="button" onClick={() => setQuote(null)}>{t("BATAL")}</button>
-        </section> : <div className="ultimate-upgrade-footer"><button type="button" disabled={!canPurchaseUltimateUpgrade(profile, characterId)}
-          onClick={() => { if (next) { setMessage(''); setQuote({ level: getUltimateUpgradeLevel(profile, characterId), cost: next.cost, transactionId: createLocalId('ultimate-purchase') }); } }}>
-          {t(!next ? 'LEVEL MAKSIMAL' : canPurchaseUltimateUpgrade(profile, characterId) ? `UPGRADE · ${next.cost} ${currency}` : `${currency} BELUM CUKUP`)}
-        </button><small>{t("Dipakai mulai pertandingan berikutnya. Tersimpan di browser ini, bukan akun online.")}</small></div>)}
+        </section> : <div className="ultimate-upgrade-footer"><button type="button" disabled={pending || !canPurchaseUltimateUpgrade(profile, characterId)}
+          onClick={() => { if (!pending && next) { setMessage(''); setQuote({ level: getUltimateUpgradeLevel(profile, characterId), cost: next.cost, transactionId: createLocalId('ultimate-purchase') }); } }}>
+          {t(pending?'SEGERA HADIR':!next ? 'LEVEL MAKSIMAL' : canPurchaseUltimateUpgrade(profile, characterId) ? `UPGRADE · ${next.cost} ${currency}` : `${currency} BELUM CUKUP`)}
+        </button><small>{t(pending?'Pembelian tersedia setelah Ultimate ini diaktifkan.':"Dipakai mulai pertandingan berikutnya. Tersimpan di browser ini, bukan akun online.")}</small></div>)}
         <output aria-live="polite">{t(message)}</output>
         <img className="ultimate-upgrade-accent" src={publicAsset('ui-v2/economy/accent.png')} alt="" aria-hidden="true" />
         </div>

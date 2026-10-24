@@ -18,5 +18,27 @@
   "rescueShieldMs": 1500,
   "tagCooldownMs": 470,
   "mirrorWest": false,
-  "dedicatedEast": false
+  "dedicatedEast": false,
+  "ultimate": {
+    "kind": "jammer",
+    "name": "JAMMER FIELD",
+    "shortLabel": "JAMMER",
+    "hudTitle": "JAMMER FIELD",
+    "buffText": " SPRINT JAMMED · ",
+    "bannerAlt": "ROBOT — JAMMER FIELD",
+    "icon": "zap",
+    "hudClass": "robot",
+    "shieldClass": "",
+    "actionClass": "robot-ultimate",
+    "indicatorClass": "robot-jammer-indicator",
+    "bannerClass": "robot-banner",
+    "trackEdge": "#302212",
+    "trackFill": "#c99a58",
+    "castBurst": "#c99a58",
+    "castBeepHz": 420,
+    "castMs": 650,
+    "bannerMs": 820,
+    "strip": false,
+    "castLog": "ROBOT activates JAMMER FIELD."
+  }
 }

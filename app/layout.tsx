@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import './ux-priority.css';
+import './home-menu.css';
 
 const body = Poppins({
   variable: '--font-body',

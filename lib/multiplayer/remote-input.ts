@@ -39,7 +39,8 @@ export function createRemoteInputBuffer(matchId:string,owners:ReadonlyMap<string
 export type HumanMovementHooks={move:(p:RuntimeActor,x:number,y:number,speed:number,dt:number,now:number,frame:PlayerInputFrame)=>void;
   landing:(p:RuntimeActor,vector:{x:number;y:number},distance:number,now:number)=>{x:number;y:number;crossedWater:boolean}|null;
   near:(p:RuntimeActor)=>boolean;returnVector:(p:RuntimeActor,now:number)=>{x:number;y:number};
-  combo:(p:RuntimeActor,now:number)=>number;water:boolean;boostDurationMs:number;groundValid?:(x:number,y:number)=>boolean};
+  combo:(p:RuntimeActor,now:number)=>number;water:boolean;boostDurationMs:number;groundValid?:(x:number,y:number)=>boolean;
+  sprintJammed?:(p:RuntimeActor,now:number)=>boolean;driveActive?:(p:RuntimeActor,now:number)=>boolean;driveMultiplier?:(p:RuntimeActor,now:number)=>number};
 /** Remote humans use the same movement/landing/drain rules, without bot multipliers. */
 export function createRemoteHumanMovement() {
   const parkour=createParkourController();
@@ -50,17 +51,19 @@ export function createRemoteHumanMovement() {
     let x=frame.moveX,y=frame.moveY,limit=Infinity;
     if(!x&&!y&&frame.targetX!==undefined&&frame.targetY!==undefined){x=frame.targetX-p.x;y=frame.targetY-p.y;const d=Math.hypot(x,y);if(d<=5){x=0;y=0;}else limit=d/Math.max(dt,.001);}
     const active=(p.state==='ACTIVE'||p.state==='IN_BASE')&&!(h.water&&p.waterEnteredAt)&&!p.flight;
-    if(active&&frame.sprint&&(!latch.boost||frame.sprintPulse)&&p.boost>0)latch.burstUntil=now+h.boostDurationMs;
-    const boost=active&&now<latch.burstUntil&&p.boost>0&&!!(x||y);
-    latch.boost=frame.keyboardSprint;
+    const jammed=h.sprintJammed?.(p,now)??false;
+    if(jammed){latch.burstUntil=0;latch.boost=false;}
+    if(!jammed&&active&&frame.sprint&&(!latch.boost||frame.sprintPulse)&&p.boost>0)latch.burstUntil=now+h.boostDurationMs;
+    const boost=!jammed&&active&&now<latch.burstUntil&&p.boost>0&&!!(x||y);
+    latch.boost=!jammed&&frame.keyboardSprint;
     const combo=h.combo(p,now);
-    parkour.step(p,frame.parkour,frame.parkourPulse,{x,y},stats.agility,now,h.landing);
+    parkour.step(p,frame.parkour,frame.parkourPulse,{x,y},stats.agility,now,h.landing,h.driveActive?.(p,now)?'IRON_DRIVE':undefined);
     latch.parkour=frame.parkour;
     if(boost){p.boost=Math.max(0,p.boost-stats.boostDrain*(combo>1?.8:1)*dt);p.boostReadyAt=now+20000;}
     if(p.state==='RETURNING'){const vector=h.returnVector(p,now);x=vector.x;y=vector.y;limit=Infinity;}
     const config=flightConfig(p.characterId),flying=isFlying(p),before={x:p.x,y:p.y};
     if(flying&&config){const steering=steerFlight(p.flight!,x,y,dt,config.turnMultiplier);x=steering.x;y=steering.y;}
-    if((active||flying||p.state==='RETURNING')&&(x||y))h.move(p,x,y,Math.min(limit,stats.speed*combo*(boost?stats.boostMultiplier:1)*(flying&&config?config.speedMultiplier:1)),dt,now,frame);
+    if((active||flying||p.state==='RETURNING')&&(x||y))h.move(p,x,y,Math.min(limit,stats.speed*combo*(h.driveMultiplier?.(p,now)??1)*(boost?stats.boostMultiplier:1)*(flying&&config?config.speedMultiplier:1)),dt,now,frame);
     else {p.vx=0;p.vy=0;}
     if(p.flight){p.flight.distance+=Math.hypot(p.x-before.x,p.y-before.y);if(flying&&h.groundValid?.(p.x,p.y))p.flight.lastGround={x:p.x,y:p.y};}
   };

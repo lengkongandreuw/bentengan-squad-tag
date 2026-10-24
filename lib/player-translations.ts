@@ -1,6 +1,23 @@
 // Proper names (Tim Merah, Tim Hijau, arenas and named abilities) stay Indonesian.
 // ${n} is a runtime placeholder; never translate IDs, asset paths or game rules.
 export const playerTranslations: Record<string,string> = {
+  'Upgrade hanya menambah durasi. Radius Jammer tetap 110; hanya Sprint musuh yang diblokir.':'Upgrades extend duration only. Jammer radius stays at 110; only enemy Sprint is blocked.',
+  'Upgrade hanya menambah durasi. Kecepatan diri tetap +25%; Parkour tidak tersedia selama Iron Drive.':'Upgrades extend duration only. Self speed stays at +25%; Parkour is unavailable during Iron Drive.',
+  'Upgrade berlaku di solo. Online memakai level dasar yang sama untuk semua pemain.':'Upgrades apply in solo. Online uses the same base level for every player.',
+  'IRON DRIVE ACTIVE · Parkour tidak tersedia':'IRON DRIVE ACTIVE · Parkour unavailable',
+  'Kecepatan diri':'Self speed',
+  'Segera hadir. Data upgrade sudah siap; Ultimate ini belum aktif dalam pertandingan.':'Coming soon. Upgrade data is ready; this Ultimate is not active in matches yet.',
+  'SEGERA HADIR':'COMING SOON',
+  'Pembelian tersedia setelah Ultimate ini diaktifkan.':'Purchases open when this Ultimate is enabled.',
+  'MAINKAN':'PLAY','PENGATURAN':'SETTINGS','KREDIT':'CREDITS','AUDIO & BAHASA':'AUDIO & LANGUAGE','Menu utama':'Main menu',
+  'Main solo. Bangun reputasimu.':'Play solo. Build your legacy.',
+  'Ajak teman. Kuasai benteng.':'Squad up. Take the fort.',
+  'Room-mu. Aturanmu.':'Your room. Your rules.',
+  'Kami sedang menyiapkan tempat untuk aturan mainmu sendiri.':'Your own match rules are on the way.',
+  'PILIH MODE':'SELECT MODE',
+  'Durasi terbang':'Flight duration',
+  'Terbang melewati sungai dan objek parkour. Saat durasi habis, langsung kembali normal di tanah aman.':'Fly over rivers and parkour obstacles. Return to normal on safe ground as soon as time runs out.',
+  'Raja mempercepat rekan aktif; Kaka melindungi tim dari tag. Bebe dan Ciici kebal tag saat lepas landas dan terbang, serta dapat melewati sungai dan objek parkour tanpa melompat. Selama itu mereka tidak bisa tag, rescue, mengambil boost, atau merebut benteng. Saat durasi habis, langsung kembali normal di tanah aman. Upgrade DOI menambah durasi terbang.':'Raja speeds up active teammates; Kaka protects the team from tags. Bebe and Ciici are tag-immune during takeoff and flight, and can fly over rivers and parkour obstacles without jumping. They cannot tag, rescue, pick up boost or capture forts while airborne. Return to normal on safe ground as soon as flight expires. DOI upgrades extend flight duration.',
   'Tiga jalur. Aktifkan Power Relay untuk membuka jalan pintas tengah—kedua tim bisa lewat.':'Three routes. Connect Power Relay to open the center shortcut—both teams can use it.',
   'Tekan Space untuk ledakan lari':'Press Space for a burst of speed',
   'detik. Pulih 20 detik atau ambil refill.':'seconds. Recharge in 20 seconds or grab a refill.',

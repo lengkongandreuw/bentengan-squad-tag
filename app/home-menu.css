@@ -1,0 +1,229 @@
+/* Native controls and lightweight motion, with supplied transparent artwork. */
+.ultimate-banner-text {display:block;background:#101112;color:#fff8e7;border:3px solid currentColor;padding:14px 24px;font:900 italic clamp(20px,3vw,40px)/1.1 var(--font-heading);transform:skew(-6deg);}
+.pregame-shell:is(.step-splash,.step-modes,.step-custom) {
+  --menu-paper:#fff8e7;--menu-ink:#09090d;--menu-purple:#c400ff;--menu-cyan:#00cdff;--menu-gold:#ffce00;
+  --menu-snap:cubic-bezier(.16,1,.3,1);--menu-press:120ms;--menu-arrive:320ms;
+}
+.pregame-shell:is(.step-splash,.step-modes,.step-custom) .arena-backdrop-shade {background:linear-gradient(0deg,#000b,transparent 48%,#0002);}
+.pregame-shell:is(.step-splash,.step-modes,.step-custom) .profile-trigger {
+  top:20px;right:24px;left:auto;bottom:auto;width:84px;height:84px;padding:3px;border:4px solid var(--menu-cyan);border-radius:5px;
+  background:var(--menu-ink);transform:rotate(3deg);box-shadow:5px 5px 0 var(--menu-ink);z-index:24;
+}
+.pregame-shell .profile-trigger img {width:100%;height:100%;min-height:0;object-fit:cover;object-position:top;overflow:hidden;}
+.pregame-shell:is(.step-splash,.step-modes,.step-custom) .profile-trigger {overflow:hidden;}
+.pregame-shell.step-splash .comic-home .splash-center {inset:5% 12% 22%;width:auto;gap:8px;justify-content:center;}
+.pregame-shell.step-splash .comic-home .splash-logo {width:min(76vw,1100px);max-height:48dvh;min-height:0;filter:drop-shadow(0 8px 0 #0008);animation:comic-hit 420ms var(--menu-snap) both;}
+.home-version {color:var(--menu-paper);font:600 clamp(13px,1.5vw,24px)/1.2 var(--font-body);text-shadow:0 2px 3px #000;}
+.pregame-shell .comic-home .comic-play {
+  display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;width:clamp(240px,27vw,460px);min-height:84px;height:clamp(84px,12dvh,140px);
+  margin:3dvh 0 0;padding:12px 30px;background:linear-gradient(155deg,#ffeb00 40%,#ff9900 75%);color:var(--menu-paper);
+  border:6px solid var(--menu-ink);border-radius:0;box-shadow:7px 7px 0 var(--menu-purple),-5px -3px 0 var(--menu-purple);transform:skew(-7deg) rotate(-2deg);
+  animation:comic-hit 320ms var(--menu-snap) both;transition:transform var(--menu-press),filter var(--menu-press);letter-spacing:0;
+}
+.comic-play strong {font:1000 italic clamp(36px,4.7vw,78px)/1 var(--font-heading);-webkit-text-stroke:2px var(--menu-ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--menu-ink);}
+.comic-play svg {width:clamp(35px,4vw,60px);height:clamp(35px,4vw,60px);flex-shrink:0;background:var(--menu-ink);padding:7px;border:2px solid var(--menu-paper);}
+.pregame-shell .comic-home .comic-play:is(:hover,:focus-visible) {transform:skew(-7deg) rotate(-2deg) scale(1.035);filter:brightness(1.12);}
+.pregame-shell .comic-home .comic-play:active {transform:skew(-7deg) rotate(-2deg) scale(.97);}
+.home-actions {position:absolute;z-index:20;bottom:8%;left:50%;transform:translateX(-50%);display:flex;justify-content:center;gap:18px;width:min(90%,820px);}
+.comic-secondary {display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:12px 22px;color:var(--menu-paper);background:linear-gradient(135deg,#202029,#08080c);border:4px solid var(--menu-purple);border-radius:0;box-shadow:4px 4px 0 var(--menu-ink),inset 0 0 0 2px var(--menu-ink);transform:skew(-7deg);font:900 clamp(13px,1.3vw,21px)/1.2 var(--font-heading);cursor:pointer;transition:transform var(--menu-press),background var(--menu-press);}
+.home-actions .comic-secondary {flex:1;}
+.comic-secondary svg {width:26px;height:26px;flex-shrink:0;}
+.comic-secondary:is(:hover,:focus-visible) {background:#4b1265;transform:skew(-7deg) translateY(-3px);}
+.comic-secondary:active {transform:skew(-7deg) scale(.97);}
+.pregame-shell.step-splash .splash-copyright {bottom:14px;font-size:clamp(10px,1vw,16px);width:95%;left:2.5%;text-align:center;}
+.mode-select-screen {position:absolute;inset:5% 20% 6%;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:18px;}
+.mode-select-screen h1 {margin:0;text-align:center;font:1000 italic clamp(32px,6vw,96px)/1 var(--font-heading);color:var(--menu-paper);-webkit-text-stroke:3px var(--menu-ink);paint-order:stroke fill;text-shadow:6px 6px 0 var(--menu-purple),-5px 5px 0 var(--menu-ink);transform:rotate(-3deg);}
+.mode-select-screen h1 em {color:var(--menu-gold);font-style:normal;}
+.mode-options {display:flex;flex-direction:column;gap:14px;}
+.mode-card {--card-accent:var(--menu-purple);--card-dark:#3c087d;position:relative;isolation:isolate;display:flex;align-items:center;gap:8px;text-align:center;min-height:110px;height:clamp(110px,17dvh,185px);padding:4px 18px 4px 0;background:var(--menu-ink);border:4px solid var(--menu-ink);border-radius:0;color:var(--menu-paper);box-shadow:6px 6px 0 #000b;transform:skew(-5deg);cursor:pointer;animation:comic-card-in var(--menu-arrive) var(--menu-snap) both;transition:transform 160ms var(--menu-snap),filter 160ms;}
+.mode-card::before {content:"";position:absolute;inset:1px;z-index:-1;background:repeating-linear-gradient(135deg,transparent 0 60px,#fff1 60px 95px),linear-gradient(115deg,var(--card-accent),var(--card-dark));border:5px solid var(--card-accent);clip-path:polygon(2% 0,97% 0,100% 83%,97% 100%,2% 100%,0 80%);}
+.mode-online {--card-accent:var(--menu-cyan);--card-dark:#004986;animation-delay:45ms;}
+.mode-custom {--card-accent:var(--menu-gold);--card-dark:#844000;animation-delay:90ms;}
+.mode-card:is(:hover,:focus-visible) {transform:skew(-5deg) translateX(6px) scale(1.015);filter:brightness(1.14);}
+.mode-card:active {transform:skew(-5deg) scale(.98);}
+.mode-art {display:flex;align-self:stretch;align-items:flex-end;justify-content:center;width:28%;flex-shrink:0;overflow:hidden;}
+.mode-art img {width:100%;height:100%;object-fit:contain;object-position:bottom;transform:skew(5deg);filter:drop-shadow(3px 0 0 #000);}
+.mode-online .mode-art img {width:60%;margin:0 -5%;}
+.mode-art img {scale:1.65;transform-origin:50% 0;}
+.mode-tools {align-items:center;}
+.mode-tools svg {width:65%;height:85%;stroke:var(--menu-paper);stroke-width:2.5;filter:drop-shadow(5px 5px 0 var(--menu-ink));}
+.mode-copy {flex:1;min-width:0;transform:skew(5deg);}
+.mode-copy strong {display:block;font:1000 clamp(24px,3.3vw,58px)/1.1 var(--font-heading);-webkit-text-stroke:2px var(--menu-ink);paint-order:stroke fill;text-shadow:3px 3px 0 var(--menu-ink);}
+.mode-copy em {font-style:normal;color:var(--card-accent);}
+.mode-copy small {display:block;margin-top:6px;background:var(--menu-paper);color:var(--menu-ink);font:800 clamp(12px,1.2vw,21px)/1.3 var(--font-body);padding:4px 10px;transform:rotate(-2deg);}
+.mode-card>svg {width:32px;height:40px;flex-shrink:0;}
+.custom-room-screen {position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:100px 24px 30px;}
+.custom-room-card {width:min(640px,100%);padding:clamp(24px,4vw,48px);text-align:center;background:var(--menu-ink);color:var(--menu-paper);border:5px solid var(--menu-gold);box-shadow:10px 10px 0 #0008;animation:comic-hit var(--menu-arrive) var(--menu-snap);}
+.custom-room-card>svg {width:64px;height:64px;margin:auto auto 14px;color:var(--menu-gold);}
+.custom-room-card>span {display:block;color:var(--menu-gold);font-weight:900;letter-spacing:.12em;}
+.custom-room-card h1 {font:900 clamp(24px,4vw,45px)/1.2 var(--font-heading);overflow-wrap:anywhere;margin:16px 0;}
+.custom-room-card p {margin:0 0 28px;line-height:1.5;}
+.custom-room-card button {margin:auto;}
+.home-settings-dialog {width:min(520px,calc(100% - 32px));padding:24px;background:#111019;color:#fff8e7;border:4px solid #c400ff;max-height:calc(100dvh - 32px);overflow:auto;}
+.home-settings-dialog::backdrop {background:#000c;}
+.home-settings-dialog header {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;}
+.home-settings-dialog h2 {margin:0;}
+.home-settings-dialog header button {padding:10px;background:#2a1a38;border:1px solid #d7b3e6;cursor:pointer;}
+.home-settings-options {display:grid;gap:16px;}
+.home-settings-options button,.home-settings-options summary {display:block;width:100%;min-height:48px;padding:12px;background:#30203e;color:#fff;border:2px solid #b55ee5;cursor:pointer;font-weight:800;text-align:center;}
+.home-settings-options details>summary::marker {content:"";}
+.pregame-shell:is(.step-splash,.step-modes,.step-custom) button:focus-visible {outline:3px solid var(--menu-paper);outline-offset:5px;}
+.pregame-shell:is(.step-modes,.step-custom) .graffiti-back {z-index:25;}
+.pregame-shell .mode-back {display:flex;align-items:center;justify-content:center;gap:8px;width:auto;height:auto;min-height:52px;padding:6px 20px;background:#f01929;color:var(--menu-paper);border:4px solid var(--menu-ink);box-shadow:4px 4px 0 var(--menu-ink);transform:skew(-8deg) rotate(-3deg);font:1000 italic clamp(18px,2vw,30px)/1 var(--font-heading);transition:filter 120ms,scale 120ms;}
+.mode-back svg {width:38px;height:32px;stroke-width:4;}
+.mode-back:is(:hover,:focus-visible) {filter:brightness(1.2);}
+.mode-back:active {scale:.96;}
+@keyframes comic-hit {from{opacity:0;scale:.94;}to{opacity:1;scale:1;}}
+@keyframes comic-card-in {from{opacity:0;translate:20px 8px;}to{opacity:1;translate:0 0;}}
+@media(max-width:900px) {
+  .mode-select-screen {inset:12% 10% 5%;gap:14px;}
+  .pregame-shell:is(.step-splash,.step-modes,.step-custom) .profile-trigger {width:60px;height:60px;top:12px;right:16px;}
+  .home-actions {gap:10px;}
+  .comic-secondary {padding:10px;gap:7px;}
+}
+@media(max-height:620px) and (orientation:landscape) {
+  .pregame-shell.step-splash .comic-home .splash-center {inset:3% 14% 25%;gap:4px;}
+  .pregame-shell.step-splash .comic-home .splash-logo {max-height:36dvh;}
+  .pregame-shell .comic-home .comic-play {min-height:60px;height:60px;width:245px;margin-top:8px;padding:5px 16px;border-width:4px;}
+  .comic-play strong {font-size:38px;}
+  .home-actions {bottom:11%;width:min(76%,640px);}
+  .home-actions .comic-secondary {min-height:44px;padding:6px 12px;font-size:13px;}
+  .home-actions svg {width:22px;height:22px;}
+  .pregame-shell.step-splash .splash-copyright {bottom:8px;font-size:10px;}
+  .mode-select-screen {inset:5% 20% 5%;gap:8px;}
+  .mode-select-screen h1 {font-size:36px;}
+  .mode-options {gap:8px;}
+  .mode-card {min-height:76px;height:20dvh;padding-right:8px;}
+  .mode-copy strong {font-size:25px;}
+  .mode-copy small {font-size:12px;margin-top:2px;padding:2px 5px;}
+  .custom-room-screen {padding-top:64px;}
+  .custom-room-card {padding:16px 24px;}
+  .custom-room-card>svg {width:32px;height:32px;margin-bottom:4px;}
+  .custom-room-card h1 {margin:8px 0;font-size:28px;}
+  .custom-room-card p {margin-bottom:14px;}
+}
+@media(max-width:620px) and (orientation:portrait) {
+  .pregame-shell.step-splash .comic-home .splash-center {inset:14% 4% 30%;}
+  .pregame-shell.step-splash .comic-home .splash-logo {width:100%;max-height:36dvh;}
+  .home-actions {bottom:9%;flex-wrap:wrap;width:88%;}
+  .home-actions .comic-secondary {flex:1 1 40%;font-size:13px;min-height:48px;}
+  .mode-select-screen {inset:17% 6% 8%;}
+  .mode-select-screen h1 {font-size:42px;}
+  .mode-card {height:15dvh;min-height:110px;padding-right:6px;}
+  .mode-copy strong {font-size:24px;}
+  .mode-copy small {font-size:12px;}
+  .mode-card>svg {width:22px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .comic-home *,.home-actions *,.mode-select-screen *,.custom-room-screen * {animation:none!important;transition:none!important;}
+}
+
+/* Supplied artwork owns its shape and typography: never skew or stretch it. */
+.pregame-shell .comic-home .supplied-play {
+  display:block;width:clamp(250px,28vw,480px);height:auto;min-height:44px;aspect-ratio:3;
+  padding:0;margin:2dvh 0 0;background:none;border:0;box-shadow:none;transform:none;
+}
+.pregame-shell .comic-home .supplied-play img {display:block;width:100%;height:auto;pointer-events:none;}
+.pregame-shell .comic-home .supplied-play:is(:hover,:focus-visible) {transform:translateY(-3px) scale(1.04);}
+.pregame-shell .comic-home .supplied-play:active {transform:scale(.96);}
+.home-actions .supplied-action {
+  display:block;min-width:0;min-height:44px;aspect-ratio:380/137;padding:0;background:none;border:0;box-shadow:none;transform:none;
+  transition:transform 140ms var(--menu-snap),filter 140ms;
+}
+.home-actions .supplied-action svg {display:block;width:100%;height:100%;pointer-events:none;}
+.home-actions .supplied-action:is(:hover,:focus-visible) {transform:translateY(-3px) scale(1.035);background:none;filter:brightness(1.15);}
+.home-actions .supplied-action:active {transform:scale(.96);}
+.pregame-shell .supplied-mode-screen {
+  inset:auto;top:50%;left:50%;width:min(64vw,1040px,calc((100dvh - 100px)*1.06));
+  transform:translate(-50%,-50%);gap:10px;isolation:isolate;overflow:visible;
+}
+.mode-backplate {position:absolute;inset:-4% -4% -5%;width:108%;height:109%;z-index:-1;pointer-events:none;}
+.supplied-mode-screen h1 {display:block;width:94%;align-self:center;aspect-ratio:1124/268;flex-shrink:0;margin:0;transform:none;text-shadow:none;}
+.supplied-mode-screen .mode-heading-art {display:block;width:100%;height:auto;}
+.supplied-mode-screen .mode-options {gap:4px;}
+.supplied-mode-screen .supplied-mode {
+  display:block;min-height:44px;height:auto;width:100%;padding:0;background:none;border:0;box-shadow:none;transform:none;
+}
+.supplied-mode::before {display:none;}
+.supplied-mode-screen .supplied-mode img {display:block;width:100%;height:auto;pointer-events:none;}
+.supplied-mode-screen .supplied-mode:is(:hover,:focus-visible) {transform:translateX(4px) scale(1.015);filter:brightness(1.1);}
+.supplied-mode-screen .supplied-mode:active {transform:scale(.98);}
+.pregame-shell .supplied-back {
+  width:clamp(125px,17vw,300px);height:auto;min-height:44px;padding:0;border:0;box-shadow:none;background:none;transform:none;aspect-ratio:464/155;
+}
+.supplied-back img {display:block;width:100%;height:auto;pointer-events:none;}
+.supplied-back:is(:hover,:focus-visible) {filter:brightness(1.15);scale:1.035;}
+.custom-room-card .custom-room-back {display:block;width:200px;max-width:100%;min-height:44px;padding:0;background:none;border:0;cursor:pointer;transition:transform 140ms,filter 140ms;}
+.custom-room-back img {display:block;width:100%;height:auto;pointer-events:none;}
+.custom-room-back:is(:hover,:focus-visible) {transform:scale(1.035);filter:brightness(1.15);}
+.custom-room-back:active {transform:scale(.96);}
+@media(max-height:620px) and (orientation:landscape) {
+  .pregame-shell .comic-home .supplied-play {width:245px;height:auto;min-height:44px;margin-top:6px;padding:0;border:0;}
+  .pregame-shell .supplied-mode-screen {width:min(64vw,calc((100dvh - 52px)*1.07));gap:5px;}
+  .supplied-mode-screen .mode-options {gap:2px;}
+  .home-actions .supplied-action {padding:0;min-height:44px;}
+  .pregame-shell .supplied-back {width:clamp(110px,17vw,165px);}
+}
+@media(max-width:620px) and (orientation:portrait) {
+  .pregame-shell .supplied-mode-screen {width:90vw;gap:12px;}
+  .supplied-mode-screen .mode-options {gap:10px;}
+  .home-actions .supplied-action {flex:1 1 40%;padding:0;min-height:44px;}
+  .home-actions .supplied-action:last-child {flex:0 1 48%;}
+}
+
+/* One Back artwork everywhere; context-specific accessible names stay intact. */
+button.menu-art-back {
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  width:160px;max-width:100%;height:auto;min-height:44px;min-width:0;padding:0;
+  background:none;border:0;border-radius:0;box-shadow:none;cursor:pointer;line-height:1;
+  transition:scale 130ms ease,filter 130ms ease;transform:none;
+}
+button.menu-art-back img {position:static;display:block;width:100%;height:auto;max-height:none;object-fit:contain;opacity:1;transform:none;pointer-events:none;}
+button.menu-art-back:hover {background:none;filter:brightness(1.14);scale:1.025;transform:none;}
+button.menu-art-back:active {scale:.96;}
+button.menu-art-back:focus-visible {outline:3px solid #fff8e7;outline-offset:3px;border-radius:4px;}
+/* Override legacy first-button/primary modal skins without changing their actions. */
+button.menu-art-back.menu-art-back {background:transparent;border:0;padding:0;box-shadow:none;}
+.menu-art-back-caption {color:inherit;font-size:12px;line-height:1.3;}
+.pregame-shell .menu-art-back.graffiti-back {
+  width:clamp(125px,17vw,300px);height:auto;aspect-ratio:464/155;z-index:25;
+}
+.pregame-shell:has(.map-select-v2) .menu-art-back.graffiti-back {width:clamp(105px,12vw,180px);height:auto;}
+.pregame-shell.step-character .menu-art-back.graffiti-back {width:clamp(110px,12vw,180px);top:12px;left:14px;}
+.credits-toolbar button.menu-art-back {width:130px;padding:0;flex-shrink:0;}
+.pause-hub footer button.menu-art-back {width:140px;}
+@media(max-height:620px) and (orientation:landscape), (max-width:620px) {
+  .pregame-shell .menu-art-back.graffiti-back {width:120px;height:auto;top:8px;left:8px;}
+  .pregame-shell:has(.map-select-v2) .menu-art-back.graffiti-back {width:105px;height:auto;}
+  .credits-toolbar button.menu-art-back {width:105px;}
+}
+
+/* One-shot ink slash, punchy overshoot and brisk stagger. No animation gates input. */
+.menu-reveal {position:absolute;inset:0;z-index:40;overflow:hidden;pointer-events:none;contain:strict;}
+.menu-reveal i,.menu-reveal b {position:absolute;inset:-20% -35%;display:block;pointer-events:none;}
+.menu-reveal i {background:linear-gradient(110deg,#09090d 0 78%,#b100ef 78% 81%,#09090d 81% 86%,transparent 86%);rotate:-8deg;animation:gaming-ink-sweep 380ms cubic-bezier(.65,0,.2,1) both;}
+.menu-reveal b {inset:40% -35% 47%;background:linear-gradient(90deg,transparent,#ffcf00 30% 70%,transparent);rotate:-8deg;animation:gaming-speed-line 300ms cubic-bezier(.2,.75,.25,1) both;}
+@keyframes gaming-ink-sweep {0%{translate:-110% 0;}30%{translate:-10% 0;}100%{translate:115% 0;}}
+@keyframes gaming-speed-line {from{translate:-120% 0;opacity:0;}25%{opacity:1;}to{translate:120% 0;opacity:0;}}
+@keyframes gaming-title-hit {0%{opacity:0;scale:.78;rotate:-5deg;}60%{opacity:1;scale:1.045;rotate:1deg;}82%{scale:.99;rotate:-.5deg;}100%{opacity:1;scale:1;rotate:0deg;}}
+@keyframes gaming-card-reveal {0%{opacity:0;translate:65px 8px;scale:.96;}65%{opacity:1;translate:-5px 0;scale:1.012;}100%{opacity:1;translate:0 0;scale:1;}}
+@keyframes gaming-side-reveal {0%{opacity:0;translate:var(--reveal-x,50px) 10px;}70%{opacity:1;translate:calc(var(--reveal-x,50px)*-.04) 0;}100%{opacity:1;translate:0 0;}}
+@keyframes gaming-panel-reveal {0%{opacity:0;scale:.94;translate:0 18px;}75%{opacity:1;scale:1.008;translate:0 -2px;}100%{opacity:1;scale:1;translate:0 0;}}
+.pregame-shell.step-splash .comic-home .splash-logo {animation:gaming-title-hit 560ms cubic-bezier(.16,1,.3,1) both;}
+.pregame-shell .comic-home .supplied-play {animation:gaming-title-hit 440ms 120ms cubic-bezier(.16,1,.3,1) both;}
+.home-actions {animation:gaming-panel-reveal 380ms 180ms cubic-bezier(.16,1,.3,1) both;}
+.supplied-mode-screen h1 {animation:gaming-title-hit 480ms cubic-bezier(.16,1,.3,1) both;}
+.supplied-mode-screen .mode-backplate {animation:gaming-panel-reveal 380ms cubic-bezier(.16,1,.3,1) both;}
+.supplied-mode-screen .mode-card {animation:gaming-card-reveal 420ms 90ms cubic-bezier(.16,1,.3,1) both;}
+.supplied-mode-screen .mode-card:nth-child(2) {animation-delay:135ms;}
+.supplied-mode-screen .mode-card:nth-child(3) {animation-delay:180ms;}
+.team-screen .team-pick {--reveal-x:-90px;animation:gaming-side-reveal 480ms 50ms cubic-bezier(.16,1,.3,1) both;}
+.team-screen .team-pick:nth-of-type(2) {--reveal-x:90px;animation-delay:100ms;}
+.roster-screen .roster-stage,.map-select-v2 .map-select-stage {animation:gaming-panel-reveal 440ms 70ms cubic-bezier(.16,1,.3,1) both;}
+.custom-room-screen .custom-room-card {animation:gaming-panel-reveal 400ms cubic-bezier(.16,1,.3,1) both;}
+:is(.home-settings-dialog,.graphics-settings-panel,.audio-settings-art-panel,.rules-overlay,.developer-credits,.tutorial-entry,.tutorial-finish,.pause-overlay)[open] {animation:gaming-panel-reveal 250ms cubic-bezier(.16,1,.3,1) both;}
+@media(prefers-reduced-motion:reduce) {
+  .menu-reveal {display:none;}
+  .pregame-shell *,button.menu-art-back,
+  :is(.home-settings-dialog,.graphics-settings-panel,.audio-settings-art-panel,.rules-overlay,.developer-credits,.tutorial-entry,.tutorial-finish,.pause-overlay)[open] {animation:none!important;transition:none!important;}
+}

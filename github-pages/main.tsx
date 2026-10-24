@@ -5,6 +5,7 @@ import { GameErrorBoundary } from '../modules/ui/error-boundary.tsx';
 import '../app/globals.css';
 import './pages.css';
 import '../app/ux-priority.css';
+import '../app/home-menu.css';
 
 const root = document.getElementById('root');
 

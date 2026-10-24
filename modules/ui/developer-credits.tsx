@@ -3,6 +3,7 @@ import { t } from '../../lib/language';
 
 import { useEffect, useRef, useState } from 'react';
 import { publicAsset } from '../../lib/characters.ts';
+import { ArtworkBackButton } from './back-button.tsx';
 
 const groups = [
   { title: 'Game Director', names: ['Andreuw Lengkong'] },
@@ -48,7 +49,7 @@ export function DeveloperCredits({onClose}:{onClose:()=>void}) {
     <div className="credits-stage">
       <img className="credits-background" src={publicAsset('ui-v2/credits/background.webp?v=1')} alt="" onLoad={()=>setReady(true)} onError={()=>setReady(true)} />
       <header className="credits-toolbar">
-        <button autoFocus onClick={onClose}>{t("← BACK")}</button>
+        <ArtworkBackButton onBack={onClose} />
         <h2 id="credits-title">{t("ABOUT DEVELOPER")}</h2>
         <button onClick={()=>setPaused(value=>!value)} disabled={ended} aria-pressed={paused}>{t(paused?'▶ LANJUT':'Ⅱ JEDA')}</button>
         <button onClick={restart}>{t("↺ ULANGI")}</button>

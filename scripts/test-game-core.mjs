@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {orderArenaSelection} from '../modules/ui/map-selection-assets.ts';
+import {orderArenaSelection,arenaSelectionDifficulty} from '../modules/ui/map-selection-assets.ts';
 import {getProgressionArenaId} from '../lib/player-profile/arena-identity.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,7 +41,7 @@ void test('13 all twelve versioned messages encode/decode to detached validated 
   assert.doesNotMatch(source,/\b(?:RTCPeerConnection|WebSocket|fetch|window|document|localStorage)\b/);
 });
 void test('13 message guards reject bad versions/types/keys/getters and inconsistent snapshot envelopes',()=>{
-  for(const m of protocolFixtures())for(const alter of [v=>v.version=2,v=>v.type='UNKNOWN',v=>v.extra=true,v=>delete v.version]){
+  for(const m of protocolFixtures())for(const alter of [v=>v.version=1,v=>v.type='UNKNOWN',v=>v.extra=true,v=>delete v.version]){
     const bad=structuredClone(m);alter(bad);assert.equal(protocol.parseProtocolMessage(bad),null);assert.equal(protocol.isProtocolMessage(bad),false);
   }
   const fixtures=protocolFixtures(),bad=[];
@@ -105,7 +105,7 @@ void test('12 snapshot JSON roundtrip preserves render/protection/flight data wi
 });
 void test('12 strict snapshot parser rejects malformed fields, duplicate identities, invalid references and phase truth',()=>{
   const good=snapshots.createSnapshot(state.describeMatch(truth([actor(),enemy()])));
-  const mutations=[s=>s.version=2,s=>s.tick=.5,s=>s.timeMs=Infinity,s=>s.arenaId='',s=>s.entities[0].x=NaN,
+  const mutations=[s=>s.version=1,s=>s.tick=.5,s=>s.timeMs=Infinity,s=>s.arenaId='',s=>s.entities[0].x=NaN,
     s=>s.entities[0].character='unknown',s=>s.entities[0].team='blue',s=>s.entities[0].action='hack',
     s=>s.entities[1].id=s.entities[0].id,s=>s.entities[0].flight={stage:'FLYING'},s=>s.entities[0].ultimateMeter=101,
     s=>s.entities=[],s=>s.entities=Array(33).fill(s.entities[0]),s=>s.ultimate.actorId='missing',
@@ -389,7 +389,7 @@ void test('08 flight sequence transitions, hooks and safe landing match the shar
     const me=actor({characterId:id,flight:flight.startFlight({x:200,y:200})}),old=structuredClone(me),c=flight.flightConfig(id);
     for(const [dt,complete] of [[.5,false],[.01,true],[3.5,false],[.5,false],[.5,false],[.01,true]]) {
       const expected=[];const note=name=>expected.push({name,stage:old.flight.stage,remaining:old.flight.remaining,distance:old.flight.distance});
-      old.flight=flight.advanceFlight(old.flight,c,dt,complete,{
+      if(old.flight)old.flight=flight.advanceFlight(old.flight,c,dt,complete,{
         onFlightStart:()=>{note('onFlightStart');note('flight_loop_sfx');},onFlightWarning:()=>note('flight_warning_sfx'),
         onFlightLanding:()=>{note('onFlightLanding');note('flight_land_sfx');},onFlightEnd:()=>note('ultimate_flight_ended'),
         onSafeLanding:()=>{const land=flight.safeFlightLanding(old,old.flight.lastGround,()=>true);old.x=land.x;old.y=land.y;old.lastX=old.x;old.lastY=old.y;},
@@ -435,6 +435,8 @@ void test('08 actual runtime result adapter persists rewards and announces victo
     const tutorialSignal=()=>{},TUTORIAL_MATCH=${JSON.stringify(TUTORIAL_MATCH)};
     const players=[{team:'blue',flight:null}],score={blue:0,red:0},performance={now:()=>1000},clientOnly=false,
       publishNetworkFacts=()=>{},createMatchResult=()=>({}),readCanonicalState=()=>({}),humanIdentities=[],disconnectedPeers=new Set(),resultHandoff=()=>({result:null});
+    const networkUltimates={get:()=>undefined};
+    let ultimateJammerUntil=0,ultimateDriveUntil=0;
     let phase='PLAYING',roundWinner,roundEndReason,matchEvents=[],resultWinner,resultAnnouncementUntil=0,
       fieldRotationPending=false,phaseUntil=0,announcement='',saved=[],sounds=[],presented=[];
     const pendingProfileStatsRef={current:{tagMusuh:2,rescueTeam:1,masukPenjara:3}},completedMatchesRef={current:0},
@@ -676,12 +678,12 @@ void test('runtime adapters are connected and core has no DOM/audio/React depend
     assert.doesNotMatch(fs.readFileSync(file,'utf8').replace(/\/\/[^\n]*/g,''),/from ['"]react|\b(?:window|document|Audio|AudioContext|CanvasRenderingContext2D)\b/);
 });
 
-void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, prison, water and immutable migration',async()=>{
+void test('map Kanal2 native/editor ground parity and explicit flying parkour bypass preserve prison, water and migration',async()=>{
   const {templates}=await import('./map-studio/templates.mjs');
   const {prepareArenaMap,kanalPrisonWalls,arenaRulesFor}=await import('../modules/world/map-arena-rules.ts');
   const {kanalObjectRects,kanalFortPolygon,polygonToRects}=await import('../modules/world/kanal-footprints.ts');
   const {createMapQueries}=await import('../modules/world/map-runtime-index.ts');
-  const {validateMap}=await import('../lib/map-studio-model.js');
+  const {validateMap,collisionTouches}=await import('../lib/map-studio-model.js');
   const catalog=await templates(process.cwd()),reference=catalog.builtinTemplates.find(m=>m.replaces==='kanal2');
   // Stable synthetic legacy template: future intentional edits to a user's
   // saved draft must not be mistaken for regressions in the original rules.
@@ -705,7 +707,7 @@ void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, pr
   const copyExports={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/player-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:copyExports});
   const projected={structuredClone,
-    orderArenaSelection,getProgressionArenaId,
+    orderArenaSelection,arenaSelectionDifficulty,getProgressionArenaId,
     FIELD_CONFIGS:JSON.parse(JSON.stringify(nativeFields)),
     studioMaps:[fixtureMap],studioBuiltinStates:{},
     arenaRulesFor,prepareArenaMap,arenaCopy:copyExports.arenaCopy,playerArenaCopy:copyExports.playerArenaCopy,kanalColliderObjects:(await import('../modules/world/map-arena-rules.ts')).kanalColliderObjects,
@@ -731,9 +733,17 @@ void test('map P1 Kanal 2 legacy/editor/native parity: walk, parkour, flight, pr
   assert.equal(movement.enterWaterFall(native,fallA,1000,waterPoint.x,waterPoint.y),true);
   assert.equal(movement.enterWaterFall(editor,fallB,1000,waterPoint.x,waterPoint.y),true);
   assert.deepEqual(fallB,fallA);assert.equal(fallB.waterFallUntil,1720);
-  for(const p of [actor({x:900,y:700,parkourUntil:0}),actor({x:900,y:700,parkourUntil:2000}),actor({x:900,y:700,flight:{stage:'FLYING'}})])
+  for(const p of [actor({x:900,y:700,parkourUntil:0}),actor({x:900,y:700,parkourUntil:2000})])
     for(let y=58;y<field.height-32;y+=23)for(let x=34;x<field.width-34;x+=23)
       assert.equal(movement.movementBlocked(editor,x,y,p,1000),movement.movementBlocked(native,x,y,p,1000),`${x},${y} ${p.flight?.stage??p.parkourUntil}`);
+  // New flight contract intentionally differs from the old native blanket wall
+  // rule: every editor parkour collider is passable, including native footprints.
+  // Solid editor objects, prison walls and fort cores must still block.
+  const flying=actor({x:900,y:700,flight:{stage:'FLYING'}}),prisonBlocked=collision.createRectQuery(walls);
+  for(let y=58;y<field.height-32;y+=23)for(let x=34;x<field.width-34;x+=23){
+    const expected=draft.objects.some(o=>o.behavior==='solid'&&collisionTouches(o,x,y,13))||prisonBlocked(x,y,13)||common.fortCoreAt(x,y);
+    assert.equal(movement.movementBlocked(editor,x,y,flying,1000),expected,`${x},${y} explicit flight semantics`);
+  }
   for(const owner of ['blue','red'])for(let count=1;count<=5;count++){
     const held=Array.from({length:count},(_,i)=>actor({id:String(i),state:'PRISONER',prisonOwner:owner}));
     const copy=structuredClone(held);interactions.layoutPrisoners(held,field.prisons,true);interactions.layoutPrisoners(copy,draft.prisons,arenaRulesFor(draft)==='kanal2');

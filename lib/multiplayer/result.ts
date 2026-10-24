@@ -1,11 +1,11 @@
 import type {CanonicalGameState,TeamId} from '../game-core/types';
 import {createSnapshot} from '../game-core/snapshot.ts';
-import {parseProtocolMessage,type ProtocolMessage} from './protocol.ts';
+import {MULTIPLAYER_PROTOCOL_VERSION,parseProtocolMessage,type ProtocolMessage} from './protocol.ts';
 import type {MatchSummary,ProgressionResult} from '../player-profile/match-progression';
 export type MatchResultPacket=Extract<ProtocolMessage,{type:'MATCH_RESULT'}>;
 export function createMatchResult(state:CanonicalGameState,humans:readonly {peerId:string;entityId:string}[],disconnected:ReadonlySet<string>):MatchResultPacket {
   if(state.phase!=='MATCH_OVER'||!state.result?.complete)throw Error('Incomplete match cannot award progression');
-  const value:MatchResultPacket={version:1,type:'MATCH_RESULT',matchId:state.matchId,arenaId:state.arenaId,tick:state.tick,
+  const value:MatchResultPacket={version:MULTIPLAYER_PROTOCOL_VERSION,type:'MATCH_RESULT',matchId:state.matchId,arenaId:state.arenaId,tick:state.tick,
     winner:state.result.winner,reason:state.result.reason,snapshot:createSnapshot(state),humans:humans.map(p=>{
       const actor=state.entities.find(e=>e.entityId===p.entityId),stats=state.matchStats[p.entityId];
       if(!actor||!stats)throw Error('Missing human result identity/statistics');

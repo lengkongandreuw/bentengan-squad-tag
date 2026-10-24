@@ -19,7 +19,12 @@ for(const [asset,frames]of groups) {
   if(!result)continue;
   const hash=createHash('sha256').update(result.output).digest('hex');
   const target=`sprite-runtime/${hash}.webp`;
-  await fs.writeFile(path.join(root,'public',target),result.output);
+  const targetPath=path.join(root,'public',target);
+  // Content-addressed output is immutable. Avoid rewriting identical atlases
+  // that an open Windows editor/browser may currently hold, while still
+  // surfacing genuine IO errors and creating any missing build asset.
+  const existing=await fs.readFile(targetPath).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+  if(!existing?.equals(result.output))await fs.writeFile(targetPath,result.output);
   const {output:_output,...metadata}=result;
   manifest.assets[asset]={asset:target,...metadata};
   before+=result.sourceWidth*result.sourceHeight*4;after+=result.width*result.height*4;

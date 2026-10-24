@@ -3,7 +3,7 @@ import {canonicalTeam} from '../game-core/state.ts';
 import {parseSnapshot,type GameSnapshot} from '../game-core/snapshot.ts';
 import {object,oneOf,integer,nonnegative,finite,bool,id,text,team,character,nullable,list,point,bounded,safely,type Validator} from '../game-core/validation.ts';
 
-export const MULTIPLAYER_PROTOCOL_VERSION=1;
+export const MULTIPLAYER_PROTOCOL_VERSION=2;
 export const MAX_PROTOCOL_MESSAGE_CHARS=128*1024;
 const version=oneOf([MULTIPLAYER_PROTOCOL_VERSION]);
 const inputSchema=object({moveX:bounded(-1,1),moveY:bounded(-1,1),sprint:bool,keyboardSprint:bool,sprintPulse:bool,
@@ -24,7 +24,7 @@ const eventSchemas={
   PLAYER_CAPTURED:object({type:oneOf(['PLAYER_CAPTURED']),actorId:id,targetId:id}),
   PLAYER_RESCUED:object({type:oneOf(['PLAYER_RESCUED']),actorId:id,targetIds:list(id),x:finite,y:finite}),
   ULTIMATE_STARTED:object({type:oneOf(['ULTIMATE_STARTED']),actorId:id,flight:bool}),
-  ULTIMATE_APPLIED:object({type:oneOf(['ULTIMATE_APPLIED']),actorId:id,effect:oneOf(['shield','speed']),durationMs:nonnegative,speedMultiplier:nonnegative}),
+  ULTIMATE_APPLIED:object({type:oneOf(['ULTIMATE_APPLIED']),actorId:id,effect:oneOf(['shield','speed','jammer','drive']),durationMs:nonnegative,speedMultiplier:nonnegative}),
   FORT_ENTERED:object({type:oneOf(['FORT_ENTERED']),actorId:id,team}),
   FORT_CAPTURED:object({type:oneOf(['FORT_CAPTURED']),actorId:id,team,reason:oneOf(['BENTENG DIREBUT'])}),
   HELP_REQUESTED:object({type:oneOf(['HELP_REQUESTED']),actorId:id}),

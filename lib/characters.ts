@@ -23,7 +23,7 @@ export type CharacterRole =
   | 'Scout'
   | 'Disruptor';
 
-export type UltimateKind = 'shield' | 'surge' | 'flight';
+export type UltimateKind = 'shield' | 'surge' | 'flight' | 'jammer' | 'drive';
 export type UltimateDescriptor = {
   kind: UltimateKind;
   name: string;
@@ -112,6 +112,8 @@ export const CHARACTER_BY_ID = Object.fromEntries(
 export const ULTIMATE_CHARACTER_IDS: ReadonlySet<CharacterId> = new Set(
   CHARACTERS.filter(character => character.ultimate).map(character => character.id),
 );
+// Protocol v2 supports all six effects through host-owned simulation.
+export const MULTIPLAYER_ULTIMATE_CHARACTER_IDS=ULTIMATE_CHARACTER_IDS;
 
 export const characterUsesDedicatedEast = (id: CharacterId): boolean =>
   CHARACTER_BY_ID[id]?.dedicatedEast ?? false;

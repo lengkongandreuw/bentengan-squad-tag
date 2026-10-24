@@ -388,7 +388,7 @@ void test('module15 runtime wiring uses one writer, stable match identity and un
   assert.doesNotMatch(code, /recordCompletedMatch/);
   assert.match(code, /const matchId = mode === 'playing' \? network\?`\$\{network\.read\(\)\.roomCode\}:match`:createMatchId\(\) : null/);
   assert.ok(code.includes('matchId && !network'), 'online MVP cannot award solo progression');
-  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, selectionGate,tutorialMatch,tutorialSignal\]/);
+  assert.match(code, /\[mode, run, selected, selectedFaction, selectedFieldId, selectedId,networkSession, ULTIMATE_CHARACTER_IDS, selectionGate,tutorialMatch,tutorialSignal\]/);
   const lineup = await readFile(new URL('../modules/world/team-tables.ts', import.meta.url),'utf8');
   assert.doesNotMatch(lineup, /getPlayable|isCharacterUnlocked|playerProfile/);
   assert.match(lineup, /roster\.slice\(0, GAME_RULES.matchSize\)/);
@@ -430,7 +430,7 @@ void test('module14 one nonblocking panel renders multiple unlocks and dismissal
     newlyUnlockedCharacters: progressionRules.characterUnlockRequirements.map(entry => entry.characterId),
     newlyUnlockedArenaIds: progressionRules.arenaProgression.tiers.flatMap(entry => entry.arenaIds) };
   const manyMarkup = renderToStaticMarkup(createElement(UnlockNotificationPanel, { ...props, result: many }));
-  assert.equal((manyMarkup.match(/<li>/g) ?? []).length, 20);
+  assert.equal((manyMarkup.match(/<li>/g) ?? []).length, 21);
   assert.equal((manyMarkup.match(/aria-live="polite"/g) ?? []).length, 1);
   assert.doesNotMatch(manyMarkup, /role="dialog"|aria-modal/);
 });
@@ -721,7 +721,7 @@ void test('module07 explicit storage entry persists reward once and reports stor
 });
 
 void test('module06 exact campaign rules and each requirement independently blocks unlock', () => {
-  const expected = [['pasar',2,1,0,0,0], ['taman',3,3,0,8,2], ['kanal',5,4,0,15,5],
+  const expected = [['pasar',2,1,0,0,0], ['studio-copy-4572a880',3,3,0,8,2], ['taman',3,3,0,8,2], ['kanal',5,4,0,15,5],
     ['kanal2',7,5,12,25,10], ['studio-kampung-2420b8cf',9,7,20,40,15]];
   assert.deepEqual(progressionRules.arenaProgression.unlockRequirements.map(r =>
     [r.arenaId,r.minLevel,r.requiredTierStats[0].minWins,r.minTotalWins ?? 0,r.minTags ?? 0,r.minRescues ?? 0]), expected);
@@ -970,7 +970,7 @@ void test('module02 loads exact specified rewards, caps, levels and complete unl
     [['raja',1],['kaka',1],['bebe',2],['ciici',3],['jago',4],['maria',5],['lala',6],
      ['lui',7],['robot',8],['buto',9],['tui',10],['boke',11],['kumis',12],['kodo',13]]);
   assert.equal(progressionRules.arenaProgression.tiers.length, 6);
-  assert.equal(progressionRules.arenaProgression.unlockRequirements.length, 5);
+  assert.equal(progressionRules.arenaProgression.unlockRequirements.length, 6);
 });
 
 void test('module02 malformed rules fail explicitly without changing input or player data', () => {

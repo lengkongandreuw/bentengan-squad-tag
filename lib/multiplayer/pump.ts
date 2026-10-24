@@ -1,5 +1,5 @@
 import { NETWORK_RATES } from './rates.ts';
-import type { ProtocolMessage } from './protocol.ts';
+import { MULTIPLAYER_PROTOCOL_VERSION, type ProtocolMessage } from './protocol.ts';
 import type { MultiplayerSession } from './session';
 import type { PlayerInputFrame } from '../game-core/input.ts';
 import { wireInput } from './remote-input.ts';
@@ -46,7 +46,7 @@ export const createNetworkPump = (source: {
     );
     if (frame.moveX || frame.moveY) route.length = 0;
     source.network.sendInput({
-      version: 1,
+      version: MULTIPLAYER_PROTOCOL_VERSION,
       type: 'INPUT',
       matchId: source.matchId,
       entityId: source.myEntityId,

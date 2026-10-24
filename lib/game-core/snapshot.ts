@@ -1,7 +1,7 @@
 import type {CanonicalGameState} from './types';
 import {object,oneOf,integer,nonnegative,finite,bool,id,text,team,character,nullable,list,point,bounded,safely} from './validation.ts';
 
-export const GAME_SNAPSHOT_VERSION=1;
+export const GAME_SNAPSHOT_VERSION=2;
 const flight=nullable(object({stage:oneOf(['FLIGHT_TAKEOFF','FLYING','FLIGHT_LANDING']),elapsed:nonnegative,remaining:nonnegative,
   heading:finite,headingSet:bool,direction:oneOf(['south','southwest','west','northwest','north','northeast','east','southeast']),
   warning:bool,distance:nonnegative}));
@@ -19,7 +19,8 @@ const schema=object({version:oneOf([GAME_SNAPSHOT_VERSION]),matchId:id,arenaId:i
   entities:list(entity),score:object({red:integer,green:integer}),combos:object({red:combo,green:combo}),
   objective:object({redHeldSeconds:nonnegative,greenHeldSeconds:nonnegative}),
   ultimate:object({actorId:nullable(id),impactAt:nonnegative,impactApplied:bool,buffUntil:nonnegative,shieldUntil:nonnegative,
-    castMs:nullable(nonnegative),speedMultiplier:nullable(nonnegative)}),
+    castMs:nullable(nonnegative),speedMultiplier:nullable(nonnegative),
+    actors:list(object({actorId:id,buffUntil:nonnegative,shieldUntil:nonnegative,jammerUntil:nonnegative,driveUntil:nonnegative}),10)}),
   refills:list(object({id:integer,x:finite,y:finite,grade:oneOf([25,40,75,100]),lane:oneOf([0,1,2]),expiresAt:nonnegative}),32),
   rescueRequest:nullable(object({requesterId:id,team,expiresAt:nonnegative,assignedRescuerId:nullable(id)})),
   result:nullable(object({winner:team,reason:text(256),complete:bool})),
@@ -30,6 +31,7 @@ export function parseSnapshot(value:unknown):GameSnapshot|null {
   const s=safely(schema,value);if(!s||!s.entities.length||s.round<1)return null;
   const ids=new Set(s.entities.map(e=>e.id));if(ids.size!==s.entities.length)return null;
   if(s.ultimate.actorId!==null&&!ids.has(s.ultimate.actorId))return null;
+  if(new Set(s.ultimate.actors.map(p=>p.actorId)).size!==s.ultimate.actors.length||s.ultimate.actors.some(p=>!ids.has(p.actorId)))return null;
   if(s.rescueRequest&&(!ids.has(s.rescueRequest.requesterId)||(s.rescueRequest.assignedRescuerId!==null&&!ids.has(s.rescueRequest.assignedRescuerId))))return null;
   if(new Set(s.refills.map(r=>r.id)).size!==s.refills.length)return null;
   if(s.result&&((s.phase!=='ROUND_OVER'&&s.phase!=='MATCH_OVER')||s.result.complete!==(s.phase==='MATCH_OVER')))return null;
@@ -58,7 +60,8 @@ export function createSnapshot(state:CanonicalGameState):GameSnapshot {
     objective:{redHeldSeconds:state.teams.red.allHeldSeconds,greenHeldSeconds:state.teams.green.allHeldSeconds},
     ultimate:{actorId:state.ultimate.actorId,impactAt:state.ultimate.impactAt,impactApplied:state.ultimate.impactApplied,
       buffUntil:state.ultimate.buffUntil,shieldUntil:state.ultimate.shieldUntil,
-      castMs:state.ultimate.effectiveStats?.castMs??null,speedMultiplier:state.ultimate.effectiveStats?.speedMultiplier??null},
+      castMs:state.ultimate.effectiveStats?.castMs??null,speedMultiplier:state.ultimate.effectiveStats?.speedMultiplier??null,
+      actors:state.ultimate.actors??[]},
     refills:state.refills,rescueRequest:state.rescueRequest,result:state.result};
   const parsed=parseSnapshot(value);if(!parsed)throw Error('Cannot snapshot invalid canonical state');return parsed;
 }

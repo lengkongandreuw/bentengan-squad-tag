@@ -7,8 +7,8 @@ import {solidAt} from '../lib/map-studio-model.js';
 import {ULTIMATE_CHARACTER_IDS,CHARACTER_BY_ID} from '../lib/characters.ts';
 import {stepUltimate,gainUltimate} from '../modules/gameplay/ultimate.ts';
 
-void test('actual character catalog includes all four ultimate owners and flight activation recharges through the runtime gate',()=>{
-  assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(),['bebe','ciici','kaka','raja']);
+void test('actual character catalog includes six solo ultimate owners and flight activation recharges through the runtime gate',()=>{
+  assert.deepEqual([...ULTIMATE_CHARACTER_IDS].sort(),['bebe','buto','ciici','kaka','raja','robot']);
   for(const id of ['bebe','ciici']){
     assert.equal(CHARACTER_BY_ID[id].ultimate.kind,'flight');
     const actor={characterId:id,entityId:'local-'+id,controlled:true,state:'ACTIVE',x:250,y:400,vx:0,vy:0,parkourUntil:0,actionUntil:0,flight:null};
@@ -30,9 +30,8 @@ void test('shared config, complete-sequence gating and exact actual flight durat
     advanceFlight(p.flight,c,10,false);assert.equal(isFlying(p),false);assert.equal(p.flight.remaining,0);
     advanceFlight(p.flight,c,.01,true);assert.equal(isFlying(p),true);assert.equal(p.flight.remaining,4);
     advanceFlight(p.flight,c,3.99,false);assert.equal(isFlying(p),true);
-    let landed=0;advanceFlight(p.flight,c,.011,false,{onSafeLanding:()=>landed++});
-    assert.equal(landed,1);assert.equal(isFlying(p),false);assert.equal(flightSlot(p.flight),'ultimate_land');
-    assert.ok(advanceFlight(p.flight,c,10,false));p.flight=advanceFlight(p.flight,c,.01,true);
+    let landed=0;p.flight=advanceFlight(p.flight,c,.011,false,{onSafeLanding:()=>landed++});
+    assert.equal(landed,1);assert.equal(isFlying(p),false);assert.equal(flightSlot(p.flight),null);
     assert.equal(flightBusy(p),false);
   }
   assert.equal(flightConfig('raja'),null);assert.equal(flightConfig('kaka'),null);
@@ -51,9 +50,7 @@ void test('all ultimate phases stay busy until completion or cancellation; warni
     actor.flight=advanceFlight(actor.flight,config,1,true);
     assert.equal(flightBusy(actor),true,'flying is protected');
     actor.flight=advanceFlight(actor.flight,config,4,false);
-    assert.equal(actor.flight.stage,'FLIGHT_LANDING');
-    assert.equal(flightBusy(actor),true,'landing is protected');
-    actor.flight=advanceFlight(actor.flight,config,1,true);
+    assert.equal(actor.flight,null,'expiry skips the authored landing animation');
     assert.equal(flightBusy(actor),false,'completion restores targeting');
   }
 });

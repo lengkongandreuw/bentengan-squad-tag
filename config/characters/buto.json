@@ -18,5 +18,27 @@
   "rescueShieldMs": 1500,
   "tagCooldownMs": 490,
   "mirrorWest": false,
-  "dedicatedEast": true
+  "dedicatedEast": true,
+  "ultimate": {
+    "kind": "drive",
+    "name": "IRON DRIVE",
+    "shortLabel": "DRIVE",
+    "hudTitle": "IRON DRIVE",
+    "buffText": " IRON DRIVE · ",
+    "bannerAlt": "BUTO — IRON DRIVE",
+    "icon": "zap",
+    "hudClass": "buto",
+    "shieldClass": "",
+    "actionClass": "buto-ultimate",
+    "indicatorClass": "buto-drive-indicator",
+    "bannerClass": "buto-banner",
+    "trackEdge": "#202711",
+    "trackFill": "#82934b",
+    "castBurst": "#82934b",
+    "castBeepHz": 260,
+    "castMs": 600,
+    "bannerMs": 820,
+    "strip": false,
+    "castLog": "BUTO activates IRON DRIVE."
+  }
 }

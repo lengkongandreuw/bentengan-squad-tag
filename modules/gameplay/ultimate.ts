@@ -9,6 +9,7 @@ import {
   type FlightConfig,
 } from './flight-ultimate.ts';
 import type { GameEvent } from '../../lib/game-core/events.ts';
+import { ultimateEffectFor, BUTO_DRIVE_SPEED_MULTIPLIER } from './ultimate-effects.ts';
 
 export type UltimateState = {
   meter: number;
@@ -16,7 +17,14 @@ export type UltimateState = {
   impactApplied: boolean;
   buffUntil: number;
   shieldUntil: number;
+  jammerUntil: number;
+  driveUntil: number;
 };
+export const createUltimateState=():UltimateState=>({meter:0,impactAt:0,impactApplied:false,buffUntil:0,shieldUntil:0,jammerUntil:0,driveUntil:0});
+/** Round resets keep accumulated charge, matching the existing ultimate rules. */
+export function resetUltimateEffects(state:UltimateState) {
+  Object.assign(state,{impactAt:0,impactApplied:false,buffUntil:0,shieldUntil:0,jammerUntil:0,driveUntil:0});
+}
 export type UltimateRules = {
   supported: ReadonlySet<string>;
   rechargeSeconds: number;
@@ -47,6 +55,7 @@ export function ultimateEligible(
 ) {
   return (
     rules.supported.has(actor.characterId) &&
+    (!!flightConfig(actor.characterId)||ultimateEffectFor(actor.characterId)!==null) &&
     state.meter >= 100 &&
     !flightBusy(actor) &&
     actor.state === 'ACTIVE' &&
@@ -66,7 +75,9 @@ export function stepUltimate(
   rules: UltimateRules,
 ): UltimateFact[] {
   const hasFlight = !!flightConfig(actor.characterId);
+  const effect=ultimateEffectFor(actor.characterId);
   const facts: UltimateFact[] = [];
+  if(!hasFlight&&!effect)return facts;
   if (rules.supported.has(actor.characterId))
     state.meter = Math.max(
       0,
@@ -95,19 +106,21 @@ export function stepUltimate(
   if (state.impactAt && !state.impactApplied && now >= state.impactAt) {
     state.impactApplied = true;
     state.impactAt = 0;
-    const effect = actor.characterId === 'kaka' ? 'shield' : 'speed';
+    if(!effect)return facts;
     if (effect === 'shield') {
       state.shieldUntil = now + rules.durationMs;
       for (const player of players)
         if (player.team === actor.team)
           player.ultimateShieldUntil = state.shieldUntil;
-    } else state.buffUntil = now + rules.durationMs;
+    } else if(effect==='speed')state.buffUntil = now + rules.durationMs;
+    else if(effect==='jammer')state.jammerUntil=now+rules.durationMs;
+    else if(effect==='drive')state.driveUntil=now+rules.durationMs;
     facts.push({
       type: 'ULTIMATE_APPLIED',
       actorId: actor.entityId,
       effect,
       durationMs: rules.durationMs,
-      speedMultiplier: rules.speedMultiplier,
+      speedMultiplier: effect==='drive'?BUTO_DRIVE_SPEED_MULTIPLIER:effect==='jammer'?1:rules.speedMultiplier,
     });
   }
   return facts;

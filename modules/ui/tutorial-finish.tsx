@@ -1,5 +1,6 @@
 import {useEffect,useRef} from 'react';
 import {useLanguage} from '../../lib/language';
+import {ArtworkBackButton} from './back-button.tsx';
 import {CHARACTER_BY_ID} from '../../lib/characters';
 import type {LocalPlayerProfile} from '../../lib/player-profile/types';
 import type {ProgressionResult} from '../../lib/player-profile/match-progression';
@@ -54,7 +55,7 @@ export function TutorialFinish({profile,result,error,catalog,onReward,onComplete
     </section>
     <div className="tutorial-finish-actions">
       <button ref={primary} type="button" disabled={!result&&!error} onClick={()=>result?onComplete('play'):onReward()}>{text(result?'LET’S PLAY':error?'RETRY SAVE':'SAVING…',result?'LANJUT MAIN':error?'COBA SIMPAN LAGI':'MENYIMPAN…')}</button>
-      <button type="button" onClick={leave}>{text('BACK TO MENU','KEMBALI KE MENU')}</button>
+      <ArtworkBackButton onBack={leave} label={text('BACK TO MENU','KEMBALI KE MENU')} />
     </div>
   </dialog>;
 }

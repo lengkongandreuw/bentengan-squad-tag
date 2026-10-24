@@ -9,17 +9,19 @@ export const UltimateBanner = ({
   hudTitle,
   bannerAlt,
   bannerClass,
+  textOnly=false,
 }: {
   playerName: string;
   icon: UltimateIconId;
   hudTitle: string;
   bannerAlt: string;
   bannerClass?: string;
+  textOnly?: boolean;
 }) => (
   <output
     className={`ultimate-banner ${bannerClass ?? ''}`}
     aria-label={t(`${playerName} mengaktifkan ${hudTitle}`)}
   >
-    <img src={ULTIMATE_BANNERS[icon]()} alt={t(bannerAlt)} decoding="async" />
+    {textOnly?<strong className="ultimate-banner-text">{hudTitle}</strong>:<img src={ULTIMATE_BANNERS[icon]()} alt={t(bannerAlt)} decoding="async" />}
   </output>
 );

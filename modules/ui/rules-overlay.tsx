@@ -46,7 +46,7 @@ export const RulesOverlay = ({ onClose }: { onClose: () => void }) => {
         <li>
           <b>{t('Map Kanal:')}</b>{t(' seberangi sungai lewat jembatan atau parkour. Jatuh ke air mengembalikan pemain ke benteng.')}</li>
         <li>
-          <b>{t('Ultimate: pilih momenmu.')}</b>{t(' Raja mempercepat rekan aktif; Kaka melindungi tim dari tag. Bebe dan Ciici kebal tag sejak lepas landas sampai selesai mendarat. Selama itu mereka tidak bisa tag, rescue, mengambil boost, atau merebut benteng. Rintangan rendah hanya bisa dilewati saat terbang. Durasi efek mengikuti level upgrade.')}</li>
+          <b>{t('Ultimate: pilih momenmu.')}</b>{t(' Raja mempercepat rekan aktif; Kaka melindungi tim dari tag. Bebe dan Ciici kebal tag saat lepas landas dan terbang, serta dapat melewati sungai dan objek parkour tanpa melompat. Selama itu mereka tidak bisa tag, rescue, mengambil boost, atau merebut benteng. Saat durasi habis, langsung kembali normal di tanah aman. Upgrade DOI menambah durasi terbang.')}</li>
       </ol>
       <p>{t('Desktop: WASD gerak · Klik kiri tujuan · Klik kanan boost · Space sprint · Shift parkour · Caps Lock Ultimate · P jeda. Ponsel: D-pad kiri dan tombol aksi kanan.')}</p>
     </div>

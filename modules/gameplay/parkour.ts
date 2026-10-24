@@ -15,7 +15,7 @@ export function parkourCooldownRemaining(
       )
     : 0;
 }
-export type ParkourReason = 'ready' | 'locked' | 'cooldown' | 'boost' | 'route';
+export type ParkourReason = 'ready' | 'locked' | 'cooldown' | 'boost' | 'route' | 'IRON_DRIVE';
 export type ParkourLanding = { x: number; y: number; crossedWater: boolean };
 type FindLanding = (
   p: RuntimeActor,
@@ -29,6 +29,7 @@ export const parkourReasonText: Record<ParkourReason, string> = {
   cooldown: 'Parkour dalam cooldown',
   boost: 'Boost belum cukup untuk parkour',
   route: 'Tidak ada tempat mendarat yang aman',
+  IRON_DRIVE: 'IRON DRIVE ACTIVE · Parkour tidak tersedia',
 };
 export function evaluateParkour(
   p: RuntimeActor,
@@ -36,8 +37,10 @@ export function evaluateParkour(
   agility: number,
   now: number,
   find: FindLanding,
+  restriction?:'IRON_DRIVE',
 ) {
   const cost = 8 / agility;
+  if(restriction)return {reason:restriction,cost,landing:null};
   if (
     !['ACTIVE', 'IN_BASE'].includes(p.state) ||
     p.flight ||
@@ -85,6 +88,7 @@ export function createParkourController() {
       agility: number,
       now: number,
       find: FindLanding,
+      restriction?:'IRON_DRIVE',
     ) {
       const state = entry(p.entityId);
       if (Math.hypot(direction.x, direction.y) > 0.01)
@@ -95,7 +99,7 @@ export function createParkourController() {
       const requested = state.pending >= now;
       // Do not sweep collider geometry on every idle simulation tick.
       const result = requested
-        ? evaluateParkour(p, state.direction, agility, now, find)
+        ? evaluateParkour(p, state.direction, agility, now, find,restriction)
         : { reason: 'route' as const, cost: 8 / agility, landing: null };
       if (requested && result.reason === 'ready' && result.landing) {
         const landing = result.landing;
@@ -108,7 +112,7 @@ export function createParkourController() {
         p.boostReadyAt = now + 20000;
         return { ...result, performed: true, requested: true };
       }
-      if (result.reason === 'locked' || result.reason === 'cooldown')
+      if (result.reason === 'locked' || result.reason === 'cooldown' || result.reason==='IRON_DRIVE')
         state.pending = -Infinity;
       return { ...result, performed: false, requested };
     },

@@ -1,40 +1,25 @@
 import { t } from '../../lib/language';
-import { landingLogoAsset, PRODUCT_COPYRIGHT } from '../../lib/branding.ts';
+import { PRODUCT_COPYRIGHT } from '../../lib/branding.ts';
+import { homeMenuArt } from './home-menu-art.tsx';
 
 // Landing splash: hero art, logo, and the enter button. Pure presentation;
 // the UI-asset resolver and the enter action are injected.
 export const SplashScreen = ({
-  resolveAsset,
   onEnter,
-  onMultiplayer,
 }: {
-  resolveAsset: (file: string) => string;
   onEnter: () => void;
-  onMultiplayer: () => void;
 }) => (
-  <section className="splash-screen" aria-labelledby="game-title">
-    <img
-      className="splash-hero splash-red"
-      src={resolveAsset('heroes/red-active.webp')}
-      alt={t("Raja dari Tim Merah")}
-    />
-    <img
-      className="splash-hero splash-green"
-      src={resolveAsset('heroes/green-active.webp')}
-      alt={t("Kaka dari Tim Hijau")}
-    />
+  <section className="splash-screen comic-home" aria-labelledby="game-title">
     <div className="splash-center">
       <img
         className="splash-logo"
-        src={landingLogoAsset()}
+        src={homeMenuArt('logo')}
+        width="1632" height="759"
         alt={t("Benteng Squad Tag")}
         id="game-title"
       />
-      <button className="enter-game" onClick={onEnter}>
-        <span>{t("PRESS")}</span>{t(" SPACE ")}<small>{t("atau klik untuk masuk")}</small>
-      </button>
-      <button type="button" className="multiplayer-open" aria-label={t("MULTIPLAYER · LOBBY")} onClick={onMultiplayer}>
-        <img src={resolveAsset('controls/multiplayer.webp')} alt="" width="1024" height="366" />
+      <button type="button" className="enter-game comic-play supplied-play" onClick={onEnter} aria-label={t('MAINKAN')}>
+        <img src={homeMenuArt('play')} width="2172" height="724" alt="" draggable={false} />
       </button>
     </div>
     <footer className="splash-copyright">{PRODUCT_COPYRIGHT}</footer>

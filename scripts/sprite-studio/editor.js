@@ -93,7 +93,7 @@ window.addEventListener('message',event=>{
 const numeric=['fps','scale','x','y','pivotX','pivotY'];
 const drafts={};
 names.default='Default · semua arah';
-Object.assign(names,{ultimate_takeoff:'Special / Ultimate — Takeoff (sekali)',ultimate_fly:'Special / Ultimate — Fly (loop)',ultimate_land:'Special / Ultimate — Landing (sekali)'});
+Object.assign(names,{ultimate_cast:'Ultimate — Activation (sekali)',ultimate_takeoff:'Special / Ultimate — Takeoff (sekali)',ultimate_fly:'Special / Ultimate — Fly (loop)',ultimate_land:'Special / Ultimate — Landing (sekali)'});
 function refreshActions(){const old=$('action').value;options($('action'),actionsForCharacter(id()),a=>names[a]);if(actionsForCharacter(id()).includes(old))$('action').value=old;}
 let uploadValid=false;
 const fileNotice=(text,error=false)=>{$('fileStatus').textContent=text;$('fileStatus').className=error?'error':'success';};
@@ -185,7 +185,7 @@ async function loadSlot(){
   // Edits are already staged by mark(); changing direction must not uncheck a selected draft.
   loadingSlot=true;selection=next;dirty=false;clearSource();uploaded=[];$('files').value='';$('fileNames').textContent='';
   for(const k of ['columns','rows','count'])$(k).value=1;$('order').value='';
-  const flight=FLIGHT_ACTIONS.includes($('action').value);
+  const flight=FLIGHT_ACTIONS.includes($('action').value)||$('action').value==='ultimate_cast';
   const boost=$('action').value==='boost_dust';boostHelp.hidden=!boost;headingLabel.hidden=!boost;
   boostShortcut.setAttribute('aria-pressed',String(boost));
   if(boost&&$('direction').value!=='default')heading.value=$('direction').value;

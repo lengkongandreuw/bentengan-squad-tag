@@ -27,6 +27,7 @@ export type RuntimeActor = {
   flight?:FlightState|null;visualTagVector?:Point;
 };
 export type ActorStats = {tags:number;prisons:number;rescues:number};
+export type UltimateActorEffects = {actorId:EntityId;buffUntil:number;shieldUntil:number;jammerUntil:number;driveUntil:number};
 export type ComboState = {step:number;expiresAt:number;lastActorId:string;surgeUntil:number};
 export type RefillState = {id:number;x:number;y:number;grade:25|40|75|100;lane:0|1|2;expiresAt:number};
 export type CanonicalEntity = Omit<RuntimeActor,'id'|'name'|'controlled'|'team'|'prisonOwner'|'capturedIds'|'visualTagVector'> & {
@@ -42,7 +43,7 @@ export type CanonicalGameState = {
   rescueRequest:{requesterId:EntityId;team:TeamId;expiresAt:number;assignedRescuerId:EntityId|null}|null;
   rescueRequestCooldownUntil:number;
   ultimate:{actorId:EntityId|null;impactAt:number;impactApplied:boolean;buffUntil:number;shieldUntil:number;
-    effectiveStats:Record<string,number>|null};
+    effectiveStats:Record<string,number>|null;actors?:UltimateActorEffects[]};
   objective:{bases:Record<TeamId,Point>;baseRadius:number};
   roundStats:Record<EntityId,ActorStats>;matchStats:Record<EntityId,ActorStats>;
   result:{winner:TeamId;reason:string;complete:boolean}|null;

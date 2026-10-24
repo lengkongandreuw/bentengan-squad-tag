@@ -25,15 +25,16 @@
   ],
   "arenaProgression": {
     "tiers": [
-      { "id": "tier-1", "mode": "campaign", "tier": 1, "arenaIds": ["kampung"] },
-      { "id": "tier-2", "mode": "campaign", "tier": 2, "arenaIds": ["pasar"] },
-      { "id": "tier-3", "mode": "campaign", "tier": 3, "arenaIds": ["taman"] },
-      { "id": "tier-4", "mode": "campaign", "tier": 4, "arenaIds": ["kanal"] },
-      { "id": "tier-5", "mode": "campaign", "tier": 5, "arenaIds": ["kanal2"] },
-      { "id": "tier-6", "mode": "campaign", "tier": 6, "arenaIds": ["studio-kampung-2420b8cf"] }
+      { "id": "tier-1", "mode": "campaign", "tier": 1, "difficulty": "easy", "arenaIds": ["kampung"] },
+      { "id": "tier-2", "mode": "campaign", "tier": 2, "difficulty": "normal", "arenaIds": ["pasar"] },
+      { "id": "tier-3", "mode": "campaign", "tier": 3, "difficulty": "hard", "arenaIds": ["studio-copy-4572a880", "taman"] },
+      { "id": "tier-4", "mode": "campaign", "tier": 4, "difficulty": "hard", "arenaIds": ["kanal"] },
+      { "id": "tier-5", "mode": "campaign", "tier": 5, "difficulty": "hard", "arenaIds": ["kanal2"] },
+      { "id": "tier-6", "mode": "campaign", "tier": 6, "difficulty": "hard", "arenaIds": ["studio-kampung-2420b8cf"] }
     ],
     "unlockRequirements": [
       { "arenaId": "pasar", "tierId": "tier-2", "minLevel": 2, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-1", "minWins": 1 }] },
+      { "arenaId": "studio-copy-4572a880", "tierId": "tier-3", "minLevel": 3, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-2", "minWins": 3 }], "minTags": 8, "minRescues": 2 },
       { "arenaId": "taman", "tierId": "tier-3", "minLevel": 3, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-2", "minWins": 3 }], "minTags": 8, "minRescues": 2 },
       { "arenaId": "kanal", "tierId": "tier-4", "minLevel": 5, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-3", "minWins": 4 }], "minTags": 15, "minRescues": 5 },
       { "arenaId": "kanal2", "tierId": "tier-5", "minLevel": 7, "requiredArenaStats": [], "requiredTierStats": [{ "tierId": "tier-4", "minWins": 5 }], "minTotalWins": 12, "minTags": 25, "minRescues": 10 },

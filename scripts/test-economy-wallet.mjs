@@ -227,7 +227,7 @@ void test('module07 explicit insufficient/invalid/stale/unsupported/locked failu
   assert.equal(purchase.canPurchaseUltimateUpgrade(funded,'raja'),true);
   for(const [p,id,tx,expected,reason] of [[empty,'raja','low',0,'insufficient_balance'],
     [funded,'raja','stale',1,'level_mismatch'],[funded,'raja',' ',0,'invalid'],[funded,'raja','bad',-1,'invalid'],
-    [funded,'bebe','unsupported',0,'unsupported_character'],[funded,'__proto__','unsupported',0,'unsupported_character'],
+    [funded,'jago','unsupported',0,'unsupported_character'],[funded,'__proto__','unsupported',0,'unsupported_character'],
     [{...funded,ultimateUpgrades:{version:1,levels:{raja:99}}},'raja','badstate',0,'invalid']]) {
     const r=purchase.purchaseUltimateUpgrade(p,id,tx,expected);assert.equal(r.reason,reason);assert.equal(r.profile,p);
     assert.equal(r.currentBalance,r.previousBalance);assert.equal(r.currentLevel,r.previousLevel);
@@ -277,7 +277,7 @@ void test('legacy match/profile writes notify once on success and throw without 
 });
 
 void test('module08 all catalog tiers resolve, invalid/missing state is base and snapshots never leak to bots',()=>{
-  for(const id of ['raja','kaka'])for(const level of [0,1,2,3]) {
+  for(const id of ['raja','kaka','bebe','ciici'])for(const level of [0,1,2,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
     const stats=effective.getEffectiveUltimateStats(freezeDeep(p),id),config=upgrades.getUltimateUpgradeConfig(id,level);
     assert.equal(stats.level,level);assert.equal(stats.castMs,config.castMs);assert.equal(stats.durationMs,config.durationMs);
@@ -287,7 +287,7 @@ void test('module08 all catalog tiers resolve, invalid/missing state is base and
   for(const state of [undefined,null,{version:99,levels:{raja:3}},{version:1,levels:{raja:99}}, {version:1,levels:{raja:-1}}]) {
     assert.equal(effective.getEffectiveUltimateStats({...matchProfile(),ultimateUpgrades:state},'raja').level,0);
   }
-  assert.equal(effective.getEffectiveUltimateStats(matchProfile(),'bebe'),null);
+  assert.equal(effective.getEffectiveUltimateStats(matchProfile(),'bebe').durationMs,4000);
   const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{raja:2}}},snapshot=effective.snapshotUltimateStats(p,'raja');
   p.ultimateUpgrades.levels.raja=3;assert.equal(snapshot.level,2);assert.equal(snapshot.speedMultiplier,1.46);
 });
@@ -309,7 +309,7 @@ void test('module09 runtime smoke executes actual ultimate block: base/upgraded 
     const ULTIMATE_CHARACTER_IDS=new Set(['raja','kaka']);
     const RAJA_ULTIMATE_RECHARGE_SECONDS=45,RAJA_ULTIMATE_CAST_MS=3200,KAKA_ULTIMATE_CAST_MS=3600,
       RAJA_ULTIMATE_BUFF_MS=5000,KAKA_ULTIMATE_SHIELD_MS=5000,RAJA_ULTIMATE_SPEED_MULTIPLIER=1.4;
-    let ultimateMeter=0,ultimateImpactAt=0,ultimateImpactApplied=false,ultimateBuffUntil=0,ultimateShieldUntil=0,
+    let ultimateMeter=0,ultimateImpactAt=0,ultimateImpactApplied=false,ultimateBuffUntil=0,ultimateShieldUntil=0,ultimateJammerUntil=0,ultimateDriveUntil=0,
       boostBurstUntil=0,bannerTimeout=0;
     const audio=[],messages=[],learningEvents=[];
     const observeLearningEvents=events=>learningEvents.push(...events);
@@ -329,8 +329,8 @@ void test('module09 runtime smoke executes actual ultimate block: base/upgraded 
     };
   `;
   const output=ts.transpileModule(setup,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
-  const initializeBlock=vm.runInThisContext(`(function(players,playerUltimateStats,core){${output}\n})`);
-  const initialize=(players,stats)=>initializeBlock(players,stats,load('modules/gameplay/ultimate.ts'));
+  const initializeBlock=vm.runInThisContext(`(function(players,playerUltimateStats,core,CHARACTER_BY_ID){${output}\n})`);
+  const initialize=(players,stats)=>initializeBlock(players,stats,load('modules/gameplay/ultimate.ts'),load('lib/characters.ts').CHARACTER_BY_ID);
   for(const id of ['raja','kaka'])for(const level of [0,3]) {
     const p={...matchProfile(),ultimateUpgrades:{version:1,levels:{[id]:level}}};
     const stats=effective.snapshotUltimateStats(p,id);
@@ -454,13 +454,13 @@ void test('module06 exact bases/costs, unsupported characters, independent defau
     assert.deepEqual([1,2,3].map(l=>upgrades.getUltimateUpgradeConfig(id,l).cost),[120,280,520]);
     assert.equal([1,2,3].reduce((n,l)=>n+upgrades.getUltimateUpgradeConfig(id,l).cost,0),920);
   }
-  for(const id of ['bebe','ciici','unknown','__proto__'])assert.equal(upgrades.getUltimateUpgradeConfig(id),null);
+  for(const id of ['unknown','__proto__'])assert.equal(upgrades.getUltimateUpgradeConfig(id),null);
   const state=upgrades.createDefaultUltimateUpgrades(),second=upgrades.createDefaultUltimateUpgrades();state.levels.raja=2;assert.equal(second.levels.raja,0);
   const p=matchProfile();p.ultimateUpgrades=state;
   assert.equal(parsePlayerProfile(p).ultimateUpgrades.levels.raja,2);
   assert.equal(upgrades.getPlayerUltimateUpgrade(p,'raja').level,2);
   assert.equal(upgrades.getPlayerUltimateUpgrade({...p,ultimateUpgrades:{version:1,levels:{}}},'kaka').level,0);
-  assert.equal(upgrades.getPlayerUltimateUpgrade(p,'bebe'),null);
+  assert.equal(upgrades.getPlayerUltimateUpgrade(p,'bebe').durationMs,4000);
   assert.equal(upgrades.parseUltimateUpgradeState({version:1,levels:{raja:4}}),null);
 });
 
@@ -474,7 +474,8 @@ void test('module06 invalid catalog fails clearly and base values match untouche
     const candidate=structuredClone(config);change(candidate);assert.throws(()=>upgrades.parseUltimateUpgradeCatalog(candidate),/Ultimate catalog/);
   }
   const runtime=fs.readFileSync('app/prototype.tsx','utf8');
-  for(const pattern of ['RAJA_ULTIMATE_RECHARGE_SECONDS = 45','RAJA_ULTIMATE_CAST_MS = 3200','RAJA_ULTIMATE_BUFF_MS = 5000','RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_CAST_MS = 3600','KAKA_ULTIMATE_SHIELD_MS = 5000'])assert.ok(runtime.includes(pattern));
+  for(const pattern of ['RAJA_ULTIMATE_RECHARGE_SECONDS = 45','RAJA_ULTIMATE_CAST_MS = 3200','RAJA_ULTIMATE_BUFF_MS = 5000','RAJA_ULTIMATE_SPEED_MULTIPLIER = 1.4','KAKA_ULTIMATE_SHIELD_MS = 5000'])assert.ok(runtime.includes(pattern));
+  assert.equal(load('lib/characters.ts').CHARACTER_BY_ID.kaka.ultimate.castMs,3600,'Kaka timing now resolves through the real descriptor');
   assert.equal(runtime.includes('getPlayerUltimateUpgrade'),false,'no runtime modifiers in module06');
 });
 
@@ -511,8 +512,20 @@ void test('module10–12 rendered UI uses wallet/catalog/result values and omits
     assert.match(render(UltimateUpgradeDetails,{profile:upgraded,characterId:id}),/Need 280 DOI more/);
     assert.match(render(UltimateUpgradePanel,{profile:upgraded,characterId:id,onRefresh:()=>{}}),/UPGRADE ULTIMATE/);
   }
-  assert.equal(render(UltimateUpgradeDetails,{profile:funded,characterId:'bebe'}),'');
-  assert.doesNotMatch(render(UltimateUpgradePanel,{profile:funded,characterId:'ciici',onRefresh:()=>{}}),/UPGRADE ULTIMATE/);
+  for(const id of ['bebe','ciici']){
+    const html=render(UltimateUpgradeDetails,{profile:funded,characterId:id});
+    assert.match(html,/Flight duration/);assert.match(html,/4 seconds/);assert.match(html,/5 seconds/);
+    assert.doesNotMatch(html,/Cast time|Team speed/);
+    assert.match(render(UltimateUpgradePanel,{profile:funded,characterId:id,onRefresh:()=>{}}),/UPGRADE ULTIMATE/);
+  }
+  for(const [id,name,cast]of [['robot','JAMMER FIELD','0.65'],['buto','IRON DRIVE','0.6']]){
+    const html=render(UltimateUpgradeDetails,{profile:funded,characterId:id});
+    assert.match(html,new RegExp(name));assert.match(html,/4 seconds/);assert.match(html,/4\.5 seconds/);
+    assert.match(html,new RegExp(`${cast} seconds`));assert.doesNotMatch(html,/Coming soon/);
+    assert.doesNotMatch(html,/Team speed/);
+    if(id==='buto'){assert.match(html,/Self speed/);assert.match(html,/25%/);}
+    else assert.doesNotMatch(html,/Self speed/);
+  }
   const max={...funded,ultimateUpgrades:{version:1,levels:{raja:3}}};
   assert.match(render(UltimateUpgradeDetails,{profile:max,characterId:'raja'}),/MAX LEVEL/);
   const win=matchEngine.applyMatchProgression(matchProfile(),summary());

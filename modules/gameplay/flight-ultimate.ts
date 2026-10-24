@@ -1,5 +1,6 @@
-// Moved verbatim from lib/flight-ultimate.js (R10); typed, no behavior change.
+// Shared simulation controller: takeoff -> flight -> immediate normal state.
 import { spriteDirection } from '../../lib/sprite-studio-model.js';
+import {LOW_OBSTACLE_ASSETS} from './low-obstacles.ts';
 
 export type FlightConfig = {
   enabled: boolean;
@@ -53,7 +54,7 @@ export const FLIGHT_CONFIG = Object.freeze({
     speedMultiplier: 1.25,
     turnMultiplier: 0.85,
     takeoffSeconds: 0.7,
-    landingSeconds: 0.4,
+    landingSeconds: 0,
     icon: 'ui-v2/ultimate/bebe.png',
   }),
   ciici: Object.freeze({
@@ -61,12 +62,16 @@ export const FLIGHT_CONFIG = Object.freeze({
     speedMultiplier: 1.2,
     turnMultiplier: 1.15,
     takeoffSeconds: 0.65,
-    landingSeconds: 0.35,
+    landingSeconds: 0,
     icon: 'ui-v2/ultimate/ciici.png',
   }),
 });
-export const flightConfig = (id: string): FlightConfig | null =>
-  FLIGHT_CONFIG[id as keyof typeof FLIGHT_CONFIG] ?? null;
+export const flightConfig = (id: string, durationMs?: number): FlightConfig | null => {
+  const base=FLIGHT_CONFIG[id as keyof typeof FLIGHT_CONFIG];
+  if(!base)return null;
+  return durationMs!==undefined&&Number.isFinite(durationMs)&&durationMs>0
+    ? {...base,flightDuration:durationMs/1000} : base;
+};
 export const isFlying = (p: { flight?: { stage?: string } | null }) =>
   p.flight?.stage === 'FLYING';
 export const flightBusy = (p: { flight?: unknown }) => !!p.flight;
@@ -128,11 +133,12 @@ export function advanceFlight(
     }
     if (f.remaining === 0) {
       hooks.onSafeLanding?.();
-      f.stage = 'FLIGHT_LANDING';
-      f.elapsed = 0;
-      hooks.onFlightLanding?.();
+      hooks.onFlightEnd?.();
+      return null;
     }
-  } else if (f.stage === 'FLIGHT_LANDING' && complete) {
+  } else if (f.stage === 'FLIGHT_LANDING') {
+    // Compatibility with old snapshots: never wait on an authored descent clip.
+    hooks.onSafeLanding?.();
     hooks.onFlightEnd?.();
     return null;
   }
@@ -177,17 +183,7 @@ export function safeFlightLanding(
   return valid(lastGround.x, lastGround.y) ? { ...lastGround } : null;
 }
 // Conservative explicit low-obstacle allowlist; unknown/hidden/world objects block.
-export const FLIGHT_LOW_ASSETS = new Set([
-  'bucket',
-  'bush',
-  'crates',
-  'drain',
-  'trash',
-  'plant',
-  'plantFence',
-  'flowerBedSmall',
-  'flowerFence',
-]);
+export const FLIGHT_LOW_ASSETS = LOW_OBSTACLE_ASSETS;
 export const flightPassesObstacle = (o: {
   hidden?: boolean;
   asset: string;
