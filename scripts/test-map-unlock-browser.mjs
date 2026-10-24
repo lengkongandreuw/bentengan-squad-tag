@@ -7,15 +7,16 @@ const server=await createServer({configFile:'vite.github.config.ts',server:{host
 const files=['config/map-studio.json','config/map-runtime.json'],before=await Promise.all(files.map(f=>readFile(f)));
 const expected=['Kampung Merdeka','Gardu Tengah','Taman Kota 1','Taman Kota 2','Alun Kanal Nusantara','Cagar Taman Budaya','Arena Benteng 1'];
 const reports=[],errors=[];let browser;
+/** @type {[string,number,number,number,number,Record<string,{played:number;wins:number}>,number][]} */
+const profileCases=[
+ ['fresh',0,0,0,0,{},1],
+ ['level3',450,4,8,2,{kampung:{played:1,wins:1},'studio-edit-pasar':{played:3,wins:3}},4],
+ ['veteran',6000,40,100,30,{kampung:{played:1,wins:1},'studio-edit-pasar':{played:3,wins:3},'studio-edit-taman':{played:4,wins:4},'studio-edit-kanal':{played:5,wins:5},'studio-edit-kanal2':{played:7,wins:7}},7],
+];
 try{
  await mkdir('outputs/map-unlock',{recursive:true});await server.listen();
  browser=await chromium.launch({headless:true,executablePath:process.env.BENTENG_CHROME_PATH??'C:/Program Files/Google/Chrome/Application/chrome.exe'});
- for(const [name,xp,wins,tags,rescues,arenaStats,unlockedCount] of [
-  ['fresh',0,0,0,0,{},1],
-  ['level3',450,4,8,2,{kampung:{played:1,wins:1},'studio-edit-pasar':{played:3,wins:3}},4],
-  ['veteran',6000,40,100,30,{kampung:{played:1,wins:1},'studio-edit-pasar':{played:3,wins:3},'studio-edit-taman':{played:4,wins:4},'studio-edit-kanal':{played:5,wins:5},'studio-edit-kanal2':{played:7,wins:7}},7],
- ]){
-  assert(typeof name==='string','QA profile label must be a string');
+ for(const [name,xp,wins,tags,rescues,arenaStats,unlockedCount] of profileCases){
   const context=await browser.newContext({viewport:{width:1366,height:768}}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   const profile={schemaVersion:1,id:'map-unlock-qa',username:'MapUnlockQA',firstJoin:'2026-10-23T00:00:00.000Z',menang:wins,kalah:0,featuredCharacterId:'raja',kda:{tagMusuh:tags,masukPenjara:0,rescueTeam:rescues},progression:{version:1,xp,unlockedCharacters:['raja','kaka'],unlockedArenaIds:['kampung'],arenaStats,processedMatchIds:[]},tutorial:{version:1,status:'skipped',currentStepId:null,startedAt:null,completedAt:null,skippedAt:'2026-10-23T00:00:00.000Z',rewardClaimed:false,replay:false,sessionActive:false,learned:[]}};
   await page.addInitScript(p=>localStorage.setItem('bentengan-player-profile-v1',JSON.stringify(p)),profile);
